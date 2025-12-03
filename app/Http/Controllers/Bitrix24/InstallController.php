@@ -88,6 +88,7 @@ class InstallController extends Controller
 
             return view('b24api.install');
         } catch (\Throwable $e) {
+			echo "<pre>"; print_r($e->getMessage()); echo "</pre>";
             return view('b24api.install-fail');
         }
     }
