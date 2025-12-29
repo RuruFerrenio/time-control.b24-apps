@@ -16,6 +16,7 @@
         taskId: @json($taskId ?? null),
         placementOptions: @json($placementOptions ?? []),
         sendBtnActive: @json($sendBtnActive ?? []),
+        fitWindow: @json($fitWindow ?? []),
       };
     </script>
 

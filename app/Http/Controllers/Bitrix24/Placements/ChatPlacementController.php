@@ -31,6 +31,7 @@ class ChatPlacementController extends Controller
 			'dialogId' => $dialogId,
 			'placementOptions' => $placementOptions,
 			'sendBtnActive' => true,
+			'fitWindow' => true,
 			'authId' => $request->input('AUTH_ID'),
 			'domain' => $request->input('DOMAIN'),
 		]);

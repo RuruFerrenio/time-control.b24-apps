@@ -16,6 +16,7 @@
         dialogId: @json($dialogId ?? null),
         placementOptions: @json($placementOptions ?? []),
         sendBtnActive: @json($sendBtnActive ?? []),
+        fitWindow: @json($fitWindow ?? []),
       };
     </script>
 

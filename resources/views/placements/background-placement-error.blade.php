@@ -5,16 +5,12 @@
     <script src="//api.bitrix24.com/api/v1/"></script>
     <title>Установка</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script>
-      // BX24.init(function () {
-      //   BX24.installFinish();
-      // });
+      BX24.init(function () {
+            console.log('background placement worked!');
+      });
     </script>
 </head>
 <body>
-<div id="app" class="isolate">
-    <!-- Vue приложение будет монтироваться сюда -->
-</div>
 </body>
 </html>

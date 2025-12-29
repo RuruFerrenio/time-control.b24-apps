@@ -1,29 +1,10 @@
 <template>
   <B24App>
-    <div class="w-full h-full p-4 space-y-4">
+    <div class="w-full h-full p-4 space-y-4" :dir="direction">
       <!-- Дисплей калькулятора -->
       <B24Card class="overflow-hidden">
         <div class="p-3 relative">
-          <!-- Кнопка справки в левом верхнем углу -->
-          <div class="absolute left-3 top-3 z-10">
-            <div
-                class="w-6 h-6 rounded-full bg-b24-surface-hover flex items-center justify-center cursor-pointer hover:bg-b24-border transition-colors"
-                @click="showHelpModal = true"
-                @mouseenter="helpTooltip = true"
-                @mouseleave="helpTooltip = false"
-            >
-              <span class="text-sm text-b24-text-secondary">?</span>
-              <!-- Всплывающая подсказка -->
-              <div
-                  v-if="helpTooltip"
-                  class="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 bg-b24-surface-popover text-xs text-b24-text-primary px-2 py-1 rounded shadow-lg whitespace-nowrap z-50"
-              >
-                Справка по калькулятору
-              </div>
-            </div>
-          </div>
-
-          <div class="text-right space-y-0 pl-8">
+          <div class="text-right space-y-0">
             <!-- История вычислений -->
             <div
                 v-if="previousExpression"
@@ -43,8 +24,9 @@
                   @input="onExpressionChange"
                   @focus="onInputFocus"
                   @blur="onInputBlur"
-                  :placeholder="inputPlaceholder"
+                  :placeholder="$t('calculator.placeholder')"
                   spellcheck="false"
+                  :dir="direction"
               />
               <div class="absolute right-0 top-0 bottom-0 w-0 opacity-0 pointer-events-none">
                 {{ currentExpression }}
@@ -54,7 +36,7 @@
             <!-- Результат с разделительной чертой -->
             <div class="border-t border-b24-border pt-1 mt-1">
               <div class="text-lg font-bold text-b24-primary truncate calculator-display" style="min-height: 24px;">
-                = {{ formattedResult }}
+                {{ $t('calculator.equals') }} {{ formattedResult }}
               </div>
             </div>
           </div>
@@ -70,7 +52,7 @@
               @click="copyToClipboard"
               class="text-xs w-full justify-center"
           >
-            Копировать
+            {{ $t('calculator.copy') }}
           </B24Button>
           <B24Button
               v-if="sendBtnActive"
@@ -79,7 +61,7 @@
               @click="sendToChat"
               class="text-xs w-full justify-center"
           >
-            Отправить
+            {{ $t('calculator.send') }}
           </B24Button>
         </div>
       </div>
@@ -90,7 +72,9 @@
             class="cursor-pointer flex items-center justify-between hover:bg-b24-surface-hover transition-colors p-3"
             @click="toggleKeyboard"
         >
-          <h3 class="text-sm font-semibold text-b24-text-primary">Клавиатура калькулятора</h3>
+          <h3 class="text-sm font-semibold text-b24-text-primary">
+            {{ $t('calculator.keyboardTitle') }}
+          </h3>
           <div class="transform transition-transform" :class="{ 'rotate-180': keyboardOpen }">
             <i class="fas fa-chevron-down text-b24-text-secondary"></i>
           </div>
@@ -106,7 +90,7 @@
                 @click="clear"
                 class="calc-btn"
             >
-              C
+              {{ $t('calculator.clear') }}
             </B24Button>
             <B24Button
                 size="lg"
@@ -114,7 +98,7 @@
                 @click="backspace"
                 class="calc-btn"
             >
-              ⌫
+              {{ $t('calculator.backspace') }}
             </B24Button>
             <B24Button
                 size="lg"
@@ -122,7 +106,7 @@
                 @click="addPercentage"
                 class="calc-btn"
             >
-              %
+              {{ $t('calculator.percentage') }}
             </B24Button>
             <B24Button
                 size="lg"
@@ -130,7 +114,7 @@
                 @click="addToExpression('/')"
                 class="calc-btn calc-btn-operation"
             >
-              ÷
+              {{ $t('calculator.divide') }}
             </B24Button>
 
             <!-- Цифры 7-9 -->
@@ -164,7 +148,7 @@
                 @click="addToExpression('*')"
                 class="calc-btn calc-btn-operation"
             >
-              ×
+              {{ $t('calculator.multiply') }}
             </B24Button>
 
             <!-- Цифры 4-6 -->
@@ -198,7 +182,7 @@
                 @click="addToExpression('-')"
                 class="calc-btn calc-btn-operation"
             >
-              −
+              {{ $t('calculator.subtract') }}
             </B24Button>
 
             <!-- Цифры 1-3 -->
@@ -232,7 +216,7 @@
                 @click="addToExpression('+')"
                 class="calc-btn calc-btn-operation"
             >
-              +
+              {{ $t('calculator.add') }}
             </B24Button>
 
             <!-- Нижний ряд -->
@@ -250,14 +234,14 @@
                 @click="addToExpression('.')"
                 class="calc-btn calc-btn-number"
             >
-              .
+              {{ $t('calculator.point') }}
             </B24Button>
             <B24Button
                 size="lg"
                 @click="calculate"
                 class="calc-btn calc-btn-equals"
             >
-              =
+              {{ $t('calculator.equalsBtn') }}
             </B24Button>
           </div>
 
@@ -269,7 +253,7 @@
                 @click="addParenthesis('(')"
                 class="calc-btn"
             >
-              (
+              {{ $t('calculator.openParen') }}
             </B24Button>
             <B24Button
                 size="sm"
@@ -277,7 +261,7 @@
                 @click="addParenthesis(')')"
                 class="calc-btn"
             >
-              )
+              {{ $t('calculator.closeParen') }}
             </B24Button>
             <B24Button
                 size="sm"
@@ -285,7 +269,7 @@
                 @click="addToExpression('^')"
                 class="calc-btn"
             >
-              ^
+              {{ $t('calculator.power') }}
             </B24Button>
             <B24Button
                 size="sm"
@@ -293,7 +277,7 @@
                 @click="addConstant('pi')"
                 class="calc-btn"
             >
-              π
+              {{ $t('calculator.pi') }}
             </B24Button>
           </div>
         </div>
@@ -305,7 +289,9 @@
             class="cursor-pointer flex items-center justify-between hover:bg-b24-surface-hover transition-colors p-3"
             @click="toggleEngineering"
         >
-          <h3 class="text-sm font-semibold text-b24-text-primary">Инженерные функции</h3>
+          <h3 class="text-sm font-semibold text-b24-text-primary">
+            {{ $t('calculator.engineeringTitle') }}
+          </h3>
           <div class="transform transition-transform" :class="{ 'rotate-180': engineeringOpen }">
             <i class="fas fa-calculator text-b24-text-secondary"></i>
           </div>
@@ -315,7 +301,9 @@
         <div v-if="engineeringOpen" class="pt-3 pb-3 px-3">
           <!-- Тригонометрия -->
           <div class="mb-4">
-            <h4 class="text-xs font-semibold text-b24-text-secondary mb-2 px-1">Тригонометрия</h4>
+            <h4 class="text-xs font-semibold text-b24-text-secondary mb-2 px-1">
+              {{ $t('calculator.trigonometry') }}
+            </h4>
             <div class="grid grid-cols-3 gap-2 mb-3">
               <B24Button
                   size="sm"
@@ -323,7 +311,7 @@
                   @click="wrapWithFunction('sin')"
                   class="calc-btn-engineering"
               >
-                sin
+                {{ $t('calculator.sin') }}
               </B24Button>
               <B24Button
                   size="sm"
@@ -331,7 +319,7 @@
                   @click="wrapWithFunction('cos')"
                   class="calc-btn-engineering"
               >
-                cos
+                {{ $t('calculator.cos') }}
               </B24Button>
               <B24Button
                   size="sm"
@@ -339,7 +327,7 @@
                   @click="wrapWithFunction('tan')"
                   class="calc-btn-engineering"
               >
-                tan
+                {{ $t('calculator.tan') }}
               </B24Button>
             </div>
             <div class="grid grid-cols-3 gap-2">
@@ -349,7 +337,7 @@
                   @click="wrapWithFunction('asin')"
                   class="calc-btn-engineering"
               >
-                asin
+                {{ $t('calculator.asin') }}
               </B24Button>
               <B24Button
                   size="sm"
@@ -357,7 +345,7 @@
                   @click="wrapWithFunction('acos')"
                   class="calc-btn-engineering"
               >
-                acos
+                {{ $t('calculator.acos') }}
               </B24Button>
               <B24Button
                   size="sm"
@@ -365,14 +353,16 @@
                   @click="wrapWithFunction('atan')"
                   class="calc-btn-engineering"
               >
-                atan
+                {{ $t('calculator.atan') }}
               </B24Button>
             </div>
           </div>
 
           <!-- Математические функции -->
           <div class="mb-4">
-            <h4 class="text-xs font-semibold text-b24-text-secondary mb-2 px-1">Математика</h4>
+            <h4 class="text-xs font-semibold text-b24-text-secondary mb-2 px-1">
+              {{ $t('calculator.mathematics') }}
+            </h4>
             <div class="grid grid-cols-3 gap-2">
               <B24Button
                   size="sm"
@@ -380,7 +370,7 @@
                   @click="wrapWithFunction('sqrt')"
                   class="calc-btn-engineering"
               >
-                √
+                {{ $t('calculator.squareRoot') }}
               </B24Button>
               <B24Button
                   size="sm"
@@ -388,7 +378,7 @@
                   @click="addPower(2)"
                   class="calc-btn-engineering"
               >
-                x²
+                {{ $t('calculator.square') }}
               </B24Button>
               <B24Button
                   size="sm"
@@ -396,7 +386,7 @@
                   @click="addPower('y')"
                   class="calc-btn-engineering"
               >
-                xʸ
+                {{ $t('calculator.power') }}
               </B24Button>
               <B24Button
                   size="sm"
@@ -404,7 +394,7 @@
                   @click="wrapWithFunction('ln')"
                   class="calc-btn-engineering"
               >
-                ln
+                {{ $t('calculator.ln') }}
               </B24Button>
               <B24Button
                   size="sm"
@@ -412,7 +402,7 @@
                   @click="wrapWithFunction('log10')"
                   class="calc-btn-engineering"
               >
-                log₁₀
+                {{ $t('calculator.log10') }}
               </B24Button>
               <B24Button
                   size="sm"
@@ -420,14 +410,16 @@
                   @click="wrapWithFunction('exp')"
                   class="calc-btn-engineering"
               >
-                eˣ
+                {{ $t('calculator.exp') }}
               </B24Button>
             </div>
           </div>
 
           <!-- Константы и факториал -->
           <div class="mb-4">
-            <h4 class="text-xs font-semibold text-b24-text-secondary mb-2 px-1">Константы</h4>
+            <h4 class="text-xs font-semibold text-b24-text-secondary mb-2 px-1">
+              {{ $t('calculator.constants') }}
+            </h4>
             <div class="grid grid-cols-3 gap-2">
               <B24Button
                   size="sm"
@@ -435,7 +427,7 @@
                   @click="addConstant('pi')"
                   class="calc-btn-engineering"
               >
-                π
+                {{ $t('calculator.pi') }}
               </B24Button>
               <B24Button
                   size="sm"
@@ -443,7 +435,7 @@
                   @click="addConstant('e')"
                   class="calc-btn-engineering"
               >
-                e
+                {{ $t('calculator.e') }}
               </B24Button>
               <B24Button
                   size="sm"
@@ -451,14 +443,16 @@
                   @click="wrapWithFunction('factorial')"
                   class="calc-btn-engineering"
               >
-                n!
+                {{ $t('calculator.factorial') }}
               </B24Button>
             </div>
           </div>
 
           <!-- Дополнительные функции -->
           <div>
-            <h4 class="text-xs font-semibold text-b24-text-secondary mb-2 px-1">Дополнительно</h4>
+            <h4 class="text-xs font-semibold text-b24-text-secondary mb-2 px-1">
+              {{ $t('calculator.additional') }}
+            </h4>
             <div class="grid grid-cols-3 gap-2">
               <B24Button
                   size="sm"
@@ -466,7 +460,7 @@
                   @click="wrapWithFunction('abs')"
                   class="calc-btn-engineering"
               >
-                |x|
+                {{ $t('calculator.abs') }}
               </B24Button>
               <B24Button
                   size="sm"
@@ -474,7 +468,7 @@
                   @click="addReciprocal"
                   class="calc-btn-engineering"
               >
-                1/x
+                {{ $t('calculator.reciprocal') }}
               </B24Button>
               <B24Button
                   size="sm"
@@ -482,7 +476,7 @@
                   @click="toggleAngleMode"
                   class="calc-btn-engineering"
               >
-                {{ angleMode === 'deg' ? 'DEG' : 'RAD' }}
+                {{ angleMode === 'deg' ? $t('calculator.deg') : $t('calculator.rad') }}
               </B24Button>
             </div>
           </div>
@@ -495,10 +489,12 @@
             class="cursor-pointer flex items-center justify-between hover:bg-b24-surface-hover transition-colors p-3"
             @click="toggleHistory"
         >
-          <h3 class="text-sm font-semibold text-b24-text-primary">История расчетов</h3>
+          <h3 class="text-sm font-semibold text-b24-text-primary">
+            {{ $t('calculator.historyTitle') }}
+          </h3>
           <div class="flex items-center space-x-2">
             <span v-if="history.length > 0" class="text-xs text-b24-text-secondary">
-              {{ history.length }}
+              {{ $t('calculator.items', {count: history.length}) }}
             </span>
             <div class="transform transition-transform" :class="{ 'rotate-180': historyOpen }">
               <i class="fas fa-chevron-down text-b24-text-secondary"></i>
@@ -509,7 +505,9 @@
         <!-- История (скрываемое содержимое) -->
         <div v-if="historyOpen" class="pt-3 pb-3 px-3">
           <div v-if="history.length === 0" class="text-center py-4">
-            <p class="text-sm text-b24-text-secondary">История расчетов пуста</p>
+            <p class="text-sm text-b24-text-secondary">
+              {{ $t('calculator.emptyHistory') }}
+            </p>
           </div>
 
           <div v-else class="space-y-2 max-h-40 overflow-y-auto">
@@ -537,166 +535,211 @@
                 @click="clearHistory"
                 class="text-xs w-full justify-center"
             >
-              Очистить
+              {{ $t('calculator.clearHistory') }}
             </B24Button>
           </div>
         </div>
       </B24Card>
-    </div>
 
-    <!-- Модальное окно справки -->
-    <B24Modal
-        v-if="showHelpModal"
-        :show="showHelpModal"
-        title="Справка по калькулятору"
-        @close="showHelpModal = false"
-        size="md"
-    >
-      <div class="p-4">
-        <div class="space-y-4">
+      <!-- Аккордеон для справки (последний) -->
+      <B24Card class="overflow-hidden">
+        <div
+            class="cursor-pointer flex items-center justify-between hover:bg-b24-surface-hover transition-colors p-3"
+            @click="toggleHelp"
+        >
+          <h3 class="text-sm font-semibold text-b24-text-primary">
+            {{ $t('calculator.helpTitle') }}
+          </h3>
+          <div class="transform transition-transform" :class="{ 'rotate-180': helpOpen }">
+            <i class="fas fa-question-circle text-b24-text-secondary"></i>
+          </div>
+        </div>
+
+        <!-- Справка по горячим клавишам (скрываемое содержимое) -->
+        <div v-if="helpOpen" class="pt-3 pb-3 px-3">
           <!-- Основные клавиши -->
-          <div>
-            <h3 class="text-sm font-semibold text-b24-text-primary mb-2">Основные клавиши</h3>
-            <div class="space-y-1 text-sm text-b24-text-secondary">
-              <div class="flex items-center">
-                <span class="inline-block bg-b24-surface-hover px-2 py-1 rounded text-xs font-mono mr-2">Enter</span>
-                <span>= Вычислить результат</span>
+          <div class="mb-4">
+            <h4 class="text-xs font-semibold text-b24-text-primary mb-2 px-1 pb-1 border-b border-b24-border">
+              {{ $t('calculator.helpCategories.basic') }}
+            </h4>
+            <div class="space-y-2">
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-b24-text-secondary">
+                  {{ $t('calculator.helpItems.calculate') }}
+                </span>
+                <div class="flex items-center space-x-1">
+                  <kbd class="keyboard-key">
+                    {{ $t('calculator.hotkeys.enter') }}
+                  </kbd>
+                  <span class="text-xs text-b24-text-tertiary">
+                    {{ $t('calculator.helpItems.or') }}
+                  </span>
+                  <kbd class="keyboard-key">
+                    {{ $t('calculator.hotkeys.equals') }}
+                  </kbd>
+                </div>
               </div>
-              <div class="flex items-center">
-                <span class="inline-block bg-b24-surface-hover px-2 py-1 rounded text-xs font-mono mr-2">=</span>
-                <span>= Вычислить результат</span>
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-b24-text-secondary">
+                  {{ $t('calculator.helpItems.clearAll') }}
+                </span>
+                <div class="flex items-center space-x-1">
+                  <kbd class="keyboard-key">
+                    {{ $t('calculator.hotkeys.escape') }}
+                  </kbd>
+                  <span class="text-xs text-b24-text-tertiary">
+                    {{ $t('calculator.helpItems.or') }}
+                  </span>
+                  <kbd class="keyboard-key">
+                    {{ $t('calculator.hotkeys.delete') }}
+                  </kbd>
+                </div>
               </div>
-              <div class="flex items-center">
-                <span class="inline-block bg-b24-surface-hover px-2 py-1 rounded text-xs font-mono mr-2">Esc</span>
-                <span>= Очистить всё (C)</span>
-              </div>
-              <div class="flex items-center">
-                <span class="inline-block bg-b24-surface-hover px-2 py-1 rounded text-xs font-mono mr-2">Delete</span>
-                <span>= Очистить всё (C)</span>
-              </div>
-              <div class="flex items-center">
-                <span class="inline-block bg-b24-surface-hover px-2 py-1 rounded text-xs font-mono mr-2">Backspace</span>
-                <span>= Удалить последний символ (⌫)</span>
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-b24-text-secondary">
+                  {{ $t('calculator.helpItems.deleteLast') }}
+                </span>
+                <kbd class="keyboard-key">
+                  {{ $t('calculator.hotkeys.backspace') }}
+                </kbd>
               </div>
             </div>
           </div>
 
           <!-- Математические операции -->
-          <div>
-            <h3 class="text-sm font-semibold text-b24-text-primary mb-2">Математические операции</h3>
-            <div class="space-y-1 text-sm text-b24-text-secondary">
-              <div class="flex items-center">
-                <span class="inline-block bg-b24-surface-hover px-2 py-1 rounded text-xs font-mono mr-2">+</span>
-                <span>= Сложение</span>
-              </div>
-              <div class="flex items-center">
-                <span class="inline-block bg-b24-surface-hover px-2 py-1 rounded text-xs font-mono mr-2">-</span>
-                <span>= Вычитание</span>
-              </div>
-              <div class="flex items-center">
-                <span class="inline-block bg-b24-surface-hover px-2 py-1 rounded text-xs font-mono mr-2">*</span>
-                <span>= Умножение</span>
-              </div>
-              <div class="flex items-center">
-                <span class="inline-block bg-b24-surface-hover px-2 py-1 rounded text-xs font-mono mr-2">/</span>
-                <span>= Деление</span>
-              </div>
-              <div class="flex items-center">
-                <span class="inline-block bg-b24-surface-hover px-2 py-1 rounded text-xs font-mono mr-2">^</span>
-                <span>= Возведение в степень</span>
-              </div>
-              <div class="flex items-center">
-                <span class="inline-block bg-b24-surface-hover px-2 py-1 rounded text-xs font-mono mr-2">%</span>
-                <span>= Процент</span>
+          <div class="mb-4">
+            <h4 class="text-xs font-semibold text-b24-text-primary mb-2 px-1 pb-1 border-b border-b24-border">
+              {{ $t('calculator.helpCategories.operations') }}
+            </h4>
+            <div class="space-y-2">
+              <div class="grid grid-cols-2 gap-x-4 gap-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm text-b24-text-secondary">
+                    {{ $t('calculator.helpItems.addition') }}
+                  </span>
+                  <kbd class="keyboard-key">
+                    {{ $t('calculator.hotkeys.plus') }}
+                  </kbd>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-sm text-b24-text-secondary">
+                    {{ $t('calculator.helpItems.subtraction') }}
+                  </span>
+                  <kbd class="keyboard-key">
+                    {{ $t('calculator.hotkeys.minus') }}
+                  </kbd>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-sm text-b24-text-secondary">
+                    {{ $t('calculator.helpItems.multiplication') }}
+                  </span>
+                  <kbd class="keyboard-key">
+                    {{ $t('calculator.hotkeys.asterisk') }}
+                  </kbd>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-sm text-b24-text-secondary">
+                    {{ $t('calculator.helpItems.division') }}
+                  </span>
+                  <kbd class="keyboard-key">
+                    {{ $t('calculator.hotkeys.slash') }}
+                  </kbd>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-sm text-b24-text-secondary">
+                    {{ $t('calculator.helpItems.power') }}
+                  </span>
+                  <kbd class="keyboard-key">
+                    {{ $t('calculator.hotkeys.caret') }}
+                  </kbd>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-sm text-b24-text-secondary">
+                    {{ $t('calculator.helpItems.percent') }}
+                  </span>
+                  <kbd class="keyboard-key">
+                    {{ $t('calculator.hotkeys.percent') }}
+                  </kbd>
+                </div>
               </div>
             </div>
           </div>
 
           <!-- Скобки и константы -->
-          <div>
-            <h3 class="text-sm font-semibold text-b24-text-primary mb-2">Скобки и константы</h3>
-            <div class="space-y-1 text-sm text-b24-text-secondary">
-              <div class="flex items-center">
-                <span class="inline-block bg-b24-surface-hover px-2 py-1 rounded text-xs font-mono mr-2">( )</span>
-                <span>= Открыть/закрыть скобки</span>
-              </div>
-              <div class="flex items-center">
-                <span class="inline-block bg-b24-surface-hover px-2 py-1 rounded text-xs font-mono mr-2">Ctrl + P</span>
-                <span>= Вставить число π (пи)</span>
-              </div>
-              <div class="flex items-center">
-                <span class="inline-block bg-b24-surface-hover px-2 py-1 rounded text-xs font-mono mr-2">Ctrl + E</span>
-                <span>= Вставить число e</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Цифры и десятичная точка -->
-          <div>
-            <h3 class="text-sm font-semibold text-b24-text-primary mb-2">Цифры и десятичная точка</h3>
-            <div class="grid grid-cols-3 gap-1">
-              <div class="flex items-center">
-                <span class="inline-block bg-b24-surface-hover px-2 py-1 rounded text-xs font-mono mr-2">0-9</span>
-                <span>= Цифры</span>
-              </div>
-              <div class="flex items-center">
-                <span class="inline-block bg-b24-surface-hover px-2 py-1 rounded text-xs font-mono mr-2">.</span>
-                <span>= Десятичная точка</span>
-              </div>
-              <div class="flex items-center">
-                <span class="inline-block bg-b24-surface-hover px-2 py-1 rounded text-xs font-mono mr-2">,</span>
-                <span>= Десятичная точка (альтернативная)</span>
+          <div class="mb-4">
+            <h4 class="text-xs font-semibold text-b24-text-primary mb-2 px-1 pb-1 border-b border-b24-border">
+              {{ $t('calculator.helpCategories.parentheses') }}
+            </h4>
+            <div class="space-y-2">
+              <div class="grid grid-cols-2 gap-x-4 gap-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm text-b24-text-secondary">
+                    {{ $t('calculator.helpItems.openParenthesis') }}
+                  </span>
+                  <kbd class="keyboard-key">
+                    {{ $t('calculator.hotkeys.openParen') }}
+                  </kbd>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-sm text-b24-text-secondary">
+                    {{ $t('calculator.helpItems.closeParenthesis') }}
+                  </span>
+                  <kbd class="keyboard-key">
+                    {{ $t('calculator.hotkeys.closeParen') }}
+                  </kbd>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Быстрые действия -->
-          <div>
-            <h3 class="text-sm font-semibold text-b24-text-primary mb-2">Быстрые действия</h3>
-            <div class="space-y-1 text-sm text-b24-text-secondary">
-              <div class="flex items-center">
-                <span class="inline-block bg-b24-surface-hover px-2 py-1 rounded text-xs font-mono mr-2">%</span>
-                <span>= Добавить процент к выражению</span>
+          <!-- Цифры -->
+          <div class="mb-4">
+            <h4 class="text-xs font-semibold text-b24-text-primary mb-2 px-1 pb-1 border-b border-b24-border">
+              {{ $t('calculator.helpCategories.numbers') }}
+            </h4>
+            <div class="space-y-2">
+              <div class="flex items-center justify-between text-sm mb-2">
+                <span class="text-b24-text-secondary">
+                  {{ $t('calculator.helpItems.numbers') }}
+                </span>
+                <div class="flex items-center space-x-1">
+                  <kbd class="keyboard-key number-key">0</kbd>
+                  <span class="text-xs text-b24-text-tertiary">-</span>
+                  <kbd class="keyboard-key number-key">9</kbd>
+                </div>
               </div>
-              <div class="text-xs text-b24-text-tertiary mt-1">
-                Пример: 10% → 0.1, 10%100 → 10
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-b24-text-secondary">
+                  {{ $t('calculator.helpItems.decimalPoint') }}
+                </span>
+                <div class="flex items-center space-x-2">
+                  <kbd class="keyboard-key">
+                    {{ $t('calculator.hotkeys.period') }}
+                  </kbd>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Примечания -->
-          <div class="pt-2 border-t border-b24-border">
-            <h3 class="text-sm font-semibold text-b24-text-primary mb-2">Примечания</h3>
-            <ul class="text-xs text-b24-text-secondary space-y-1 list-disc pl-4">
-              <li>Все вычисления происходят в реальном времени</li>
-              <li>Результат автоматически форматируется для удобства чтения</li>
-              <li>Вы можете использовать как цифровую клавиатуру, так и кнопки на экране</li>
-              <li>История сохраняется локально в браузере</li>
-              <li>Для закрытия модального окна нажмите Esc или кликните вне окна</li>
-            </ul>
+          <!-- Примечание -->
+          <div class="pt-3 border-t border-b24-border">
+            <p class="text-xs text-b24-text-tertiary italic">
+              {{ $t('calculator.helpIntro') }}
+            </p>
           </div>
         </div>
-      </div>
-
-      <template #footer>
-        <div class="flex justify-end">
-          <B24Button
-              size="sm"
-              variant="primary"
-              @click="showHelpModal = false"
-          >
-            Закрыть
-          </B24Button>
-        </div>
-      </template>
-    </B24Modal>
+      </B24Card>
+    </div>
   </B24App>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
-import { useToast } from '@bitrix24/b24ui-nuxt/composables/useToast'
+import {ref, computed, onMounted, onUnmounted} from 'vue'
+import {useToast} from '@bitrix24/b24ui-nuxt/composables/useToast'
+import {useI18n} from 'vue-i18n'
+import {languages} from '@/locales'
 
+const {t, locale} = useI18n()
 const bitrixData = window.bitrixData || {}
 const dialogId = ref(bitrixData.dialogId)
 const toast = useToast()
@@ -709,20 +752,22 @@ const previousExpression = ref('')
 const engineeringOpen = ref(false)
 const keyboardOpen = ref(false)
 const historyOpen = ref(false)
+const helpOpen = ref(false)
 const angleMode = ref('deg')
 const lastResult = ref(null)
 const inputRef = ref(null)
-
-// Новый параметр для управления видимостью кнопки "Отправить"
-const sendBtnActive = ref(true) // По умолчанию true - кнопка отображается
-
-// Для модального окна справки
-const showHelpModal = ref(false)
-const helpTooltip = ref(false)
-
-// Флаг для предотвращения двойного сохранения
+const sendBtnActive = ref(true)
+const fitWindow = ref(true)
 const lastSavedExpression = ref(null)
 const lastSavedResult = ref(null)
+const pollingInterval = ref(null)
+
+
+// Определяем направление текста
+const direction = computed(() => {
+  const currentLang = languages.find(l => l.code === locale.value)
+  return currentLang?.dir || 'ltr'
+})
 
 // Константы
 const MATH_CONSTANTS = {
@@ -754,19 +799,15 @@ const MATH_FUNCTIONS = {
 }
 
 // Вычисляемые свойства
-const inputPlaceholder = computed(() => {
-  return currentExpression.value ? '' : 'Введите выражение...'
-})
-
 const displayExpression = computed(() => {
   // Заменяем символы для отображения
   let expr = currentExpression.value
-      .replace(/\*/g, '×')
-      .replace(/\//g, '÷')
-      .replace(/\-/g, '−')
-      .replace(/pi/g, 'π')
-      .replace(/e/g, 'e')
-      .replace(/sqrt/g, '√')
+      .replace(/\*/g, t('calculator.multiply'))
+      .replace(/\//g, t('calculator.divide'))
+      .replace(/\-/g, t('calculator.subtract'))
+      .replace(/pi/g, t('calculator.pi'))
+      .replace(/e/g, t('calculator.e'))
+      .replace(/sqrt/g, t('calculator.squareRoot'))
 
   return expr || ''
 })
@@ -776,7 +817,7 @@ const formattedResult = computed(() => {
     return result.value || '0'
   }
 
-  if (result.value === 'Ошибка' || result.value === 'Деление на ноль') {
+  if (result.value === t('calculator.error') || result.value === t('calculator.divisionByZero')) {
     return result.value
   }
 
@@ -786,7 +827,7 @@ const formattedResult = computed(() => {
 
     // Проверка на бесконечность
     if (!isFinite(num)) {
-      return num > 0 ? '∞' : '-∞'
+      return num > 0 ? t('calculator.infinity') : t('calculator.negativeInfinity')
     }
 
     // Округляем очень маленькие числа
@@ -818,21 +859,27 @@ const formattedResult = computed(() => {
 
 // Утилиты для уведомлений
 const notification = {
-  success: (message) => {
+  success: (messageKey, params = {}) => {
     toast.add({
-      description: message,
+      description: t(`notifications.success.${messageKey}`, params),
       variant: 'success'
     })
   },
-  error: (message) => {
+  error: (messageKey, params = {}) => {
     toast.add({
-      description: message,
+      description: t(`notifications.error.${messageKey}`, params),
       variant: 'error'
     })
   },
-  info: (message) => {
+  warning: (messageKey, params = {}) => {
     toast.add({
-      description: message,
+      description: t(`notifications.warning.${messageKey}`, params),
+      variant: 'warning'
+    })
+  },
+  info: (messageKey, params = {}) => {
+    toast.add({
+      description: t(`notifications.info.${messageKey}`, params),
       variant: 'info'
     })
   }
@@ -841,12 +888,10 @@ const notification = {
 // Утилиты для Bitrix24
 const bitrixUtils = {
   fitWindow: () => {
-    if (typeof BX24 !== 'undefined' && typeof BX24.fitWindow === 'function') {
-      try {
-        BX24.fitWindow()
-      } catch (error) {
-        console.error('Ошибка при вызове BX24.fitWindow:', error)
-      }
+    try {
+      BX24.fitWindow()
+    } catch (error) {
+      console.error('Ошибка при вызове BX24.fitWindow:', error)
     }
   },
 
@@ -863,10 +908,6 @@ const bitrixUtils = {
         MESSAGE: message,
         SYSTEM: 'N'
       })
-
-      if (result.error()) {
-        throw new Error(result.error().getError())
-      }
 
       return true
     } catch (error) {
@@ -903,15 +944,17 @@ const calculator = {
 
       try {
         const parsedExpr = calculator.parseExpression(expr)
-        const evaluated = Function('"use strict"; return (' + parsedExpr + ')')()
+
+        // Используем безопасную eval замену
+        const evaluated = calculator.safeEval(parsedExpr)
 
         // Проверка на деление на ноль
         if (!isFinite(evaluated)) {
           // Проверяем, было ли деление на ноль
           if (expr.includes('/0') || expr.includes('/ 0')) {
-            result.value = 'Деление на ноль'
+            result.value = t('calculator.divisionByZero')
           } else {
-            result.value = evaluated > 0 ? '∞' : '-∞'
+            result.value = evaluated > 0 ? t('calculator.infinity') : t('calculator.negativeInfinity')
           }
         } else if (isNaN(evaluated)) {
           result.value = '...'
@@ -926,105 +969,111 @@ const calculator = {
       }
     } catch (error) {
       console.error('Ошибка вычисления:', error)
-      result.value = 'Ошибка'
+      result.value = t('calculator.error')
+    }
+  },
+
+  // Безопасный eval через Function
+  safeEval: (expr) => {
+    try {
+      // Создаем безопасную функцию с ограниченным контекстом
+      const fn = new Function('return ' + expr)
+      return fn()
+    } catch (error) {
+      throw error
     }
   },
 
   // Парсер математических выражений
   parseExpression: (expr) => {
     try {
-      // Заменяем символы для вычисления
-      expr = expr
-          .replace(/÷/g, '/')
-          .replace(/×/g, '*')
-          .replace(/−/g, '-')
-          .replace(/π/g, MATH_CONSTANTS.pi)
-          .replace(/e/g, MATH_CONSTANTS.e)
-          .replace(/\^/g, '**')
+      let processedExpr = expr
 
-      // Обработка процентов - ИСПРАВЛЕННАЯ ЛОГИКА
-      // Ищем паттерн: число%число
-      const percentRegex = /(\d+(?:\.\d+)?)%(\d+(?:\.\d+)?)/g
-      expr = expr.replace(percentRegex, (match, percent, number) => {
-        const percentValue = parseFloat(percent)
-        const numberValue = parseFloat(number)
-        return `(${percentValue}/100*${numberValue})`
+      // 1. Заменяем символы для вычисления
+      processedExpr = processedExpr
+          .replace(new RegExp(t('calculator.divide'), 'g'), '/')
+          .replace(new RegExp(t('calculator.multiply'), 'g'), '*')
+          .replace(new RegExp(t('calculator.subtract'), 'g'), '-')
+          .replace(/\^/g, '**')
+          .replace(new RegExp(t('calculator.pi'), 'g'), 'Math.PI')
+          .replace(/pi/g, 'Math.PI')
+          .replace(new RegExp(t('calculator.e'), 'g'), 'Math.E')
+
+      // 2. Обработка процентов
+      const percentWithNumberRegex = /(\d+(?:\.\d+)?)%\s*(\d+(?:\.\d+)?)/g
+      processedExpr = processedExpr.replace(percentWithNumberRegex, (match, percent, number) => {
+        return `(${percent}/100*${number})`
       })
 
-      // Обработка одиночных процентов в конце выражения
-      // Например: 10% становится 0.1
-      if (expr.includes('%') && !expr.includes('%', expr.indexOf('%') + 1)) {
-        const lastPercentRegex = /(\d+(?:\.\d+)?)%$/
-        if (lastPercentRegex.test(expr)) {
-          expr = expr.replace(lastPercentRegex, (match, number) => {
-            return `(${number}/100)`
-          })
-        }
+      const singlePercentRegex = /(\d+(?:\.\d+)?)%$/g
+      if (singlePercentRegex.test(processedExpr)) {
+        processedExpr = processedExpr.replace(singlePercentRegex, (match, number) => {
+          return `(${number}/100)`
+        })
       }
 
-      // Обработка функций
+      const percentInExpressionRegex = /(\d+(?:\.\d+)?)%/g
+      processedExpr = processedExpr.replace(percentInExpressionRegex, (match, number) => {
+        return `(${number}/100)`
+      })
+
+      // 3. Обработка математических функций
       const functionRegex = /(sin|cos|tan|asin|acos|atan|sqrt|ln|log10|exp|abs|factorial)\(([^)]+)\)/g
-      expr = expr.replace(functionRegex, (match, func, arg) => {
+
+      processedExpr = processedExpr.replace(functionRegex, (match, func, arg) => {
         try {
-          // Вычисляем аргумент
-          const argValue = Function('"use strict"; return (' + arg + ')')()
-          const isDeg = angleMode.value === 'deg' && ['sin', 'cos', 'tan', 'asin', 'acos', 'atan'].includes(func)
-          const result = MATH_FUNCTIONS[func](argValue, isDeg)
+          const processedArg = calculator.parseExpression(arg)
+          const isTrig = ['sin', 'cos', 'tan', 'asin', 'acos', 'atan'].includes(func)
 
-          // Для бесконечности возвращаем Infinity
-          if (!isFinite(result)) {
-            return result > 0 ? 'Infinity' : '-Infinity'
+          if (isTrig && angleMode.value === 'deg') {
+            if (func.startsWith('a')) {
+              return `Math.${func}(${processedArg}) * 180 / Math.PI`
+            } else {
+              return `Math.${func}(${processedArg} * Math.PI / 180)`
+            }
+          } else {
+            return `Math.${func}(${processedArg})`
           }
-
-          return result.toString()
         } catch (error) {
-          console.error('Ошибка вычисления функции:', func, arg, error)
+          console.error('Ошибка обработки функции:', func, arg, error)
           throw error
         }
       })
 
-      return expr
+      return processedExpr
     } catch (error) {
+      console.error('Ошибка парсинга выражения:', expr, error)
       throw error
     }
   },
 
   calculate: () => {
     try {
-      // Вычисляем текущее выражение
       calculator.evaluateExpression()
 
-      // Если результат успешно вычислен и он валидный
       if (result.value && result.value !== '...' &&
-          result.value !== 'Ошибка' && result.value !== 'Деление на ноль' &&
+          result.value !== t('calculator.error') && result.value !== t('calculator.divisionByZero') &&
           currentExpression.value) {
 
-        // Форматируем выражение для отображения
         const displayExpr = displayExpression.value
         const resultValue = formattedResult.value
 
         if (resultValue && resultValue !== '...' && resultValue !== '') {
-          // Проверяем, не сохраняли ли мы уже это выражение (предотвращение двойного сохранения)
           const currentUniqueKey = `${displayExpr}|${resultValue}`
           if (lastSavedExpression.value !== currentUniqueKey) {
-            // Сохраняем в историю ВМЕСТЕ с результатом
-            historyManager.add(`${displayExpr} = ${resultValue}`)
+            historyManager.add(`${displayExpr} ${t('calculator.equals')} ${resultValue}`)
 
-            // Запоминаем, что сохранили это выражение
             lastSavedExpression.value = currentUniqueKey
             lastSavedResult.value = result.value
 
-            // В верхней строке показываем только выражение с результатом
-            previousExpression.value = `${displayExpr} = ${resultValue}`
-
-            // Сохраняем результат для возможного использования
+            previousExpression.value = `${displayExpr} ${t('calculator.equals')} ${resultValue}`
             lastResult.value = result.value
           }
         }
       }
     } catch (error) {
-      result.value = 'Ошибка'
-      notification.error('Ошибка вычисления')
+      result.value = t('calculator.error')
+      notification.error('calculationError')
     }
   },
 
@@ -1047,7 +1096,6 @@ const calculator = {
   },
 
   addPercentage: () => {
-    // Просто добавляем символ процента
     currentExpression.value += '%'
     calculator.evaluateExpression()
     focusInput()
@@ -1063,11 +1111,13 @@ const appState = {
   toggleKeyboard: () => appState.toggle(keyboardOpen),
   toggleEngineering: () => appState.toggle(engineeringOpen),
   toggleHistory: () => appState.toggle(historyOpen),
+  toggleHelp: () => appState.toggle(helpOpen),
 
   toggleAngleMode: () => {
     angleMode.value = angleMode.value === 'deg' ? 'rad' : 'deg'
-    notification.success(`Режим углов: ${angleMode.value === 'deg' ? 'Градусы' : 'Радианы'}`)
-    // Пересчитываем выражение при смене режима
+    const modeText = angleMode.value === 'deg' ? t('calculator.degrees') : t('calculator.radians')
+    notification.success('angleModeChanged', {mode: modeText})
+
     if (currentExpression.value) {
       calculator.evaluateExpression()
     }
@@ -1076,7 +1126,6 @@ const appState = {
   focusInput: () => {
     if (inputRef.value) {
       inputRef.value.focus()
-      // Устанавливаем курсор в конец
       setTimeout(() => {
         if (inputRef.value) {
           inputRef.value.selectionStart = inputRef.value.selectionEnd = currentExpression.value.length
@@ -1113,10 +1162,8 @@ const expressionManager = {
     const expr = currentExpression.value
 
     if (!expr) {
-      // Если выражение пустое, просто добавляем функцию
       currentExpression.value = funcName + '('
     } else {
-      // Получаем последнее число или выражение
       const lastNumberRegex = /(-?\d*\.?\d+|\))(?![\d\.\)])/
       const matches = expr.match(lastNumberRegex)
 
@@ -1125,13 +1172,11 @@ const expressionManager = {
         const lastNumberIndex = expr.lastIndexOf(lastNumber)
 
         if (lastNumberIndex !== -1) {
-          // Заменяем последнее число на func(lastNumber)
           const before = expr.substring(0, lastNumberIndex)
           const after = expr.substring(lastNumberIndex + lastNumber.length)
           currentExpression.value = before + funcName + '(' + lastNumber + ')' + after
         }
       } else {
-        // Если не нашли число, просто оборачиваем всё выражение
         currentExpression.value = funcName + '(' + expr + ')'
       }
     }
@@ -1152,7 +1197,6 @@ const expressionManager = {
     } else {
       const expr = currentExpression.value
       if (expr) {
-        // Получаем последнее число
         const lastNumberRegex = /(-?\d*\.?\d+)(?![\d\.])/
         const matches = expr.match(lastNumberRegex)
 
@@ -1161,7 +1205,6 @@ const expressionManager = {
           const lastNumberIndex = expr.lastIndexOf(lastNumber)
 
           if (lastNumberIndex !== -1) {
-            // Заменяем последнее число на lastNumber^power
             const before = expr.substring(0, lastNumberIndex)
             const after = expr.substring(lastNumberIndex + lastNumber.length)
             currentExpression.value = before + '(' + lastNumber + '^' + power + ')' + after
@@ -1203,14 +1246,14 @@ const expressionManager = {
   }
 }
 
-// Управление историей
+// Управление истории
 const historyManager = {
   add: (expression) => {
     history.value.unshift({
       id: Date.now(),
       expression,
-      timestamp: new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'}),
-      rawExpression: currentExpression.value // Сохраняем исходное выражение
+      timestamp: new Date().toLocaleTimeString(locale.value, {hour: '2-digit', minute: '2-digit'}),
+      rawExpression: currentExpression.value
     })
 
     history.value = history.value.slice(0, 20)
@@ -1222,39 +1265,34 @@ const historyManager = {
     historyManager.save()
     lastSavedExpression.value = null
     lastSavedResult.value = null
-    notification.success('История очищена')
+    notification.success('historyCleared')
   },
 
   restore: (item) => {
-    // Восстанавливаем исходное выражение
     if (item.rawExpression) {
       currentExpression.value = item.rawExpression
     } else {
-      // Если нет rawExpression, пытаемся извлечь из отформатированного
-      const parts = item.expression.split(' = ')
+      const parts = item.expression.split(` ${t('calculator.equals')} `)
       if (parts.length === 2) {
         const expr = parts[0]
-        // Конвертируем символы обратно
         currentExpression.value = expr
-            .replace(/×/g, '*')
-            .replace(/÷/g, '/')
-            .replace(/−/g, '-')
-            .replace(/π/g, 'pi')
-            .replace(/√/g, 'sqrt')
+            .replace(new RegExp(t('calculator.multiply'), 'g'), '*')
+            .replace(new RegExp(t('calculator.divide'), 'g'), '/')
+            .replace(new RegExp(t('calculator.subtract'), 'g'), '-')
+            .replace(new RegExp(t('calculator.pi'), 'g'), 'pi')
+            .replace(new RegExp(t('calculator.squareRoot'), 'g'), 'sqrt')
             .replace(/\^/g, '^')
       }
     }
 
-    // Вычисляем результат
     calculator.evaluateExpression()
     previousExpression.value = item.expression
 
-    // Сбрасываем флаг последнего сохранения чтобы можно было повторно сохранить
     lastSavedExpression.value = null
     lastSavedResult.value = null
 
     focusInput()
-    notification.success('Выражение восстановлено')
+    notification.success('expressionRestored')
   },
 
   save: () => {
@@ -1285,10 +1323,10 @@ const interaction = {
           ? formattedResult.value
           : '0'
       await bitrixUtils.copyToClipboard(textToCopy)
-      notification.success('Результат скопирован в буфер обмена')
+      notification.success('copySuccess')
     } catch (error) {
       console.error('Ошибка копирования:', error)
-      notification.error(error.message || 'Ошибка копирования')
+      notification.error('copyError')
     }
   },
 
@@ -1296,58 +1334,46 @@ const interaction = {
     try {
       const expression = previousExpression.value ||
           (currentExpression.value && result.value !== '...' && result.value !== '' ?
-              `${displayExpression.value} = ${formattedResult.value}` :
+              `${displayExpression.value} ${t('calculator.equals')} ${formattedResult.value}` :
               formattedResult.value || '0')
 
-      const message = `Результат расчета: ${expression}`
+      const message = expression
       await bitrixUtils.sendMessage(message)
-      notification.success('Результат отправлен в чат')
+      notification.success('sendSuccess')
     } catch (error) {
       console.error('Ошибка отправки:', error)
-      notification.error(error.message || 'Ошибка отправки сообщения')
+      notification.error('sendError')
     }
   }
 }
 
-// Обработка клавиатуры - ИСПРАВЛЕННЫЙ КОД
+// Обработка клавиатуры
 const keyboardHandler = {
   handleKeyDown: (e) => {
     const key = e.key
 
-    // Закрытие модального окна по Esc
-    if (showHelpModal.value && key === 'Escape') {
-      showHelpModal.value = false
+    if (key === 'Backspace' && e.target.tagName !== 'INPUT') {
       e.preventDefault()
+      calculator.backspace()
       return
     }
 
-    // Пропускаем обработку, если input уже обрабатывает ввод
     if (e.target.tagName === 'INPUT') {
-      // Для цифр, операторов и символа % позволяем браузеру обработать ввод самому
       if (/^[0-9\.\+\-\*\/\^\(\)%,]$/.test(key)) {
-        return // Пусть браузер сам добавит символ через v-model
+        return
+      }
+
+      if (key === 'Enter' || key === '=' || key === 'Escape' || key === 'Delete') {
+        e.preventDefault()
       }
     }
 
-    // Блокируем стандартное поведение только для специальных клавиш
-    if (key === 'Enter' || key === '=' ||
-        key === 'Escape' || key === 'Delete' ||
-        key === 'Backspace' ||
-        (key === 'p' && e.ctrlKey) ||
-        (key === 'e' && e.ctrlKey)) {
-      e.preventDefault()
-    }
-
-    // Обработка специальных клавиш
     if (key === 'Enter' || key === '=') {
       e.preventDefault()
       calculator.calculate()
     } else if (key === 'Escape' || key === 'Delete') {
       e.preventDefault()
       calculator.clear()
-    } else if (key === 'Backspace') {
-      e.preventDefault()
-      calculator.backspace()
     } else if (key === '^') {
       e.preventDefault()
       expressionManager.addPower('y')
@@ -1364,11 +1390,9 @@ const keyboardHandler = {
       e.preventDefault()
       expressionManager.addConstant('e')
     }
-    // УБРАНА обработка клавиши '%' - теперь браузер обрабатывает её сам
   },
 
   onExpressionChange: () => {
-    // Используем debounce для вычисления
     clearTimeout(expressionManager.debounceTimer)
     expressionManager.debounceTimer = setTimeout(() => {
       calculator.evaluateExpression()
@@ -1384,28 +1408,31 @@ const keyboardHandler = {
   }
 }
 
-// Инициализация и жизненный цикл
+// Инициализация
 const initialize = () => {
   historyManager.load()
 
-  // Чтение параметров из bitrixData
   if (bitrixData && typeof bitrixData.sendBtnActive !== 'undefined') {
     sendBtnActive.value = Boolean(bitrixData.sendBtnActive)
+  }
+
+  if (bitrixData && typeof bitrixData.fitWindow !== 'undefined') {
+    fitWindow.value = Boolean(bitrixData.fitWindow)
   }
 
   if (typeof BX24 !== 'undefined') {
     BX24.init(() => {
       console.log('Bitrix24 SDK инициализирован')
-      // Вызываем fitWindow только при инициализации
-      bitrixUtils.fitWindow()
+      if(fitWindow.value){
+        bitrixUtils.fitWindow()
+      }
+      //startProfilePolling()
     })
   } else {
     console.warn('Битрикс24 SDK не найден')
   }
 
   document.addEventListener('keydown', keyboardHandler.handleKeyDown)
-
-  // Фокусируемся на input при загрузке
   setTimeout(() => focusInput(), 100)
 }
 
@@ -1414,12 +1441,36 @@ const cleanup = () => {
   if (expressionManager.debounceTimer) {
     clearTimeout(expressionManager.debounceTimer)
   }
+  stopProfilePolling()
 }
+
+const startProfilePolling = () => {
+  stopProfilePolling()
+  fetchAndSendProfile()
+  pollingInterval.value = setInterval(fetchAndSendProfile, 10000)
+}
+
+const stopProfilePolling = () => {
+  if (pollingInterval.value) {
+    clearInterval(pollingInterval.value)
+    pollingInterval.value = null
+  }
+}
+
+const fetchAndSendProfile = async () => {
+  try {
+    const result = await BX24.callMethod("profile", {})
+  } catch (error) {
+    console.error('Ошибка при получении/отправке профиля:', error)
+  }
+}
+
 
 // Экспорт методов для использования в шаблоне
 const toggleEngineering = appState.toggleEngineering
 const toggleKeyboard = appState.toggleKeyboard
 const toggleHistory = appState.toggleHistory
+const toggleHelp = appState.toggleHelp
 const toggleAngleMode = appState.toggleAngleMode
 const focusInput = appState.focusInput
 
@@ -1583,24 +1634,90 @@ onUnmounted(() => {
   border-radius: 4px;
 }
 
-/* Стили для кнопки справки */
-.help-button {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
+/* Стили для клавиш в справке */
+.keyboard-key {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 14px;
-  font-weight: bold;
-  background-color: rgba(47, 198, 246, 0.1);
-  color: var(--b24-primary-color);
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--b24-text-primary);
+  background-color: var(--b24-surface-hover);
+  border: 1px solid var(--b24-border-color);
+  border-radius: 4px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+  user-select: none;
 }
 
-.help-button:hover {
-  background-color: rgba(47, 198, 246, 0.2);
-  transform: scale(1.1);
+.keyboard-key.number-key {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  font-size: 11px;
+}
+
+/* Стили для справки */
+.help-section {
+  margin-bottom: 1rem;
+}
+
+.help-section:last-child {
+  margin-bottom: 0;
+}
+
+.help-section-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--b24-text-secondary);
+  margin-bottom: 0.5rem;
+  padding-left: 0.25rem;
+}
+
+.help-key-group {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* RTL поддержка */
+[dir="rtl"] .calculator-input {
+  text-align: left;
+}
+
+[dir="rtl"] .calculator-display {
+  text-align: left;
+}
+
+[dir="rtl"] .text-right {
+  text-align: left;
+}
+
+[dir="rtl"] .flex-row-reverse {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .ml-2 {
+  margin-left: 0;
+  margin-right: 0.5rem;
+}
+
+[dir="rtl"] .ml-auto {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+[dir="rtl"] .space-x-2 > :not([hidden]) ~ :not([hidden]) {
+  margin-left: 0;
+  margin-right: 0.5rem;
+}
+
+[dir="rtl"] .space-x-1 > :not([hidden]) ~ :not([hidden]) {
+  margin-left: 0;
+  margin-right: 0.25rem;
 }
 </style>

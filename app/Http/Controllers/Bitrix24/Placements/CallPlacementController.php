@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Bitrix24\Placements;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
-class TaskPlacementController extends Controller
+class CallPlacementController extends Controller
 {
 	/**
 	 * Обработчик для встройки в правой панели карточки задачи (TASK_VIEW_SIDEBAR)
@@ -18,9 +18,9 @@ class TaskPlacementController extends Controller
 
 		$options = json_decode($placementOptions, true) ?? [];
 
-		$taskId = $options['taskId'] ?? null;
+		$taskId = $options['callId'] ?? null;
 
-		\Log::info('TaskSidebar called', [
+		\Log::info('Call card called', [
 			'taskId' => $taskId,
 			'placementOptions' => $placementOptions,
 			'params' => $params,
@@ -31,7 +31,7 @@ class TaskPlacementController extends Controller
 			'taskId' => $taskId,
 			'placementOptions' => $placementOptions,
 			'sendBtnActive' => false,
-			'fitWindow' => true,
+			'fitWindow' => false,
 			'authId' => $request->input('AUTH_ID'),
 			'domain' => $request->input('DOMAIN'),
 		]);

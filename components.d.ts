@@ -14,7 +14,6 @@ declare module 'vue' {
     B24App: typeof import('./node_modules/@bitrix24/b24ui-nuxt/dist/runtime/components/App.vue')['default']
     B24Button: typeof import('./node_modules/@bitrix24/b24ui-nuxt/dist/runtime/components/Button.vue')['default']
     B24Card: typeof import('./node_modules/@bitrix24/b24ui-nuxt/dist/runtime/components/Card.vue')['default']
-    B24Modal: typeof import('./node_modules/@bitrix24/b24ui-nuxt/dist/runtime/components/Modal.vue')['default']
     B24Switch: typeof import('./node_modules/@bitrix24/b24ui-nuxt/dist/runtime/components/Switch.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

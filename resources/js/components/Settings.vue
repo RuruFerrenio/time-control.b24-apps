@@ -1,8 +1,8 @@
 <template>
   <div class="p-6">
     <B24PageHeader
-        title="Настройки приложения"
-        description="Настройте параметры работы вашего приложения"
+        :title="$t('app.settings.title')"
+        :description="$t('app.settings.description')"
     />
 
     <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -16,10 +16,10 @@
               <div class="flex items-center justify-between">
                 <div class="flex-1">
                   <h3 class="text-base font-medium text-gray-900">
-                    Калькулятор в чате
+                    {{ $t('chatCalculator.title') }}
                   </h3>
                   <p class="text-sm text-gray-500 mt-1">
-                    Включите эту опцию, чтобы добавить калькулятор в чаты
+                    {{ $t('chatCalculator.description') }}
                   </p>
                 </div>
                 <div class="ml-4">
@@ -49,24 +49,29 @@
                   <path class="opacity-75" fill="currentColor"
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Обработка...
+                {{ $t('buttons.processing') }}
               </div>
 
               <!-- Дополнительные настройки (только если включено) -->
               <div v-if="settings.chatCalculatorEnabled" class="space-y-4 pt-4 border-t">
-                <h4 class="text-sm font-medium text-gray-900 mb-4">Дополнительные параметры</h4>
+                <h4 class="text-sm font-medium text-gray-900 mb-4">
+                  {{ $t('chatCalculator.additionalSettings') }}
+                </h4>
 
                 <!-- Калькулятор в панели чата -->
                 <div class="flex items-center justify-between">
                   <div>
-                    <p class="text-sm font-medium text-gray-900">Калькулятор в панели чата</p>
-                    <p class="text-xs text-gray-500">Отображать калькулятор в панели ввода сообщения чата</p>
+                    <p class="text-sm font-medium text-gray-900">
+                      {{ $t('chatCalculator.chatPanel.title') }}
+                    </p>
+                    <p class="text-xs text-gray-500">
+                      {{ $t('chatCalculator.chatPanel.description') }}
+                    </p>
                   </div>
                   <div class="flex items-center">
                     <B24Switch
                         v-model="settings.chatPanelEnabled"
                         @update:modelValue="toggleChatPanel"
-                        size="small"
                         :disabled="isSaving || isProcessingChatPanel"
                     />
                     <div v-if="isProcessingChatPanel" class="ml-2">
@@ -84,14 +89,17 @@
                 <!-- Калькулятор в сайдбаре чата -->
                 <div class="flex items-center justify-between">
                   <div>
-                    <p class="text-sm font-medium text-gray-900">Калькулятор в сайдбаре чате</p>
-                    <p class="text-xs text-gray-500">Отображать калькулятор в правой боковой панели чата</p>
+                    <p class="text-sm font-medium text-gray-900">
+                      {{ $t('chatCalculator.chatSidebar.title') }}
+                    </p>
+                    <p class="text-xs text-gray-500">
+                      {{ $t('chatCalculator.chatSidebar.description') }}
+                    </p>
                   </div>
                   <div class="flex items-center">
                     <B24Switch
                         v-model="settings.chatSidebarEnabled"
                         @update:modelValue="toggleChatSidebar"
-                        size="small"
                         :disabled="isSaving || isProcessingChatSidebar"
                     />
                     <div v-if="isProcessingChatSidebar" class="ml-2">
@@ -118,10 +126,10 @@
               <div class="flex items-center justify-between">
                 <div class="flex-1">
                   <h3 class="text-base font-medium text-gray-900">
-                    Калькулятор в задачах
+                    {{ $t('taskCalculator.title') }}
                   </h3>
                   <p class="text-sm text-gray-500 mt-1">
-                    Включите эту опцию, чтобы добавить калькулятор в задачи
+                    {{ $t('taskCalculator.description') }}
                   </p>
                 </div>
                 <div class="ml-4">
@@ -151,24 +159,29 @@
                   <path class="opacity-75" fill="currentColor"
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Обработка...
+                {{ $t('buttons.processing') }}
               </div>
 
               <!-- Дополнительные настройки (только если включено) -->
               <div v-if="settings.taskCalculatorEnabled" class="space-y-4 pt-4 border-t">
-                <h4 class="text-sm font-medium text-gray-900 mb-4">Дополнительные параметры</h4>
+                <h4 class="text-sm font-medium text-gray-900 mb-4">
+                  {{ $t('taskCalculator.additionalSettings') }}
+                </h4>
 
                 <!-- Калькулятор в сайдбаре задачи -->
                 <div class="flex items-center justify-between">
                   <div>
-                    <p class="text-sm font-medium text-gray-900">Калькулятор в сайдбаре задачи</p>
-                    <p class="text-xs text-gray-500">Отображать калькулятор в боковой панели просмотра задачи</p>
+                    <p class="text-sm font-medium text-gray-900">
+                      {{ $t('taskCalculator.taskSidebar.title') }}
+                    </p>
+                    <p class="text-xs text-gray-500">
+                      {{ $t('taskCalculator.taskSidebar.description') }}
+                    </p>
                   </div>
                   <div class="flex items-center">
                     <B24Switch
                         v-model="settings.taskSidebarEnabled"
                         @update:modelValue="toggleTaskSidebar"
-                        size="small"
                         :disabled="isSaving || isProcessingTaskSidebar"
                     />
                     <div v-if="isProcessingTaskSidebar" class="ml-2">
@@ -186,14 +199,17 @@
                 <!-- Калькулятор во вкладке задачи -->
                 <div class="flex items-center justify-between">
                   <div>
-                    <p class="text-sm font-medium text-gray-900">Калькулятор в табе задачи</p>
-                    <p class="text-xs text-gray-500">Отображать калькулятор в отдельной вкладке при просмотре задачи</p>
+                    <p class="text-sm font-medium text-gray-900">
+                      {{ $t('taskCalculator.taskTab.title') }}
+                    </p>
+                    <p class="text-xs text-gray-500">
+                      {{ $t('taskCalculator.taskTab.description') }}
+                    </p>
                   </div>
                   <div class="flex items-center">
                     <B24Switch
                         v-model="settings.taskTabEnabled"
                         @update:modelValue="toggleTaskTab"
-                        size="small"
                         :disabled="isSaving || isProcessingTaskTab"
                     />
                     <div v-if="isProcessingTaskTab" class="ml-2">
@@ -212,6 +228,65 @@
           </div>
         </B24Card>
 
+        <!-- Карточка калькулятора в карточке звонка (CALL_CARD) -->
+        <B24Card class="mb-6">
+          <div class="p-6">
+            <div class="space-y-6">
+              <!-- Основной переключатель -->
+              <div class="flex items-center justify-between">
+                <div class="flex-1">
+                  <h3 class="text-base font-medium text-gray-900">
+                    {{ $t('callCardCalculator.title') }}
+                  </h3>
+                  <p class="text-sm text-gray-500 mt-1">
+                    {{ $t('callCardCalculator.description') }}
+                  </p>
+                </div>
+                <div class="ml-4">
+                  <!-- Индикатор загрузки при проверке статуса -->
+                  <div v-if="isLoadingCallCardPlacements" class="flex items-center justify-center w-10">
+                    <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  </div>
+                  <B24Switch
+                      v-else
+                      v-model="settings.callCardCalculatorEnabled"
+                      @update:modelValue="toggleCallCardCalculator"
+                      :disabled="isSaving || isProcessingCallCard"
+                  />
+                </div>
+              </div>
+
+              <!-- Индикатор загрузки при обработке -->
+              <div v-if="isProcessingCallCard" class="flex items-center text-sm text-blue-600">
+                <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg"
+                     fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                {{ $t('buttons.processing') }}
+              </div>
+
+              <!-- Дополнительная информация (только если включено) -->
+              <div v-if="settings.callCardCalculatorEnabled" class="space-y-4 pt-4 border-t">
+                <div class="bg-blue-50 rounded-lg p-4">
+                  <h4 class="text-sm font-medium text-blue-800 mb-2">
+                    {{ $t('callCardCalculator.info') }}
+                  </h4>
+                  <p class="text-sm text-blue-700 mb-3">
+                    {{ $t('callCardCalculator.infoDescription') }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </B24Card>
+
         <!-- Карточка пользовательского типа поля -->
         <B24Card>
           <div class="p-6">
@@ -220,10 +295,10 @@
               <div class="flex items-center justify-between">
                 <div class="flex-1">
                   <h3 class="text-base font-medium text-gray-900">
-                    Пользовательский тип поля "Калькулятор"
+                    {{ $t('userFieldType.title') }}
                   </h3>
                   <p class="text-sm text-gray-500 mt-1">
-                    Зарегистрировать новый тип пользовательского поля для использования калькулятора в сущностях CRM
+                    {{ $t('userFieldType.description') }}
                   </p>
                 </div>
                 <div class="ml-4">
@@ -253,31 +328,40 @@
                   <path class="opacity-75" fill="currentColor"
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Обработка...
+                {{ $t('buttons.processing') }}
               </div>
 
               <!-- Информация о типе поля -->
               <div v-if="settings.userFieldTypeEnabled" class="space-y-4 pt-4 border-t">
                 <div class="bg-blue-50 rounded-lg p-4">
-                  <h4 class="text-sm font-medium text-blue-800 mb-2">Информация о типе поля</h4>
+                  <h4 class="text-sm font-medium text-blue-800 mb-2">
+                    {{ $t('userFieldType.info') }}
+                  </h4>
                   <div class="space-y-2 text-sm text-blue-700">
                     <div class="flex">
-                      <span class="font-medium w-32 flex-shrink-0">Код типа:</span>
+                      <span class="font-medium w-32 flex-shrink-0">
+                        {{ $t('userFieldType.typeCode') }}
+                      </span>
                       <span class="font-mono bg-white px-2 py-0.5 rounded">calculator_crm</span>
                     </div>
                     <div class="flex">
-                      <span class="font-medium w-32 flex-shrink-0">Название:</span>
-                      <span>Калькулятор в CRM</span>
+                      <span class="font-medium w-32 flex-shrink-0">
+                        {{ $t('userFieldType.typeName') }}
+                      </span>
+                      <span>{{ $t('userFieldType.title') }}</span>
                     </div>
                     <div class="flex">
-                      <span class="font-medium w-32 flex-shrink-0">Описание:</span>
-                      <span>Поле с калькулятором для проведения расчетов</span>
+                      <span class="font-medium w-32 flex-shrink-0">
+                        {{ $t('userFieldType.typeDescription') }}
+                      </span>
+                      <span>{{ $t('userFieldType.description') }}</span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+
           <!-- Информация о пользовательских полях -->
           <div class="bg-blue-50 rounded-lg p-4">
             <h4 class="text-sm font-medium text-blue-900 mb-2 flex items-center">
@@ -285,11 +369,10 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
-              Что такое пользовательские типы полей?
+              {{ $t('userFieldType.fieldInfo') }}
             </h4>
             <p class="text-sm text-blue-700">
-              После включения этих опций в настройках сделок и лидов появится новый тип поля "Калькулятор CRM".
-              Администратор сможет добавить это поле в карточку сделки или лида для выполнения расчетов прямо в CRM.
+              {{ $t('userFieldType.fieldInfoDescription') }}
             </p>
           </div>
         </B24Card>
@@ -301,7 +384,7 @@
         <div class="lg:sticky lg:top-6 space-y-6">
           <!-- Карточка информации о приложении -->
           <B24Card>
-            <div class="p-1">
+            <div class="p-6">
               <div class="space-y-6">
                 <!-- Логотип и название -->
                 <div class="flex items-center space-x-3">
@@ -312,30 +395,52 @@
                     </svg>
                   </div>
                   <div>
-                    <h3 class="text-lg font-semibold text-gray-900">Калькулятор в CRM</h3>
-                    <p class="text-sm text-gray-500">Версия 1.0.0</p>
+                    <h3 class="text-lg font-semibold text-gray-900">
+                      {{ $t('app.title') }}
+                    </h3>
+                    <p class="text-sm text-gray-500">
+                      {{ $t('app.version') }}
+                    </p>
                   </div>
                 </div>
 
                 <!-- Быстрые ссылки -->
                 <div class="space-y-3">
-                  <h4 class="text-sm font-medium text-gray-900">Полезные ссылки</h4>
+                  <h4 class="text-sm font-medium text-gray-900">
+                    {{ $t('app.guide') }}
+                  </h4>
                   <div class="space-y-2">
-                    <a href="#"
-                       class="flex items-center text-sm text-gray-600 hover:text-blue-600 p-2 hover:bg-gray-50 rounded">
-                      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <!-- Изменено: теперь скачивание файла вместо перехода на страницу -->
+                    <a
+                        href="#"
+                        @click="downloadUserGuide"
+                        class="flex items-center text-sm text-gray-600 hover:text-blue-600 p-2 hover:bg-gray-50 rounded cursor-pointer"
+                    >
+                      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                       </svg>
-                      Руководство пользователя
+                      {{ $t('buttons.guide') }}
                     </a>
-                    <a href="#"
-                       class="flex items-center text-sm text-gray-600 hover:text-blue-600 p-2 hover:bg-gray-50 rounded">
+                    <a
+                        href="https://www.bitrix24.ru/apps/"
+                        target="_blank"
+                        class="flex items-center text-sm text-gray-600 hover:text-blue-600 p-2 hover:bg-gray-50 rounded"
+                    >
+                      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                      </svg>
+                      {{ $t('buttons.feedback') }}
+                    </a>
+                    <a
+                        href="mailto:it.galera@yandex.ru?subject=Поддержка приложения Калькулятор в CRM"
+                        class="flex items-center text-sm text-gray-600 hover:text-blue-600 p-2 hover:bg-gray-50 rounded"
+                    >
                       <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/>
                       </svg>
-                      Поддержка
+                      {{ $t('buttons.support') }}
                     </a>
                   </div>
                 </div>
@@ -344,33 +449,38 @@
           </B24Card>
 
           <!-- Слайдер с другими решениями -->
-          <B24Card>
-            <div class="p-1">
-              <div class="space-y-4">
-                <!-- Заголовок слайдера -->
-                <div>
-                  <h3 class="text-lg font-semibold text-gray-900 mb-1">Другие наши решения</h3>
-                  <p class="text-sm text-gray-500">Расширьте возможности вашего Битрикс24</p>
-                </div>
+          <div v-if="settings.showSolutionsSlider">
+            <B24Card>
+              <div class="p-6">
+                <div class="space-y-4">
+                  <!-- Заголовок слайдера -->
+                  <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-1">
+                      {{ $t('app.otherSolutions') }}
+                    </h3>
+                    <p class="text-sm text-gray-500">
+                      {{ $t('app.expandCapabilities') }}
+                    </p>
+                  </div>
 
-                <!-- Текущая карточка слайдера -->
-                <div class="relative">
-                  <div
-                      class="overflow-hidden rounded-lg"
-                      @mouseenter="stopAutoplay"
-                      @mouseleave="startAutoplay"
-                  >
-                    <B24Card class="border-0 shadow-none">
-                      <div class="p-0">
-                        <!-- Иконка решения -->
-                        <div class="p-4 pb-0 flex items-center justify-between">
-                          <div
-                              class="w-12 h-12 rounded-lg flex items-center justify-center"
-                              :class="currentSolution.color"
-                          >
-                            <component :is="currentSolution.iconComponent" class="w-6 h-6 text-white"/>
-                          </div>
-                          <div class="flex items-center space-x-2">
+                  <!-- Текущая карточка слайдера -->
+                  <div class="relative">
+                    <div
+                        class="overflow-hidden rounded-lg"
+                        @mouseenter="stopAutoplay"
+                        @mouseleave="startAutoplay"
+                    >
+                      <B24Card class="border-0 shadow-none">
+                        <div class="p-0">
+                          <!-- Иконка решения -->
+                          <div class="p-4 pb-0 flex items-center justify-between">
+                            <div
+                                class="w-12 h-12 rounded-lg flex items-center justify-center"
+                                :class="currentSolution.color"
+                            >
+                              <component :is="currentSolution.iconComponent" class="w-6 h-6 text-white"/>
+                            </div>
+                            <div class="flex items-center space-x-2">
                             <span
                                 v-if="currentSolution.badge"
                                 class="px-2 py-1 text-xs font-medium rounded-full"
@@ -378,102 +488,102 @@
                             >
                               {{ currentSolution.badge }}
                             </span>
-                            <div class="flex items-center space-x-1">
-                              <button
-                                  @click="prevSlide"
-                                  class="p-1 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                  :disabled="currentSlide === 0"
-                                  :class="{ 'opacity-50 cursor-not-allowed': currentSlide === 0 }"
+                              <div class="flex items-center space-x-1">
+                                <button
+                                    @click="prevSlide"
+                                    class="p-1 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    :disabled="currentSlide === 0"
+                                    :class="{ 'opacity-50 cursor-not-allowed': currentSlide === 0 }"
+                                >
+                                  <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor"
+                                       viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M15 19l-7-7 7-7"/>
+                                  </svg>
+                                </button>
+                                <button
+                                    @click="nextSlide"
+                                    class="p-1 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    :disabled="currentSlide >= totalSlides - 1"
+                                    :class="{ 'opacity-50 cursor-not-allowed': currentSlide >= totalSlides - 1 }"
+                                >
+                                  <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor"
+                                       viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M9 5l7 7-7 7"/>
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+
+                          <!-- Название и описание -->
+                          <div class="p-4 pt-3">
+                            <h4 class="text-base font-semibold text-gray-900 mb-2">
+                              {{ $t(`solutions.${currentSolution.translationKey}.title`) }}
+                            </h4>
+                            <p class="text-sm text-gray-600 mb-4">
+                              {{ $t(`solutions.${currentSolution.translationKey}.description`) }}
+                            </p>
+
+                            <!-- Особенности -->
+                            <div class="space-y-1.5 mb-4">
+                              <div
+                                  v-for="(feature, index) in currentSolution.features.slice(0, 2)"
+                                  :key="index"
+                                  class="flex items-center text-sm text-gray-500"
                               >
-                                <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor"
+                                <svg class="w-3.5 h-3.5 mr-2 text-green-500 flex-shrink-0" fill="none"
+                                     stroke="currentColor"
                                      viewBox="0 0 24 24">
                                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15 19l-7-7 7-7"/>
+                                        d="M5 13l4 4L19 7"/>
                                 </svg>
-                              </button>
-                              <button
-                                  @click="nextSlide"
-                                  class="p-1 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                  :disabled="currentSlide >= totalSlides - 1"
-                                  :class="{ 'opacity-50 cursor-not-allowed': currentSlide >= totalSlides - 1 }"
+                                <span class="truncate">{{ feature }}</span>
+                              </div>
+                            </div>
+
+                            <!-- Кнопка действия -->
+                            <div>
+                              <B24Button
+                                  :variant="currentSolution.installed ? 'outline' : 'primary'"
+                                  :href="currentSolution.link"
+                                  target="_blank"
+                                  class="w-full justify-center"
                               >
-                                <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor"
-                                     viewBox="0 0 24 24">
+                                {{ currentSolution.installed ? $t('buttons.open') : $t('buttons.details') }}
+                                <svg class="w-3.5 h-3.5 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 5l7 7-7 7"/>
                                 </svg>
-                              </button>
+                              </B24Button>
                             </div>
                           </div>
                         </div>
-
-                        <!-- Название и описание -->
-                        <div class="p-4 pt-3">
-                          <h4 class="text-base font-semibold text-gray-900 mb-2">
-                            {{ currentSolution.title }}
-                          </h4>
-                          <p class="text-sm text-gray-600 mb-4">
-                            {{ currentSolution.description }}
-                          </p>
-
-                          <!-- Особенности -->
-                          <div class="space-y-1.5 mb-4">
-                            <div
-                                v-for="(feature, index) in currentSolution.features.slice(0, 2)"
-                                :key="index"
-                                class="flex items-center text-sm text-gray-500"
-                            >
-                              <svg class="w-3.5 h-3.5 mr-2 text-green-500 flex-shrink-0" fill="none"
-                                   stroke="currentColor"
-                                   viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M5 13l4 4L19 7"/>
-                              </svg>
-                              <span class="truncate">{{ feature }}</span>
-                            </div>
-                          </div>
-
-                          <!-- Кнопка действия -->
-                          <div>
-                            <B24Button
-                                :variant="currentSolution.installed ? 'outline' : 'primary'"
-                                :href="currentSolution.link"
-                                target="_blank"
-                                class="w-full justify-center"
-                                size="small"
-                            >
-                              {{ currentSolution.installed ? 'Открыть' : 'Подробнее' }}
-                              <svg class="w-3.5 h-3.5 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M9 5l7 7-7 7"/>
-                              </svg>
-                            </B24Button>
-                          </div>
-                        </div>
-                      </div>
-                    </B24Card>
-                  </div>
-
-                  <!-- Индикаторы прогресса -->
-                  <div class="mt-4 flex items-center justify-between">
-                    <div class="text-xs text-gray-500">
-                      {{ currentSlide + 1 }} из {{ totalSlides }}
+                      </B24Card>
                     </div>
-                    <div class="flex space-x-1">
-                      <button
-                          v-for="index in totalSlides"
-                          :key="index"
-                          @click="goToSlide(index - 1)"
-                          class="w-1.5 h-1.5 rounded-full transition-all duration-300"
-                          :class="currentSlide === index - 1 ? 'bg-blue-600 w-4' : 'bg-gray-300 hover:bg-gray-400'"
-                          :aria-label="`Перейти к слайду ${index}`"
-                      />
+
+                    <!-- Индикаторы прогресса -->
+                    <div class="mt-4 flex items-center justify-between">
+                      <div class="text-xs text-gray-500">
+                        {{ $t('app.slideCounter', {current: currentSlide + 1, total: totalSlides}) }}
+                      </div>
+                      <div class="flex space-x-1">
+                        <button
+                            v-for="index in totalSlides"
+                            :key="index"
+                            @click="goToSlide(index - 1)"
+                            class="w-1.5 h-1.5 rounded-full transition-all duration-300"
+                            :class="currentSlide === index - 1 ? 'bg-blue-600 w-4' : 'bg-gray-300 hover:bg-gray-400'"
+                            :aria-label="`Перейти к слайду ${index}`"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </B24Card>
+            </B24Card>
+          </div>
         </div>
       </div>
     </div>
@@ -486,6 +596,7 @@
 <script>
 import {ref, computed, onMounted, onUnmounted, markRaw} from 'vue'
 import {useToast} from '@bitrix24/b24ui-nuxt/composables/useToast'
+import {useI18n} from 'vue-i18n'
 
 // Иконки для решений
 const ChartBarIcon = {
@@ -552,19 +663,19 @@ const DocumentTextIcon = {
   `
 }
 
-// Конфигурации встроек
+// Конфигурации встроек (добавлена конфигурация для PAGE_BACKGROUND_WORKER)
 const PLACEMENT_CONFIGS = {
   IM_TEXTAREA: {
     title: 'Калькулятор в CRM',
     description: 'Расчеты прямо в панели ввода сообщения',
     options: {
       iconName: 'fa-calculator',
-      context: 'USER;LINES',
-      role: 'ADMIN',
+      context: 'ALL',
+      role: 'USER',
       color: 'AQUA',
       extranet: 'N',
       width: 300,
-      height: 500
+      height: 675
     }
   },
   IM_SIDEBAR: {
@@ -572,9 +683,10 @@ const PLACEMENT_CONFIGS = {
     description: 'Расчеты в боковой панели чата',
     options: {
       iconName: 'fa-calculator',
+      context: 'ALL',
       color: 'AQUA',
       extranet: 'N',
-      role: 'ADMIN',
+      role: 'USER',
       width: 300,
       height: 500,
     }
@@ -586,7 +698,7 @@ const PLACEMENT_CONFIGS = {
       iconName: 'fa-calculator',
       color: 'AQUA',
       extranet: 'N',
-      role: 'ADMIN',
+      role: 'USER',
       width: 300,
       height: 500,
     }
@@ -598,9 +710,26 @@ const PLACEMENT_CONFIGS = {
       iconName: 'fa-calculator',
       color: 'AQUA',
       extranet: 'N',
-      role: 'ADMIN',
+      role: 'USER',
       width: 300,
       height: 500,
+    }
+  },
+  CALL_CARD: {
+    title: 'Калькулятор',
+    description: 'Расчеты в карточке звонка',
+    options: {
+      iconName: 'fa-calculator',
+      color: 'AQUA',
+      extranet: 'N',
+      role: 'USER',
+    }
+  },
+  PAGE_BACKGROUND_WORKER: {
+    title: 'Фоновый калькулятор',
+    description: 'Вычисления в фоновом режиме для обработки данных',
+    options: {
+      errorHandlerUrl: `${window.location.origin}/placements/error-handler`
     }
   }
 }
@@ -618,39 +747,25 @@ const USER_FIELD_CONFIG = {
 export default {
   name: 'Settings',
   setup() {
+    const {t, locale} = useI18n()
     const toast = useToast()
     const isSaving = ref(false)
 
-    // Флаги загрузки
-    const loadingStates = {
-      chat: {
-        isProcessing: ref(false),
-        isProcessingPanel: ref(false),
-        isProcessingSidebar: ref(false),
-        isLoadingPlacements: ref(false)
-      },
-      task: {
-        isProcessing: ref(false),
-        isProcessingSidebar: ref(false),
-        isProcessingTab: ref(false),
-        isLoadingPlacements: ref(false)
-      },
-      userField: {
-        isProcessing: ref(false),
-        isLoading: ref(false)
-      }
-    }
+    // Получаем origin текущего окна
+    const windowOrigin = window.location.origin
 
-    // URL обработчиков
+    // URL обработчиков (добавлен обработчик для PAGE_BACKGROUND_WORKER)
     const HANDLERS = {
-      chatPanel: `${window.location.origin}/placements/chat-panel`,
-      chatSidebar: `${window.location.origin}/placements/chat-sidebar`,
-      taskSidebar: `${window.location.origin}/placements/task-sidebar`,
-      taskTab: `${window.location.origin}/placements/task-tab`,
-      userField: `${window.location.origin}/placements/task-sidebar`
+      chatPanel: `${windowOrigin}/placements/chat-panel`,
+      chatSidebar: `${windowOrigin}/placements/chat-sidebar`,
+      taskSidebar: `${windowOrigin}/placements/task-sidebar`,
+      taskTab: `${windowOrigin}/placements/task-tab`,
+      callCard: `${windowOrigin}/placements/call-card`,
+      pageBackgroundWorker: `${windowOrigin}/placements/page-background-worker`,
+      userField: `${windowOrigin}/placements/task-sidebar`
     }
 
-    // Настройки
+    // Настройки (убрано поле pageBackgroundWorkerEnabled)
     const settings = ref({
       chatCalculatorEnabled: false,
       chatPanelEnabled: false,
@@ -658,106 +773,48 @@ export default {
       taskCalculatorEnabled: false,
       taskSidebarEnabled: false,
       taskTabEnabled: false,
-      userFieldTypeEnabled: false
+      callCardCalculatorEnabled: false,
+      userFieldTypeEnabled: false,
+      showSolutionsSlider: false
     })
 
     // Данные для слайдера
     const solutions = ref([
       {
         id: 1,
-        title: 'Умные отчёты',
-        description: 'Автоматическая генерация отчётов и аналитика продаж',
+        translationKey: 'calendarInCrm',
         icon: 'chart-bar',
         iconComponent: markRaw(ChartBarIcon),
         color: 'bg-purple-500',
         features: ['Автоматические отчёты', 'Аналитика в реальном времени', 'Интеграция с CRM'],
         link: 'https://marketplace.bitrix24.ru/smart-reports',
         installed: false,
-        badge: 'Новинка',
+        badge: t('badges.new'),
         badgeClass: 'bg-purple-100 text-purple-800'
       },
       {
         id: 2,
-        title: 'Планировщик задач',
-        description: 'Интеллектуальное распределение задач и управление проектами',
+        translationKey: 'timerInCrm',
         icon: 'calendar',
         iconComponent: markRaw(CalendarIcon),
         color: 'bg-green-500',
         features: ['Автораспределение задач', 'Гант-диаграммы', 'Контроль сроков'],
         link: 'https://marketplace.bitrix24.ru/task-planner',
-        installed: true,
-        badge: 'Установлено',
+        installed: false,
+        badge: t('badges.new'),
         badgeClass: 'bg-green-100 text-green-800'
       },
       {
         id: 3,
-        title: 'Чат-бот AI',
-        description: 'Искусственный интеллект для автоматизации общения с клиентами',
+        translationKey: 'noticeInCrm',
         icon: 'chat-alt-2',
         iconComponent: markRaw(ChatAlt2Icon),
         color: 'bg-blue-500',
         features: ['24/7 поддержка', 'Обучение на базе данных', 'Мультиязычность'],
         link: 'https://marketplace.bitrix24.ru/ai-chatbot',
         installed: false,
-        badge: 'Популярное',
+        badge: t('badges.new'),
         badgeClass: 'bg-blue-100 text-blue-800'
-      },
-      {
-        id: 4,
-        title: 'Мобильное приложение',
-        description: 'Полный функционал CRM в вашем смартфоне',
-        icon: 'device-mobile',
-        iconComponent: markRaw(DeviceMobileIcon),
-        color: 'bg-orange-500',
-        features: ['Офлайн-режим', 'Push-уведомления', 'Быстрый поиск'],
-        link: 'https://marketplace.bitrix24.ru/mobile-app',
-        installed: false
-      },
-      {
-        id: 5,
-        title: 'Интеграция с почтой',
-        description: 'Синхронизация всех почтовых ящиков в одном интерфейсе',
-        icon: 'mail',
-        iconComponent: markRaw(MailIcon),
-        color: 'bg-red-500',
-        features: ['Несколько аккаунтов', 'Шаблоны писем', 'Автоответчик'],
-        link: 'https://marketplace.bitrix24.ru/email-integration',
-        installed: true,
-        badge: 'Установлено',
-        badgeClass: 'bg-green-100 text-green-800'
-      },
-      {
-        id: 6,
-        title: 'Автоматизация маркетинга',
-        description: 'Создание воронок продаж и автоматических рассылок',
-        icon: 'trending-up',
-        iconComponent: markRaw(TrendingUpIcon),
-        color: 'bg-indigo-500',
-        features: ['Воронки продаж', 'Email-рассылки', 'A/B тестирование'],
-        link: 'https://marketplace.bitrix24.ru/marketing-automation',
-        installed: false
-      },
-      {
-        id: 7,
-        title: 'Видеоконференции',
-        description: 'HD видеозвонки и совещания прямо из CRM',
-        icon: 'video-camera',
-        iconComponent: markRaw(VideoCameraIcon),
-        color: 'bg-teal-500',
-        features: ['HD качество', 'Запись встреч', 'До 100 участников'],
-        link: 'https://marketplace.bitrix24.ru/video-conference',
-        installed: false
-      },
-      {
-        id: 8,
-        title: 'Документооборот',
-        description: 'Электронный документооборот и цифровые подписи',
-        icon: 'document-text',
-        iconComponent: markRaw(DocumentTextIcon),
-        color: 'bg-yellow-500',
-        features: ['Электронные подписи', 'Шаблоны документов', 'Архивирование'],
-        link: 'https://marketplace.bitrix24.ru/document-flow',
-        installed: false
       }
     ])
 
@@ -769,29 +826,66 @@ export default {
     const currentSolution = computed(() => solutions.value[currentSlide.value] || solutions.value[0])
     const totalSlides = computed(() => solutions.value.length)
 
+    // Функция для скачивания руководства пользователя
+    const downloadUserGuide = () => {
+      // Получаем сохраненный язык из localStorage
+      const savedLang = localStorage.getItem('bitrix24_language') || 'ru'
+
+      // Определяем URL файла в зависимости от языка
+      let fileUrl
+      let fileName
+
+      if (savedLang === 'ru') {
+        // Русская версия
+        fileUrl = '/files/user-guide-ru.docx'
+        fileName = 'Руководство_пользователя_Калькулятор_в_CRM.docx'
+      } else {
+        // Английская версия (для всех других языков)
+        fileUrl = '/files/user-guide-en.docx'
+        fileName = 'User_Guide_Calculator_in_CRM.docx'
+      }
+
+      // Создаем временную ссылку для скачивания
+      const link = document.createElement('a')
+      link.href = fileUrl
+      link.download = fileName
+      link.target = '_blank'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+
+      // Показываем уведомление
+      toast.add({
+        description: savedLang === 'ru'
+            ? 'Руководство пользователя скачивается...'
+            : 'User guide is downloading...',
+        variant: 'info'
+      })
+    }
+
     // Утилиты для уведомлений
     const notification = {
-      success: (message) => {
+      success: (messageKey) => {
         toast.add({
-          description: message,
+          description: t(`notifications.success.${messageKey}`),
           variant: 'success'
         })
       },
-      error: (message) => {
+      error: (messageKey) => {
         toast.add({
-          description: message,
+          description: t(`notifications.error.${messageKey}`),
           variant: 'error'
         })
       },
-      warning: (message) => {
+      warning: (messageKey) => {
         toast.add({
-          description: message,
+          description: t(`notifications.warning.${messageKey}`),
           variant: 'warning'
         })
       },
-      info: (message) => {
+      info: (messageKey) => {
         toast.add({
-          description: message,
+          description: t(`notifications.info.${messageKey}`),
           variant: 'info'
         })
       }
@@ -852,18 +946,41 @@ export default {
       bind: async (placementType, handler) => {
         try {
           const config = placementManager.getConfig(placementType)
-          const placementConfig = {
-            PLACEMENT: placementType,
-            HANDLER: handler,
-            LANG_ALL: {
-              ru: {
-                TITLE: config.title,
-                DESCRIPTION: config.description,
-                GROUP_NAME: 'Инструменты'
+
+          // Для PAGE_BACKGROUND_WORKER используем специальный формат конфигурации
+          const placementConfig = placementType === 'PAGE_BACKGROUND_WORKER'
+              ? {
+                PLACEMENT: placementType,
+                HANDLER: handler,
+                OPTIONS: config.options
               }
-            },
-            OPTIONS: config.options
-          }
+              : {
+                PLACEMENT: placementType,
+                HANDLER: handler,
+                LANG_ALL: {
+                  ru: {
+                    TITLE: config.title,
+                    DESCRIPTION: config.description,
+                    GROUP_NAME: 'Инструменты'
+                  },
+                  en: {
+                    TITLE: 'Calculator in CRM',
+                    DESCRIPTION: 'Calculations directly in the message input panel',
+                    GROUP_NAME: 'Tools'
+                  },
+                  be: {
+                    TITLE: 'Калькулятар у CRM',
+                    DESCRIPTION: 'Разлікі прама ў панэлі ўводу паведамлення',
+                    GROUP_NAME: 'Інструменты'
+                  },
+                  kk: {
+                    TITLE: 'CRM-дегі калькулятор',
+                    DESCRIPTION: 'Хабарлама енгізу панелінде тікелей есептеулер',
+                    GROUP_NAME: 'Құралдар'
+                  }
+                },
+                OPTIONS: config.options
+              }
 
           const result = await bitrixAPI.call('placement.bind', placementConfig)
           console.log(`Встройка ${placementType} зарегистрирована:`, result)
@@ -915,7 +1032,6 @@ export default {
     const userFieldManager = {
       checkStatus: async () => {
         try {
-          loadingStates.userField.isLoading.value = true
           const userFieldTypes = await bitrixAPI.getUserFieldTypes()
 
           if (!Array.isArray(userFieldTypes)) {
@@ -932,8 +1048,6 @@ export default {
         } catch (error) {
           console.error('Ошибка при проверке статуса типа поля:', error)
           return false
-        } finally {
-          loadingStates.userField.isLoading.value = false
         }
       },
 
@@ -974,7 +1088,6 @@ export default {
     const syncStatus = {
       chat: async () => {
         try {
-          loadingStates.chat.isLoadingPlacements.value = true
           const panelStatus = await placementManager.checkStatus('IM_TEXTAREA', HANDLERS.chatPanel)
           const sidebarStatus = await placementManager.checkStatus('IM_SIDEBAR', HANDLERS.chatSidebar)
 
@@ -983,14 +1096,11 @@ export default {
           settings.value.chatSidebarEnabled = sidebarStatus
         } catch (error) {
           console.error('Ошибка синхронизации статуса встроек чата:', error)
-        } finally {
-          loadingStates.chat.isLoadingPlacements.value = false
         }
       },
 
       task: async () => {
         try {
-          loadingStates.task.isLoadingPlacements.value = true
           const sidebarStatus = await placementManager.checkStatus('TASK_VIEW_SIDEBAR', HANDLERS.taskSidebar)
           const tabStatus = await placementManager.checkStatus('TASK_VIEW_TAB', HANDLERS.taskTab)
 
@@ -999,8 +1109,15 @@ export default {
           settings.value.taskTabEnabled = tabStatus
         } catch (error) {
           console.error('Ошибка синхронизации статуса встроек задач:', error)
-        } finally {
-          loadingStates.task.isLoadingPlacements.value = false
+        }
+      },
+
+      callCard: async () => {
+        try {
+          const callCardStatus = await placementManager.checkStatus('CALL_CARD', HANDLERS.callCard)
+          settings.value.callCardCalculatorEnabled = callCardStatus
+        } catch (error) {
+          console.error('Ошибка синхронизации статуса встройки карточки звонка:', error)
         }
       },
 
@@ -1014,12 +1131,26 @@ export default {
       }
     }
 
+    // Функция для автоматической регистрации PAGE_BACKGROUND_WORKER
+    const registerPageBackgroundWorker = async () => {
+      try {
+        const isRegistered = await placementManager.checkStatus('PAGE_BACKGROUND_WORKER', HANDLERS.pageBackgroundWorker)
+
+        if (!isRegistered) {
+          console.log('Регистрируем PAGE_BACKGROUND_WORKER...')
+          await placementManager.bind('PAGE_BACKGROUND_WORKER', HANDLERS.pageBackgroundWorker)
+          console.log('PAGE_BACKGROUND_WORKER успешно зарегистрирован')
+        } else {
+          console.log('PAGE_BACKGROUND_WORKER уже зарегистрирован')
+        }
+      } catch (error) {
+        console.error('Ошибка при регистрации PAGE_BACKGROUND_WORKER:', error)
+      }
+    }
+
     // Основные функции переключения
     const toggleFunctions = {
       chatCalculator: async (newValue) => {
-        if (loadingStates.chat.isProcessing.value) return
-        loadingStates.chat.isProcessing.value = true
-
         try {
           if (newValue) {
             await Promise.all([
@@ -1028,7 +1159,7 @@ export default {
             ])
             settings.value.chatPanelEnabled = true
             settings.value.chatSidebarEnabled = true
-            notification.success('Калькулятор успешно добавлен в чат')
+            notification.success('chatAdded')
           } else {
             await Promise.all([
               placementManager.unbind('IM_TEXTAREA', HANDLERS.chatPanel),
@@ -1036,31 +1167,26 @@ export default {
             ])
             settings.value.chatPanelEnabled = false
             settings.value.chatSidebarEnabled = false
-            notification.success('Калькулятор успешно удален из чата')
+            notification.success('chatRemoved')
           }
 
           settings.value.chatCalculatorEnabled = newValue
           saveSettings()
         } catch (error) {
           await syncStatus.chat()
-          notification.error('Ошибка при обновлении настроек чата')
+          notification.error('chatUpdate')
           console.error('Ошибка:', error)
-        } finally {
-          loadingStates.chat.isProcessing.value = false
         }
       },
 
       chatPanel: async (newValue) => {
-        if (loadingStates.chat.isProcessingPanel.value) return
-        loadingStates.chat.isProcessingPanel.value = true
-
         try {
           if (newValue) {
             await placementManager.bind('IM_TEXTAREA', HANDLERS.chatPanel)
-            notification.success('Калькулятор добавлен в панель чата')
+            notification.success('chatPanelAdded')
           } else {
             await placementManager.unbind('IM_TEXTAREA', HANDLERS.chatPanel)
-            notification.info('Калькулятор удален из панели чата')
+            notification.success('chatPanelRemoved')
           }
 
           settings.value.chatPanelEnabled = newValue
@@ -1069,24 +1195,19 @@ export default {
         } catch (error) {
           const status = await placementManager.checkStatus('IM_TEXTAREA', HANDLERS.chatPanel)
           settings.value.chatPanelEnabled = status
-          notification.error('Ошибка при обновлении панели чата')
+          notification.error('chatPanelUpdate')
           console.error('Ошибка:', error)
-        } finally {
-          loadingStates.chat.isProcessingPanel.value = false
         }
       },
 
       chatSidebar: async (newValue) => {
-        if (loadingStates.chat.isProcessingSidebar.value) return
-        loadingStates.chat.isProcessingSidebar.value = true
-
         try {
           if (newValue) {
             await placementManager.bind('IM_SIDEBAR', HANDLERS.chatSidebar)
-            notification.success('Калькулятор добавлен в сайдбар чата')
+            notification.success('chatSidebarAdded')
           } else {
             await placementManager.unbind('IM_SIDEBAR', HANDLERS.chatSidebar)
-            notification.info('Калькулятор удален из сайдбара чата')
+            notification.success('chatSidebarRemoved')
           }
 
           settings.value.chatSidebarEnabled = newValue
@@ -1095,17 +1216,12 @@ export default {
         } catch (error) {
           const status = await placementManager.checkStatus('IM_SIDEBAR', HANDLERS.chatSidebar)
           settings.value.chatSidebarEnabled = status
-          notification.error('Ошибка при обновлении сайдбара чата')
+          notification.error('chatSidebarUpdate')
           console.error('Ошибка:', error)
-        } finally {
-          loadingStates.chat.isProcessingSidebar.value = false
         }
       },
 
       taskCalculator: async (newValue) => {
-        if (loadingStates.task.isProcessing.value) return
-        loadingStates.task.isProcessing.value = true
-
         try {
           if (newValue) {
             await Promise.all([
@@ -1114,7 +1230,7 @@ export default {
             ])
             settings.value.taskSidebarEnabled = true
             settings.value.taskTabEnabled = true
-            notification.success('Калькулятор успешно добавлен в задачи')
+            notification.success('taskAdded')
           } else {
             await Promise.all([
               placementManager.unbind('TASK_VIEW_SIDEBAR', HANDLERS.taskSidebar),
@@ -1122,31 +1238,26 @@ export default {
             ])
             settings.value.taskSidebarEnabled = false
             settings.value.taskTabEnabled = false
-            notification.success('Калькулятор успешно удален из задач')
+            notification.success('taskRemoved')
           }
 
           settings.value.taskCalculatorEnabled = newValue
           saveSettings()
         } catch (error) {
           await syncStatus.task()
-          notification.error('Ошибка при обновлении настроек задач')
+          notification.error('taskUpdate')
           console.error('Ошибка:', error)
-        } finally {
-          loadingStates.task.isProcessing.value = false
         }
       },
 
       taskSidebar: async (newValue) => {
-        if (loadingStates.task.isProcessingSidebar.value) return
-        loadingStates.task.isProcessingSidebar.value = true
-
         try {
           if (newValue) {
             await placementManager.bind('TASK_VIEW_SIDEBAR', HANDLERS.taskSidebar)
-            notification.success('Калькулятор добавлен в сайдбар задачи')
+            notification.success('taskSidebarAdded')
           } else {
             await placementManager.unbind('TASK_VIEW_SIDEBAR', HANDLERS.taskSidebar)
-            notification.info('Калькулятор удален из сайдбара задачи')
+            notification.success('taskSidebarRemoved')
           }
 
           settings.value.taskSidebarEnabled = newValue
@@ -1155,24 +1266,19 @@ export default {
         } catch (error) {
           const status = await placementManager.checkStatus('TASK_VIEW_SIDEBAR', HANDLERS.taskSidebar)
           settings.value.taskSidebarEnabled = status
-          notification.error('Ошибка при обновлении сайдбара задачи')
+          notification.error('taskSidebarUpdate')
           console.error('Ошибка:', error)
-        } finally {
-          loadingStates.task.isProcessingSidebar.value = false
         }
       },
 
       taskTab: async (newValue) => {
-        if (loadingStates.task.isProcessingTab.value) return
-        loadingStates.task.isProcessingTab.value = true
-
         try {
           if (newValue) {
             await placementManager.bind('TASK_VIEW_TAB', HANDLERS.taskTab)
-            notification.success('Калькулятор добавлен во вкладку задачи')
+            notification.success('taskTabAdded')
           } else {
             await placementManager.unbind('TASK_VIEW_TAB', HANDLERS.taskTab)
-            notification.info('Калькулятор удален из вкладки задачи')
+            notification.success('taskTabRemoved')
           }
 
           settings.value.taskTabEnabled = newValue
@@ -1181,34 +1287,46 @@ export default {
         } catch (error) {
           const status = await placementManager.checkStatus('TASK_VIEW_TAB', HANDLERS.taskTab)
           settings.value.taskTabEnabled = status
-          notification.error('Ошибка при обновлении вкладки задачи')
+          notification.error('taskTabUpdate')
           console.error('Ошибка:', error)
-        } finally {
-          loadingStates.task.isProcessingTab.value = false
+        }
+      },
+
+      callCardCalculator: async (newValue) => {
+        try {
+          if (newValue) {
+            await placementManager.bind('CALL_CARD', HANDLERS.callCard)
+            notification.success('callCardAdded')
+          } else {
+            await placementManager.unbind('CALL_CARD', HANDLERS.callCard)
+            notification.success('callCardRemoved')
+          }
+
+          settings.value.callCardCalculatorEnabled = newValue
+          saveSettings()
+        } catch (error) {
+          await syncStatus.callCard()
+          notification.error('callCardUpdate')
+          console.error('Ошибка:', error)
         }
       },
 
       userFieldType: async (newValue) => {
-        if (loadingStates.userField.isProcessing.value) return
-        loadingStates.userField.isProcessing.value = true
-
         try {
           if (newValue) {
             await userFieldManager.add()
-            notification.success('Пользовательский тип поля "Калькулятор в CRM" успешно зарегистрирован')
+            notification.success('fieldTypeAdded')
           } else {
             await userFieldManager.delete()
-            notification.success('Пользовательский тип поля "Калькулятор в CRM" успешно удален')
+            notification.success('fieldTypeRemoved')
           }
 
           settings.value.userFieldTypeEnabled = newValue
           saveSettings()
         } catch (error) {
           await syncStatus.userField()
-          notification.error(error.message || 'Ошибка при обновлении типа поля')
+          notification.error('fieldTypeUpdate')
           console.error('Ошибка:', error)
-        } finally {
-          loadingStates.userField.isProcessing.value = false
         }
       }
     }
@@ -1237,7 +1355,7 @@ export default {
         }
       } catch (error) {
         console.error('Ошибка загрузки настроек:', error)
-        notification.error('Ошибка загрузки настроек')
+        notification.error('settingsLoad')
       }
     }
 
@@ -1279,19 +1397,24 @@ export default {
 
       if (typeof BX24 === 'undefined') {
         console.warn('Библиотека Bitrix24 не загружена.')
-        notification.warning('Библиотека Bitrix24 не загружена. Проверьте подключение.')
+        notification.warning('bitrixLoad')
         return
       }
 
       try {
+        // Автоматически регистрируем PAGE_BACKGROUND_WORKER
+        await registerPageBackgroundWorker()
+
+        // Синхронизируем статус остальных встроек
         await Promise.all([
           syncStatus.chat(),
           syncStatus.task(),
+          syncStatus.callCard(),
           syncStatus.userField()
         ])
-        notification.info('Статус настроек успешно синхронизирован')
+        notification.info('syncInfo')
       } catch (error) {
-        notification.error('Ошибка синхронизации статуса')
+        notification.error('syncError')
       }
 
       startAutoplay()
@@ -1305,16 +1428,22 @@ export default {
       // Состояние
       settings,
       isSaving,
-      isLoadingChatPlacements: loadingStates.chat.isLoadingPlacements,
-      isLoadingTaskPlacements: loadingStates.task.isLoadingPlacements,
-      isLoadingUserFieldType: loadingStates.userField.isLoading,
-      isProcessingChat: loadingStates.chat.isProcessing,
-      isProcessingChatPanel: loadingStates.chat.isProcessingPanel,
-      isProcessingChatSidebar: loadingStates.chat.isProcessingSidebar,
-      isProcessingTask: loadingStates.task.isProcessing,
-      isProcessingTaskSidebar: loadingStates.task.isProcessingSidebar,
-      isProcessingTaskTab: loadingStates.task.isProcessingTab,
-      isProcessingUserFieldType: loadingStates.userField.isProcessing,
+      windowOrigin,
+      isLoadingChatPlacements: ref(false),
+      isLoadingTaskPlacements: ref(false),
+      isLoadingCallCardPlacements: ref(false),
+      isLoadingUserFieldType: ref(false),
+      isProcessingChat: ref(false),
+      isProcessingChatPanel: ref(false),
+      isProcessingChatSidebar: ref(false),
+      isProcessingTask: ref(false),
+      isProcessingTaskSidebar: ref(false),
+      isProcessingTaskTab: ref(false),
+      isProcessingCallCard: ref(false),
+      isProcessingUserFieldType: ref(false),
+
+      // Константы
+      HANDLERS,
 
       // Слайдер
       solutions,
@@ -1328,6 +1457,7 @@ export default {
       goToSlide,
       startAutoplay,
       stopAutoplay,
+      downloadUserGuide,
 
       // Функции переключения
       toggleChatCalculator: toggleFunctions.chatCalculator,
@@ -1336,16 +1466,60 @@ export default {
       toggleTaskCalculator: toggleFunctions.taskCalculator,
       toggleTaskSidebar: toggleFunctions.taskSidebar,
       toggleTaskTab: toggleFunctions.taskTab,
+      toggleCallCardCalculator: toggleFunctions.callCardCalculator,
       toggleUserFieldType: toggleFunctions.userFieldType,
-
-      // Константы
-      userFieldTypeHandler: HANDLERS.userField
     }
   }
 }
 </script>
 
 <style scoped>
+/* Улучшение видимости радиобаттонов */
+::v-deep .b24-switch__toggle {
+  border: 2px solid #cbd5e0 !important; /* Добавляем обводку */
+  background-color: white !important;
+}
+
+::v-deep .b24-switch__toggle--checked {
+  border-color: #3b82f6 !important; /* Синяя обводка когда включено */
+  background-color: #3b82f6 !important;
+}
+
+::v-deep .b24-switch__toggle--small {
+  width: 36px !important;
+  height: 20px !important;
+}
+
+::v-deep .b24-switch__toggle--small .b24-switch__thumb {
+  width: 16px !important;
+  height: 16px !important;
+  transform: translateX(2px) !important;
+}
+
+::v-deep .b24-switch__toggle--small.b24-switch__toggle--checked .b24-switch__thumb {
+  transform: translateX(16px) !important;
+}
+
+::v-deep .b24-switch__toggle--default {
+  width: 44px !important;
+  height: 24px !important;
+}
+
+::v-deep .b24-switch__toggle--default .b24-switch__thumb {
+  width: 20px !important;
+  height: 20px !important;
+  transform: translateX(2px) !important;
+}
+
+::v-deep .b24-switch__toggle--default.b24-switch__toggle--checked .b24-switch__thumb {
+  transform: translateX(20px) !important;
+}
+
+/* Улучшение видимости кнопок навигации слайдера */
+button:not(:disabled):hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
 /* Фиксированный сайдбар с плавной прокруткой */
 .lg\:sticky {
   position: sticky;
@@ -1373,10 +1547,6 @@ export default {
 button:disabled {
   cursor: not-allowed;
   opacity: 0.5;
-}
-
-button:not(:disabled):hover {
-  background-color: rgba(0, 0, 0, 0.05);
 }
 
 /* Улучшенные анимации загрузки */
