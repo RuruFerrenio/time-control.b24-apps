@@ -3,7 +3,7 @@
     <div class="min-h-screen bg-gray-50">
       <!-- Основной контент -->
       <main>
-        <RouterView />
+        <router-view />
       </main>
     </div>
   </B24App>
@@ -11,6 +11,6 @@
 
 <script>
 export default {
-  name: 'App',
+  name: 'App'
 }
 </script>

@@ -1,10 +1,38 @@
-import Guide from './components/Guide.vue'
-
 const routes = [
   {
     path: '/app',
+    name: 'home',
+    component: () => import('./components/TimeList.vue'),
+    redirect: () => {
+      // Проверяем режим из window.bitrixData
+      if (window.bitrixData && window.bitrixData.mode === 'alerta') {
+        return '/presence-check'
+      }
+      return '/time-list'
+    }
+  },
+  {
+    path: '/time-list',
+    name: 'time-list',
+    component: () => import('./components/TimeList.vue'),
+  },
+  {
+    path: '/workday-statistics',
+    name: 'workday-statistics',
+    component: () => import('./components/WorkDayStatistics.vue'),
+    props: (route) => ({
+      userId: route.query.userId || null
+    })
+  },
+  {
+    path: '/settings',
     name: 'settings',
     component: () => import('./components/Settings.vue'),
+  },
+  {
+    path: '/presence-check',
+    name: 'presence-check',
+    component: () => import('./components/PresenceCheck.vue'),
   },
   {
     path: '/install',
@@ -39,7 +67,7 @@ const routes = [
   {
     path: '/guide',
     name: 'Guide',
-    component: Guide
+    component: () => import('./components/Guide.vue')
   }
 ];
 

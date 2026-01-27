@@ -11,6 +11,20 @@ class AppController extends Controller
 {
     public function index(Bitrix24ApiClient $bitrix24, Request $request): View
     {
-        return view('b24api.index');
+	    $placementOptions = $request->input('PLACEMENT_OPTIONS', '{}');
+	    $params = $request->input('params', []);
+
+	    $options = json_decode($placementOptions, true) ?? [];
+
+		if(isset($options['parameters'])){
+			$parameters = json_decode($options['parameters'], true) ?? [];
+		}
+
+	    $mode = $parameters['mode'] ?? null;
+
+        return view('b24api.index', [
+	        'placementOptions' => $placementOptions,
+	        'mode' => $mode,
+        ]);
     }
 }

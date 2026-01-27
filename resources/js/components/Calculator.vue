@@ -1,1723 +1,1386 @@
 <template>
-  <B24App>
-    <div class="w-full h-full p-4 space-y-4" :dir="direction">
-      <!-- Дисплей калькулятора -->
-      <B24Card class="overflow-hidden">
-        <div class="p-3 relative">
-          <div class="text-right space-y-0">
-            <!-- История вычислений -->
-            <div
-                v-if="previousExpression"
-                class="text-sm text-b24-text-secondary min-h-[16px] font-mono truncate"
-            >
-              {{ previousExpression }}
-            </div>
-
-            <!-- Текущий ввод через input -->
-            <div class="relative">
-              <input
-                  ref="inputRef"
-                  v-model="currentExpression"
-                  type="text"
-                  class="w-full text-right text-xl font-semibold text-b24-text-primary bg-transparent border-none outline-none calculator-input"
-                  @keydown="handleKeyDown"
-                  @input="onExpressionChange"
-                  @focus="onInputFocus"
-                  @blur="onInputBlur"
-                  :placeholder="$t('calculator.placeholder')"
-                  spellcheck="false"
-                  :dir="direction"
-              />
-              <div class="absolute right-0 top-0 bottom-0 w-0 opacity-0 pointer-events-none">
-                {{ currentExpression }}
-              </div>
-            </div>
-
-            <!-- Результат с разделительной чертой -->
-            <div class="border-t border-b24-border pt-1 mt-1">
-              <div class="text-lg font-bold text-b24-primary truncate calculator-display" style="min-height: 24px;">
-                {{ $t('calculator.equals') }} {{ formattedResult }}
-              </div>
-            </div>
-          </div>
+  <div class="poll-form-wrapper">
+    <div class="poll-form-container">
+      <div class="poll-card">
+        <div class="poll-card-header">
+          <h1 class="poll-title">Создание опроса</h1>
         </div>
-      </B24Card>
 
-      <!-- Кнопки быстрых действий -->
-      <div class="flex items-center justify-between">
-        <div class="flex space-x-2 w-full">
-          <B24Button
-              size="sm"
-              variant="secondary"
-              @click="copyToClipboard"
-              class="text-xs w-full justify-center"
-          >
-            {{ $t('calculator.copy') }}
-          </B24Button>
-          <B24Button
-              v-if="sendBtnActive"
-              size="sm"
-              variant="primary"
-              @click="sendToChat"
-              class="text-xs w-full justify-center"
-          >
-            {{ $t('calculator.send') }}
-          </B24Button>
+        <div class="poll-card-content">
+          <form ref="pollForm" @submit.prevent="handleSubmit" class="poll-form">
+            <!-- Вопрос -->
+            <div class="form-group">
+              <label class="form-label required">Вопрос</label>
+              <textarea
+                  v-model="formData.subject"
+                  placeholder="Введите ваш вопрос"
+                  rows="3"
+                  required
+                  class="question-input"
+              />
+            </div>
+
+            <!-- Переключение режима -->
+            <div class="form-group">
+              <label class="form-label">Режим опроса</label>
+              <div class="mode-switcher-container">
+                <div class="mode-switcher">
+                  <button
+                      type="button"
+                      :class="['mode-btn', { 'active': formData.mode === 'vote' }]"
+                      @click="formData.mode = 'vote'"
+                      class="mode-btn"
+                  >
+                    <span class="mode-icon">👥</span>
+                    Голосование
+                  </button>
+                  <button
+                      type="button"
+                      :class="['mode-btn', { 'active': formData.mode === 'approval' }]"
+                      @click="formData.mode = 'approval'"
+                      class="mode-btn"
+                  >
+                    <span class="mode-icon">✓</span>
+                    Согласование
+                  </button>
+                </div>
+                <div class="mode-description">
+                  <span v-if="formData.mode === 'vote'">
+                    Участники выбирают один или несколько вариантов ответа
+                  </span>
+                  <span v-else>
+                    Участники могут согласовать или отклонить (если разрешено)
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Выбор участников -->
+            <div class="participants-section">
+              <h3 class="section-title">Участники опроса</h3>
+              <div class="section-description">
+                Выберите пользователей, которые примут участие в опросе
+              </div>
+
+              <div class="participants-selector">
+                <!-- Кнопка открытия диалога выбора пользователей -->
+                <button
+                    type="button"
+                    @click="openUserSelector"
+                    class="select-users-btn"
+                >
+                  <span class="selector-icon">👤</span>
+                  {{ selectedUsers.length > 0 ? `Выбрано: ${selectedUsers.length}` : 'Выбрать участников' }}
+                </button>
+
+                <!-- Отображение выбранных пользователей -->
+                <div v-if="selectedUsers.length > 0" class="selected-users-list">
+                  <div
+                      v-for="user in selectedUsers"
+                      :key="user.id"
+                      class="selected-user-item"
+                  >
+                    <div class="user-avatar">
+                      {{ getUserInitials(user.name) }}
+                    </div>
+                    <div class="user-info">
+                      <div class="user-name">{{ user.name }}</div>
+                      <div class="user-id">ID: {{ user.id }}</div>
+                    </div>
+                    <button
+                        type="button"
+                        @click="removeUser(user.id)"
+                        class="remove-user-btn"
+                        title="Удалить из списка"
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Кнопка очистки выбора -->
+                <button
+                    v-if="selectedUsers.length > 0"
+                    type="button"
+                    @click="clearAllUsers"
+                    class="clear-users-btn"
+                >
+                  🗑️ Очистить всех
+                </button>
+              </div>
+
+              <!-- Информация о выборе -->
+              <div v-if="selectedUsers.length > 0" class="selection-info">
+                <div class="info-icon">ℹ️</div>
+                <div class="info-text">
+                  Выбрано <strong>{{ selectedUsers.length }}</strong> участник{{ selectedUsers.length === 1 ? '' : 'ов' }}.
+                  <span v-if="selectedUsers.length === 1">Вы можете выбрать больше участников.</span>
+                  <span v-else>Нажмите "Выбрать участников" для добавления.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Варианты ответов -->
+            <div class="options-section">
+              <h3 class="section-title">Варианты ответов</h3>
+              <div class="section-description">
+                <span v-if="formData.mode === 'vote'">
+                  Добавьте варианты ответов для голосования (минимум 2)
+                </span>
+                <span v-else>
+                  В режиме согласования используется фиксированный вариант
+                </span>
+              </div>
+
+              <div class="options-list">
+                <div
+                    v-for="(option, index) in formData.options"
+                    :key="index"
+                    class="option-item"
+                >
+                  <div class="option-field-wrapper">
+                    <div class="option-form-group">
+                      <div class="option-label">
+                        <span>Вариант {{ index + 1 }}</span>
+                        <span v-if="formData.mode === 'approval'" class="option-type">
+                          {{ index === 0 ? '(Согласовать)' : '(Отклонить)' }}
+                        </span>
+                      </div>
+                      <input
+                          v-model="formData.options[index]"
+                          :placeholder="formData.mode === 'approval'
+                          ? (index === 0 ? 'Согласовать' : 'Отклонить')
+                          : `Введите вариант ответа ${index + 1}`"
+                          :disabled="formData.mode === 'approval'"
+                          required
+                          class="option-input"
+                      />
+                    </div>
+
+                    <button
+                        v-if="formData.options.length > minOptions && formData.mode === 'vote'"
+                        type="button"
+                        @click="removeOption(index)"
+                        class="remove-btn"
+                        :title="`Удалить вариант ${index + 1}`"
+                    >
+                      🗑️ Удалить
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                  v-if="formData.mode === 'vote'"
+                  type="button"
+                  @click="addOption"
+                  class="add-option-btn"
+              >
+                ➕ Добавить вариант
+              </button>
+            </div>
+
+            <!-- Настройки опроса -->
+            <div class="settings-section">
+              <div class="settings-accordion">
+                <div class="accordion-header" @click="showSettings = !showSettings">
+                  <span class="accordion-icon">⚙️</span>
+                  <h3 class="accordion-title">Настройки опроса</h3>
+                  <span class="accordion-arrow">{{ showSettings ? '▲' : '▼' }}</span>
+                </div>
+
+                <div v-if="showSettings" class="settings-content">
+                  <!-- Анонимное голосование -->
+                  <div class="setting-item">
+                    <div class="setting-label-wrapper">
+                      <div class="setting-label">Анонимное голосование</div>
+                      <div class="setting-description">
+                        Голоса участников не будут видны другим пользователям
+                      </div>
+                    </div>
+                    <label class="switch">
+                      <input
+                          type="checkbox"
+                          v-model="formData.security"
+                          :checked="formData.security"
+                          :disabled="formData.mode === 'approval'"
+                      >
+                      <span class="switch-slider"></span>
+                    </label>
+                  </div>
+
+                  <!-- Показывать кол-во голосов -->
+                  <div class="setting-item">
+                    <div class="setting-label-wrapper">
+                      <div class="setting-label">Показывать количество голосов</div>
+                      <div class="setting-description">
+                        Участники смогут видеть статистику по каждому варианту
+                      </div>
+                    </div>
+                    <label class="switch">
+                      <input
+                          type="checkbox"
+                          v-model="formData.showVotes"
+                          :checked="formData.showVotes"
+                      >
+                      <span class="switch-slider"></span>
+                    </label>
+                  </div>
+
+                  <!-- Оповещать о результате -->
+                  <div class="setting-item">
+                    <div class="setting-label-wrapper">
+                      <div class="setting-label">Оповестить участников о результате</div>
+                      <div class="setting-description">
+                        Все участники получат уведомление при завершении опроса
+                      </div>
+                    </div>
+                    <label class="switch">
+                      <input
+                          type="checkbox"
+                          v-model="formData.notifyOnComplete"
+                          :checked="formData.notifyOnComplete"
+                      >
+                      <span class="switch-slider"></span>
+                    </label>
+                  </div>
+
+                  <!-- Разрешить отклонение (только для режима согласования) -->
+                  <div v-if="formData.mode === 'approval'" class="setting-item">
+                    <div class="setting-label-wrapper">
+                      <div class="setting-label">Разрешить отклонение</div>
+                      <div class="setting-description">
+                        Добавить вариант "Отклонить" для участников согласования
+                      </div>
+                    </div>
+                    <label class="switch">
+                      <input
+                          type="checkbox"
+                          v-model="formData.allowRejection"
+                          :checked="formData.allowRejection"
+                      >
+                      <span class="switch-slider"></span>
+                    </label>
+                  </div>
+
+                  <!-- Множественный выбор (только для голосования) -->
+                  <div v-if="formData.mode === 'vote'" class="setting-item">
+                    <div class="setting-label-wrapper">
+                      <div class="setting-label">Множественный выбор</div>
+                      <div class="setting-description">
+                        Участники смогут выбирать несколько вариантов ответа
+                      </div>
+                    </div>
+                    <label class="switch">
+                      <input
+                          type="checkbox"
+                          v-model="formData.multipleChoice"
+                          :checked="formData.multipleChoice"
+                      >
+                      <span class="switch-slider"></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Сообщение -->
+            <div v-if="generatedMessage" :class="['message-alert', messageType]">
+              <div class="alert-title">{{ messageType === 'success' ? 'Успешно!' : 'Ошибка!' }}</div>
+              <div class="alert-message">{{ generatedMessage }}</div>
+              <button @click="generatedMessage = ''" class="alert-close">×</button>
+            </div>
+
+            <!-- Кнопка отправки -->
+            <div class="submit-section">
+              <button
+                  type="submit"
+                  :disabled="isSubmitting || selectedUsers.length === 0"
+                  class="submit-btn"
+              >
+                <span v-if="isSubmitting" class="spinner">⏳</span>
+                <span v-else>✓</span>
+                {{ isSubmitting ? 'Создание опроса...' : 'Создать опрос' }}
+                <span v-if="selectedUsers.length > 0" class="participants-count">
+                  ({{ selectedUsers.length }} участник{{ selectedUsers.length === 1 ? '' : 'ов' }})
+                </span>
+              </button>
+            </div>
+          </form>
         </div>
       </div>
-
-      <!-- Аккордеон для клавиатуры -->
-      <B24Card class="overflow-hidden">
-        <div
-            class="cursor-pointer flex items-center justify-between hover:bg-b24-surface-hover transition-colors p-3"
-            @click="toggleKeyboard"
-        >
-          <h3 class="text-sm font-semibold text-b24-text-primary">
-            {{ $t('calculator.keyboardTitle') }}
-          </h3>
-          <div class="transform transition-transform" :class="{ 'rotate-180': keyboardOpen }">
-            <i class="fas fa-chevron-down text-b24-text-secondary"></i>
-          </div>
-        </div>
-
-        <!-- Клавиши калькулятора (скрываемое содержимое) -->
-        <div v-if="keyboardOpen" class="pt-3 pb-3 px-3">
-          <div class="grid grid-cols-4 gap-2 mt-3">
-            <!-- Функциональные клавиши -->
-            <B24Button
-                size="lg"
-                variant="secondary"
-                @click="clear"
-                class="calc-btn"
-            >
-              {{ $t('calculator.clear') }}
-            </B24Button>
-            <B24Button
-                size="lg"
-                variant="secondary"
-                @click="backspace"
-                class="calc-btn"
-            >
-              {{ $t('calculator.backspace') }}
-            </B24Button>
-            <B24Button
-                size="lg"
-                variant="secondary"
-                @click="addPercentage"
-                class="calc-btn"
-            >
-              {{ $t('calculator.percentage') }}
-            </B24Button>
-            <B24Button
-                size="lg"
-                variant="ghost"
-                @click="addToExpression('/')"
-                class="calc-btn calc-btn-operation"
-            >
-              {{ $t('calculator.divide') }}
-            </B24Button>
-
-            <!-- Цифры 7-9 -->
-            <B24Button
-                size="lg"
-                variant="ghost"
-                @click="addToExpression('7')"
-                class="calc-btn calc-btn-number"
-            >
-              7
-            </B24Button>
-            <B24Button
-                size="lg"
-                variant="ghost"
-                @click="addToExpression('8')"
-                class="calc-btn calc-btn-number"
-            >
-              8
-            </B24Button>
-            <B24Button
-                size="lg"
-                variant="ghost"
-                @click="addToExpression('9')"
-                class="calc-btn calc-btn-number"
-            >
-              9
-            </B24Button>
-            <B24Button
-                size="lg"
-                variant="ghost"
-                @click="addToExpression('*')"
-                class="calc-btn calc-btn-operation"
-            >
-              {{ $t('calculator.multiply') }}
-            </B24Button>
-
-            <!-- Цифры 4-6 -->
-            <B24Button
-                size="lg"
-                variant="ghost"
-                @click="addToExpression('4')"
-                class="calc-btn calc-btn-number"
-            >
-              4
-            </B24Button>
-            <B24Button
-                size="lg"
-                variant="ghost"
-                @click="addToExpression('5')"
-                class="calc-btn calc-btn-number"
-            >
-              5
-            </B24Button>
-            <B24Button
-                size="lg"
-                variant="ghost"
-                @click="addToExpression('6')"
-                class="calc-btn calc-btn-number"
-            >
-              6
-            </B24Button>
-            <B24Button
-                size="lg"
-                variant="ghost"
-                @click="addToExpression('-')"
-                class="calc-btn calc-btn-operation"
-            >
-              {{ $t('calculator.subtract') }}
-            </B24Button>
-
-            <!-- Цифры 1-3 -->
-            <B24Button
-                size="lg"
-                variant="ghost"
-                @click="addToExpression('1')"
-                class="calc-btn calc-btn-number"
-            >
-              1
-            </B24Button>
-            <B24Button
-                size="lg"
-                variant="ghost"
-                @click="addToExpression('2')"
-                class="calc-btn calc-btn-number"
-            >
-              2
-            </B24Button>
-            <B24Button
-                size="lg"
-                variant="ghost"
-                @click="addToExpression('3')"
-                class="calc-btn calc-btn-number"
-            >
-              3
-            </B24Button>
-            <B24Button
-                size="lg"
-                variant="ghost"
-                @click="addToExpression('+')"
-                class="calc-btn calc-btn-operation"
-            >
-              {{ $t('calculator.add') }}
-            </B24Button>
-
-            <!-- Нижний ряд -->
-            <B24Button
-                size="lg"
-                variant="ghost"
-                @click="addToExpression('0')"
-                class="calc-btn calc-btn-number col-span-2"
-            >
-              0
-            </B24Button>
-            <B24Button
-                size="lg"
-                variant="ghost"
-                @click="addToExpression('.')"
-                class="calc-btn calc-btn-number"
-            >
-              {{ $t('calculator.point') }}
-            </B24Button>
-            <B24Button
-                size="lg"
-                @click="calculate"
-                class="calc-btn calc-btn-equals"
-            >
-              {{ $t('calculator.equalsBtn') }}
-            </B24Button>
-          </div>
-
-          <!-- Дополнительные кнопки -->
-          <div class="grid grid-cols-4 gap-2 mt-2">
-            <B24Button
-                size="sm"
-                variant="ghost"
-                @click="addParenthesis('(')"
-                class="calc-btn"
-            >
-              {{ $t('calculator.openParen') }}
-            </B24Button>
-            <B24Button
-                size="sm"
-                variant="ghost"
-                @click="addParenthesis(')')"
-                class="calc-btn"
-            >
-              {{ $t('calculator.closeParen') }}
-            </B24Button>
-            <B24Button
-                size="sm"
-                variant="ghost"
-                @click="addToExpression('^')"
-                class="calc-btn"
-            >
-              {{ $t('calculator.power') }}
-            </B24Button>
-            <B24Button
-                size="sm"
-                variant="ghost"
-                @click="addConstant('pi')"
-                class="calc-btn"
-            >
-              {{ $t('calculator.pi') }}
-            </B24Button>
-          </div>
-        </div>
-      </B24Card>
-
-      <!-- Аккордеон для инженерных функций -->
-      <B24Card class="overflow-hidden">
-        <div
-            class="cursor-pointer flex items-center justify-between hover:bg-b24-surface-hover transition-colors p-3"
-            @click="toggleEngineering"
-        >
-          <h3 class="text-sm font-semibold text-b24-text-primary">
-            {{ $t('calculator.engineeringTitle') }}
-          </h3>
-          <div class="transform transition-transform" :class="{ 'rotate-180': engineeringOpen }">
-            <i class="fas fa-calculator text-b24-text-secondary"></i>
-          </div>
-        </div>
-
-        <!-- Инженерные функции (скрываемое содержимое) -->
-        <div v-if="engineeringOpen" class="pt-3 pb-3 px-3">
-          <!-- Тригонометрия -->
-          <div class="mb-4">
-            <h4 class="text-xs font-semibold text-b24-text-secondary mb-2 px-1">
-              {{ $t('calculator.trigonometry') }}
-            </h4>
-            <div class="grid grid-cols-3 gap-2 mb-3">
-              <B24Button
-                  size="sm"
-                  variant="ghost"
-                  @click="wrapWithFunction('sin')"
-                  class="calc-btn-engineering"
-              >
-                {{ $t('calculator.sin') }}
-              </B24Button>
-              <B24Button
-                  size="sm"
-                  variant="ghost"
-                  @click="wrapWithFunction('cos')"
-                  class="calc-btn-engineering"
-              >
-                {{ $t('calculator.cos') }}
-              </B24Button>
-              <B24Button
-                  size="sm"
-                  variant="ghost"
-                  @click="wrapWithFunction('tan')"
-                  class="calc-btn-engineering"
-              >
-                {{ $t('calculator.tan') }}
-              </B24Button>
-            </div>
-            <div class="grid grid-cols-3 gap-2">
-              <B24Button
-                  size="sm"
-                  variant="ghost"
-                  @click="wrapWithFunction('asin')"
-                  class="calc-btn-engineering"
-              >
-                {{ $t('calculator.asin') }}
-              </B24Button>
-              <B24Button
-                  size="sm"
-                  variant="ghost"
-                  @click="wrapWithFunction('acos')"
-                  class="calc-btn-engineering"
-              >
-                {{ $t('calculator.acos') }}
-              </B24Button>
-              <B24Button
-                  size="sm"
-                  variant="ghost"
-                  @click="wrapWithFunction('atan')"
-                  class="calc-btn-engineering"
-              >
-                {{ $t('calculator.atan') }}
-              </B24Button>
-            </div>
-          </div>
-
-          <!-- Математические функции -->
-          <div class="mb-4">
-            <h4 class="text-xs font-semibold text-b24-text-secondary mb-2 px-1">
-              {{ $t('calculator.mathematics') }}
-            </h4>
-            <div class="grid grid-cols-3 gap-2">
-              <B24Button
-                  size="sm"
-                  variant="ghost"
-                  @click="wrapWithFunction('sqrt')"
-                  class="calc-btn-engineering"
-              >
-                {{ $t('calculator.squareRoot') }}
-              </B24Button>
-              <B24Button
-                  size="sm"
-                  variant="ghost"
-                  @click="addPower(2)"
-                  class="calc-btn-engineering"
-              >
-                {{ $t('calculator.square') }}
-              </B24Button>
-              <B24Button
-                  size="sm"
-                  variant="ghost"
-                  @click="addPower('y')"
-                  class="calc-btn-engineering"
-              >
-                {{ $t('calculator.power') }}
-              </B24Button>
-              <B24Button
-                  size="sm"
-                  variant="ghost"
-                  @click="wrapWithFunction('ln')"
-                  class="calc-btn-engineering"
-              >
-                {{ $t('calculator.ln') }}
-              </B24Button>
-              <B24Button
-                  size="sm"
-                  variant="ghost"
-                  @click="wrapWithFunction('log10')"
-                  class="calc-btn-engineering"
-              >
-                {{ $t('calculator.log10') }}
-              </B24Button>
-              <B24Button
-                  size="sm"
-                  variant="ghost"
-                  @click="wrapWithFunction('exp')"
-                  class="calc-btn-engineering"
-              >
-                {{ $t('calculator.exp') }}
-              </B24Button>
-            </div>
-          </div>
-
-          <!-- Константы и факториал -->
-          <div class="mb-4">
-            <h4 class="text-xs font-semibold text-b24-text-secondary mb-2 px-1">
-              {{ $t('calculator.constants') }}
-            </h4>
-            <div class="grid grid-cols-3 gap-2">
-              <B24Button
-                  size="sm"
-                  variant="ghost"
-                  @click="addConstant('pi')"
-                  class="calc-btn-engineering"
-              >
-                {{ $t('calculator.pi') }}
-              </B24Button>
-              <B24Button
-                  size="sm"
-                  variant="ghost"
-                  @click="addConstant('e')"
-                  class="calc-btn-engineering"
-              >
-                {{ $t('calculator.e') }}
-              </B24Button>
-              <B24Button
-                  size="sm"
-                  variant="ghost"
-                  @click="wrapWithFunction('factorial')"
-                  class="calc-btn-engineering"
-              >
-                {{ $t('calculator.factorial') }}
-              </B24Button>
-            </div>
-          </div>
-
-          <!-- Дополнительные функции -->
-          <div>
-            <h4 class="text-xs font-semibold text-b24-text-secondary mb-2 px-1">
-              {{ $t('calculator.additional') }}
-            </h4>
-            <div class="grid grid-cols-3 gap-2">
-              <B24Button
-                  size="sm"
-                  variant="ghost"
-                  @click="wrapWithFunction('abs')"
-                  class="calc-btn-engineering"
-              >
-                {{ $t('calculator.abs') }}
-              </B24Button>
-              <B24Button
-                  size="sm"
-                  variant="ghost"
-                  @click="addReciprocal"
-                  class="calc-btn-engineering"
-              >
-                {{ $t('calculator.reciprocal') }}
-              </B24Button>
-              <B24Button
-                  size="sm"
-                  variant="ghost"
-                  @click="toggleAngleMode"
-                  class="calc-btn-engineering"
-              >
-                {{ angleMode === 'deg' ? $t('calculator.deg') : $t('calculator.rad') }}
-              </B24Button>
-            </div>
-          </div>
-        </div>
-      </B24Card>
-
-      <!-- Аккордеон для истории -->
-      <B24Card class="overflow-hidden">
-        <div
-            class="cursor-pointer flex items-center justify-between hover:bg-b24-surface-hover transition-colors p-3"
-            @click="toggleHistory"
-        >
-          <h3 class="text-sm font-semibold text-b24-text-primary">
-            {{ $t('calculator.historyTitle') }}
-          </h3>
-          <div class="flex items-center space-x-2">
-            <span v-if="history.length > 0" class="text-xs text-b24-text-secondary">
-              {{ $t('calculator.items', {count: history.length}) }}
-            </span>
-            <div class="transform transition-transform" :class="{ 'rotate-180': historyOpen }">
-              <i class="fas fa-chevron-down text-b24-text-secondary"></i>
-            </div>
-          </div>
-        </div>
-
-        <!-- История (скрываемое содержимое) -->
-        <div v-if="historyOpen" class="pt-3 pb-3 px-3">
-          <div v-if="history.length === 0" class="text-center py-4">
-            <p class="text-sm text-b24-text-secondary">
-              {{ $t('calculator.emptyHistory') }}
-            </p>
-          </div>
-
-          <div v-else class="space-y-2 max-h-40 overflow-y-auto">
-            <div
-                v-for="item in history.slice(0, 5)"
-                :key="item.id"
-                @click="restoreFromHistory(item)"
-                class="history-item p-2 rounded cursor-pointer hover:bg-b24-surface-hover transition-colors"
-            >
-              <div class="flex justify-between items-start">
-                <div class="text-sm text-b24-text-secondary font-mono truncate">
-                  {{ item.expression }}
-                </div>
-                <span class="text-xs text-b24-text-tertiary ml-2 flex-shrink-0">
-                  {{ item.timestamp }}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div class="flex justify-start mt-3">
-            <B24Button
-                size="xs"
-                variant="ghost"
-                @click="clearHistory"
-                class="text-xs w-full justify-center"
-            >
-              {{ $t('calculator.clearHistory') }}
-            </B24Button>
-          </div>
-        </div>
-      </B24Card>
-
-      <!-- Аккордеон для справки (последний) -->
-      <B24Card class="overflow-hidden">
-        <div
-            class="cursor-pointer flex items-center justify-between hover:bg-b24-surface-hover transition-colors p-3"
-            @click="toggleHelp"
-        >
-          <h3 class="text-sm font-semibold text-b24-text-primary">
-            {{ $t('calculator.helpTitle') }}
-          </h3>
-          <div class="transform transition-transform" :class="{ 'rotate-180': helpOpen }">
-            <i class="fas fa-question-circle text-b24-text-secondary"></i>
-          </div>
-        </div>
-
-        <!-- Справка по горячим клавишам (скрываемое содержимое) -->
-        <div v-if="helpOpen" class="pt-3 pb-3 px-3">
-          <!-- Основные клавиши -->
-          <div class="mb-4">
-            <h4 class="text-xs font-semibold text-b24-text-primary mb-2 px-1 pb-1 border-b border-b24-border">
-              {{ $t('calculator.helpCategories.basic') }}
-            </h4>
-            <div class="space-y-2">
-              <div class="flex items-center justify-between text-sm">
-                <span class="text-b24-text-secondary">
-                  {{ $t('calculator.helpItems.calculate') }}
-                </span>
-                <div class="flex items-center space-x-1">
-                  <kbd class="keyboard-key">
-                    {{ $t('calculator.hotkeys.enter') }}
-                  </kbd>
-                  <span class="text-xs text-b24-text-tertiary">
-                    {{ $t('calculator.helpItems.or') }}
-                  </span>
-                  <kbd class="keyboard-key">
-                    {{ $t('calculator.hotkeys.equals') }}
-                  </kbd>
-                </div>
-              </div>
-              <div class="flex items-center justify-between text-sm">
-                <span class="text-b24-text-secondary">
-                  {{ $t('calculator.helpItems.clearAll') }}
-                </span>
-                <div class="flex items-center space-x-1">
-                  <kbd class="keyboard-key">
-                    {{ $t('calculator.hotkeys.escape') }}
-                  </kbd>
-                  <span class="text-xs text-b24-text-tertiary">
-                    {{ $t('calculator.helpItems.or') }}
-                  </span>
-                  <kbd class="keyboard-key">
-                    {{ $t('calculator.hotkeys.delete') }}
-                  </kbd>
-                </div>
-              </div>
-              <div class="flex items-center justify-between text-sm">
-                <span class="text-b24-text-secondary">
-                  {{ $t('calculator.helpItems.deleteLast') }}
-                </span>
-                <kbd class="keyboard-key">
-                  {{ $t('calculator.hotkeys.backspace') }}
-                </kbd>
-              </div>
-            </div>
-          </div>
-
-          <!-- Математические операции -->
-          <div class="mb-4">
-            <h4 class="text-xs font-semibold text-b24-text-primary mb-2 px-1 pb-1 border-b border-b24-border">
-              {{ $t('calculator.helpCategories.operations') }}
-            </h4>
-            <div class="space-y-2">
-              <div class="grid grid-cols-2 gap-x-4 gap-y-2">
-                <div class="flex items-center justify-between">
-                  <span class="text-sm text-b24-text-secondary">
-                    {{ $t('calculator.helpItems.addition') }}
-                  </span>
-                  <kbd class="keyboard-key">
-                    {{ $t('calculator.hotkeys.plus') }}
-                  </kbd>
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-sm text-b24-text-secondary">
-                    {{ $t('calculator.helpItems.subtraction') }}
-                  </span>
-                  <kbd class="keyboard-key">
-                    {{ $t('calculator.hotkeys.minus') }}
-                  </kbd>
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-sm text-b24-text-secondary">
-                    {{ $t('calculator.helpItems.multiplication') }}
-                  </span>
-                  <kbd class="keyboard-key">
-                    {{ $t('calculator.hotkeys.asterisk') }}
-                  </kbd>
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-sm text-b24-text-secondary">
-                    {{ $t('calculator.helpItems.division') }}
-                  </span>
-                  <kbd class="keyboard-key">
-                    {{ $t('calculator.hotkeys.slash') }}
-                  </kbd>
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-sm text-b24-text-secondary">
-                    {{ $t('calculator.helpItems.power') }}
-                  </span>
-                  <kbd class="keyboard-key">
-                    {{ $t('calculator.hotkeys.caret') }}
-                  </kbd>
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-sm text-b24-text-secondary">
-                    {{ $t('calculator.helpItems.percent') }}
-                  </span>
-                  <kbd class="keyboard-key">
-                    {{ $t('calculator.hotkeys.percent') }}
-                  </kbd>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Скобки и константы -->
-          <div class="mb-4">
-            <h4 class="text-xs font-semibold text-b24-text-primary mb-2 px-1 pb-1 border-b border-b24-border">
-              {{ $t('calculator.helpCategories.parentheses') }}
-            </h4>
-            <div class="space-y-2">
-              <div class="grid grid-cols-2 gap-x-4 gap-y-2">
-                <div class="flex items-center justify-between">
-                  <span class="text-sm text-b24-text-secondary">
-                    {{ $t('calculator.helpItems.openParenthesis') }}
-                  </span>
-                  <kbd class="keyboard-key">
-                    {{ $t('calculator.hotkeys.openParen') }}
-                  </kbd>
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-sm text-b24-text-secondary">
-                    {{ $t('calculator.helpItems.closeParenthesis') }}
-                  </span>
-                  <kbd class="keyboard-key">
-                    {{ $t('calculator.hotkeys.closeParen') }}
-                  </kbd>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Цифры -->
-          <div class="mb-4">
-            <h4 class="text-xs font-semibold text-b24-text-primary mb-2 px-1 pb-1 border-b border-b24-border">
-              {{ $t('calculator.helpCategories.numbers') }}
-            </h4>
-            <div class="space-y-2">
-              <div class="flex items-center justify-between text-sm mb-2">
-                <span class="text-b24-text-secondary">
-                  {{ $t('calculator.helpItems.numbers') }}
-                </span>
-                <div class="flex items-center space-x-1">
-                  <kbd class="keyboard-key number-key">0</kbd>
-                  <span class="text-xs text-b24-text-tertiary">-</span>
-                  <kbd class="keyboard-key number-key">9</kbd>
-                </div>
-              </div>
-              <div class="flex items-center justify-between text-sm">
-                <span class="text-b24-text-secondary">
-                  {{ $t('calculator.helpItems.decimalPoint') }}
-                </span>
-                <div class="flex items-center space-x-2">
-                  <kbd class="keyboard-key">
-                    {{ $t('calculator.hotkeys.period') }}
-                  </kbd>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Примечание -->
-          <div class="pt-3 border-t border-b24-border">
-            <p class="text-xs text-b24-text-tertiary italic">
-              {{ $t('calculator.helpIntro') }}
-            </p>
-          </div>
-        </div>
-      </B24Card>
     </div>
-  </B24App>
+  </div>
 </template>
 
-<script setup>
-import {ref, computed, onMounted, onUnmounted} from 'vue'
-import {useToast} from '@bitrix24/b24ui-nuxt/composables/useToast'
-import {useI18n} from 'vue-i18n'
-import {languages} from '@/locales'
+<script>
+import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { useToast } from '@bitrix24/b24ui-nuxt/composables/useToast'
 
-const {t, locale} = useI18n()
-const bitrixData = window.bitrixData || {}
-const dialogId = ref(bitrixData.dialogId)
-const toast = useToast()
+export default {
+  name: 'PollForm',
+  setup() {
+    // Состояние формы
+    const formData = reactive({
+      subject: '',
+      mode: 'vote', // 'vote' или 'approval'
+      security: true,
+      showVotes: true,
+      notifyOnComplete: false,
+      allowRejection: false,
+      multipleChoice: false,
+      options: ['', '']
+    })
 
-// Реактивные данные
-const currentExpression = ref('')
-const result = ref('')
-const history = ref([])
-const previousExpression = ref('')
-const engineeringOpen = ref(false)
-const keyboardOpen = ref(false)
-const historyOpen = ref(false)
-const helpOpen = ref(false)
-const angleMode = ref('deg')
-const lastResult = ref(null)
-const inputRef = ref(null)
-const sendBtnActive = ref(true)
-const fitWindow = ref(true)
-const lastSavedExpression = ref(null)
-const lastSavedResult = ref(null)
-const pollingInterval = ref(null)
+    const pollForm = ref(null)
+    const generatedMessage = ref('')
+    const messageType = ref('success')
+    const isSubmitting = ref(false)
+    const showSettings = ref(true)
 
+    // Состояние для выбора пользователей
+    const selectedUsers = ref([])
 
-// Определяем направление текста
-const direction = computed(() => {
-  const currentLang = languages.find(l => l.code === locale.value)
-  return currentLang?.dir || 'ltr'
-})
+    // Уведомления через Bitrix24
+    const toast = useToast()
 
-// Константы
-const MATH_CONSTANTS = {
-  pi: '3.141592653589793',
-  e: '2.718281828459045'
-}
+    // Минимальное количество вариантов в зависимости от режима
+    const minOptions = computed(() => {
+      return formData.mode === 'approval'
+          ? (formData.allowRejection ? 2 : 1)
+          : 2
+    })
 
-// Специальные математические функции
-const MATH_FUNCTIONS = {
-  sin: (x, deg) => deg ? Math.sin(x * Math.PI / 180) : Math.sin(x),
-  cos: (x, deg) => deg ? Math.cos(x * Math.PI / 180) : Math.cos(x),
-  tan: (x, deg) => deg ? Math.tan(x * Math.PI / 180) : Math.tan(x),
-  asin: (x, deg) => deg ? Math.asin(x) * 180 / Math.PI : Math.asin(x),
-  acos: (x, deg) => deg ? Math.acos(x) * 180 / Math.PI : Math.acos(x),
-  atan: (x, deg) => deg ? Math.atan(x) * 180 / Math.PI : Math.atan(x),
-  sqrt: (x) => Math.sqrt(x),
-  ln: (x) => Math.log(x),
-  log10: (x) => Math.log10(x),
-  exp: (x) => Math.exp(x),
-  abs: (x) => Math.abs(x),
-  factorial: (x) => {
-    if (x < 0 || x > 170) throw new Error('Факториал определен для 0 ≤ n ≤ 170')
-    let result = 1
-    for (let i = 2; i <= Math.floor(x); i++) {
-      result *= i
-    }
-    return result
-  }
-}
-
-// Вычисляемые свойства
-const displayExpression = computed(() => {
-  // Заменяем символы для отображения
-  let expr = currentExpression.value
-      .replace(/\*/g, t('calculator.multiply'))
-      .replace(/\//g, t('calculator.divide'))
-      .replace(/\-/g, t('calculator.subtract'))
-      .replace(/pi/g, t('calculator.pi'))
-      .replace(/e/g, t('calculator.e'))
-      .replace(/sqrt/g, t('calculator.squareRoot'))
-
-  return expr || ''
-})
-
-const formattedResult = computed(() => {
-  if (!result.value || result.value === '...') {
-    return result.value || '0'
-  }
-
-  if (result.value === t('calculator.error') || result.value === t('calculator.divisionByZero')) {
-    return result.value
-  }
-
-  try {
-    const num = parseFloat(result.value)
-    if (isNaN(num)) return result.value
-
-    // Проверка на бесконечность
-    if (!isFinite(num)) {
-      return num > 0 ? t('calculator.infinity') : t('calculator.negativeInfinity')
-    }
-
-    // Округляем очень маленькие числа
-    if (Math.abs(num) < 1e-12) return '0'
-
-    // Форматируем число
-    if (Math.abs(num) > 1e12 || (Math.abs(num) < 1e-6 && num !== 0)) {
-      return num.toExponential(6)
-    }
-
-    // Форматируем с разделителями тысяч
-    const parts = num.toString().split('.')
-    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
-
-    if (parts[1]) {
-      // Обрезаем лишние нули в дробной части
-      parts[1] = parts[1].replace(/0+$/, '')
-      if (parts[1] === '') {
-        return parts[0]
+    // Следим за изменением режима
+    watch(() => formData.mode, (newMode) => {
+      if (newMode === 'approval') {
+        // Устанавливаем варианты для согласования
+        formData.options = ['Согласовать']
+        if (formData.allowRejection) {
+          formData.options.push('Отклонить')
+        }
+        // Принудительно включаем анонимность для согласования
+        formData.security = true
+      } else {
+        // Возвращаем обычные варианты для голосования
+        if (formData.options.length < 2) {
+          formData.options = ['', '']
+        }
       }
-      return parts.join(',')
-    }
-
-    return parts[0]
-  } catch {
-    return result.value
-  }
-})
-
-// Утилиты для уведомлений
-const notification = {
-  success: (messageKey, params = {}) => {
-    toast.add({
-      description: t(`notifications.success.${messageKey}`, params),
-      variant: 'success'
     })
-  },
-  error: (messageKey, params = {}) => {
-    toast.add({
-      description: t(`notifications.error.${messageKey}`, params),
-      variant: 'error'
-    })
-  },
-  warning: (messageKey, params = {}) => {
-    toast.add({
-      description: t(`notifications.warning.${messageKey}`, params),
-      variant: 'warning'
-    })
-  },
-  info: (messageKey, params = {}) => {
-    toast.add({
-      description: t(`notifications.info.${messageKey}`, params),
-      variant: 'info'
-    })
-  }
-}
 
-// Утилиты для Bitrix24
-const bitrixUtils = {
-  fitWindow: () => {
-    try {
-      BX24.fitWindow()
-    } catch (error) {
-      console.error('Ошибка при вызове BX24.fitWindow:', error)
-    }
-  },
-
-  sendMessage: async (message) => {
-    try {
-      const currentDialogId = dialogId.value || BX24?.user?.id
-
-      if (!currentDialogId) {
-        throw new Error('Не удалось определить чат для отправки')
+    // Следим за включением/выключением отклонения
+    watch(() => formData.allowRejection, (newValue) => {
+      if (formData.mode === 'approval') {
+        if (newValue && formData.options.length === 1) {
+          formData.options.push('Отклонить')
+        } else if (!newValue && formData.options.length > 1) {
+          formData.options = ['Согласовать']
+        }
       }
+    })
 
-      const result = await BX24.callMethod('im.message.add', {
-        DIALOG_ID: currentDialogId,
-        MESSAGE: message,
-        SYSTEM: 'N'
-      })
-
-      return true
-    } catch (error) {
-      throw error
+    // Добавление нового варианта ответа
+    const addOption = () => {
+      if (formData.mode === 'vote') {
+        formData.options.push('')
+      }
     }
-  },
 
-  copyToClipboard: async (text) => {
-    try {
-      await navigator.clipboard.writeText(text)
-      return true
-    } catch (error) {
-      throw new Error('Не удалось скопировать текст')
+    // Удаление варианта ответа
+    const removeOption = (index) => {
+      if (formData.mode === 'vote' && formData.options.length > 2) {
+        formData.options.splice(index, 1)
+      }
     }
-  }
-}
 
-// Основные операции калькулятора
-const calculator = {
-  evaluateExpression: () => {
-    try {
-      if (!currentExpression.value || currentExpression.value.trim() === '') {
-        result.value = ''
+    // Открытие диалога выбора пользователей через BX24
+    const openUserSelector = () => {
+      if (typeof BX24 !== 'undefined' && BX24.selectUsers) {
+        BX24.selectUsers(handleUserSelection)
+      } else {
+        console.error('BX24 не инициализирован или метод selectUsers не доступен')
+        showNotification('error', 'Не удалось открыть диалог выбора пользователей')
+      }
+    }
+
+    // Обработка выбора пользователей
+    const handleUserSelection = (users) => {
+      if (Array.isArray(users) && users.length > 0) {
+        // Создаем уникальный список пользователей
+        const existingIds = new Set(selectedUsers.value.map(u => u.id))
+        const newUsers = users.filter(user => !existingIds.has(user.id))
+
+        if (newUsers.length > 0) {
+          // Добавляем новых пользователей
+          selectedUsers.value.push(...newUsers.map(user => ({
+            id: user.id,
+            name: user.name,
+            email: user.email || '',
+            department: user.department || '',
+            position: user.position || ''
+          })))
+
+          showNotification('success', `Добавлено ${newUsers.length} новых участников`)
+        } else {
+          showNotification('info', 'Все выбранные пользователи уже добавлены')
+        }
+      } else {
+        showNotification('info', 'Пользователи не выбраны')
+      }
+    }
+
+    // Удаление пользователя из списка
+    const removeUser = (userId) => {
+      const userName = selectedUsers.value.find(u => u.id === userId)?.name
+      selectedUsers.value = selectedUsers.value.filter(user => user.id !== userId)
+
+      if (userName) {
+        showNotification('info', `Пользователь "${userName}" удален из списка`)
+      }
+    }
+
+    // Очистка всех пользователей
+    const clearAllUsers = () => {
+      if (selectedUsers.value.length > 0) {
+        selectedUsers.value = []
+        showNotification('info', 'Список участников очищен')
+      }
+    }
+
+    // Получение инициалов пользователя для аватара
+    const getUserInitials = (name) => {
+      if (!name) return '?'
+      const parts = name.split(' ')
+      if (parts.length >= 2) {
+        return (parts[0][0] + parts[1][0]).toUpperCase()
+      }
+      return name.substring(0, 2).toUpperCase()
+    }
+
+    // Показать уведомление
+    const showNotification = (type, message) => {
+      switch (type) {
+        case 'success':
+          toast.add({
+            description: message,
+            variant: 'success'
+          })
+          break
+        case 'error':
+          toast.add({
+            description: message,
+            variant: 'error'
+          })
+          break
+        case 'warning':
+          toast.add({
+            description: message,
+            variant: 'warning'
+          })
+          break
+        case 'info':
+          toast.add({
+            description: message,
+            variant: 'info'
+          })
+          break
+      }
+    }
+
+    // Обработка отправки формы
+    const handleSubmit = async () => {
+      // Валидация вопроса
+      if (!formData.subject.trim()) {
+        generatedMessage.value = 'Введите вопрос опроса'
+        messageType.value = 'error'
+        showNotification('error', 'Введите вопрос опроса')
+        setTimeout(() => {
+          generatedMessage.value = ''
+        }, 3000)
         return
       }
 
-      const expr = currentExpression.value
-
-      // Если выражение заканчивается на оператор, не вычисляем
-      if (/[\+\-\*\/\^%]$/.test(expr)) {
-        result.value = '...'
+      // Проверяем выбор участников
+      if (selectedUsers.value.length === 0) {
+        generatedMessage.value = 'Выберите хотя бы одного участника'
+        messageType.value = 'error'
+        showNotification('error', 'Выберите хотя бы одного участника')
+        setTimeout(() => {
+          generatedMessage.value = ''
+        }, 3000)
         return
       }
+
+      // Проверяем минимальное количество вариантов
+      const validOptions = formData.options.filter(option => option.trim())
+      if (validOptions.length < minOptions.value) {
+        generatedMessage.value = `Добавьте как минимум ${minOptions.value} вариант(а) ответа`
+        messageType.value = 'error'
+        showNotification('error', `Добавьте как минимум ${minOptions.value} вариант(а) ответа`)
+        setTimeout(() => {
+          generatedMessage.value = ''
+        }, 3000)
+        return
+      }
+
+      // Проверяем, что все варианты заполнены
+      const hasEmptyOptions = formData.options.some(option => !option.trim())
+      if (hasEmptyOptions) {
+        generatedMessage.value = 'Заполните все варианты ответов'
+        messageType.value = 'error'
+        showNotification('error', 'Заполните все варианты ответов')
+        setTimeout(() => {
+          generatedMessage.value = ''
+        }, 3000)
+        return
+      }
+
+      isSubmitting.value = true
 
       try {
-        const parsedExpr = calculator.parseExpression(expr)
-
-        // Используем безопасную eval замену
-        const evaluated = calculator.safeEval(parsedExpr)
-
-        // Проверка на деление на ноль
-        if (!isFinite(evaluated)) {
-          // Проверяем, было ли деление на ноль
-          if (expr.includes('/0') || expr.includes('/ 0')) {
-            result.value = t('calculator.divisionByZero')
-          } else {
-            result.value = evaluated > 0 ? t('calculator.infinity') : t('calculator.negativeInfinity')
-          }
-        } else if (isNaN(evaluated)) {
-          result.value = '...'
-        } else {
-          // Округляем для устранения ошибок округления
-          const rounded = Math.round(evaluated * 1e12) / 1e12
-          result.value = rounded.toString()
+        // Подготовка данных для отправки
+        const pollData = {
+          subject: formData.subject.trim(),
+          mode: formData.mode,
+          security: formData.security,
+          showVotes: formData.showVotes,
+          notifyOnComplete: formData.notifyOnComplete,
+          multipleChoice: formData.mode === 'vote' ? formData.multipleChoice : undefined,
+          allowRejection: formData.mode === 'approval' ? formData.allowRejection : undefined,
+          options: formData.options.map(opt => opt.trim()).filter(opt => opt),
+          participants: selectedUsers.value.map(user => ({
+            id: user.id,
+            name: user.name,
+            email: user.email || '',
+            department: user.department || '',
+            position: user.position || ''
+          }))
         }
+
+        console.log('Отправка данных опроса:', pollData)
+
+        // Здесь должна быть логика отправки данных на сервер
+        // Например: await $fetch('/api/create-poll', { method: 'POST', body: pollData })
+
+        // Имитация успешного создания
+        generatedMessage.value = `Опрос успешно создан! Участники: ${selectedUsers.value.length} человек`
+        messageType.value = 'success'
+        showNotification('success', `Опрос "${formData.subject.trim()}" создан для ${selectedUsers.value.length} участников`)
+
+        // Очистка формы (опционально)
+        setTimeout(() => {
+          resetForm()
+          generatedMessage.value = ''
+        }, 5000)
+
       } catch (error) {
-        console.log('Выражение пока не может быть вычислено:', error.message)
-        result.value = '...'
+        console.error('Ошибка при создании опроса:', error)
+        generatedMessage.value = 'Произошла ошибка при создании опроса'
+        messageType.value = 'error'
+        showNotification('error', 'Произошла ошибка при создании опроса')
+        setTimeout(() => {
+          generatedMessage.value = ''
+        }, 3000)
+      } finally {
+        isSubmitting.value = false
       }
-    } catch (error) {
-      console.error('Ошибка вычисления:', error)
-      result.value = t('calculator.error')
     }
-  },
 
-  // Безопасный eval через Function
-  safeEval: (expr) => {
-    try {
-      // Создаем безопасную функцию с ограниченным контекстом
-      const fn = new Function('return ' + expr)
-      return fn()
-    } catch (error) {
-      throw error
+    // Сброс формы к начальным значениям
+    const resetForm = () => {
+      formData.subject = ''
+      formData.mode = 'vote'
+      formData.security = true
+      formData.showVotes = true
+      formData.notifyOnComplete = false
+      formData.allowRejection = false
+      formData.multipleChoice = false
+      formData.options = ['', '']
+      selectedUsers.value = []
     }
-  },
 
-  // Парсер математических выражений
-  parseExpression: (expr) => {
-    try {
-      let processedExpr = expr
-
-      // 1. Заменяем символы для вычисления
-      processedExpr = processedExpr
-          .replace(new RegExp(t('calculator.divide'), 'g'), '/')
-          .replace(new RegExp(t('calculator.multiply'), 'g'), '*')
-          .replace(new RegExp(t('calculator.subtract'), 'g'), '-')
-          .replace(/\^/g, '**')
-          .replace(new RegExp(t('calculator.pi'), 'g'), 'Math.PI')
-          .replace(/pi/g, 'Math.PI')
-          .replace(new RegExp(t('calculator.e'), 'g'), 'Math.E')
-
-      // 2. Обработка процентов
-      const percentWithNumberRegex = /(\d+(?:\.\d+)?)%\s*(\d+(?:\.\d+)?)/g
-      processedExpr = processedExpr.replace(percentWithNumberRegex, (match, percent, number) => {
-        return `(${percent}/100*${number})`
-      })
-
-      const singlePercentRegex = /(\d+(?:\.\d+)?)%$/g
-      if (singlePercentRegex.test(processedExpr)) {
-        processedExpr = processedExpr.replace(singlePercentRegex, (match, number) => {
-          return `(${number}/100)`
+    // Инициализация Bitrix24
+    const initializeBitrix24 = () => {
+      if (typeof BX24 !== 'undefined') {
+        BX24.init(() => {
+          console.log('Bitrix24 SDK инициализирован')
+          // Здесь можно добавить дополнительную инициализацию
         })
-      }
-
-      const percentInExpressionRegex = /(\d+(?:\.\d+)?)%/g
-      processedExpr = processedExpr.replace(percentInExpressionRegex, (match, number) => {
-        return `(${number}/100)`
-      })
-
-      // 3. Обработка математических функций
-      const functionRegex = /(sin|cos|tan|asin|acos|atan|sqrt|ln|log10|exp|abs|factorial)\(([^)]+)\)/g
-
-      processedExpr = processedExpr.replace(functionRegex, (match, func, arg) => {
-        try {
-          const processedArg = calculator.parseExpression(arg)
-          const isTrig = ['sin', 'cos', 'tan', 'asin', 'acos', 'atan'].includes(func)
-
-          if (isTrig && angleMode.value === 'deg') {
-            if (func.startsWith('a')) {
-              return `Math.${func}(${processedArg}) * 180 / Math.PI`
-            } else {
-              return `Math.${func}(${processedArg} * Math.PI / 180)`
-            }
-          } else {
-            return `Math.${func}(${processedArg})`
-          }
-        } catch (error) {
-          console.error('Ошибка обработки функции:', func, arg, error)
-          throw error
-        }
-      })
-
-      return processedExpr
-    } catch (error) {
-      console.error('Ошибка парсинга выражения:', expr, error)
-      throw error
-    }
-  },
-
-  calculate: () => {
-    try {
-      calculator.evaluateExpression()
-
-      if (result.value && result.value !== '...' &&
-          result.value !== t('calculator.error') && result.value !== t('calculator.divisionByZero') &&
-          currentExpression.value) {
-
-        const displayExpr = displayExpression.value
-        const resultValue = formattedResult.value
-
-        if (resultValue && resultValue !== '...' && resultValue !== '') {
-          const currentUniqueKey = `${displayExpr}|${resultValue}`
-          if (lastSavedExpression.value !== currentUniqueKey) {
-            historyManager.add(`${displayExpr} ${t('calculator.equals')} ${resultValue}`)
-
-            lastSavedExpression.value = currentUniqueKey
-            lastSavedResult.value = result.value
-
-            previousExpression.value = `${displayExpr} ${t('calculator.equals')} ${resultValue}`
-            lastResult.value = result.value
-          }
-        }
-      }
-    } catch (error) {
-      result.value = t('calculator.error')
-      notification.error('calculationError')
-    }
-  },
-
-  clear: () => {
-    currentExpression.value = ''
-    result.value = ''
-    previousExpression.value = ''
-    lastResult.value = null
-    lastSavedExpression.value = null
-    lastSavedResult.value = null
-    focusInput()
-  },
-
-  backspace: () => {
-    if (currentExpression.value.length > 0) {
-      currentExpression.value = currentExpression.value.slice(0, -1)
-      calculator.evaluateExpression()
-    }
-    focusInput()
-  },
-
-  addPercentage: () => {
-    currentExpression.value += '%'
-    calculator.evaluateExpression()
-    focusInput()
-  }
-}
-
-// Управление состоянием приложения
-const appState = {
-  toggle: (property) => {
-    property.value = !property.value
-  },
-
-  toggleKeyboard: () => appState.toggle(keyboardOpen),
-  toggleEngineering: () => appState.toggle(engineeringOpen),
-  toggleHistory: () => appState.toggle(historyOpen),
-  toggleHelp: () => appState.toggle(helpOpen),
-
-  toggleAngleMode: () => {
-    angleMode.value = angleMode.value === 'deg' ? 'rad' : 'deg'
-    const modeText = angleMode.value === 'deg' ? t('calculator.degrees') : t('calculator.radians')
-    notification.success('angleModeChanged', {mode: modeText})
-
-    if (currentExpression.value) {
-      calculator.evaluateExpression()
-    }
-  },
-
-  focusInput: () => {
-    if (inputRef.value) {
-      inputRef.value.focus()
-      setTimeout(() => {
-        if (inputRef.value) {
-          inputRef.value.selectionStart = inputRef.value.selectionEnd = currentExpression.value.length
-        }
-      }, 10)
-    }
-  }
-}
-
-// Добавление символов в выражение
-const expressionManager = {
-  debounceTimer: null,
-
-  addToExpression: (value) => {
-    currentExpression.value += value
-    calculator.evaluateExpression()
-    focusInput()
-  },
-
-  addParenthesis: (parenthesis) => {
-    const lastChar = currentExpression.value.slice(-1)
-
-    if (parenthesis === '(' && /[\d\)]/.test(lastChar)) {
-      currentExpression.value += '*('
-    } else {
-      currentExpression.value += parenthesis
-    }
-
-    calculator.evaluateExpression()
-    focusInput()
-  },
-
-  wrapWithFunction: (funcName) => {
-    const expr = currentExpression.value
-
-    if (!expr) {
-      currentExpression.value = funcName + '('
-    } else {
-      const lastNumberRegex = /(-?\d*\.?\d+|\))(?![\d\.\)])/
-      const matches = expr.match(lastNumberRegex)
-
-      if (matches && matches[1]) {
-        const lastNumber = matches[1]
-        const lastNumberIndex = expr.lastIndexOf(lastNumber)
-
-        if (lastNumberIndex !== -1) {
-          const before = expr.substring(0, lastNumberIndex)
-          const after = expr.substring(lastNumberIndex + lastNumber.length)
-          currentExpression.value = before + funcName + '(' + lastNumber + ')' + after
-        }
       } else {
-        currentExpression.value = funcName + '(' + expr + ')'
+        console.warn('Bitrix24 SDK не найден')
       }
     }
 
-    calculator.evaluateExpression()
-    focusInput()
-  },
-
-  addFunction: (funcName) => {
-    currentExpression.value += funcName + '('
-    calculator.evaluateExpression()
-    focusInput()
-  },
-
-  addPower: (power) => {
-    if (power === 'y') {
-      currentExpression.value += '^'
-    } else {
-      const expr = currentExpression.value
-      if (expr) {
-        const lastNumberRegex = /(-?\d*\.?\d+)(?![\d\.])/
-        const matches = expr.match(lastNumberRegex)
-
-        if (matches && matches[1]) {
-          const lastNumber = matches[1]
-          const lastNumberIndex = expr.lastIndexOf(lastNumber)
-
-          if (lastNumberIndex !== -1) {
-            const before = expr.substring(0, lastNumberIndex)
-            const after = expr.substring(lastNumberIndex + lastNumber.length)
-            currentExpression.value = before + '(' + lastNumber + '^' + power + ')' + after
-          }
-        } else {
-          currentExpression.value += '^' + power
-        }
-      } else {
-        currentExpression.value += '^' + power
-      }
-    }
-    calculator.evaluateExpression()
-    focusInput()
-  },
-
-  addConstant: (constant) => {
-    const lastChar = currentExpression.value.slice(-1)
-    const value = constant === 'pi' ? 'pi' : 'e'
-
-    if (/[\d\)]/.test(lastChar)) {
-      currentExpression.value += '*' + value
-    } else {
-      currentExpression.value += value
-    }
-
-    calculator.evaluateExpression()
-    focusInput()
-  },
-
-  addReciprocal: () => {
-    const expr = currentExpression.value
-    if (expr) {
-      currentExpression.value = '1/(' + expr + ')'
-    } else {
-      currentExpression.value = '1/'
-    }
-    calculator.evaluateExpression()
-    focusInput()
-  }
-}
-
-// Управление истории
-const historyManager = {
-  add: (expression) => {
-    history.value.unshift({
-      id: Date.now(),
-      expression,
-      timestamp: new Date().toLocaleTimeString(locale.value, {hour: '2-digit', minute: '2-digit'}),
-      rawExpression: currentExpression.value
+    // Инициализация при монтировании
+    onMounted(() => {
+      initializeBitrix24()
     })
 
-    history.value = history.value.slice(0, 20)
-    historyManager.save()
-  },
-
-  clear: () => {
-    history.value = []
-    historyManager.save()
-    lastSavedExpression.value = null
-    lastSavedResult.value = null
-    notification.success('historyCleared')
-  },
-
-  restore: (item) => {
-    if (item.rawExpression) {
-      currentExpression.value = item.rawExpression
-    } else {
-      const parts = item.expression.split(` ${t('calculator.equals')} `)
-      if (parts.length === 2) {
-        const expr = parts[0]
-        currentExpression.value = expr
-            .replace(new RegExp(t('calculator.multiply'), 'g'), '*')
-            .replace(new RegExp(t('calculator.divide'), 'g'), '/')
-            .replace(new RegExp(t('calculator.subtract'), 'g'), '-')
-            .replace(new RegExp(t('calculator.pi'), 'g'), 'pi')
-            .replace(new RegExp(t('calculator.squareRoot'), 'g'), 'sqrt')
-            .replace(/\^/g, '^')
-      }
-    }
-
-    calculator.evaluateExpression()
-    previousExpression.value = item.expression
-
-    lastSavedExpression.value = null
-    lastSavedResult.value = null
-
-    focusInput()
-    notification.success('expressionRestored')
-  },
-
-  save: () => {
-    try {
-      localStorage.setItem('calculator_history', JSON.stringify(history.value))
-    } catch (error) {
-      console.error('Ошибка сохранения истории:', error)
-    }
-  },
-
-  load: () => {
-    try {
-      const saved = localStorage.getItem('calculator_history')
-      if (saved) {
-        history.value = JSON.parse(saved) || []
-      }
-    } catch (error) {
-      console.error('Ошибка загрузки истории:', error)
+    return {
+      formData,
+      pollForm,
+      generatedMessage,
+      messageType,
+      isSubmitting,
+      showSettings,
+      minOptions,
+      addOption,
+      removeOption,
+      handleSubmit,
+      resetForm,
+      // Управление пользователями
+      selectedUsers,
+      openUserSelector,
+      removeUser,
+      clearAllUsers,
+      getUserInitials
     }
   }
 }
-
-// Утилиты для взаимодействия
-const interaction = {
-  copyToClipboard: async () => {
-    try {
-      const textToCopy = formattedResult.value !== '...' && formattedResult.value !== ''
-          ? formattedResult.value
-          : '0'
-      await bitrixUtils.copyToClipboard(textToCopy)
-      notification.success('copySuccess')
-    } catch (error) {
-      console.error('Ошибка копирования:', error)
-      notification.error('copyError')
-    }
-  },
-
-  sendToChat: async () => {
-    try {
-      const expression = previousExpression.value ||
-          (currentExpression.value && result.value !== '...' && result.value !== '' ?
-              `${displayExpression.value} ${t('calculator.equals')} ${formattedResult.value}` :
-              formattedResult.value || '0')
-
-      const message = expression
-      await bitrixUtils.sendMessage(message)
-      notification.success('sendSuccess')
-    } catch (error) {
-      console.error('Ошибка отправки:', error)
-      notification.error('sendError')
-    }
-  }
-}
-
-// Обработка клавиатуры
-const keyboardHandler = {
-  handleKeyDown: (e) => {
-    const key = e.key
-
-    if (key === 'Backspace' && e.target.tagName !== 'INPUT') {
-      e.preventDefault()
-      calculator.backspace()
-      return
-    }
-
-    if (e.target.tagName === 'INPUT') {
-      if (/^[0-9\.\+\-\*\/\^\(\)%,]$/.test(key)) {
-        return
-      }
-
-      if (key === 'Enter' || key === '=' || key === 'Escape' || key === 'Delete') {
-        e.preventDefault()
-      }
-    }
-
-    if (key === 'Enter' || key === '=') {
-      e.preventDefault()
-      calculator.calculate()
-    } else if (key === 'Escape' || key === 'Delete') {
-      e.preventDefault()
-      calculator.clear()
-    } else if (key === '^') {
-      e.preventDefault()
-      expressionManager.addPower('y')
-    } else if (key === '(') {
-      e.preventDefault()
-      expressionManager.addParenthesis('(')
-    } else if (key === ')') {
-      e.preventDefault()
-      expressionManager.addParenthesis(')')
-    } else if (key === 'p' && e.ctrlKey) {
-      e.preventDefault()
-      expressionManager.addConstant('pi')
-    } else if (key === 'e' && e.ctrlKey) {
-      e.preventDefault()
-      expressionManager.addConstant('e')
-    }
-  },
-
-  onExpressionChange: () => {
-    clearTimeout(expressionManager.debounceTimer)
-    expressionManager.debounceTimer = setTimeout(() => {
-      calculator.evaluateExpression()
-    }, 150)
-  },
-
-  onInputFocus: () => {
-    // При фокусе на input ничего не делаем
-  },
-
-  onInputBlur: () => {
-    // При потере фокуса ничего не делаем
-  }
-}
-
-// Инициализация
-const initialize = () => {
-  historyManager.load()
-
-  if (bitrixData && typeof bitrixData.sendBtnActive !== 'undefined') {
-    sendBtnActive.value = Boolean(bitrixData.sendBtnActive)
-  }
-
-  if (bitrixData && typeof bitrixData.fitWindow !== 'undefined') {
-    fitWindow.value = Boolean(bitrixData.fitWindow)
-  }
-
-  if (typeof BX24 !== 'undefined') {
-    BX24.init(() => {
-      console.log('Bitrix24 SDK инициализирован')
-      if(fitWindow.value){
-        bitrixUtils.fitWindow()
-      }
-      //startProfilePolling()
-    })
-  } else {
-    console.warn('Битрикс24 SDK не найден')
-  }
-
-  document.addEventListener('keydown', keyboardHandler.handleKeyDown)
-  setTimeout(() => focusInput(), 100)
-}
-
-const cleanup = () => {
-  document.removeEventListener('keydown', keyboardHandler.handleKeyDown)
-  if (expressionManager.debounceTimer) {
-    clearTimeout(expressionManager.debounceTimer)
-  }
-  stopProfilePolling()
-}
-
-const startProfilePolling = () => {
-  stopProfilePolling()
-  fetchAndSendProfile()
-  pollingInterval.value = setInterval(fetchAndSendProfile, 10000)
-}
-
-const stopProfilePolling = () => {
-  if (pollingInterval.value) {
-    clearInterval(pollingInterval.value)
-    pollingInterval.value = null
-  }
-}
-
-const fetchAndSendProfile = async () => {
-  try {
-    const result = await BX24.callMethod("profile", {})
-  } catch (error) {
-    console.error('Ошибка при получении/отправке профиля:', error)
-  }
-}
-
-
-// Экспорт методов для использования в шаблоне
-const toggleEngineering = appState.toggleEngineering
-const toggleKeyboard = appState.toggleKeyboard
-const toggleHistory = appState.toggleHistory
-const toggleHelp = appState.toggleHelp
-const toggleAngleMode = appState.toggleAngleMode
-const focusInput = appState.focusInput
-
-const addToExpression = expressionManager.addToExpression
-const addParenthesis = expressionManager.addParenthesis
-const addFunction = expressionManager.addFunction
-const wrapWithFunction = expressionManager.wrapWithFunction
-const addPower = expressionManager.addPower
-const addConstant = expressionManager.addConstant
-const addReciprocal = expressionManager.addReciprocal
-const addPercentage = calculator.addPercentage
-const calculate = calculator.calculate
-const clear = calculator.clear
-const backspace = calculator.backspace
-
-// История
-const clearHistory = historyManager.clear
-const restoreFromHistory = historyManager.restore
-
-// Взаимодействие
-const copyToClipboard = interaction.copyToClipboard
-const sendToChat = interaction.sendToChat
-
-// Обработчики input
-const handleKeyDown = keyboardHandler.handleKeyDown
-const onExpressionChange = keyboardHandler.onExpressionChange
-const onInputFocus = keyboardHandler.onInputFocus
-const onInputBlur = keyboardHandler.onInputBlur
-
-// Хуки жизненного цикла
-onMounted(() => {
-  initialize()
-})
-
-onUnmounted(() => {
-  cleanup()
-})
 </script>
 
 <style scoped>
-.calculator-display {
-  font-feature-settings: "tnum";
-  font-variant-numeric: tabular-nums;
-  line-height: 1.2;
-  word-break: break-all;
-  overflow-wrap: break-word;
-  min-height: 1.5em;
-  user-select: text;
-}
-
-/* Стили для input */
-.calculator-input {
-  font-feature-settings: "tnum";
-  font-variant-numeric: tabular-nums;
-  font-family: inherit;
+.poll-form-wrapper {
   width: 100%;
-  text-align: right;
-  caret-color: var(--b24-primary-color);
-}
-
-.calculator-input::placeholder {
-  color: var(--b24-text-secondary);
-  opacity: 0.6;
-}
-
-.calculator-input:focus {
-  outline: none;
-  box-shadow: none;
-}
-
-.operation-active {
-  background-color: rgba(47, 198, 246, 0.15) !important;
-  border-color: var(--b24-primary-color) !important;
-  color: var(--b24-primary-color) !important;
-}
-
-.history-item {
-  transition: background-color 0.2s ease;
-}
-
-/* Стили для кнопок */
-.calc-btn {
-  transition: all 0.1s ease;
-  user-select: none;
-  min-height: 44px;
-}
-
-.calc-btn:active {
-  transform: scale(0.95);
-}
-
-.calc-btn-number {
-  background-color: var(--b24-surface-color);
-}
-
-.calc-btn-operation {
-  background-color: rgba(47, 198, 246, 0.1);
-  color: var(--b24-primary-color);
-}
-
-.calc-btn-operation:hover {
-  background-color: rgba(47, 198, 246, 0.2) !important;
-}
-
-.calc-btn-equals {
-  background-color: var(--b24-primary-color);
-  color: white;
-}
-
-.calc-btn-equals:hover {
-  background-color: #1eb4e0 !important;
-}
-
-/* Стили для инженерных кнопок */
-.calc-btn-engineering {
-  background-color: var(--b24-surface-color);
-  font-size: 0.8rem;
-  padding: 0.25rem 0.5rem;
-  min-height: 36px;
-}
-
-.calc-btn-engineering:hover {
-  background-color: rgba(47, 198, 246, 0.1) !important;
-}
-
-/* Анимация для аккордеона */
-.rotate-180 {
-  transform: rotate(180deg);
-}
-
-/* Компактные отступы для карточек */
-:deep(.b24-card-body) {
-  padding: 0 !important;
-}
-
-/* Стили для аккордеона инженерных функций */
-.engineering-section {
-  border-bottom: 1px solid var(--b24-border-color);
-  padding-bottom: 0.75rem;
-  margin-bottom: 0.75rem;
-}
-
-.engineering-section:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
-}
-
-.engineering-section-title {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--b24-text-secondary);
-  margin-bottom: 0.5rem;
-  padding-left: 0.25rem;
-}
-
-/* Подсветка фокуса */
-.calculator-input:focus {
-  outline: 2px solid var(--b24-primary-color);
-  outline-offset: -2px;
-  border-radius: 4px;
-}
-
-/* Стили для клавиш в справке */
-.keyboard-key {
-  display: inline-flex;
-  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 24px;
+  display: flex;
   justify-content: center;
-  min-width: 24px;
-  height: 24px;
-  padding: 0 6px;
-  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-  font-size: 12px;
+  align-items: flex-start;
+}
+
+.poll-form-container {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.poll-card {
+  width: 100%;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e6ed;
+  overflow: hidden;
+}
+
+.poll-card-header {
+  background: linear-gradient(90deg, #4a90e2 0%, #357ae8 100%);
+  padding: 32px 40px;
+  border-bottom: 1px solid #e0e6ed;
+}
+
+.poll-title {
+  color: white;
+  margin: 0;
+  font-size: 28px;
   font-weight: 600;
-  line-height: 1;
-  color: var(--b24-text-primary);
-  background-color: var(--b24-surface-hover);
-  border: 1px solid var(--b24-border-color);
-  border-radius: 4px;
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
-  user-select: none;
+  text-align: center;
 }
 
-.keyboard-key.number-key {
-  min-width: 20px;
-  height: 20px;
-  padding: 0 4px;
-  font-size: 11px;
+.poll-card-content {
+  padding: 40px;
 }
 
-/* Стили для справки */
-.help-section {
-  margin-bottom: 1rem;
+.poll-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
 }
 
-.help-section:last-child {
+.form-group {
   margin-bottom: 0;
 }
 
-.help-section-title {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--b24-text-secondary);
-  margin-bottom: 0.5rem;
-  padding-left: 0.25rem;
+.form-label {
+  display: block;
+  color: #333;
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 12px;
 }
 
-.help-key-group {
+.form-label.required::after {
+  content: " *";
+  color: #ff4444;
+}
+
+.question-input {
+  width: 100%;
+  padding: 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  resize: vertical;
+  min-height: 100px;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.question-input:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+/* Переключение режима */
+.mode-switcher-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mode-switcher {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.mode-btn {
+  flex: 1;
+  padding: 16px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  border: 2px solid #cbd5e1;
+  background: white;
+  color: #64748b;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  justify-content: center;
+  gap: 8px;
 }
 
-/* RTL поддержка */
-[dir="rtl"] .calculator-input {
-  text-align: left;
+.mode-btn.active {
+  background: linear-gradient(90deg, #4a90e2 0%, #357ae8 100%);
+  color: white;
+  border-color: #4a90e2;
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.2);
 }
 
-[dir="rtl"] .calculator-display {
-  text-align: left;
+.mode-btn:hover:not(.active) {
+  border-color: #4a90e2;
+  color: #4a90e2;
 }
 
-[dir="rtl"] .text-right {
-  text-align: left;
+.mode-icon {
+  font-size: 18px;
 }
 
-[dir="rtl"] .flex-row-reverse {
-  flex-direction: row-reverse;
+.mode-description {
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border-left: 3px solid #4a90e2;
 }
 
-[dir="rtl"] .ml-2 {
-  margin-left: 0;
-  margin-right: 0.5rem;
+/* Участники опроса */
+.participants-section {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 28px;
+  border: 1px solid #e2e8f0;
 }
 
-[dir="rtl"] .ml-auto {
-  margin-left: 0;
-  margin-right: auto;
+.section-title {
+  color: #1e293b;
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  font-weight: 600;
 }
 
-[dir="rtl"] .space-x-2 > :not([hidden]) ~ :not([hidden]) {
-  margin-left: 0;
-  margin-right: 0.5rem;
+.section-description {
+  color: #64748b;
+  font-size: 14px;
+  margin-bottom: 24px;
+  line-height: 1.5;
 }
 
-[dir="rtl"] .space-x-1 > :not([hidden]) ~ :not([hidden]) {
-  margin-left: 0;
-  margin-right: 0.25rem;
+.participants-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.select-users-btn {
+  align-self: flex-start;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 8px;
+  border: 2px solid #4a90e2;
+  background: #4a90e2;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.select-users-btn:hover {
+  background: #357ae8;
+  border-color: #357ae8;
+  transform: translateY(-1px);
+}
+
+.selector-icon {
+  font-size: 16px;
+}
+
+.selected-users-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 4px;
+  margin-top: 8px;
+}
+
+.selected-user-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  animation: slideIn 0.3s ease-out;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4a90e2 0%, #357ae8 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.user-info {
+  flex: 1;
+}
+
+.user-name {
+  font-weight: 500;
+  color: #1e293b;
+  margin-bottom: 2px;
+}
+
+.user-id {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.remove-user-btn {
+  background: none;
+  border: none;
+  color: #e53e3e;
+  font-size: 20px;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.remove-user-btn:hover {
+  background-color: #fed7d7;
+}
+
+.clear-users-btn {
+  align-self: flex-start;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  border: 1px solid #fed7d7;
+  background: #fff5f5;
+  color: #e53e3e;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.clear-users-btn:hover {
+  background: #fed7d7;
+}
+
+.selection-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: #e0f2fe;
+  border-radius: 8px;
+  border: 1px solid #4a90e2;
+  margin-top: 16px;
+}
+
+.info-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.info-text {
+  font-size: 14px;
+  color: #1e293b;
+  line-height: 1.5;
+}
+
+.info-text strong {
+  font-weight: 600;
+  color: #4a90e2;
+}
+
+/* Варианты ответов */
+.options-section {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 28px;
+  border: 1px solid #e2e8f0;
+}
+
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.option-item {
+  animation: slideIn 0.3s ease-out;
+}
+
+.option-field-wrapper {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.option-form-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.option-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #475569;
+}
+
+.option-type {
+  color: #4a90e2;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.option-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: white;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 15px;
+  transition: all 0.2s;
+}
+
+.option-input:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.option-input:disabled {
+  background: #f1f5f9;
+  color: #475569;
+  cursor: not-allowed;
+}
+
+.remove-btn {
+  margin-top: 28px;
+  white-space: nowrap;
+  padding: 8px 16px;
+  background: #fff5f5;
+  border: 1px solid #fed7d7;
+  color: #e53e3e;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.remove-btn:hover {
+  background: #fed7d7;
+}
+
+.add-option-btn {
+  align-self: flex-start;
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: 2px dashed #cbd5e1;
+  background: white;
+  color: #64748b;
+  font-weight: 500;
+  transition: all 0.2s;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.add-option-btn:hover {
+  border-color: #4a90e2;
+  color: #4a90e2;
+  background: #f0f7ff;
+}
+
+/* Настройки */
+.settings-section {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+
+.settings-accordion {
+  background: #f8fafc;
+}
+
+.accordion-header {
+  display: flex;
+  align-items: center;
+  padding: 20px 28px;
+  border-bottom: 1px solid #e2e8f0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.accordion-icon {
+  font-size: 20px;
+  margin-right: 12px;
+}
+
+.accordion-title {
+  flex: 1;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.accordion-arrow {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.settings-content {
+  padding: 28px;
+  background: white;
+}
+
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-label-wrapper {
+  flex: 1;
+  margin-right: 24px;
+}
+
+.setting-label {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1e293b;
+  margin-bottom: 6px;
+}
+
+.setting-description {
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+/* Свитчер */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 28px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+.switch input:checked + .switch-slider {
+  background-color: #4a90e2;
+}
+
+.switch input:checked + .switch-slider:before {
+  transform: translateX(24px);
+}
+
+.switch input:disabled + .switch-slider {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Сообщение */
+.message-alert {
+  padding: 16px 20px;
+  border-radius: 10px;
+  position: relative;
+  margin: 24px 0 0 0;
+}
+
+.message-alert.success {
+  background: #e8f5e9;
+  border: 1px solid #c8e6c9;
+  color: #2e7d32;
+}
+
+.message-alert.error {
+  background: #ffebee;
+  border: 1px solid #ffcdd2;
+  color: #c62828;
+}
+
+.alert-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.alert-message {
+  font-size: 14px;
+}
+
+.alert-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.alert-close:hover {
+  opacity: 1;
+}
+
+/* Кнопка отправки */
+.submit-section {
+  margin-top: 32px;
+  padding-top: 32px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 18px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #4a90e2 0%, #357ae8 100%);
+  border: none;
+  transition: all 0.3s ease;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  position: relative;
+}
+
+.submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(74, 144, 226, 0.3);
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+.participants-count {
+  font-size: 14px;
+  opacity: 0.9;
+  margin-left: 8px;
+}
+
+/* Анимации */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .poll-form-wrapper {
+    padding: 16px;
+  }
+
+  .poll-card-header {
+    padding: 24px 20px;
+  }
+
+  .poll-title {
+    font-size: 24px;
+  }
+
+  .poll-card-content {
+    padding: 24px;
+  }
+
+  .poll-form {
+    gap: 24px;
+  }
+
+  .mode-switcher {
+    flex-direction: column;
+  }
+
+  .mode-btn {
+    width: 100%;
+  }
+
+  .participants-section,
+  .options-section {
+    padding: 20px;
+  }
+
+  .option-field-wrapper {
+    flex-direction: column;
+  }
+
+  .remove-btn {
+    align-self: flex-end;
+    margin-top: 12px;
+  }
+
+  .accordion-header {
+    padding: 16px 20px;
+  }
+
+  .settings-content {
+    padding: 20px;
+  }
+
+  .setting-item {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .setting-label-wrapper {
+    margin-right: 0;
+  }
+
+  .submit-btn {
+    padding: 16px 24px;
+  }
+
+  .selected-user-item {
+    padding: 10px;
+  }
+
+  .user-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 13px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .poll-form-container {
+    max-width: 800px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .poll-form-wrapper {
+    padding: 32px;
+  }
+
+  .poll-form-container {
+    max-width: 900px;
+  }
 }
 </style>

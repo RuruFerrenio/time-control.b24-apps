@@ -18,6 +18,8 @@ class BackGroundPlacementController extends Controller
 
 		$options = json_decode($placementOptions, true) ?? [];
 
+		$url = $options['URI'] ?? null;
+
 		\Log::info('Background placement called', [
 			'placementOptions' => $placementOptions,
 			'params' => $params,
@@ -26,6 +28,7 @@ class BackGroundPlacementController extends Controller
 
 		return view('placements.background-placement', [
 			'placementOptions' => $placementOptions,
+			'clientUrl' => $url,
 			'authId' => $request->input('AUTH_ID'),
 			'domain' => $request->input('DOMAIN'),
 		]);

@@ -9,8 +9,11 @@ import '../css/app.css';
 import App from './components/App.vue';
 import { messages } from './locales'
 
-// Если у вас есть маршруты, импортируйте их
-import routes from './router.js';
+// Импортируем Bitrix24 хелпер
+import { bitrixHelper } from './helpers/app'
+
+// Импортируем маршруты
+import routes from './router.js'; // Теперь это просто массив routes
 
 // Функция для определения языка из URL параметров
 function detectLanguageFromUrl() {
@@ -70,6 +73,21 @@ const i18n = createI18n({
   legacy: false
 })
 
+const router = createRouter({
+  history: createWebHistory(),
+  routes, // Используем импортированный массив маршрутов
+});
+
+// Инициализируем Bitrix24 перед созданием приложения
+bitrixHelper.init().then(() => {
+  console.log('Bitrix24 инициализирован');
+  console.log('Пользователь администратор:', bitrixHelper.isUserAdmin());
+  console.log('Тариф:', bitrixHelper.getTariffName());
+  console.log('Статистика доступна:', bitrixHelper.isStatisticsAvailable());
+}).catch(error => {
+  console.error('Ошибка инициализации Bitrix24:', error);
+});
+
 const app = createApp(App);
 
 // Директива для клика вне элемента
@@ -87,16 +105,13 @@ app.directive('click-outside', {
   }
 })
 
-// Создаем роутер
-const router = createRouter({
-  routes: routes || [],
-  history: createWebHistory(),
-});
-
-// Используем плагин Bitrix24 UI
+// Используем плагины
 app.use(i18n)
-app.use(router);
+app.use(router); // Используем созданный роутер
 app.use(b24UiPlugin);
+
+// Предоставляем bitrixHelper глобально через provide
+app.provide('bitrixHelper', bitrixHelper);
 
 app.mount('#app');
 

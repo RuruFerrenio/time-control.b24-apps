@@ -1,0 +1,311 @@
+{
+  "categories": [
+    {
+      "id": "collaboration",
+      "name": "Совместная работа",
+      "color": "bg-blue-100 text-blue-800",
+      "paths": [
+        "/stream/",
+        "/online/",
+        "/company/personal/user/",
+        "/calendar/",
+        "/docs/",
+        "/company/personal/user/[0-9]+/disk/",
+        "/workgroups/",
+        "/mail/"
+      ],
+      "subcategories": {
+        "Лента": ["/stream/"],
+        "Мессенджер": ["/online/"],
+        "Календарь": ["/company/personal/user/[0-9]+/calendar/", "/calendar/"],
+        "Документы онлайн": ["/company/personal/user/[0-9]+/disk/documents/"],
+        "Доски": ["/company/personal/user/[0-9]+/disk/boards/"],
+        "Диск": ["/docs/", "/company/personal/user/[0-9]+/disk/path/"],
+        "Почта": ["/mail/"],
+        "Группы": ["/workgroups/"]
+      }
+    },
+    {
+      "id": "tasks",
+      "name": "Задачи и Проекты",
+      "color": "bg-green-100 text-green-800",
+      "paths": [
+        "/company/personal/user/[0-9]+/tasks/",
+        "/tasks/"
+      ],
+      "subcategories": {
+        "Задачи": ["/company/personal/user/[0-9]+/tasks/"],
+        "Проекты": ["/company/personal/user/[0-9]+/tasks/projects/"],
+        "Потоки": ["/company/personal/user/[0-9]+/tasks/flow/"],
+        "Скрам": ["/company/personal/user/[0-9]+/tasks/scrum/"],
+        "Занятость": ["/company/personal/user/[0-9]+/tasks/employee/plan/"],
+        "Эффективность": ["/company/personal/user/[0-9]+/tasks/effective/"],
+        "Шаблоны": ["/company/personal/user/[0-9]+/tasks/templates/"],
+        "Корзина": ["/company/personal/user/[0-9]+/tasks/recyclebin/"],
+        "Права доступа": ["/tasks/config/permissions/"],
+        "Аналитика": ["/bi/dashboard/detail/"]
+      }
+    },
+    {
+      "id": "warehouse",
+      "name": "Складской учёт",
+      "color": "bg-yellow-100 text-yellow-800",
+      "paths": ["/shop/documents/inventory/"],
+      "subcategories": {
+        "Складской учёт": ["/shop/documents/inventory/"]
+      }
+    },
+    {
+      "id": "crm",
+      "name": "CRM",
+      "color": "bg-purple-100 text-purple-800",
+      "paths": [
+        "/crm/",
+        "/shop/documents/",
+        "/sign/",
+        "/telephony/",
+        "/contact_center/",
+        "/saleshub/",
+        "/onec/",
+        "/market/collection/migration_crm/",
+        "/marketplace/configuration/section/vertical_crm/"
+      ],
+      "subcategories": {
+        "Лиды": ["/crm/lead/"],
+        "Сделки": ["/crm/deal/"],
+        "Товары и Склады": ["/crm/catalog/", "/shop/documents/"],
+        "Клиенты": ["/crm/contact/", "/crm/company/", "/sign/contact/"],
+        "Поставщики": ["/shop/documents/contractors/"],
+        "Продажи": [
+          "/telephony/",
+          "/mail/",
+          "/contact_center/",
+          "/crm/button/",
+          "/crm/webform/",
+          "/saleshub/"
+        ],
+        "Счета": ["/crm/invoice/"],
+        "Предложения": ["/crm/quote/"],
+        "Коннектор к 1С": ["/onec/"],
+        "Мои дела": ["/crm/activity/"],
+        "История": ["/crm/history/"],
+        "Корзина": ["/crm/recyclebin/"],
+        "Настройки CRM": ["/crm/configs/"],
+        "Права доступа": ["/crm/perms/"],
+        "Аналитика": ["/crm/reports/", "/report/analytics/", "/bi/dashboard/detail/", "/crm/tracking/"],
+        "Смарт-процессы": ["/crm/type/"]
+      }
+    },
+    {
+      "id": "booking",
+      "name": "Онлайн-запись",
+      "color": "bg-red-100 text-red-800",
+      "paths": ["/booking/"],
+      "subcategories": {
+        "Онлайн-запись": ["/booking/"]
+      }
+    },
+    {
+      "id": "sites",
+      "name": "Сайты и Магазины",
+      "color": "bg-indigo-100 text-indigo-800",
+      "paths": [
+        "/sites/",
+        "/shop/",
+        "/crm/contact/",
+        "/crm/company/",
+        "/contact_center/",
+        "/crm/webform/",
+        "/shop/settings/",
+        "/shop/buyer_group/",
+        "/shop/terminal/"
+      ],
+      "subcategories": {
+        "Сайты": ["/sites/"],
+        "Магазины": ["/shop/stores/"],
+        "Товары и Склады": ["/shop/catalog/", "/shop/documents/"],
+        "Клиенты": ["/crm/contact/", "/crm/company/", "/contact_center/"],
+        "Формы": ["/crm/webform/"],
+        "Платежи и Доставка": [
+          "/shop/settings/sale_pay_system/",
+          "/shop/settings/sale_cashbox/",
+          "/shop/settings/sale_delivery_service/",
+          "/shop/terminal/"
+        ],
+        "Маркетинг Магазина": ["/marketing/"],
+        "Покупатели": ["/shop/settings/sale_buyers/", "/shop/buyer_group/"],
+        "Товарный каталог": ["/shop/settings/menu_catalog_"],
+        "Экспертные настройки": ["/shop/settings/menu_sale_"]
+      }
+    },
+    {
+      "id": "bi",
+      "name": "BI Конструктор",
+      "color": "bg-pink-100 text-pink-800",
+      "paths": ["/bi/dashboard"],
+      "subcategories": {
+        "BI Конструктор": ["/bi/dashboard"]
+      }
+    },
+    {
+      "id": "marketing",
+      "name": "Маркетинг",
+      "color": "bg-teal-100 text-teal-800",
+      "paths": [
+        "/marketing/",
+        "/marketing/letter/",
+        "/marketing/ads/",
+        "/marketing/segment/",
+        "/marketing/rc/",
+        "/marketing/toloka/",
+        "/marketing/template/",
+        "/marketing/blacklist/",
+        "/marketing/contact/",
+        "/marketing/config/"
+      ],
+      "subcategories": {
+        "Старт": ["/marketing/"],
+        "Рассылки": ["/marketing/letter/"],
+        "Реклама": ["/marketing/ads/"],
+        "Сегменты": ["/marketing/segment/"],
+        "Генератор продаж": ["/marketing/rc/"],
+        "Яндекс.Толока": ["/marketing/toloka/"],
+        "Мои шаблоны": ["/marketing/template/"],
+        "Черный список": ["/marketing/blacklist/"],
+        "Список адресов": ["/marketing/contact/"],
+        "Настройки": ["/marketing/config.php"],
+        "Права доступа": ["/marketing/config/role/"]
+      }
+    },
+    {
+      "id": "collabs",
+      "name": "Коллабы",
+      "color": "bg-orange-100 text-orange-800",
+      "paths": ["/online/?IM_COLLAB"],
+      "subcategories": {
+        "Коллабы": ["/online/?IM_COLLAB"]
+      }
+    },
+    {
+      "id": "kedo",
+      "name": "КЭДО + Госключ",
+      "color": "bg-cyan-100 text-cyan-800",
+      "paths": ["/sign/b2e/"],
+      "subcategories": {
+        "КЭДО + Госключ": ["/sign/b2e/"]
+      }
+    },
+    {
+      "id": "signature",
+      "name": "Подпись",
+      "color": "bg-lime-100 text-lime-800",
+      "paths": ["/sign/"],
+      "subcategories": {
+        "Подпись": ["/sign/"]
+      }
+    },
+    {
+      "id": "automation",
+      "name": "Автоматизация",
+      "color": "bg-amber-100 text-amber-800",
+      "paths": [
+        "/rpa/",
+        "/automation/",
+        "/ai/",
+        "/market/category/automated_solutions_seats/"
+      ],
+      "subcategories": {
+        "Роботы и триггеры": ["/crm/", "/company/personal/user/[0-9]+/tasks/", "/sign/"],
+        "Цифровые рабочие места": ["/market/category/automated_solutions_seats/", "/automation/type/automated_solution/"],
+        "RPA": ["/rpa/"],
+        "Коннектор к 1С": ["/onec/"],
+        "Умные сценарии": ["/crm/deal/", "/crm/contact/", "/crm/company/"],
+        "Списки": ["/lists/"],
+        "Лаборатория AI": ["/ai/"],
+        "Аналитика": ["/bi/dashboard/detail/"]
+      }
+    },
+    {
+      "id": "marketplace",
+      "name": "Маркетплейс",
+      "color": "bg-violet-100 text-violet-800",
+      "paths": [
+        "/market/",
+        "/marketplace/",
+        "/devops/"
+      ],
+      "subcategories": {
+        "Все приложения": ["/market/"],
+        "Установленные": ["/market/installed/"],
+        "Разработчикам": ["/devops/"],
+        "Приложения": ["/marketplace/app/"]
+      }
+    },
+    {
+      "id": "developers",
+      "name": "Разработчикам",
+      "color": "bg-rose-100 text-rose-800",
+      "paths": ["/devops/"],
+      "subcategories": {
+        "Готовые сценарии": ["/devops/"],
+        "Интеграции": ["/devops/list/"],
+        "Статистика": ["/devops/statistic/"],
+        "Документация": ["https://apidocs.bitrix24.ru/"]
+      }
+    },
+    {
+      "id": "mcp",
+      "name": "MCP-подключения",
+      "color": "bg-sky-100 text-sky-800",
+      "paths": ["/mcp/"],
+      "subcategories": {
+        "MCP-подключения": ["/mcp/"]
+      }
+    },
+    {
+      "id": "employees",
+      "name": "Сотрудники",
+      "color": "bg-emerald-100 text-emerald-800",
+      "paths": [
+        "/company/",
+        "/hr/",
+        "/timeman/",
+        "/kb/",
+        "/conference/"
+      ],
+      "subcategories": {
+        "Сотрудники": ["/company/"],
+        "Структура компании": ["/hr/structure/"],
+        "Время и Отчеты": ["/timeman/"],
+        "База знаний": ["/kb/"],
+        "Видеоконференции": ["/conference/"]
+      }
+    },
+    {
+      "id": "tariff",
+      "name": "Мой тариф",
+      "color": "bg-gray-100 text-gray-800",
+      "paths": [
+        "/settings/license",
+        "/settings/partner_order",
+        "/settings/support",
+        "/settings/order"
+      ],
+      "subcategories": {
+        "Мой тариф": ["/settings/license.php"],
+        "Расширенные тарифы": ["/settings/license_all.php"],
+        "Заказать внедрение": ["/settings/partner_order.php"],
+        "Демо": ["/settings/license_demo.php"],
+        "Поддержка24": ["/settings/support.php"],
+        "История заказов": ["/settings/order/"]
+      }
+    },
+    {
+      "id": "uncategorized",
+      "name": "Не указана",
+      "color": "bg-gray-100 text-gray-800",
+      "paths": [],
+      "subcategories": {}
+    }
+  ]
+}

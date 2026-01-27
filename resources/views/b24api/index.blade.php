@@ -5,6 +5,13 @@
         <script src="//api.bitrix24.com/api/v1/"></script>
         <title>Приложение</title>
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        <script>
+          window.bitrixData = {
+            mode: @json($mode ?? null),
+            placementOptions: @json($placementOptions ?? []),
+            fitWindow: @json($fitWindow ?? []),
+          };
+        </script>
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         <script>
           BX24.init(function () {
