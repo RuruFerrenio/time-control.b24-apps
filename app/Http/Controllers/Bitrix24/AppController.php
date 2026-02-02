@@ -22,6 +22,12 @@ class AppController extends Controller
 
 	    $mode = $parameters['mode'] ?? null;
 
+	    \Log::info('Background placement called', [
+		    'placementOptions' => $placementOptions,
+		    'params' => $params,
+		    'placement' => $request->input('PLACEMENT'),
+	    ]);
+
         return view('b24api.index', [
 	        'placementOptions' => $placementOptions,
 	        'mode' => $mode,

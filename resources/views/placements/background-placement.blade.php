@@ -947,21 +947,13 @@
 
           const openAppParams = {
             'opened': true,
-            'user_id': this.userManager.getUserId(),
-            'page_url': this.currentUrl,
-            'total_time_spent': totalTime,
-            'current_session_time': currentTime,
-            'stored_time': this.storedTime,
-            'page_title': document.title,
-            'page_category': category,
-            'bx24_width': 500,
+            'bx24_title': 'Активность пользователя',
             'bx24_label': {
               'bgColor': 'blue',
               'text': 'Таймер активности',
               'color': '#ffffff',
             },
-            'bx24_title': 'Активность пользователя',
-            'alerta_mode': true,
+            'bx24_width': 500,
             'parameters': JSON.stringify(alertaParameters)
           };
 

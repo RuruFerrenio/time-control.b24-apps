@@ -6,11 +6,6 @@
     <title>Установка</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script>
-      // BX24.init(function () {
-      //   BX24.installFinish();
-      // });
-    </script>
 </head>
 <body>
 <div id="app" class="isolate">

@@ -22,7 +22,8 @@
                   </p>
                 </div>
                 <div class="ml-4 flex items-center space-x-4">
-                  <div class="w-2 h-2 rounded-full" :class="formData.pageTracking.enabled ? 'bg-green-500' : 'bg-red-500'"></div>
+                  <div class="w-2 h-2 rounded-full"
+                       :class="formData.pageTracking.enabled ? 'bg-green-500' : 'bg-red-500'"></div>
                   <B24Switch
                       v-model="formData.pageTracking.enabled"
                       @update:modelValue="togglePageTracking"
@@ -88,7 +89,8 @@
                       <!-- Ошибка валидации -->
                       <div v-if="pageTrackingHistoryDaysError" class="mt-2 text-sm text-red-600 flex items-center">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
                         </svg>
                         {{ pageTrackingHistoryDaysError }}
                       </div>
@@ -96,11 +98,14 @@
                       <!-- Информация о хранении -->
                       <div class="mt-3">
                         <div class="flex items-start p-3 bg-blue-50 rounded-lg">
-                          <svg class="w-5 h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                          <svg class="w-5 h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
+                               viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                           </svg>
                           <div class="text-sm text-blue-700">
-                            <span class="font-medium">Важно:</span> Система будет автоматически удалять записи о посещениях, которые старше указанного количества дней.
+                            <span class="font-medium">Важно:</span> Система будет автоматически удалять записи о
+                            посещениях, которые старше указанного количества дней.
                             Это помогает поддерживать оптимальный размер базы данных.
                           </div>
                         </div>
@@ -151,7 +156,8 @@
                       </div>
                       <div>
                         <p class="text-sm text-gray-700">
-                          История посещений хранится {{ formData.pageTracking.historyDays }} дней, после чего старые записи автоматически удаляются
+                          История посещений хранится {{ formData.pageTracking.historyDays }} дней, после чего старые
+                          записи автоматически удаляются
                         </p>
                       </div>
                     </div>
@@ -176,7 +182,8 @@
                   </p>
                 </div>
                 <div class="ml-4 flex items-center space-x-4">
-                  <div class="w-2 h-2 rounded-full" :class="formData.presenceControl.enabled ? 'bg-green-500' : 'bg-red-500'"></div>
+                  <div class="w-2 h-2 rounded-full"
+                       :class="formData.presenceControl.enabled ? 'bg-green-500' : 'bg-red-500'"></div>
                   <B24Switch
                       v-model="formData.presenceControl.enabled"
                       @update:modelValue="togglePresenceControl"
@@ -238,7 +245,8 @@
                       <!-- Ошибка валидации -->
                       <div v-if="pageTimeThresholdError" class="mt-2 text-sm text-red-600 flex items-center">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
                         </svg>
                         {{ pageTimeThresholdError }}
                       </div>
@@ -255,7 +263,8 @@
                             </p>
                           </div>
                           <div class="ml-4 flex items-center space-x-4">
-                            <div class="w-2 h-2 rounded-full" :class="formData.presenceControl.notifyManager.enabled ? 'bg-green-500' : 'bg-red-500'"></div>
+                            <div class="w-2 h-2 rounded-full"
+                                 :class="formData.presenceControl.notifyManager.enabled ? 'bg-green-500' : 'bg-red-500'"></div>
                             <B24Switch
                                 v-model="formData.presenceControl.notifyManager.enabled"
                                 @update:modelValue="toggleNotifyManager"
@@ -269,7 +278,7 @@
                         <div v-if="formData.presenceControl.notifyManager.enabled" class="space-y-4">
                           <!-- Время отсутствия до уведомления -->
                           <B24FormField
-                              label="Время отсутствия до уведомления"
+                              label="Время на подтверждение присутствия"
                               name="absenceTimeThreshold"
                               :help-text="`Текущее значение: ${formData.presenceControl.notifyManager.absenceTimeThreshold} секунд`"
                           >
@@ -312,7 +321,8 @@
                             <!-- Ошибка валидации -->
                             <div v-if="absenceTimeThresholdError" class="mt-2 text-sm text-red-600 flex items-center">
                               <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
                               </svg>
                               {{ absenceTimeThresholdError }}
                             </div>
@@ -320,11 +330,14 @@
                             <!-- Информация о настройке -->
                             <div class="mt-3">
                               <div class="flex items-start p-3 bg-yellow-50 rounded-lg">
-                                <svg class="w-5 h-5 text-yellow-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                                <svg class="w-5 h-5 text-yellow-500 mr-2 flex-shrink-0 mt-0.5" fill="none"
+                                     stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
                                 </svg>
                                 <div class="text-sm text-yellow-700">
-                                  <span class="font-medium">Примечание:</span> Уведомление будет отправлено руководителю, если сотрудник отсутствует непрерывно более указанного времени.
+                                  <span class="font-medium">Примечание:</span> Уведомление будет отправлено
+                                  руководителю, если сотрудник отсутствует непрерывно более указанного времени.
                                   Уведомления отправляются только в рабочие часы.
                                 </div>
                               </div>
@@ -369,11 +382,14 @@
                       <!-- Информация о настройке -->
                       <div class="mt-3">
                         <div class="flex items-start p-3 bg-blue-50 rounded-lg">
-                          <svg class="w-5 h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                          <svg class="w-5 h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
+                               viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                           </svg>
                           <div class="text-sm text-blue-700">
-                            <span class="font-medium">Важно:</span> Система начинает отслеживать присутствие сотрудника только после того, как он провел на странице указанное количество минут.
+                            <span class="font-medium">Важно:</span> Система начинает отслеживать присутствие сотрудника
+                            только после того, как он провел на странице указанное количество минут.
                             Это позволяет избежать ложных срабатываний при кратковременных посещениях.
                           </div>
                         </div>
@@ -394,7 +410,8 @@
                       </div>
                       <div>
                         <p class="text-sm text-gray-700">
-                          Система отслеживает активность сотрудников на странице после того, как они проведут на ней {{ formData.presenceControl.pageTimeThreshold }} минут
+                          Система отслеживает активность сотрудников на странице после того, как они проведут на ней
+                          {{ formData.presenceControl.pageTimeThreshold }} минут
                         </p>
                       </div>
                     </div>
@@ -419,12 +436,15 @@
                       </div>
                     </div>
                     <div v-if="formData.presenceControl.notifyManager.enabled" class="flex items-start">
-                      <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                      <div
+                          class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
                         <span class="text-xs font-medium text-green-600">4</span>
                       </div>
                       <div>
                         <p class="text-sm text-gray-700">
-                          При отсутствии сотрудника более {{ formData.presenceControl.notifyManager.absenceTimeThreshold }} секунд руководителю отправляется уведомление через {{ getNotificationMethodText() }}
+                          При отсутствии сотрудника более {{
+                            formData.presenceControl.notifyManager.absenceTimeThreshold
+                          }} секунд руководителю отправляется уведомление через {{ getNotificationMethodText() }}
                         </p>
                       </div>
                     </div>
@@ -449,7 +469,8 @@
                   </p>
                 </div>
                 <div class="ml-4 flex items-center space-x-4">
-                  <div class="w-2 h-2 rounded-full" :class="formData.subordinateReports.enabled ? 'bg-green-500' : 'bg-red-500'"></div>
+                  <div class="w-2 h-2 rounded-full"
+                       :class="formData.subordinateReports.enabled ? 'bg-green-500' : 'bg-red-500'"></div>
                   <B24Switch
                       v-model="formData.subordinateReports.enabled"
                       @update:modelValue="toggleSubordinateReports"
@@ -511,7 +532,8 @@
                       <!-- Ошибка валидации -->
                       <div v-if="employeeReactionTimeError" class="mt-2 text-sm text-red-600 flex items-center">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
                         </svg>
                         {{ employeeReactionTimeError }}
                       </div>
@@ -519,11 +541,14 @@
                       <!-- Информация о настройке -->
                       <div class="mt-3">
                         <div class="flex items-start p-3 bg-blue-50 rounded-lg">
-                          <svg class="w-5 h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                          <svg class="w-5 h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
+                               viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                           </svg>
                           <div class="text-sm text-blue-700">
-                            <span class="font-medium">Важно:</span> Сотруднику предоставляется указанное количество секунд для подготовки и отправки отчета руководителю.
+                            <span class="font-medium">Важно:</span> Сотруднику предоставляется указанное количество
+                            секунд для подготовки и отправки отчета руководителю.
                             Если отчет не будет предоставлен в течение этого времени, система уведомит руководителя.
                           </div>
                         </div>
@@ -622,7 +647,8 @@
                       </div>
                       <div>
                         <p class="text-sm text-gray-700">
-                          Сотруднику предоставляется {{ formData.subordinateReports.employeeReactionTime }} секунд для подготовки отчета
+                          Сотруднику предоставляется {{ formData.subordinateReports.employeeReactionTime }} секунд для
+                          подготовки отчета
                         </p>
                       </div>
                     </div>
@@ -685,20 +711,26 @@
             :show-categories="false"
             class="mt-8"
         />
+
+        <!-- Управление встройками -->
+        <PlacementsManager
+            class="mt-8"
+        />
       </div>
 
       <!-- Сайдбар с информацией -->
       <div class="lg:col-span-1">
-        <Sidebar />
+        <Sidebar/>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, onMounted, watch } from 'vue'
-import { useToast } from '@bitrix24/b24ui-nuxt/composables/useToast'
+import {ref, onMounted, watch} from 'vue'
+import {useToast} from '@bitrix24/b24ui-nuxt/composables/useToast'
 import StorageManager from './StorageManager.vue'
+import PlacementsManager from './PlacementsManager.vue'
 import Sidebar from './Sidebar.vue'
 import categoriesData from './categories.json'
 
@@ -1132,7 +1164,8 @@ class SettingsSystem {
             if (!isNaN(days) && days >= 1 && days <= 7) {
               this.formData.value.pageTracking.historyDays = days
             }
-          } catch {}
+          } catch {
+          }
         }
 
         if (pageTimeThreshold) {
@@ -1141,7 +1174,8 @@ class SettingsSystem {
             if (!isNaN(minutes) && minutes >= 1 && minutes <= 60) {
               this.formData.value.presenceControl.pageTimeThreshold = minutes
             }
-          } catch {}
+          } catch {
+          }
         }
 
         if (absenceTimeThreshold) {
@@ -1150,7 +1184,8 @@ class SettingsSystem {
             if (!isNaN(seconds) && seconds >= 10 && seconds <= 300) {
               this.formData.value.presenceControl.notifyManager.absenceTimeThreshold = seconds
             }
-          } catch {}
+          } catch {
+          }
         }
 
         if (employeeReactionTime) {
@@ -1159,7 +1194,8 @@ class SettingsSystem {
             if (!isNaN(seconds) && seconds >= 10 && seconds <= 300) {
               this.formData.value.subordinateReports.employeeReactionTime = seconds
             }
-          } catch {}
+          } catch {
+          }
         }
 
         if (notificationMethod && ['chat', 'push', 'all'].includes(notificationMethod)) {
@@ -1173,7 +1209,8 @@ class SettingsSystem {
         if (deliveryMethod && ['chat', 'push', 'all'].includes(deliveryMethod)) {
           this.formData.value.subordinateReports.deliveryMethod = deliveryMethod
         }
-      } catch {}
+      } catch {
+      }
     }
   }
 }
@@ -1182,19 +1219,20 @@ export default {
   name: 'Settings',
   components: {
     StorageManager,
+    PlacementsManager,
     Sidebar
   },
   setup() {
     const settingsSystem = new SettingsSystem()
     const categories = ref(categoriesData.categories)
     const activityProperties = [
-      { PROPERTY: 'USER_ID', NAME: 'ID пользователя', TYPE: 'N' },
-      { PROPERTY: 'USER_NAME', NAME: 'Имя пользователя', TYPE: 'S' },
-      { PROPERTY: 'PAGE_URL', NAME: 'URL страницы', TYPE: 'S' },
-      { PROPERTY: 'PAGE_TIME', NAME: 'Время на странице (сек)', TYPE: 'N' },
-      { PROPERTY: 'PAGE_CATEGORY', NAME: 'Категория страницы', TYPE: 'S' },
-      { PROPERTY: 'TASK_ID', NAME: 'ID связанной задачи', TYPE: 'N' },
-      { PROPERTY: 'ELAPSED_ITEM_ID', NAME: 'ID записи времени', TYPE: 'N' }
+      {PROPERTY: 'USER_ID', NAME: 'ID пользователя', TYPE: 'N'},
+      {PROPERTY: 'USER_NAME', NAME: 'Имя пользователя', TYPE: 'S'},
+      {PROPERTY: 'PAGE_URL', NAME: 'URL страницы', TYPE: 'S'},
+      {PROPERTY: 'PAGE_TIME', NAME: 'Время на странице (сек)', TYPE: 'N'},
+      {PROPERTY: 'PAGE_CATEGORY', NAME: 'Категория страницы', TYPE: 'S'},
+      {PROPERTY: 'TASK_ID', NAME: 'ID связанной задачи', TYPE: 'N'},
+      {PROPERTY: 'ELAPSED_ITEM_ID', NAME: 'ID записи времени', TYPE: 'N'}
     ]
 
     onMounted(async () => {

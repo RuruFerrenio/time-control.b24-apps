@@ -7,6 +7,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <script>
           window.bitrixData = {
+            params: @json($params ?? null),
             mode: @json($mode ?? null),
             placementOptions: @json($placementOptions ?? []),
             fitWindow: @json($fitWindow ?? []),

@@ -115,7 +115,7 @@
                       <button
                           class="w-full bg-blue-50 px-4 py-3 border-b border-blue-100 hover:bg-blue-100 transition-colors text-left"
                       >
-                        <div class="flex items-center justify-between">
+                        <div class="flex items-center justify-between cursor-pointer">
                           <div class="flex items-center space-x-3">
                             <B24User
                                 :name="userData.userName"
@@ -334,7 +334,7 @@
                   <B24Input
                       v-model="userSearchQuery"
                       placeholder="Поиск по имени пользователя..."
-                      @input="filterUsers"
+                      @change="filterUsers"
                       class="w-full"
                   >
                     <template #prefix>
@@ -686,8 +686,9 @@
                     :description="`ID: ${selectedUser.id}`"
                     size="md"
                     :avatar="{
-                    initials: getUserInitials(selectedUser.name)
-                  }"
+                        src: getUserPhoto(selectedUser.userId),
+                        initials: getUserInitials(selectedUser.userName)
+                    }"
                 />
               </div>
               <B24Button
@@ -732,8 +733,9 @@
                       :name="user.name"
                       size="sm"
                       :avatar="{
-                      initials: getUserInitials(user.name)
-                    }"
+                        src: getUserPhoto(user.userId),
+                        initials: getUserInitials(user.userName)
+                      }"
                   />
                   <button
                       type="button"
@@ -771,9 +773,6 @@
                   >
                     {{ modalPageData.pageUrl }}
                   </a>
-                  <div v-if="modalPageData.itemId" class="mt-1 text-xs text-gray-600">
-                    ID записи в хранилище: {{ modalPageData.itemId }}
-                  </div>
                 </div>
               </div>
             </div>
@@ -876,9 +875,6 @@
                   >
                     {{ modalPageData.pageUrl }}
                   </a>
-                  <div v-if="modalPageData.itemId" class="mt-1 text-xs text-gray-600">
-                    ID записи в хранилище: {{ modalPageData.itemId }}
-                  </div>
                 </div>
               </div>
             </div>
@@ -891,7 +887,7 @@
                 <B24Input
                     v-model="taskFilter.search"
                     placeholder="Поиск по названию задачи..."
-                    @input="filterTasks"
+                    @change="filterTasks"
                 />
               </div>
               <div>
@@ -1061,9 +1057,6 @@
                       class="underline"
                   >#{{ modalPageData.taskId }}</a></div>
                   <div>Запись времени: #{{ modalPageData.elapsedItemId }}</div>
-                  <div class="mt-1 text-xs text-gray-600">
-                    ID записи в хранилище: {{ modalPageData.itemId }}
-                  </div>
                 </div>
               </div>
             </div>
@@ -1154,9 +1147,6 @@
               >#{{ modalPageData.taskId }}</a></div>
               <div>Запись времени: #{{ modalPageData.elapsedItemId }}</div>
               <div>Время: {{ formatDuration(modalPageData.pageTime) }}</div>
-              <div class="mt-1 text-xs text-gray-600">
-                ID записи в хранилище: {{ modalPageData.itemId }}
-              </div>
             </div>
           </div>
         </div>
@@ -1423,6 +1413,41 @@ class HierarchicalDataManager {
       'all': 'Чат и Push-уведомление'
     }
     return methods[this.deliveryMethod.value] || 'чат'
+  }
+
+  createStructuredReportRequest() {
+    const settings = this.getAppSettings()
+    const reactionTime = parseInt(settings.employeeReactionTime) || 300
+
+    // Формируем URL для отчета
+    const reportParams = {
+      parameters: JSON.stringify({
+        mode: 'activity-report',
+        timestamp: new Date().toISOString(),
+        requesterId: this.currentUserId.value,
+        selectedDay: this.selectedDay.value,
+        userId: this.selectedUserForReport.value.userId,
+      })
+    }
+
+    const reportUrl = `/marketplace/view/local.6953c3c26d1bd5.96725557/?params[parameters]=${reportParams.parameters}`
+
+    // Форматируем сообщение с BB-кодами
+    const fullMessage = `[SIZE=16][B]📋 Запрос отчета о деятельности[/B][/SIZE]\n\n`
+        + `👤 [B]От:[/B] ${this.currentUserProfile?.FULL_NAME || 'Руководитель'}\n`
+        + `👤 [B]Кому:[/B] ${this.selectedUserForReport?.userName || 'Сотрудник'}\n`
+        + `📅 [B]Дата запроса:[/B] ${new Date().toLocaleString('ru-RU')}\n\n`
+        + `[B]💬 Сообщение:[/B]\n${this.reportRequestMessage.value}\n\n`
+        + `⏰ [B]Время на ответ:[/B] ${reactionTime} секунд\n`
+        + `[URL=${reportUrl}]📝 Нажмите здесь, чтобы открыть форму отчета[/URL]\n\n`
+        + `────────────────────\n`
+        + `[SIZE=12][COLOR=#666666]Запрос сгенерирован автоматически[/COLOR][/SIZE]`
+
+    return {
+      shortMessage: `📋 Запрос отчета от ${this.currentUserProfile?.FULL_NAME || 'Руководителя'}`,
+      detailedMessage: fullMessage,
+      attach: [{ MESSAGE: fullMessage, COLOR_TOKEN: "warning" }]
+    }
   }
 
   async loadCurrentUserProfile() {
@@ -1719,6 +1744,9 @@ class HierarchicalDataManager {
   filterUsers() {
     const query = this.userSearchQuery.value.toLowerCase().trim()
 
+    console.log('inpute!!!')
+    console.log(query)
+
     if (!query) {
       this.filteredUsers.value = [...this.filteredHierarchicalData.value]
     } else {
@@ -1858,7 +1886,7 @@ class HierarchicalDataManager {
   // Показать модальное окно запроса отчета
   showRequestReportModal(userData) {
     this.selectedUserForReport.value = userData
-    this.reportRequestMessage.value = `Запрошен отчет об активности пользователем ${this.currentUserProfile.value?.EMAIL || this.currentUserProfile.value?.FULL_NAME || 'руководителем'}.\n\nПожалуйста, подготовьте отчет о вашей деятельности за сегодняшний день.`
+    this.reportRequestMessage.value = `Запрошен отчет об активности \nПожалуйста, подготовьте отчет о том, чем Вы в данный момент занимаетесь.`
     this.isShowRequestReportModal.value = true
   }
 
@@ -2099,7 +2127,7 @@ class HierarchicalDataManager {
                     'iNumPage': page
                   }
                 },
-                ['ID', 'TITLE', 'DESCRIPTION', 'STATUS', 'DEADLINE', 'CREATED_DATE', 'RESPONSIBLE_ID', 'ACCOMPLICES', 'AUDITORS', 'PRIORITY']
+                ['ID', 'TITLE', 'DESCRIPTION', 'REAL_STATUS', 'DEADLINE', 'CREATED_DATE', 'RESPONSIBLE_ID', 'ACCOMPLICES', 'AUDITORS', 'PRIORITY']
               ]
             ]
           }, (result) => {
@@ -2128,7 +2156,7 @@ class HierarchicalDataManager {
               id: task.ID,
               title: task.TITLE,
               description: task.DESCRIPTION,
-              status: task.STATUS,
+              status: task.REAL_STATUS,
               deadline: task.DEADLINE,
               createdDate: task.CREATED_DATE,
               responsible: {
@@ -2205,6 +2233,7 @@ class HierarchicalDataManager {
   async addTimeToTask(taskId, pageData, userData, isNewTask = false) {
     try {
       console.log('Adding time to task:', { taskId, pageData, userData })
+
       BX24.callBatch({
         add_time: [
           'task.elapseditem.add',
@@ -2228,17 +2257,36 @@ class HierarchicalDataManager {
           console.log('Elapsed item created:', elapsedItemId)
           const originalItemId = pageData.originalItemId || pageData.itemId
 
+          // 1. Обновляем хранилище и локальные данные
           await this.updateStorageAndLocalData(originalItemId, taskId, elapsedItemId)
 
+          // 2. Увеличиваем счетчик сохраненного времени через хелпер
+          if (pageData.pageTime && pageData.pageTime > 0 && bitrixHelper) {
+            try {
+              await bitrixHelper.updateSavedTime(pageData.pageTime)
+              console.log(`Счетчик увеличен на ${pageData.pageTime} сек через хелпер`)
+              this.refreshSidebarSavedTimeCounter()
+            } catch (error) {
+              console.error('Ошибка увеличения счетчика через хелпер:', error)
+            }
+          }
+
+          // 3. Показываем успешное уведомление
           this.showNotification('success', 'Время успешно добавлено к задаче!')
+
+          // 4. Закрываем модальное окно
           if (isNewTask) {
             this.isShowCreateTaskModal.value = false
           } else {
             this.isShowAttachTaskModal.value = false
           }
+
+          // 5. Сбрасываем состояния
           this.isCreatingTask.value = false
           this.isAttachingToTask.value = false
           this.modalPageData.value = null
+
+          // 6. Принудительно обновляем UI
           this.forceUIUpdate()
         }
       }, true)
@@ -2311,35 +2359,101 @@ class HierarchicalDataManager {
       this.showNotification('warning', 'Нет данных для обновления')
       return
     }
+
     try {
       this.isUpdatingTime.value = true
+
+      const newTime = this.updateTimeData.value.newTime
+
+      // Используем callBatch для получения текущего времени и его обновления за один запрос
       BX24.callBatch({
+        // 1. Получаем текущее время из существующей записи
+        get_current_time: [
+          'task.elapseditem.get',
+          {
+            TASKID: this.modalPageData.value.taskId,
+            ITEMID: this.modalPageData.value.elapsedItemId
+          }
+        ],
+        // 2. Обновляем время в задаче
         update_time: [
           'task.elapseditem.update',
           {
             TASKID: this.modalPageData.value.taskId,
             ITEMID: this.modalPageData.value.elapsedItemId,
             ARFIELDS: {
-              SECONDS: this.updateTimeData.value.newTime,
+              SECONDS: newTime,
               COMMENT_TEXT: this.updateTimeData.value.comment || `Обновлено время на странице: ${this.modalPageData.value.pageUrl}`
             }
           }
         ]
       }, async (result) => {
-        if (result.update_time.error()) {
-          this.showNotification('error', 'Ошибка при обновлении времени в задаче')
+        // Проверяем ошибки обоих вызовов
+        if (result.get_current_time.error() || result.update_time.error()) {
+          let errorMessage = 'Ошибка при обновлении времени в задаче'
+
+          if (result.get_current_time.error()) {
+            console.error('Ошибка получения текущего времени:', result.get_current_time.error())
+            errorMessage = 'Ошибка при получении текущего времени задачи'
+          }
+
+          if (result.update_time.error()) {
+            console.error('Ошибка обновления времени:', result.update_time.error())
+            errorMessage = 'Ошибка при обновлении времени в задаче'
+          }
+
+          this.showNotification('error', errorMessage)
           this.isUpdatingTime.value = false
-        } else {
-          await this.updateStorageItemTime(this.modalPageData.value.itemId, this.updateTimeData.value.newTime)
-          this.modalPageData.value.pageTime = this.updateTimeData.value.newTime
+          return
+        }
+
+        try {
+          // 3. Получаем старое значение времени из существующей записи
+          const oldTime = parseInt(result.get_current_time.data().SECONDS) || 0
+
+          // 4. Обновляем время в хранилище
+          await this.updateStorageItemTime(this.modalPageData.value.itemId, newTime)
+
+          // 5. Обновляем локальные данные
+          this.modalPageData.value.pageTime = newTime
+
+          // 6. Обновляем счетчик сохраненного времени на разницу через хелпер
+          const timeDifference = newTime - oldTime
+          if (timeDifference !== 0 && bitrixHelper) {
+            try {
+              await bitrixHelper.updateSavedTime(timeDifference)
+              console.log(`Счетчик изменен на ${timeDifference} сек через хелпер`)
+
+              // Обновляем счетчик в сайдбаре
+              this.refreshSidebarSavedTimeCounter()
+            } catch (error) {
+              console.error('Ошибка обновления счетчика через хелпер:', error)
+            }
+          }
+
+          // 7. Показываем успешное уведомление
           this.showNotification('success', 'Время успешно обновлено!')
+
+          // 8. Закрываем модальное окно
           this.closeUpdateTimeModal()
+
+          // 9. Обновляем данные и восстанавливаем состояния
           await this.updateDataAndRestoreStates()
+
+          // 10. Принудительно обновляем UI
           this.forceUIUpdate()
+
+          this.isUpdatingTime.value = false
+
+        } catch (error) {
+          console.error('Ошибка в обработке результатов:', error)
+          this.showNotification('error', 'Ошибка при обработке результатов обновления')
           this.isUpdatingTime.value = false
         }
-      }, true)
-    } catch {
+      }, true) // true означает, что запросы выполняются последовательно
+
+    } catch (error) {
+      console.error('Ошибка при выполнении updateTaskTime:', error)
       this.showNotification('error', 'Ошибка при обновлении времени в задаче')
       this.isUpdatingTime.value = false
     }
@@ -2382,9 +2496,47 @@ class HierarchicalDataManager {
 
     try {
       this.isUnlinkingTask.value = true
-      const { itemId, taskId, elapsedItemId } = this.modalPageData.value
-      console.log('Unlinking task:', { itemId, taskId, elapsedItemId })
+      const { itemId, taskId, elapsedItemId, pageTime, elapsedItemTime } = this.modalPageData.value
+      console.log('Unlinking task:', { itemId, taskId, elapsedItemId, pageTime, elapsedItemTime })
 
+      // 1. Получаем детали записи времени перед удалением, чтобы узнать точное время
+      let elapsedTimeToDeduct = 0
+
+      try {
+        // Получаем информацию о записи времени
+        const elapsedItemInfo = await new Promise((resolve, reject) => {
+          BX24.callBatch({
+            get_elapsed_item: [
+              'task.elapseditem.get',
+              {
+                TASKID: taskId,
+                ITEMID: elapsedItemId
+              }
+            ]
+          }, (result) => {
+            if (result.get_elapsed_item.error()) {
+              console.error('Error getting elapsed item:', result.get_elapsed_item.error())
+              resolve(null)
+            } else {
+              resolve(result.get_elapsed_item.data())
+            }
+          }, true)
+        })
+
+        if (elapsedItemInfo && elapsedItemInfo.SECONDS) {
+          elapsedTimeToDeduct = elapsedItemInfo.SECONDS
+          console.log('Found elapsed time in task:', elapsedTimeToDeduct, 'seconds')
+        } else if (elapsedItemTime) {
+          // Если не удалось получить из API, используем значение из modalPageData
+          elapsedTimeToDeduct = elapsedItemTime
+          console.log('Using elapsed time from modal data:', elapsedTimeToDeduct, 'seconds')
+        }
+      } catch (error) {
+        console.warn('Could not fetch elapsed item details:', error)
+        // Продолжаем с имеющимися данными
+      }
+
+      // 2. Удаляем запись времени из задачи
       await new Promise((resolve, reject) => {
         BX24.callBatch({
           delete_time: [
@@ -2402,6 +2554,7 @@ class HierarchicalDataManager {
         }, true)
       })
 
+      // 3. Обновляем хранилище - удаляем связь
       await new Promise((resolve, reject) => {
         BX24.callBatch({
           unlink: [
@@ -2419,16 +2572,49 @@ class HierarchicalDataManager {
           if (result.unlink.error()) {
             reject(result.unlink.error())
           } else {
-            this.removeTaskInfoFromLocalData(itemId)
-            this.showNotification('success', 'Связь с задачей удалена и запись времени удалена!')
-            this.isShowUnlinkTaskModal.value = false
-            this.isUnlinkingTask.value = false
-            this.modalPageData.value = null
-            this.forceUIUpdate()
             resolve()
           }
         }, true)
       })
+
+      // 4. Уменьшаем счетчик сохраненного времени через хелпер
+      // Используем время из записи задачи, а не текущее время страницы
+      if (elapsedTimeToDeduct > 0 && bitrixHelper) {
+        try {
+          // Передаем отрицательное значение, чтобы уменьшить счетчик
+          await bitrixHelper.updateSavedTime(-elapsedTimeToDeduct)
+          console.log(`Счетчик уменьшен на ${elapsedTimeToDeduct} сек (время из записи задачи)`)
+
+          // Обновляем счетчик в сайдбаре
+          this.refreshSidebarSavedTimeCounter()
+        } catch (error) {
+          console.error('Ошибка уменьшения счетчика через хелпер:', error)
+        }
+      } else if (pageTime && pageTime > 0 && bitrixHelper) {
+        // Если не удалось получить время из записи, используем pageTime как fallback
+        console.warn('Using pageTime as fallback for time deduction')
+        try {
+          await bitrixHelper.updateSavedTime(-pageTime)
+          console.log(`Счетчик уменьшен на ${pageTime} сек (pageTime как fallback)`)
+          this.refreshSidebarSavedTimeCounter()
+        } catch (error) {
+          console.error('Ошибка уменьшения счетчика через хелпер:', error)
+        }
+      }
+
+      // 5. Обновляем локальные данные
+      this.removeTaskInfoFromLocalData(itemId)
+
+      // 6. Показываем уведомление
+      this.showNotification('success', 'Связь с задачей удалена и запись времени удалена!')
+
+      // 7. Закрываем модальное окно и сбрасываем состояние
+      this.isShowUnlinkTaskModal.value = false
+      this.isUnlinkingTask.value = false
+      this.modalPageData.value = null
+
+      // 8. Принудительно обновляем UI
+      this.forceUIUpdate()
 
     } catch (error) {
       console.error('Error unlinking task:', error)
@@ -2894,24 +3080,29 @@ class HierarchicalDataManager {
     try {
       this.isSendingReportRequest.value = true
 
-      const currentUserEmail = this.currentUserProfile.value?.EMAIL ||
-          this.currentUserProfile.value?.FULL_NAME ||
-          'руководителем'
+      // Используем структурированный формат сообщения
+      const { shortMessage, attach } = this.createStructuredReportRequest()
 
-      // Формируем сообщение
-      const fullMessage = `${this.reportRequestMessage.value}\n\nСсылка для просмотра отчета: /marketplace/view/local.6953c3c26d1bd5.96725557/?params[selectedDay]=${this.selectedDay.value}&params[userId]=${this.selectedUserForReport.value.userId}`
+      const sendPromises = []
 
-      // Отправляем уведомление в зависимости от выбранного способа
-      if (this.deliveryMethod.value === 'push' || this.deliveryMethod.value === 'all') {
-        // Отправляем персональное уведомление через im.notify.personal.add
-        await this.sendPersonalNotification(this.selectedUserForReport.value.userId, fullMessage)
+      // Отправляем уведомления в зависимости от настроек
+      if (['push', 'all'].includes(this.deliveryMethod.value)) {
+        sendPromises.push(this.sendPersonalNotification(
+            this.selectedUserForReport.value.userId,
+            shortMessage,
+            attach
+        ))
       }
 
-      if (this.deliveryMethod.value === 'chat' || this.deliveryMethod.value === 'all') {
-        // Отправляем сообщение в чат через im.message.add
-        await this.sendChatMessage(this.selectedUserForReport.value.userId, fullMessage)
+      if (['chat', 'all'].includes(this.deliveryMethod.value)) {
+        sendPromises.push(this.sendChatMessage(
+            this.selectedUserForReport.value.userId,
+            '',
+            attach
+        ))
       }
 
+      await Promise.all(sendPromises)
       this.showNotification('success', 'Запрос отчета успешно отправлен!')
       this.closeRequestReportModal()
 
@@ -2924,14 +3115,15 @@ class HierarchicalDataManager {
   }
 
   // Метод для отправки персонального уведомления
-  async sendPersonalNotification(userId, message) {
+  async sendPersonalNotification(userId, title, attach) {
     return new Promise((resolve, reject) => {
       BX24.callBatch({
         notification: [
           'im.notify.personal.add',
           {
             USER_ID: userId,
-            MESSAGE: message,
+            MESSAGE: title,
+            ATTACH: attach, // Важное изменение!
             TAG: `REPORT_REQUEST_${Date.now()}`,
             SUB_TAG: `REPORT|${this.selectedDay.value}|${this.currentUserId.value}`
           }
@@ -2946,15 +3138,15 @@ class HierarchicalDataManager {
     })
   }
 
-  // Метод для отправки сообщения в чат
-  async sendChatMessage(userId, message) {
+  async sendChatMessage(userId, title, attach) {
     return new Promise((resolve, reject) => {
       BX24.callBatch({
         message: [
           'im.message.add',
           {
-            DIALOG_ID: userId.toString(), // Для приватного диалога используем ID пользователя
-            MESSAGE: message,
+            DIALOG_ID: userId.toString(),
+            MESSAGE: title,
+            ATTACH: attach, // Важное изменение!
             SYSTEM: 'N'
           }
         ]
@@ -2967,6 +3159,24 @@ class HierarchicalDataManager {
       }, true)
     })
   }
+
+  // Обновить счетчик в сайдбаре
+  refreshSidebarSavedTimeCounter () {
+    console.log('Обновление счетчика в сайдбаре...')
+
+    // Вызываем глобальную функцию из Sidebar.vue
+    if (typeof window.updateSidebarSavedTime === 'function') {
+      try {
+        window.updateSidebarSavedTime()
+        console.log('Функция updateSidebarSavedTime вызвана успешно')
+      } catch (error) {
+        console.error('Ошибка при вызове updateSidebarSavedTime:', error)
+      }
+    } else {
+      console.warn('Функция updateSidebarSavedTime не найдена в window')
+    }
+  }
+
 }
 
 export default {
@@ -3115,7 +3325,9 @@ export default {
       updateTaskTime: hierarchicalDataManager.updateTaskTime.bind(hierarchicalDataManager),
       unlinkTask: hierarchicalDataManager.unlinkTask.bind(hierarchicalDataManager),
       sendReportRequest: hierarchicalDataManager.sendReportRequest.bind(hierarchicalDataManager),
-      refreshCurrentTabData: hierarchicalDataManager.refreshCurrentTabData.bind(hierarchicalDataManager)
+      refreshCurrentTabData: hierarchicalDataManager.refreshCurrentTabData.bind(hierarchicalDataManager),
+      createStructuredReportRequest: hierarchicalDataManager.createStructuredReportRequest?.bind(hierarchicalDataManager),
+      refreshSidebarSavedTimeCounter: hierarchicalDataManager.refreshSidebarSavedTimeCounter?.bind(hierarchicalDataManager)
     }
   }
 }

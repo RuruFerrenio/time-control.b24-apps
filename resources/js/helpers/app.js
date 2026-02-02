@@ -212,6 +212,43 @@ class Bitrix24Helper {
   isReady() {
     return this.isInitialized
   }
+
+  // Добавить методы для работы с сохраненным временем
+  async getSavedTime () {
+    try {
+      if (!BX24) return 0
+      const savedTime = await BX24.appOption.get('total_saved_time')
+      console.log('saved time')
+      console.log(savedTime)
+      return parseInt(savedTime) || 0
+    } catch (error) {
+      console.error('Ошибка получения сохраненного времени:', error)
+      return 0
+    }
+  }
+
+  async updateSavedTime (secondsToAdd) {
+    try {
+      if (!BX24) return false
+      const currentTime = await this.getSavedTime()
+      console.log('second to add time')
+      console.log(secondsToAdd)
+      console.log('current time')
+      console.log(currentTime)
+      const newTime = currentTime + secondsToAdd
+      if(newTime < 0){
+        await BX24.appOption.set('total_saved_time', 0)
+      }else{
+        await BX24.appOption.set('total_saved_time', newTime.toString())
+      }
+
+      return true
+    } catch (error) {
+      console.error('Ошибка обновления сохраненного времени:', error)
+      return false
+    }
+  }
+
 }
 
 // Создаем и экспортируем экземпляр класса

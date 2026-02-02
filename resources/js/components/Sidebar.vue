@@ -110,9 +110,77 @@
               </svg>
               <div>
                 <p class="text-xs text-gray-600">
-                  Все данные хранятся в защищенном хранилище Bitrix24 и доступны только авторизованным пользователям.
+                  Данные об активности пользователей хранятся во внутреннем персональном хранилище портала Bitrix24 и не записываются в базу данных приложения.
                 </p>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </B24Card>
+
+    <!-- Карточка со счетчиком времени -->
+    <B24Card>
+      <div class="p-6">
+        <div class="space-y-4">
+          <!-- Заголовок блока -->
+          <div class="flex items-center justify-between">
+            <h4 class="text-lg font-semibold text-gray-900">Сохраненное время</h4>
+            <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+              <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Счетчик времени -->
+          <div class="text-center py-4">
+            <div class="text-3xl font-bold text-green-600 mb-2">
+              {{ formatSavedTime(savedTime) }}
+            </div>
+            <p class="text-sm text-gray-500">
+              Общее сохраненное время
+            </p>
+          </div>
+
+          <!-- Кнопки действий -->
+          <div class="space-y-3 pt-4 border-t border-gray-200">
+            <!-- Кнопка поддержать -->
+            <B24Button
+                @click="handleSupport"
+                class="w-full justify-center"
+                color="air-secondary"
+                size="md"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/>
+              </svg>
+              Поддержать проект
+            </B24Button>
+
+            <!-- Кнопка оставить отзыв -->
+            <B24Button
+                @click="handleReview"
+                class="w-full justify-center"
+                color="air-primary"
+                size="md"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+              </svg>
+              Оставить отзыв
+            </B24Button>
+          </div>
+
+          <!-- Информация о том, что такое сохраненное время -->
+          <div class="pt-4 border-t border-gray-200">
+            <div class="flex items-start">
+              <svg class="w-4 h-4 text-blue-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <p class="text-xs text-gray-600">
+                Чистое время, проведенное в Битрикс24, закрепленное пользователями за задачами с помощью приложения
+              </p>
             </div>
           </div>
         </div>
@@ -122,7 +190,7 @@
 </template>
 
 <script>
-import { ref, onMounted, inject } from 'vue'
+import { ref, onMounted, inject, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 export default {
@@ -133,9 +201,47 @@ export default {
 
     const isAdmin = ref(false)
     const isStatisticsAvailable = ref(false)
+    const savedTime = ref(0)
 
     const isActiveRoute = (path) => {
       return router.currentRoute.value.path === path
+    }
+
+    const formatSavedTime = (seconds) => {
+      if (!seconds) return '0 сек'
+      const hours = Math.floor(seconds / 3600)
+      const minutes = Math.floor((seconds % 3600) / 60)
+      const secs = seconds % 60
+      const parts = []
+      if (hours > 0) parts.push(`${hours} ч`)
+      if (minutes > 0) parts.push(`${minutes} мин`)
+      if (secs > 0 || parts.length === 0) parts.push(`${secs} сек`)
+      return parts.join(' ')
+    }
+
+    const loadSavedTime = async () => {
+      try {
+        if (bitrixHelper && bitrixHelper.isReady()) {
+          const savedTimeValue = await bitrixHelper.getSavedTime()
+          savedTime.value = savedTimeValue || 0
+        }
+      } catch (error) {
+        console.error('Ошибка загрузки сохраненного времени:', error)
+      }
+    }
+
+    const refreshSavedTime = async () => {
+      await loadSavedTime()
+    }
+
+    const handleSupport = () => {
+      // Логика для поддержки проекта
+      console.log('Поддержка проекта')
+    }
+
+    const handleReview = () => {
+      // Логика для оставления отзыва
+      console.log('Оставить отзыв')
     }
 
     onMounted(() => {
@@ -143,14 +249,26 @@ export default {
       if (bitrixHelper && bitrixHelper.isReady()) {
         isAdmin.value = bitrixHelper.isUserAdmin()
         isStatisticsAvailable.value = bitrixHelper.isStatisticsAvailable()
+        loadSavedTime()
       } else {
         // Если не инициализирован, пробуем инициализировать
         bitrixHelper.init().then(() => {
           isAdmin.value = bitrixHelper.isUserAdmin()
           isStatisticsAvailable.value = bitrixHelper.isStatisticsAvailable()
+          loadSavedTime()
         }).catch(error => {
           console.error('Ошибка инициализации Bitrix24 в Sidebar:', error)
         })
+      }
+
+      // Создаем глобальную функцию для обновления счетчика из других компонентов
+      window.updateSidebarSavedTime = refreshSavedTime
+    })
+
+    onUnmounted(() => {
+      // Удаляем глобальную функцию при размонтировании компонента
+      if (window.updateSidebarSavedTime) {
+        delete window.updateSidebarSavedTime
       }
     })
 
@@ -158,7 +276,11 @@ export default {
       bitrixHelper,
       isAdmin,
       isStatisticsAvailable,
-      isActiveRoute
+      savedTime,
+      isActiveRoute,
+      formatSavedTime,
+      handleSupport,
+      handleReview
     }
   }
 }

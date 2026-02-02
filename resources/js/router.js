@@ -4,11 +4,17 @@ const routes = [
     name: 'home',
     component: () => import('./components/TimeList.vue'),
     redirect: () => {
-      // Проверяем режим из window.bitrixData
-      if (window.bitrixData && window.bitrixData.mode === 'alerta') {
-        return '/presence-check'
+      const modeMap = {
+        'alerta': '/presence-check',
+        'activity-report': '/activity-report',
+        'default': '/time-list'
       }
-      return '/time-list'
+
+      console.log('params route')
+      console.log(window.bitrixData)
+
+      const mode = window.bitrixData?.mode
+      return modeMap[mode] || modeMap.default
     }
   },
   {
@@ -63,6 +69,14 @@ const routes = [
     path: '/placements/call-card',
     name: 'call-card-calc',
     component: () => import('./components/Calculator.vue'),
+  },
+  {
+    path: '/activity-report',
+    name: 'activity-report',
+    component: () => import('./components/ActivityReport.vue'),
+    props: (route) => ({
+      parameters: window.bitrixData || null
+    })
   },
   {
     path: '/guide',
