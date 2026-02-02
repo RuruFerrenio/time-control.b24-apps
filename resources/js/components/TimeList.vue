@@ -1,19 +1,19 @@
 <template>
-  <div class="p-6">
+  <div class="p-4 md:p-6">
     <B24PageHeader
         title="Список посещений"
         description="Иерархичное отображение статистики посещений страниц сотрудниками"
     />
 
-    <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="mt-6 md:mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
       <!-- Основная часть со списком -->
       <div class="lg:col-span-2">
         <!-- Иерархичный список посещений -->
         <B24Card>
-          <div class="p-6">
-            <div class="space-y-6">
-              <div class="flex items-center justify-between">
-                <div>
+          <div class="p-4 md:p-6">
+            <div class="space-y-4 md:space-y-6">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="flex-1">
                   <h3 class="text-lg font-semibold text-gray-900">
                     Список посещений по дням
                   </h3>
@@ -27,6 +27,7 @@
                       :disabled="isProcessingData"
                       color="air-primary"
                       size="sm"
+                      class="w-full sm:w-auto"
                   >
                     <svg class="w-4 h-4 mr-2" :class="{ 'animate-spin': isProcessingData }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
@@ -115,8 +116,8 @@
                       <button
                           class="w-full bg-blue-50 px-4 py-3 border-b border-blue-100 hover:bg-blue-100 transition-colors text-left"
                       >
-                        <div class="flex items-center justify-between cursor-pointer">
-                          <div class="flex items-center space-x-3">
+                        <div class="flex items-center justify-between">
+                          <div class="flex items-center space-x-3 min-w-0 flex-1">
                             <B24User
                                 :name="userData.userName"
                                 :description="`ID: ${userData.userId}`"
@@ -131,15 +132,16 @@
                                         : 'air-secondary-accent',
                                     position: 'top-right'
                                 }"
+                                class="truncate"
                             />
                           </div>
-                          <div class="flex items-center space-x-4">
-                            <div class="text-right">
+                          <div class="flex items-center space-x-4 ml-2">
+                            <div class="text-right hidden sm:block">
                               <div class="text-xs text-gray-600">Общее время</div>
                               <div class="text-sm font-semibold text-gray-900">{{ formatDuration(userData.totalTime) }}</div>
                             </div>
                             <svg
-                                class="w-5 h-5 text-gray-500 transition-transform duration-200"
+                                class="w-5 h-5 text-gray-500 transition-transform duration-200 flex-shrink-0"
                                 :class="{ 'transform rotate-180': expandedUsersMyTime[userData.userId] }"
                                 fill="none"
                                 stroke="currentColor"
@@ -148,6 +150,11 @@
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                             </svg>
                           </div>
+                        </div>
+                        <!-- Общее время для мобильных -->
+                        <div class="sm:hidden text-left mt-2">
+                          <div class="text-xs text-gray-600">Общее время</div>
+                          <div class="text-sm font-semibold text-gray-900">{{ formatDuration(userData.totalTime) }}</div>
                         </div>
                       </button>
 
@@ -168,9 +175,9 @@
                                   class="w-full px-4 py-3 bg-gray-50 border-b border-gray-100 hover:bg-gray-100 transition-colors text-left"
                               >
                                 <div class="flex items-center justify-between">
-                                  <div class="flex items-center space-x-3">
+                                  <div class="flex items-center space-x-3 min-w-0 flex-1">
                                     <svg
-                                        class="w-4 h-4 text-gray-500 transition-transform duration-200"
+                                        class="w-4 h-4 text-gray-500 transition-transform duration-200 flex-shrink-0"
                                         :class="{ 'transform rotate-90': expandedCategoriesMyTime[`${userData.userId}-${categoryData.category}`] }"
                                         fill="none"
                                         stroke="currentColor"
@@ -178,16 +185,17 @@
                                     >
                                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                     </svg>
-                                    <div class="flex items-center space-x-2">
+                                    <div class="flex items-center space-x-2 min-w-0">
                                       <B24Badge
                                           :class="getCategoryBadgeClass(categoryData.category)"
+                                          class="truncate"
                                       >
                                         {{ categoryData.category || 'Не указана' }}
                                       </B24Badge>
                                     </div>
                                   </div>
-                                  <div class="text-right">
-                                    <div class="text-xs text-gray-600">Время в категории</div>
+                                  <div class="text-right ml-2">
+                                    <div class="text-xs text-gray-600">Время</div>
                                     <div class="text-sm font-semibold text-gray-900">
                                       {{ formatDuration(categoryData.totalTime) }}
                                     </div>
@@ -203,10 +211,10 @@
                                       :key="pageData.itemId"
                                       class="px-4 py-3 hover:bg-gray-50"
                                   >
-                                    <div class="flex items-center justify-between">
+                                    <div class="flex flex-col md:flex-row md:items-start justify-between gap-3">
                                       <div class="flex-1 min-w-0">
-                                        <div class="flex items-center space-x-3">
-                                          <div class="flex-shrink-0">
+                                        <div class="flex items-start space-x-3">
+                                          <div class="flex-shrink-0 mt-1">
                                             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
                                             </svg>
@@ -223,15 +231,17 @@
                                               </a>
                                               <div
                                                   v-if="pageData.isLatest"
-                                                  class="w-2 h-2 rounded-full bg-green-500"
+                                                  class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"
                                                   title="Самое свежее посещение"
                                               ></div>
                                             </div>
-                                            <div class="flex items-center space-x-4 text-xs text-gray-500">
+                                            <div class="flex flex-wrap items-center gap-2 md:gap-4 text-xs text-gray-500">
                                               <span>Время: {{ formatDuration(pageData.pageTime) }}</span>
                                               <span v-if="pageData.count > 1">({{ pageData.count }} посещений)</span>
-                                              <span>Первое посещение: {{ formatTime(pageData.createdAt) }}</span>
-                                              <span>Последнее посещение: {{ formatTime(pageData.updatedAt) }}</span>
+                                              <div class="hidden md:flex items-center space-x-4">
+                                                <span>Первое: {{ formatTime(pageData.createdAt) }}</span>
+                                                <span>Последнее: {{ formatTime(pageData.updatedAt) }}</span>
+                                              </div>
                                             </div>
                                             <!-- Привязанная задача -->
                                             <div v-if="pageData.taskId" class="mt-2">
@@ -252,12 +262,12 @@
                                       </div>
                                       <div>
                                         <!-- Кнопки для привязанных записей -->
-                                        <div v-if="pageData.taskId && pageData.elapsedItemId" class="ml-4 flex flex-col space-y-2">
+                                        <div v-if="pageData.taskId && pageData.elapsedItemId" class="flex flex-row md:flex-col space-y-0 md:space-y-2 space-x-2 md:space-x-0">
                                           <B24Button
                                               @click="showUpdateTimeModal(pageData, userData)"
                                               size="xs"
                                               color="air-primary-success"
-                                              class="text-xs mb-1"
+                                              class="text-xs flex-1 md:flex-none"
                                               title="Обновить время"
                                           >
                                             <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -269,7 +279,7 @@
                                               @click="showUnlinkTaskModal(pageData)"
                                               size="xs"
                                               color="air-primary-alert"
-                                              class="text-xs"
+                                              class="text-xs flex-1 md:flex-none"
                                               title="Удалить связь"
                                           >
                                             <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -279,12 +289,12 @@
                                           </B24Button>
                                         </div>
                                         <!-- Кнопки для непривязанных записей -->
-                                        <div v-else class="ml-4 flex flex-col space-y-2">
+                                        <div v-else class="flex flex-row md:flex-col space-y-0 md:space-y-2 space-x-2 md:space-x-0">
                                           <B24Button
                                               @click="showAttachTaskModal(pageData, userData)"
                                               size="xs"
                                               color="air-primary-success"
-                                              class="text-xs mb-1"
+                                              class="text-xs flex-1 md:flex-none"
                                               title="Прикрепить к задаче"
                                           >
                                             <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -296,7 +306,7 @@
                                               @click="showCreateTaskModal(pageData, userData)"
                                               size="xs"
                                               color="air-primary"
-                                              class="text-xs"
+                                              class="text-xs flex-1 md:flex-none"
                                               title="Создать задачу"
                                           >
                                             <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -367,7 +377,7 @@
                         @click="toggleUser(userData.userId, 'all-time')"
                     >
                       <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-3">
+                        <div class="flex items-center space-x-3 min-w-0 flex-1">
                           <B24User
                               :name="userData.userName"
                               :description="`ID: ${userData.userId}`"
@@ -382,9 +392,10 @@
                                       : 'air-secondary-accent',
                                   position: 'top-right'
                               }"
+                              class="truncate"
                           />
                           <!-- Кнопка запроса отчета (только для других пользователей, если включено в настройках) -->
-                          <div v-if="userData.userId !== currentUserId && subordinateReportsEnabled" class="ml-2">
+                          <div v-if="userData.userId !== currentUserId && subordinateReportsEnabled" class="ml-2 hidden sm:block">
                             <B24Button
                                 @click="showRequestReportModal(userData)"
                                 size="xs"
@@ -399,6 +410,61 @@
                             </B24Button>
                           </div>
                           <!-- Кнопка "Посмотреть статистику" -->
+                          <router-link
+                              v-if="userData.userId !== currentUserId && bitrixHelper && bitrixHelper.isStatisticsAvailable()"
+                              :to="{ path: '/workday-statistics', query: { userId: userData.userId } }"
+                              class="inline-block hidden sm:block ml-2"
+                          >
+                            <B24Button
+                                size="xs"
+                                color="air-primary-warning"
+                                class="text-xs"
+                                title="Посмотреть статистику"
+                            >
+                              <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                              </svg>
+                              Статистика
+                            </B24Button>
+                          </router-link>
+                        </div>
+                        <div class="flex items-center space-x-4 ml-2">
+                          <div class="text-right hidden sm:block">
+                            <div class="text-xs text-gray-600">Общее время</div>
+                            <div class="text-sm font-semibold text-gray-900">{{ formatDuration(userData.totalTime) }}</div>
+                          </div>
+                          <svg
+                              class="w-5 h-5 text-gray-500 transition-transform flex-shrink-0"
+                              :class="{ 'transform rotate-180': expandedUsersAllTime[userData.userId] }"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                          >
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                          </svg>
+                        </div>
+                      </div>
+                      <!-- Мобильные кнопки и время -->
+                      <div class="sm:hidden mt-3 flex flex-wrap items-center justify-between gap-2">
+                        <div class="text-left">
+                          <div class="text-xs text-gray-600">Общее время</div>
+                          <div class="text-sm font-semibold text-gray-900">{{ formatDuration(userData.totalTime) }}</div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                          <div v-if="userData.userId !== currentUserId && subordinateReportsEnabled">
+                            <B24Button
+                                @click="showRequestReportModal(userData)"
+                                size="xs"
+                                color="air-primary-warning"
+                                class="text-xs"
+                                title="Запросить отчет"
+                            >
+                              <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                              </svg>
+                              Отчет
+                            </B24Button>
+                          </div>
                           <router-link
                               v-if="userData.userId !== currentUserId && bitrixHelper && bitrixHelper.isStatisticsAvailable()"
                               :to="{ path: '/workday-statistics', query: { userId: userData.userId } }"
@@ -417,21 +483,6 @@
                             </B24Button>
                           </router-link>
                         </div>
-                        <div class="flex items-center space-x-4">
-                          <div class="text-right">
-                            <div class="text-xs text-gray-600">Общее время</div>
-                            <div class="text-sm font-semibold text-gray-900">{{ formatDuration(userData.totalTime) }}</div>
-                          </div>
-                          <svg
-                              class="w-5 h-5 text-gray-500 transition-transform"
-                              :class="{ 'transform rotate-180': expandedUsersAllTime[userData.userId] }"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                          >
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                          </svg>
-                        </div>
                       </div>
                     </div>
 
@@ -447,9 +498,9 @@
                             @click="toggleCategory(userData.userId, categoryData.category, 'all-time')"
                         >
                           <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
+                            <div class="flex items-center space-x-3 min-w-0 flex-1">
                               <svg
-                                  class="w-4 h-4 text-gray-500 transition-transform"
+                                  class="w-4 h-4 text-gray-500 transition-transform flex-shrink-0"
                                   :class="{ 'transform rotate-90': expandedCategoriesAllTime[`${userData.userId}-${categoryData.category}`] }"
                                   fill="none"
                                   stroke="currentColor"
@@ -457,16 +508,17 @@
                               >
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                               </svg>
-                              <div class="flex items-center space-x-2">
+                              <div class="flex items-center space-x-2 min-w-0">
                                 <B24Badge
                                     :class="getCategoryBadgeClass(categoryData.category)"
+                                    class="truncate"
                                 >
                                   {{ categoryData.category || 'Не указана' }}
                                 </B24Badge>
                               </div>
                             </div>
-                            <div class="text-right">
-                              <div class="text-xs text-gray-600">Время в категории</div>
+                            <div class="text-right ml-2">
+                              <div class="text-xs text-gray-600">Время</div>
                               <div class="text-sm font-semibold text-gray-900">
                                 {{ formatDuration(categoryData.totalTime) }}
                               </div>
@@ -484,10 +536,10 @@
                               :key="pageData.itemId"
                               class="px-4 py-3 hover:bg-gray-50"
                           >
-                            <div class="flex items-center justify-between">
+                            <div class="flex flex-col md:flex-row md:items-start justify-between gap-3">
                               <div class="flex-1 min-w-0">
-                                <div class="flex items-center space-x-3">
-                                  <div class="flex-shrink-0">
+                                <div class="flex items-start space-x-3">
+                                  <div class="flex-shrink-0 mt-1">
                                     <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
                                     </svg>
@@ -504,15 +556,17 @@
                                       </a>
                                       <div
                                           v-if="pageData.isLatest"
-                                          class="w-2 h-2 rounded-full bg-green-500"
+                                          class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"
                                           title="Самое свежее посещение"
                                       ></div>
                                     </div>
-                                    <div class="flex items-center space-x-4 text-xs text-gray-500">
+                                    <div class="flex flex-wrap items-center gap-2 md:gap-4 text-xs text-gray-500">
                                       <span>Время: {{ formatDuration(pageData.pageTime) }}</span>
                                       <span v-if="pageData.count > 1">({{ pageData.count }} посещений)</span>
-                                      <span>Первое посещение: {{ formatTime(pageData.createdAt) }}</span>
-                                      <span>Последнее посещение: {{ formatTime(pageData.updatedAt) }}</span>
+                                      <div class="hidden md:flex items-center space-x-4">
+                                        <span>Первое: {{ formatTime(pageData.createdAt) }}</span>
+                                        <span>Последнее: {{ formatTime(pageData.updatedAt) }}</span>
+                                      </div>
                                     </div>
                                     <!-- Привязанная задача -->
                                     <div v-if="pageData.taskId" class="mt-2">
@@ -534,12 +588,12 @@
                               <!-- Кнопки действий только для текущего пользователя -->
                               <div v-if="userData.userId === currentUserId">
                                 <!-- Кнопки для привязанных записей -->
-                                <div v-if="pageData.taskId && pageData.elapsedItemId" class="ml-4 flex flex-col space-y-2">
+                                <div v-if="pageData.taskId && pageData.elapsedItemId" class="flex flex-row md:flex-col space-y-0 md:space-y-2 space-x-2 md:space-x-0">
                                   <B24Button
                                       @click="showUpdateTimeModal(pageData, userData)"
                                       size="xs"
                                       color="air-primary-success"
-                                      class="text-xs mb-1"
+                                      class="text-xs flex-1 md:flex-none"
                                       title="Обновить время"
                                   >
                                     <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -551,7 +605,7 @@
                                       @click="showUnlinkTaskModal(pageData)"
                                       size="xs"
                                       color="air-primary-alert"
-                                      class="text-xs"
+                                      class="text-xs flex-1 md:flex-none"
                                       title="Удалить связь"
                                   >
                                     <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -561,12 +615,12 @@
                                   </B24Button>
                                 </div>
                                 <!-- Кнопки для непривязанных записей -->
-                                <div v-else class="ml-4 flex flex-col space-y-2">
+                                <div v-else class="flex flex-row md:flex-col space-y-0 md:space-y-2 space-x-2 md:space-x-0">
                                   <B24Button
                                       @click="showAttachTaskModal(pageData, userData)"
                                       size="xs"
                                       color="air-primary-success"
-                                      class="text-xs mb-1"
+                                      class="text-xs flex-1 md:flex-none"
                                       title="Прикрепить к задаче"
                                   >
                                     <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -578,7 +632,7 @@
                                       @click="showCreateTaskModal(pageData, userData)"
                                       size="xs"
                                       color="air-primary"
-                                      class="text-xs"
+                                      class="text-xs flex-1 md:flex-none"
                                       title="Создать задачу"
                                   >
                                     <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -601,9 +655,10 @@
                         v-model:page="currentUserPage"
                         :total="filteredUsers.length"
                         :items-per-page="itemsPerPage"
-                        :sibling-count="2"
+                        :sibling-count="1"
                         show-edges
-                        size="md"
+                        size="sm"
+                        class="w-full overflow-x-auto"
                     />
                   </div>
                 </div>
@@ -666,7 +721,7 @@
           <B24FormField label="Описание задачи" name="description">
             <B24Textarea
                 v-model="taskFormData.description"
-                rows="4"
+                rows="3"
                 placeholder="Введите описание задачи"
                 class="w-full"
             />
@@ -679,7 +734,7 @@
 
           <!-- Исполнитель -->
           <B24FormField label="Исполнитель" name="responsibleId" required>
-            <div class="flex items-center space-x-3">
+            <div class="flex flex-col md:flex-row md:items-center md:space-x-3 space-y-3 md:space-y-0">
               <div v-if="selectedUser" class="flex-1">
                 <B24User
                     :name="selectedUser.name"
@@ -689,6 +744,7 @@
                         src: getUserPhoto(selectedUser.userId),
                         initials: getUserInitials(selectedUser.userName)
                     }"
+                    class="truncate"
                 />
               </div>
               <B24Button
@@ -696,6 +752,7 @@
                   @click="openResponsibleSelector"
                   color="air-tertiary"
                   size="sm"
+                  class="w-full md:w-auto"
               >
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.67 3.137a4 4 0 01-3.67 2.363"/>
@@ -707,7 +764,7 @@
 
           <!-- Наблюдатели -->
           <div>
-            <div class="flex items-center justify-between mb-2">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-2">
               <B24FormLabel>Наблюдатели</B24FormLabel>
               <B24Button
                   type="button"
@@ -715,6 +772,7 @@
                   color="air-tertiary"
                   size="sm"
                   variant="link"
+                  class="w-full sm:w-auto"
               >
                 + Добавить наблюдателей
               </B24Button>
@@ -736,11 +794,12 @@
                         src: getUserPhoto(user.userId),
                         initials: getUserInitials(user.userName)
                       }"
+                      class="truncate"
                   />
                   <button
                       type="button"
                       @click="removeAuditor(user.id)"
-                      class="text-gray-400 hover:text-red-500 ml-2"
+                      class="text-gray-400 hover:text-red-500 ml-2 flex-shrink-0"
                       title="Удалить"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -759,10 +818,10 @@
           <!-- Информация о времени -->
           <div v-if="modalPageData" class="bg-blue-50 rounded-lg p-4">
             <div class="flex items-start">
-              <svg class="w-5 h-5 text-blue-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 text-blue-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
-              <div>
+              <div class="min-w-0">
                 <div class="text-sm font-medium text-blue-900 mb-1">Информация о времени</div>
                 <div class="text-sm text-blue-700">
                   Пользователь провел <span class="font-semibold">{{ formatDuration(modalPageData.pageTime) }}</span> на странице:<br />
@@ -789,7 +848,7 @@
                   <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                   </svg>
-                  <span class="text-sm text-gray-700">
+                  <span class="text-sm text-gray-700 truncate">
                     {{ taskFormData.deadline ? formatDate(taskFormData.deadline) : 'Выберите дату' }}
                   </span>
                 </div>
@@ -829,20 +888,23 @@
       </template>
 
       <template #footer="{ close }">
-        <B24Button @click="close" color="air-tertiary">Отмена</B24Button>
-        <B24Button
-            @click="createTaskFormRef?.submit()"
-            :disabled="isCreatingTask"
-            color="air-primary"
-        >
-          <span v-if="isCreatingTask">
-            <svg class="w-4 h-4 inline mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-            </svg>
-            Создание...
-          </span>
-          <span v-else>Создать задачу</span>
-        </B24Button>
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 w-full">
+          <B24Button @click="close" color="air-tertiary" class="w-full sm:w-auto">Отмена</B24Button>
+          <B24Button
+              @click="createTaskFormRef?.submit()"
+              :disabled="isCreatingTask"
+              color="air-primary"
+              class="w-full sm:w-auto"
+          >
+            <span v-if="isCreatingTask">
+              <svg class="w-4 h-4 inline mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              Создание...
+            </span>
+            <span v-else>Создать задачу</span>
+          </B24Button>
+        </div>
       </template>
     </B24Modal>
 
@@ -860,10 +922,10 @@
           <!-- Информация о времени -->
           <div v-if="modalPageData" class="bg-blue-50 rounded-lg p-4">
             <div class="flex items-start">
-              <svg class="w-5 h-5 text-blue-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 text-blue-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
-              <div>
+              <div class="min-w-0">
                 <div class="text-sm font-medium text-blue-900 mb-1">Информация о времени</div>
                 <div class="text-sm text-blue-700">
                   Пользователь <span class="font-semibold">{{ selectedUser?.name }}</span> провел
@@ -882,7 +944,7 @@
 
           <!-- Поиск и фильтры -->
           <div>
-            <div class="flex space-x-4">
+            <div class="flex flex-col md:flex-row md:space-x-4 space-y-3 md:space-y-0">
               <div class="flex-1">
                 <B24Input
                     v-model="taskFilter.search"
@@ -890,12 +952,13 @@
                     @change="filterTasks"
                 />
               </div>
-              <div>
+              <div class="w-full md:w-auto">
                 <B24Select
                     v-model="taskFilter.status"
                     :items="taskStatusOptions"
                     placeholder="Все статусы"
                     @update:modelValue="filterTasks"
+                    class="w-full md:w-48"
                 />
               </div>
             </div>
@@ -912,13 +975,12 @@
                   :class="{ 'border-blue-500 bg-blue-50': selectedTask?.id === task.id }"
               >
                 <div class="flex items-start justify-between">
-                  <div class="flex-1">
-
+                  <div class="flex-1 min-w-0">
                     <div class="flex items-center space-x-2 mb-2">
-                      <span class="font-medium text-gray-900">{{ task.title }}</span>
+                      <span class="font-medium text-gray-900 truncate">{{ task.title }}</span>
                     </div>
 
-                    <div class="text-gray-500 mb-2">
+                    <div class="flex flex-wrap gap-2 mb-2">
                       <B24Badge
                           size="sm"
                           :class="getTaskStatusClass(task.status)"
@@ -934,13 +996,13 @@
                       </B24Badge>
                     </div>
 
-                    <div class="text-xs text-gray-600">
-                      <div class="flex items-center space-x-4">
+                    <div class="text-xs text-gray-600 space-y-2">
+                      <div class="flex flex-wrap items-center gap-2 md:gap-4">
                         <div class="flex items-center">
                           <svg class="w-3 h-3 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                           </svg>
-                          <span>Исполнитель: {{ task.responsible?.name || 'Не указан' }}</span>
+                          <span class="truncate">Исполнитель: {{ task.responsible?.name || 'Не указан' }}</span>
                         </div>
                         <div v-if="task.accomplices?.length > 0" class="flex items-center">
                           <svg class="w-3 h-3 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -959,7 +1021,7 @@
                     </div>
                   </div>
 
-                  <div class="ml-4">
+                  <div class="ml-2 flex-shrink-0">
                     <svg
                         v-if="selectedTask?.id === task.id"
                         class="w-5 h-5 text-blue-500"
@@ -995,14 +1057,15 @@
                 v-model:page="currentTaskPage"
                 :total="filteredTasks.length"
                 :items-per-page="tasksPerPage"
-                :sibling-count="2"
+                :sibling-count="1"
                 show-edges
-                size="md"
+                size="sm"
+                class="w-full overflow-x-auto"
             />
           </div>
 
           <!-- Статистика по задачам -->
-          <div v-if="filteredTasks.length > 0" class="mt-6 flex items-center justify-between">
+          <div v-if="filteredTasks.length > 0" class="mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div class="text-sm text-gray-700">
               Найдено: <span class="font-medium">{{ filteredTasks.length }}</span> задач
             </div>
@@ -1014,20 +1077,23 @@
       </template>
 
       <template #footer="{ close }">
-        <B24Button @click="close" color="air-tertiary">Отмена</B24Button>
-        <B24Button
-            @click="attachToTask"
-            :disabled="!selectedTask || isAttachingToTask"
-            color="air-primary-success"
-        >
-          <span v-if="isAttachingToTask">
-            <svg class="w-4 h-4 inline mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-            </svg>
-            Прикрепление...
-          </span>
-          <span v-else>Прикрепить время</span>
-        </B24Button>
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 w-full">
+          <B24Button @click="close" color="air-tertiary" class="w-full sm:w-auto">Отмена</B24Button>
+          <B24Button
+              @click="attachToTask"
+              :disabled="!selectedTask || isAttachingToTask"
+              color="air-primary-success"
+              class="w-full sm:w-auto"
+          >
+            <span v-if="isAttachingToTask">
+              <svg class="w-4 h-4 inline mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              Прикрепление...
+            </span>
+            <span v-else>Прикрепить время</span>
+          </B24Button>
+        </div>
       </template>
     </B24Modal>
 
@@ -1044,10 +1110,10 @@
           <!-- Информация о времени -->
           <div v-if="modalPageData" class="bg-blue-50 rounded-lg p-4">
             <div class="flex items-start">
-              <svg class="w-5 h-5 text-blue-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 text-blue-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
-              <div>
+              <div class="min-w-0">
                 <div class="text-sm font-medium text-blue-900 mb-1">Информация о времени</div>
                 <div class="text-sm text-blue-700">
                   <div>Текущее время в задаче: <span class="font-semibold">{{ formatDuration(modalPageData.pageTime) }}</span></div>
@@ -1091,20 +1157,23 @@
       </template>
 
       <template #footer="{ close }">
-        <B24Button @click="close" color="air-tertiary">Отмена</B24Button>
-        <B24Button
-            @click="updateTaskTime"
-            :disabled="isUpdatingTime"
-            color="air-primary-success"
-        >
-          <span v-if="isUpdatingTime">
-            <svg class="w-4 h-4 inline mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-            </svg>
-            Обновление...
-          </span>
-          <span v-else>Обновить время</span>
-        </B24Button>
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 w-full">
+          <B24Button @click="close" color="air-tertiary" class="w-full sm:w-auto">Отмена</B24Button>
+          <B24Button
+              @click="updateTaskTime"
+              :disabled="isUpdatingTime"
+              color="air-primary-success"
+              class="w-full sm:w-auto"
+          >
+            <span v-if="isUpdatingTime">
+              <svg class="w-4 h-4 inline mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              Обновление...
+            </span>
+            <span v-else>Обновить время</span>
+          </B24Button>
+        </div>
       </template>
     </B24Modal>
 
@@ -1120,10 +1189,10 @@
         <div class="space-y-4">
           <div class="bg-yellow-50 rounded-lg p-4">
             <div class="flex items-start">
-              <svg class="w-5 h-5 text-yellow-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
               </svg>
-              <div>
+              <div class="min-w-0">
                 <div class="text-sm font-medium text-yellow-900 mb-1">Внимание!</div>
                 <div class="text-sm text-yellow-700">
                   Вы собираетесь удалить связь записи с задачей. Это действие:
@@ -1153,20 +1222,23 @@
       </template>
 
       <template #footer="{ close }">
-        <B24Button @click="close" color="air-tertiary">Отмена</B24Button>
-        <B24Button
-            @click="unlinkTask"
-            :disabled="isUnlinkingTask"
-            color="air-primary-alert"
-        >
-          <span v-if="isUnlinkingTask">
-            <svg class="w-4 h-4 inline mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-            </svg>
-            Удаление...
-          </span>
-          <span v-else>Удалить связь</span>
-        </B24Button>
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 w-full">
+          <B24Button @click="close" color="air-tertiary" class="w-full sm:w-auto">Отмена</B24Button>
+          <B24Button
+              @click="unlinkTask"
+              :disabled="isUnlinkingTask"
+              color="air-primary-alert"
+              class="w-full sm:w-auto"
+          >
+            <span v-if="isUnlinkingTask">
+              <svg class="w-4 h-4 inline mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              Удаление...
+            </span>
+            <span v-else>Удалить связь</span>
+          </B24Button>
+        </div>
       </template>
     </B24Modal>
 
@@ -1226,15 +1298,15 @@
                 Способ отправки запроса
               </label>
               <div class="bg-gray-50 rounded-lg p-4">
-                <div class="text-sm text-gray-700">
-                  <div class="flex items-center mb-2">
-                    <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="text-sm text-gray-700 space-y-2">
+                  <div class="flex items-center">
+                    <svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                     </svg>
                     <span>Способ отправки: <span class="font-medium">{{ getDeliveryMethodText() }}</span></span>
                   </div>
                   <div class="flex items-center">
-                    <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                     <span>Время на подготовку отчета: <span class="font-medium">{{ employeeReactionTime }} секунд</span></span>
@@ -1264,20 +1336,23 @@
       </template>
 
       <template #footer="{ close }">
-        <B24Button @click="close" color="air-tertiary">Отмена</B24Button>
-        <B24Button
-            @click="sendReportRequest"
-            :disabled="isSendingReportRequest"
-            color="air-primary-warning"
-        >
-          <span v-if="isSendingReportRequest">
-            <svg class="w-4 h-4 inline mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-            </svg>
-            Отправка...
-          </span>
-          <span v-else>Отправить запрос</span>
-        </B24Button>
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 w-full">
+          <B24Button @click="close" color="air-tertiary" class="w-full sm:w-auto">Отмена</B24Button>
+          <B24Button
+              @click="sendReportRequest"
+              :disabled="isSendingReportRequest"
+              color="air-primary-warning"
+              class="w-full sm:w-auto"
+          >
+            <span v-if="isSendingReportRequest">
+              <svg class="w-4 h-4 inline mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              Отправка...
+            </span>
+            <span v-else>Отправить запрос</span>
+          </B24Button>
+        </div>
       </template>
     </B24Modal>
   </div>
@@ -1289,7 +1364,7 @@ import { CalendarDate } from '@internationalized/date'
 import { useToast } from '@bitrix24/b24ui-nuxt/composables/useToast'
 import Sidebar from './Sidebar.vue'
 import categoriesData from './categories.json'
-import {bitrixHelper} from "../helpers/app.js";
+import {bitrixHelper} from "../helpers/app.js"
 
 const toast = useToast()
 
@@ -1463,6 +1538,7 @@ class HierarchicalDataManager {
       }, (result) => {
         if (result.current_user.error()) {
           this.isLoadingProfile.value = false
+          this.showNotification('error', 'Ошибка загрузки профиля пользователя')
           reject(result.current_user.error())
         } else {
           const userData = result.current_user.data()
@@ -1744,9 +1820,6 @@ class HierarchicalDataManager {
   filterUsers() {
     const query = this.userSearchQuery.value.toLowerCase().trim()
 
-    console.log('inpute!!!')
-    console.log(query)
-
     if (!query) {
       this.filteredUsers.value = [...this.filteredHierarchicalData.value]
     } else {
@@ -1952,6 +2025,9 @@ class HierarchicalDataManager {
         description: message,
         variant: type
       })
+    } else {
+      // Fallback для случаев, когда toast не доступен
+      console[type === 'error' ? 'error' : type === 'success' ? 'log' : 'info'](message)
     }
   }
 
@@ -1972,12 +2048,10 @@ class HierarchicalDataManager {
         }]
       }, (result) => {
         if (result.create_task.error()) {
-          console.error('Error creating task:', result.create_task.error())
           this.showNotification('error', 'Ошибка при создании задачи')
           this.isCreatingTask.value = false
         } else {
           const taskId = result.create_task.data().task.id
-          console.log('Task created:', taskId)
           this.addTimeToTask(
               taskId,
               this.modalPageData.value,
@@ -1987,7 +2061,6 @@ class HierarchicalDataManager {
         }
       }, true)
     } catch (error) {
-      console.error('Error creating task:', error)
       this.showNotification('error', 'Ошибка при создании задачи')
       this.isCreatingTask.value = false
     }
@@ -2014,6 +2087,7 @@ class HierarchicalDataManager {
         ]
       }, (result) => {
         if (result.user.error()) {
+          this.showNotification('error', 'Ошибка загрузки профиля пользователя')
           reject(result.user.error())
           return
         }
@@ -2073,6 +2147,7 @@ class HierarchicalDataManager {
           ]
         }, (result) => {
           if (result.users.error()) {
+            this.showNotification('error', 'Ошибка загрузки профилей пользователей')
             reject(result.users.error())
             return
           }
@@ -2132,6 +2207,7 @@ class HierarchicalDataManager {
             ]
           }, (result) => {
             if (result.tasks.error()) {
+              this.showNotification('error', 'Ошибка загрузки задач')
               reject(result.tasks.error());
             } else {
               resolve(result.tasks.data());
@@ -2182,8 +2258,7 @@ class HierarchicalDataManager {
       this.hasMoreTasks.value = false;
 
     } catch (error) {
-      console.error('Error loading tasks:', error);
-      this.showNotification('error', 'Ошибка при загрузке задач');
+      this.showNotification('error', 'Ошибка при загрузке задач')
     } finally {
       this.isLoadingTasks.value = false;
     }
@@ -2224,7 +2299,6 @@ class HierarchicalDataManager {
           false
       )
     } catch (error) {
-      console.error('Error attaching task:', error)
       this.showNotification('error', 'Ошибка при прикреплении времени к задаче')
       this.isAttachingToTask.value = false
     }
@@ -2232,8 +2306,6 @@ class HierarchicalDataManager {
 
   async addTimeToTask(taskId, pageData, userData, isNewTask = false) {
     try {
-      console.log('Adding time to task:', { taskId, pageData, userData })
-
       BX24.callBatch({
         add_time: [
           'task.elapseditem.add',
@@ -2248,13 +2320,11 @@ class HierarchicalDataManager {
         ]
       }, async (result) => {
         if (result.add_time.error()) {
-          console.error('Error adding elapsed time:', result.add_time.error())
           this.showNotification('error', 'Ошибка при добавлении времени к задаче')
           this.isCreatingTask.value = false
           this.isAttachingToTask.value = false
         } else {
           const elapsedItemId = result.add_time.data()
-          console.log('Elapsed item created:', elapsedItemId)
           const originalItemId = pageData.originalItemId || pageData.itemId
 
           // 1. Обновляем хранилище и локальные данные
@@ -2264,10 +2334,9 @@ class HierarchicalDataManager {
           if (pageData.pageTime && pageData.pageTime > 0 && bitrixHelper) {
             try {
               await bitrixHelper.updateSavedTime(pageData.pageTime)
-              console.log(`Счетчик увеличен на ${pageData.pageTime} сек через хелпер`)
               this.refreshSidebarSavedTimeCounter()
             } catch (error) {
-              console.error('Ошибка увеличения счетчика через хелпер:', error)
+              this.showNotification('error', 'Ошибка обновления счетчика')
             }
           }
 
@@ -2291,7 +2360,6 @@ class HierarchicalDataManager {
         }
       }, true)
     } catch (error) {
-      console.error('Error adding time to task:', error)
       this.showNotification('error', 'Ошибка при добавлении времени к задаче')
       this.isCreatingTask.value = false
       this.isAttachingToTask.value = false
@@ -2315,6 +2383,7 @@ class HierarchicalDataManager {
           ]
         }, (result) => {
           if (result.update_storage.error()) {
+            this.showNotification('error', 'Ошибка обновления хранилища')
             reject(result.update_storage.error())
           } else {
             this.updateLocalDataWithTaskInfo(itemId, taskId, elapsedItemId)
@@ -2323,13 +2392,12 @@ class HierarchicalDataManager {
         }, true)
       })
     } catch (error) {
-      console.error('Error updating storage:', error)
+      this.showNotification('error', 'Ошибка обновления хранилища')
       this.updateLocalDataWithTaskInfo(itemId, taskId, elapsedItemId)
     }
   }
 
   updateLocalDataWithTaskInfo(itemId, taskId, elapsedItemId) {
-    console.log('Updating local data with task info:', { itemId, taskId, elapsedItemId })
     this.myTimeData.value = this.myTimeData.value.map(userData => ({
       ...userData,
       categories: userData.categories.map(categoryData => ({
@@ -2393,12 +2461,10 @@ class HierarchicalDataManager {
           let errorMessage = 'Ошибка при обновлении времени в задаче'
 
           if (result.get_current_time.error()) {
-            console.error('Ошибка получения текущего времени:', result.get_current_time.error())
             errorMessage = 'Ошибка при получении текущего времени задачи'
           }
 
           if (result.update_time.error()) {
-            console.error('Ошибка обновления времени:', result.update_time.error())
             errorMessage = 'Ошибка при обновлении времени в задаче'
           }
 
@@ -2422,12 +2488,9 @@ class HierarchicalDataManager {
           if (timeDifference !== 0 && bitrixHelper) {
             try {
               await bitrixHelper.updateSavedTime(timeDifference)
-              console.log(`Счетчик изменен на ${timeDifference} сек через хелпер`)
-
-              // Обновляем счетчик в сайдбаре
               this.refreshSidebarSavedTimeCounter()
             } catch (error) {
-              console.error('Ошибка обновления счетчика через хелпер:', error)
+              this.showNotification('error', 'Ошибка обновления счетчика')
             }
           }
 
@@ -2446,14 +2509,12 @@ class HierarchicalDataManager {
           this.isUpdatingTime.value = false
 
         } catch (error) {
-          console.error('Ошибка в обработке результатов:', error)
           this.showNotification('error', 'Ошибка при обработке результатов обновления')
           this.isUpdatingTime.value = false
         }
-      }, true) // true означает, что запросы выполняются последовательно
+      }, true)
 
     } catch (error) {
-      console.error('Ошибка при выполнении updateTaskTime:', error)
       this.showNotification('error', 'Ошибка при обновлении времени в задаче')
       this.isUpdatingTime.value = false
     }
@@ -2477,6 +2538,7 @@ class HierarchicalDataManager {
           ]
         }, (result) => {
           if (result.update_storage.error()) {
+            this.showNotification('error', 'Ошибка обновления времени в хранилище')
             reject(result.update_storage.error())
           } else {
             resolve()
@@ -2484,7 +2546,7 @@ class HierarchicalDataManager {
         }, true)
       })
     } catch (error) {
-      console.error('Error updating storage time:', error)
+      this.showNotification('error', 'Ошибка обновления времени в хранилище')
     }
   }
 
@@ -2497,7 +2559,6 @@ class HierarchicalDataManager {
     try {
       this.isUnlinkingTask.value = true
       const { itemId, taskId, elapsedItemId, pageTime, elapsedItemTime } = this.modalPageData.value
-      console.log('Unlinking task:', { itemId, taskId, elapsedItemId, pageTime, elapsedItemTime })
 
       // 1. Получаем детали записи времени перед удалением, чтобы узнать точное время
       let elapsedTimeToDeduct = 0
@@ -2515,7 +2576,6 @@ class HierarchicalDataManager {
             ]
           }, (result) => {
             if (result.get_elapsed_item.error()) {
-              console.error('Error getting elapsed item:', result.get_elapsed_item.error())
               resolve(null)
             } else {
               resolve(result.get_elapsed_item.data())
@@ -2525,14 +2585,11 @@ class HierarchicalDataManager {
 
         if (elapsedItemInfo && elapsedItemInfo.SECONDS) {
           elapsedTimeToDeduct = elapsedItemInfo.SECONDS
-          console.log('Found elapsed time in task:', elapsedTimeToDeduct, 'seconds')
         } else if (elapsedItemTime) {
           // Если не удалось получить из API, используем значение из modalPageData
           elapsedTimeToDeduct = elapsedItemTime
-          console.log('Using elapsed time from modal data:', elapsedTimeToDeduct, 'seconds')
         }
       } catch (error) {
-        console.warn('Could not fetch elapsed item details:', error)
         // Продолжаем с имеющимися данными
       }
 
@@ -2548,7 +2605,7 @@ class HierarchicalDataManager {
           ]
         }, (result) => {
           if (result.delete_time.error()) {
-            console.error('Error deleting elapsed item:', result.delete_time.error())
+            this.showNotification('error', 'Ошибка удаления записи времени')
           }
           resolve()
         }, true)
@@ -2570,6 +2627,7 @@ class HierarchicalDataManager {
           ]
         }, (result) => {
           if (result.unlink.error()) {
+            this.showNotification('error', 'Ошибка удаления связи из хранилища')
             reject(result.unlink.error())
           } else {
             resolve()
@@ -2583,22 +2641,16 @@ class HierarchicalDataManager {
         try {
           // Передаем отрицательное значение, чтобы уменьшить счетчик
           await bitrixHelper.updateSavedTime(-elapsedTimeToDeduct)
-          console.log(`Счетчик уменьшен на ${elapsedTimeToDeduct} сек (время из записи задачи)`)
-
-          // Обновляем счетчик в сайдбаре
           this.refreshSidebarSavedTimeCounter()
         } catch (error) {
-          console.error('Ошибка уменьшения счетчика через хелпер:', error)
+          this.showNotification('error', 'Ошибка уменьшения счетчика')
         }
       } else if (pageTime && pageTime > 0 && bitrixHelper) {
-        // Если не удалось получить время из записи, используем pageTime как fallback
-        console.warn('Using pageTime as fallback for time deduction')
         try {
           await bitrixHelper.updateSavedTime(-pageTime)
-          console.log(`Счетчик уменьшен на ${pageTime} сек (pageTime как fallback)`)
           this.refreshSidebarSavedTimeCounter()
         } catch (error) {
-          console.error('Ошибка уменьшения счетчика через хелпер:', error)
+          this.showNotification('error', 'Ошибка уменьшения счетчика')
         }
       }
 
@@ -2617,14 +2669,12 @@ class HierarchicalDataManager {
       this.forceUIUpdate()
 
     } catch (error) {
-      console.error('Error unlinking task:', error)
       this.showNotification('error', 'Ошибка при удалении связи с задачей')
       this.isUnlinkingTask.value = false
     }
   }
 
   removeTaskInfoFromLocalData(itemId) {
-    console.log('Removing task info from local data for item:', itemId)
     this.myTimeData.value = this.myTimeData.value.map(userData => ({
       ...userData,
       categories: userData.categories.map(categoryData => ({
@@ -2669,7 +2719,6 @@ class HierarchicalDataManager {
       const sectionId = await this.findSectionForDate(this.selectedDay.value)
 
       if (!sectionId) {
-        console.log(`Раздел для даты ${this.selectedDay.value} не найден`)
         this.isProcessingData.value = false
         return
       }
@@ -2681,7 +2730,6 @@ class HierarchicalDataManager {
       }
 
     } catch (error) {
-      console.error('Ошибка загрузки данных:', error)
       this.showNotification('error', 'Ошибка при загрузке данных')
       this.clearTabData(this.activeTab.value)
     } finally {
@@ -2702,6 +2750,7 @@ class HierarchicalDataManager {
         ]
       }, (result) => {
         if (result.section.error()) {
+          this.showNotification('error', 'Ошибка поиска раздела')
           reject(result.section.error())
           return
         }
@@ -2732,6 +2781,7 @@ class HierarchicalDataManager {
         ]
       }, async (result) => {
         if (result.items.error()) {
+          this.showNotification('error', 'Ошибка загрузки данных')
           reject(result.items.error())
           return
         }
@@ -2759,6 +2809,7 @@ class HierarchicalDataManager {
         ]
       }, async (result) => {
         if (result.items.error()) {
+          this.showNotification('error', 'Ошибка загрузки данных')
           reject(result.items.error())
           return
         }
@@ -2876,7 +2927,6 @@ class HierarchicalDataManager {
   }
 
   processAllTimeData(items) {
-    console.log('processAllTimeData')
     const usersMap = new Map()
 
     items.forEach(item => {
@@ -3020,14 +3070,8 @@ class HierarchicalDataManager {
       const appSettings = await this.getAppSettings()
       this.historyDays = parseInt(appSettings.historyDays) || 3
 
-
-      console.log('initialize')
-      console.log(appSettings)
-
       // Загружаем настройки отчетов
       this.subordinateReportsEnabled.value = appSettings.subordinateReportsEnabled === 'Y'
-
-      console.log(this.subordinateReportsEnabled)
 
       if (appSettings.employeeReactionTime) {
         const seconds = parseInt(appSettings.employeeReactionTime)
@@ -3049,7 +3093,7 @@ class HierarchicalDataManager {
       this.calendarDate.value = this.getCalendarDateFromString(today)
       await this.loadDataForSelectedDay()
     } catch (error) {
-      console.error('Ошибка инициализации:', error)
+      this.showNotification('error', 'Ошибка инициализации приложения')
       this.isProcessingData.value = false
     }
   }
@@ -3107,7 +3151,6 @@ class HierarchicalDataManager {
       this.closeRequestReportModal()
 
     } catch (error) {
-      console.error('Error sending report request:', error)
       this.showNotification('error', 'Ошибка при отправке запроса отчета')
     } finally {
       this.isSendingReportRequest.value = false
@@ -3123,13 +3166,14 @@ class HierarchicalDataManager {
           {
             USER_ID: userId,
             MESSAGE: title,
-            ATTACH: attach, // Важное изменение!
+            ATTACH: attach,
             TAG: `REPORT_REQUEST_${Date.now()}`,
             SUB_TAG: `REPORT|${this.selectedDay.value}|${this.currentUserId.value}`
           }
         ]
       }, (result) => {
         if (result.notification.error()) {
+          this.showNotification('error', 'Ошибка отправки уведомления')
           reject(result.notification.error())
         } else {
           resolve(result.notification.data())
@@ -3146,12 +3190,13 @@ class HierarchicalDataManager {
           {
             DIALOG_ID: userId.toString(),
             MESSAGE: title,
-            ATTACH: attach, // Важное изменение!
+            ATTACH: attach,
             SYSTEM: 'N'
           }
         ]
       }, (result) => {
         if (result.message.error()) {
+          this.showNotification('error', 'Ошибка отправки сообщения в чат')
           reject(result.message.error())
         } else {
           resolve(result.message.data())
@@ -3162,18 +3207,12 @@ class HierarchicalDataManager {
 
   // Обновить счетчик в сайдбаре
   refreshSidebarSavedTimeCounter () {
-    console.log('Обновление счетчика в сайдбаре...')
-
-    // Вызываем глобальную функцию из Sidebar.vue
     if (typeof window.updateSidebarSavedTime === 'function') {
       try {
         window.updateSidebarSavedTime()
-        console.log('Функция updateSidebarSavedTime вызвана успешно')
       } catch (error) {
-        console.error('Ошибка при вызове updateSidebarSavedTime:', error)
+        this.showNotification('error', 'Ошибка обновления счетчика')
       }
-    } else {
-      console.warn('Функция updateSidebarSavedTime не найдена в window')
     }
   }
 
@@ -3205,7 +3244,7 @@ export default {
           try {
             await hierarchicalDataManager.initialize()
           } catch (error) {
-            console.error('Ошибка инициализации:', error)
+            hierarchicalDataManager.showNotification('error', 'Ошибка инициализации приложения')
             hierarchicalDataManager.isProcessingData.value = false
           }
         })
