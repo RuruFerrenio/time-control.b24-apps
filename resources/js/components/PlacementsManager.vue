@@ -21,7 +21,7 @@
 
           <!-- Список встроек -->
           <div class="space-y-6">
-            <!-- Фоновый калькулятор -->
+            <!-- Фоновый таймер -->
             <div class="bg-gray-50 rounded-lg p-4">
               <div class="flex items-start justify-between">
                 <div class="flex-1">
@@ -32,8 +32,8 @@
                       </svg>
                     </div>
                     <div>
-                      <p class="font-medium text-gray-900">Фоновый калькулятор</p>
-                      <p class="text-sm text-gray-500">Вычисления в фоновом режиме для обработки данных</p>
+                      <p class="font-medium text-gray-900">Фоновый таймер</p>
+                      <p class="text-sm text-gray-500">Подсчитывает время, проведенное пользователем на странице</p>
                     </div>
                   </div>
 
@@ -58,7 +58,7 @@
               </div>
             </div>
 
-            <!-- REST приложение -->
+            <!-- Форма для отчета -->
             <div class="bg-gray-50 rounded-lg p-4">
               <div class="flex items-start justify-between">
                 <div class="flex-1">
@@ -69,8 +69,8 @@
                       </svg>
                     </div>
                     <div>
-                      <p class="font-medium text-gray-900">REST приложение</p>
-                      <p class="text-sm text-gray-500">Внешний REST API для интеграции с системой</p>
+                      <p class="font-medium text-gray-900">Форма для отчета</p>
+                      <p class="text-sm text-gray-500">Позволяет сотруднику заполнять запрошенные отчеты</p>
                     </div>
                   </div>
 
@@ -203,15 +203,15 @@ export default {
     // Конфигурации встроек
     const PLACEMENT_CONFIGS = {
       PAGE_BACKGROUND_WORKER: {
-        title: 'Фоновый калькулятор',
-        description: 'Вычисления в фоновом режиме для обработки данных',
+        title: 'Фоновый таймер',
+        description: 'Подсчитывает время, проведенное пользователем на странице',
         options: {
           errorHandlerUrl: `${window.location.origin}/placements/error-handler`
         }
       },
       REST_APP_URI: {
-        title: 'REST приложение',
-        description: 'Внешний REST API для интеграции с системой',
+        title: 'Форма для отчета',
+        description: 'Позволяет сотруднику заполнять запрошенные отчеты',
         options: {}
       }
     }
