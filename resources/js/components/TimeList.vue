@@ -9,7 +9,7 @@
       <!-- Основная часть со списком -->
       <div class="lg:col-span-2">
         <!-- Иерархичный список посещений -->
-        <B24Card class="sm:ml-0 sm:mr-0">
+        <B24Card>
           <div class="p-1 md:p-6">
             <div class="space-y-4 md:space-y-6">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -188,7 +188,7 @@
                                     <div class="flex items-center space-x-2 min-w-0">
                                       <B24Badge
                                           :class="getCategoryBadgeClass(categoryData.category)"
-                                          class="whitespace-normal md:whitespace-nowrap max-w-full overflow-hidden px-2 py-1 text-xs"
+                                          class="whitespace-normal md:whitespace-nowrap max-w-full px-2 py-1 text-xs"
                                       >
                                         {{ categoryData.category || 'Не указана' }}
                                       </B24Badge>
