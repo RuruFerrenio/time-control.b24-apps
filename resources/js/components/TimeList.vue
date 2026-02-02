@@ -224,7 +224,7 @@
                                               <a
                                                   :href="pageData.pageUrl"
                                                   target="_blank"
-                                                  class="text-sm text-blue-600 hover:text-blue-800 break-words md:truncate block"
+                                                  class="text-sm text-blue-600 hover:text-blue-800 break-all md:truncate block"
                                                   :title="pageData.pageUrl"
                                               >
                                                 {{ pageData.pageUrl }}
@@ -549,7 +549,7 @@
                                       <a
                                           :href="pageData.pageUrl"
                                           target="_blank"
-                                          class="text-sm text-blue-600 hover:text-blue-800 break-words md:truncate block"
+                                          class="text-sm text-blue-600 hover:text-blue-800 break-all md:truncate block"
                                           :title="pageData.pageUrl"
                                       >
                                         {{ pageData.pageUrl }}
