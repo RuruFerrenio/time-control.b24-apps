@@ -87,7 +87,7 @@
                     { label: 'Время всех сотрудников', value: 'all-time' }
                   ]"
                   @update:modelValue="onTabChange"
-                  class="w-full whitespace-normal md:whitespace-nowrap overflow-scroll"
+                  class="w-full whitespace-nowrap overflow-scroll"
               />
 
               <!-- Режим просмотра: Мое время -->
