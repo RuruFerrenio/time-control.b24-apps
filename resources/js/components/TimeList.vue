@@ -262,7 +262,7 @@
                                       </div>
                                       <div>
                                         <!-- Кнопки для привязанных записей -->
-                                        <div v-if="pageData.taskId && pageData.elapsedItemId" class="flex flex-row md:flex-col space-y-0 md:space-y-2 space-x-2 md:space-x-0">
+                                        <div v-if="pageData.taskId && pageData.elapsedItemId" class="flex flex-col space-y-0 md:space-y-2 space-x-2 md:space-x-0">
                                           <B24Button
                                               @click="showUpdateTimeModal(pageData, userData)"
                                               size="xs"
@@ -289,7 +289,7 @@
                                           </B24Button>
                                         </div>
                                         <!-- Кнопки для непривязанных записей -->
-                                        <div v-else class="flex flex-row md:flex-col space-y-0 md:space-y-2 space-x-2 md:space-x-0">
+                                        <div v-else class="flex flex-col space-y-0 md:space-y-2 space-x-2 md:space-x-0">
                                           <B24Button
                                               @click="showAttachTaskModal(pageData, userData)"
                                               size="xs"
@@ -588,7 +588,7 @@
                               <!-- Кнопки действий только для текущего пользователя -->
                               <div v-if="userData.userId === currentUserId">
                                 <!-- Кнопки для привязанных записей -->
-                                <div v-if="pageData.taskId && pageData.elapsedItemId" class="flex flex-row md:flex-col space-y-0 md:space-y-2 space-x-2 md:space-x-0">
+                                <div v-if="pageData.taskId && pageData.elapsedItemId" class="flex flex-col space-y-0 md:space-y-2 space-x-2 md:space-x-0">
                                   <B24Button
                                       @click="showUpdateTimeModal(pageData, userData)"
                                       size="xs"
@@ -615,7 +615,7 @@
                                   </B24Button>
                                 </div>
                                 <!-- Кнопки для непривязанных записей -->
-                                <div v-else class="flex flex-row md:flex-col space-y-0 md:space-y-2 space-x-2 md:space-x-0">
+                                <div v-else class="flex flex-col space-y-0 md:space-y-2 space-x-2 md:space-x-0">
                                   <B24Button
                                       @click="showAttachTaskModal(pageData, userData)"
                                       size="xs"
