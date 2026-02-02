@@ -1,6 +1,6 @@
 <template>
   <B24Card>
-    <div class="p-6">
+    <div class="p-0 md:p-6">
       <div class="space-y-6">
         <div class="flex items-center justify-between">
           <div class="flex-1">
