@@ -188,7 +188,7 @@
                                     <div class="flex items-center space-x-2 min-w-0">
                                       <B24Badge
                                           :class="getCategoryBadgeClass(categoryData.category)"
-                                          class="whitespace-normal md:whitespace-nowrap align-middle inline-block text-xs"
+                                          class="whitespace-normal md:whitespace-nowrap max-w-full inline-block px-2 py-2 text-xs"
                                       >
                                         {{ categoryData.category || 'Не указана' }}
                                       </B24Badge>
@@ -511,7 +511,7 @@
                               <div class="flex items-center space-x-2 min-w-0">
                                 <B24Badge
                                     :class="getCategoryBadgeClass(categoryData.category)"
-                                    class="whitespace-normal md:whitespace-nowrap align-middle inline-block text-xs"
+                                    class="whitespace-normal md:whitespace-nowrap max-w-full inline-block px-2 py-2 text-xs"
                                 >
                                   {{ categoryData.category || 'Не указана' }}
                                 </B24Badge>
