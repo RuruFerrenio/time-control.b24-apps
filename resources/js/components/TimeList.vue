@@ -114,7 +114,7 @@
                         @update:open="(value) => handleUserCollapsibleUpdate(userData.userId, value, 'my-time')"
                     >
                       <button
-                          class="w-full bg-blue-50 px-4 py-3 border-b border-blue-100 hover:bg-blue-100 transition-colors text-left cursor-pointer"
+                          class="w-full bg-blue-50 px-4 py-3 border-b border-blue-100 hover:bg-blue-100 transition-colors text-left"
                       >
                         <div class="flex items-center justify-between">
                           <div class="flex items-center space-x-3 min-w-0 flex-1">
