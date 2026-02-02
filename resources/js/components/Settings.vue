@@ -10,7 +10,7 @@
       <div class="lg:col-span-2">
         <!-- Блок 1: Отслеживание посещений страниц пользователями -->
         <B24Card class="mb-8">
-          <div class="p-1 md:p-6">
+          <div class="p-0 md:p-6">
             <div class="space-y-6">
               <div class="flex items-center justify-between">
                 <div class="flex-1">
@@ -170,7 +170,7 @@
 
         <!-- Блок 2: Контроль присутствия сотрудника -->
         <B24Card class="mb-8">
-          <div class="p-6">
+          <div class="p-0 md:p-6">
             <div class="space-y-6">
               <div class="flex items-center justify-between">
                 <div class="flex-1">
@@ -457,7 +457,7 @@
 
         <!-- Блок 3: Разрешить запрос отчета о деятельности подчиненных -->
         <B24Card class="mb-8">
-          <div class="p-6">
+          <div class="p-0 md:p-6">
             <div class="space-y-6">
               <div class="flex items-center justify-between">
                 <div class="flex-1">

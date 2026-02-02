@@ -10,7 +10,7 @@
       <div class="lg:col-span-2">
         <!-- Иерархичный список посещений -->
         <B24Card>
-          <div class="p-1 md:p-6">
+          <div class="p-0 md:p-6">
             <div class="space-y-4 md:space-y-6">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div class="flex-1">

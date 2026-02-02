@@ -2,7 +2,7 @@
   <div class="lg:sticky lg:top-6 space-y-6">
     <!-- Карточка информации о приложении -->
     <B24Card>
-      <div class="p-1 md:p-6">
+      <div class="p-0 md:p-6">
         <div class="space-y-6">
           <!-- Логотип и название -->
           <div class="flex items-center space-x-3">
@@ -121,7 +121,7 @@
 
     <!-- Карточка со счетчиком времени -->
     <B24Card>
-      <div class="p-1 md:p-6">
+      <div class="p-0 md:p-6">
         <div class="space-y-4">
           <!-- Заголовок блока -->
           <div class="flex items-center justify-between">
