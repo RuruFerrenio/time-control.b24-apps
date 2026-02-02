@@ -188,7 +188,7 @@
                                     <div class="flex items-center space-x-2 min-w-0">
                                       <B24Badge
                                           :class="getCategoryBadgeClass(categoryData.category)"
-                                          class="whitespace-normal md:whitespace-nowrap truncate"
+                                          class="whitespace-normal md:whitespace-nowrap max-w-full overflow-hidden"
                                       >
                                         {{ categoryData.category || 'Не указана' }}
                                       </B24Badge>
@@ -224,7 +224,7 @@
                                               <a
                                                   :href="pageData.pageUrl"
                                                   target="_blank"
-                                                  class="text-sm text-blue-600 hover:text-blue-800 break-words md:break-normal truncate block"
+                                                  class="text-sm text-blue-600 hover:text-blue-800 break-words md:truncate block"
                                                   :title="pageData.pageUrl"
                                               >
                                                 {{ pageData.pageUrl }}
@@ -511,7 +511,7 @@
                               <div class="flex items-center space-x-2 min-w-0">
                                 <B24Badge
                                     :class="getCategoryBadgeClass(categoryData.category)"
-                                    class="whitespace-normal md:whitespace-nowrap truncate"
+                                    class="whitespace-normal md:whitespace-nowrap max-w-full overflow-hidden"
                                 >
                                   {{ categoryData.category || 'Не указана' }}
                                 </B24Badge>
@@ -549,7 +549,7 @@
                                       <a
                                           :href="pageData.pageUrl"
                                           target="_blank"
-                                          class="text-sm text-blue-600 hover:text-blue-800 break-words md:break-normal truncate block"
+                                          class="text-sm text-blue-600 hover:text-blue-800 break-words md:truncate block"
                                           :title="pageData.pageUrl"
                                       >
                                         {{ pageData.pageUrl }}
