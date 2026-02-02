@@ -9,8 +9,8 @@
       <!-- Основная часть со списком -->
       <div class="lg:col-span-2">
         <!-- Иерархичный список посещений -->
-        <B24Card class="sm:p-1">
-          <div class="p-4 sm:p-1 md:p-6">
+        <B24Card>
+          <div class="p-1 md:p-6">
             <div class="space-y-4 md:space-y-6">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div class="flex-1">
@@ -188,7 +188,7 @@
                                     <div class="flex items-center space-x-2 min-w-0">
                                       <B24Badge
                                           :class="getCategoryBadgeClass(categoryData.category)"
-                                          class="truncate"
+                                          class="whitespace-normal md:whitespace-nowrap truncate"
                                       >
                                         {{ categoryData.category || 'Не указана' }}
                                       </B24Badge>
@@ -224,7 +224,7 @@
                                               <a
                                                   :href="pageData.pageUrl"
                                                   target="_blank"
-                                                  class="text-sm text-blue-600 hover:text-blue-800 truncate block"
+                                                  class="text-sm text-blue-600 hover:text-blue-800 break-words md:break-normal truncate block"
                                                   :title="pageData.pageUrl"
                                               >
                                                 {{ pageData.pageUrl }}
@@ -511,7 +511,7 @@
                               <div class="flex items-center space-x-2 min-w-0">
                                 <B24Badge
                                     :class="getCategoryBadgeClass(categoryData.category)"
-                                    class="truncate"
+                                    class="whitespace-normal md:whitespace-nowrap truncate"
                                 >
                                   {{ categoryData.category || 'Не указана' }}
                                 </B24Badge>
@@ -549,7 +549,7 @@
                                       <a
                                           :href="pageData.pageUrl"
                                           target="_blank"
-                                          class="text-sm text-blue-600 hover:text-blue-800 truncate block"
+                                          class="text-sm text-blue-600 hover:text-blue-800 break-words md:break-normal truncate block"
                                           :title="pageData.pageUrl"
                                       >
                                         {{ pageData.pageUrl }}
