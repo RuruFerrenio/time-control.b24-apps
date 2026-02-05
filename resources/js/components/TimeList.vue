@@ -5,7 +5,7 @@
         description="Иерархичное отображение статистики посещений страниц сотрудниками"
     />
 
-    <div class="mt-6 md:mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+    <div class="mt-0 md:mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
       <div class="lg:col-span-2">
         <!-- Иерархичный История посещений -->
         <B24Card>

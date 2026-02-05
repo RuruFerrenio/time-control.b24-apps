@@ -5,7 +5,7 @@
         description="Система мониторинга активности и рабочего времени"
     />
 
-    <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="mt-0 md:mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
       <!-- Основная часть с настройками -->
       <div class="lg:col-span-2">
         <!-- Блок 1: Отслеживание посещений страниц пользователями -->
