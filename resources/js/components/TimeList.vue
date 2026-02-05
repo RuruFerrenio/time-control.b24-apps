@@ -1,5 +1,5 @@
 <template>
-  <div class="p-4 md:p-6">
+  <div class="p-0 md:p-6">
     <B24PageHeader
         title="История посещений"
         description="Иерархичное отображение статистики посещений страниц сотрудниками"

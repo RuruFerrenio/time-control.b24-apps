@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6">
+  <div class="p-0 md:p-6">
     <B24PageHeader
         title="Контроль времени сотрудников"
         description="Система мониторинга активности и рабочего времени"
