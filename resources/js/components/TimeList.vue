@@ -1,38 +1,50 @@
 <template>
   <div class="p-4 md:p-6">
     <B24PageHeader
-        title="Список посещений"
+        title="История посещений"
         description="Иерархичное отображение статистики посещений страниц сотрудниками"
     />
 
     <div class="mt-6 md:mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-      <!-- Основная часть со списком -->
       <div class="lg:col-span-2">
-        <!-- Иерархичный список посещений -->
+        <!-- Иерархичный История посещений -->
         <B24Card>
           <div class="p-0 md:p-6">
             <div class="space-y-4 md:space-y-6">
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                 <div class="flex-1">
                   <h3 class="text-lg font-semibold text-gray-900">
-                    Список посещений по дням
+                    История посещений
                   </h3>
                   <p class="text-sm text-gray-500 mt-1">
-                    Иерархичное отображение статистики посещений страниц сотрудниками
+                    Список посещенных сотрудниками страниц с возможностью привязки времени к задачам.
                   </p>
                 </div>
-                <div class="flex items-center space-x-2">
+                <div class="flex flex-row md:flex-col space-y-0 md:space-y-1 space-x-2 md:space-x-0 w-full md:w-40">
                   <B24Button
                       @click="refreshCurrentTabData"
                       :disabled="isProcessingData"
                       color="air-primary"
                       size="sm"
-                      class="w-full sm:w-auto"
+                      class="flex-1 w-full sm:w-auto justify-center"
                   >
                     <svg class="w-4 h-4 mr-2" :class="{ 'animate-spin': isProcessingData }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                     </svg>
                     Обновить
+                  </B24Button>
+                  <B24Button
+                      @click="actualizeAllTimes"
+                      :disabled="isProcessingData"
+                      color="air-primary-success"
+                      size="sm"
+                      class="flex-1 w-full sm:w-auto justify-center"
+                      title="Обновить время во всех закрепленных задачах за сегодня"
+                  >
+                    <svg class="w-4 h-4 mr-2" :class="{ 'animate-spin': isProcessingData }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Актуализировать
                   </B24Button>
                 </div>
               </div>
@@ -236,11 +248,11 @@
                                               ></div>
                                             </div>
                                             <div class="flex flex-wrap items-center gap-2 md:gap-4 text-xs text-gray-500">
-                                              <span>Время: {{ formatDuration(pageData.pageTime) }}</span>
+                                              <span>Время на странице: {{ formatDuration(pageData.pageTime) }}</span>
                                               <span v-if="pageData.count > 1">({{ pageData.count }} посещений)</span>
                                               <div class="hidden md:flex items-center space-x-4">
-                                                <span>Первое: {{ formatTime(pageData.createdAt) }}</span>
-                                                <span>Последнее: {{ formatTime(pageData.updatedAt) }}</span>
+                                                <span>Первое посещение: {{ formatTime(pageData.createdAt) }}</span>
+                                                <span>Последнее посещение: {{ formatTime(pageData.updatedAt) }}</span>
                                               </div>
                                             </div>
                                             <!-- Привязанная задача -->
@@ -262,40 +274,40 @@
                                       </div>
                                       <div>
                                         <!-- Кнопки для привязанных записей -->
-                                        <div v-if="pageData.taskId && pageData.elapsedItemId" class="flex flex-row md:flex-col space-y-0 md:space-y-2 space-x-2 md:space-x-0">
+                                        <div v-if="pageData.taskId && pageData.elapsedItemId" class="flex flex-row md:flex-col space-y-0 md:space-y-1 space-x-2 md:space-x-0 w-full md:w-28">
                                           <B24Button
                                               @click="showUpdateTimeModal(pageData, userData)"
                                               size="xs"
                                               color="air-primary-success"
-                                              class="text-xs flex-1 md:flex-none"
-                                              title="Обновить время"
+                                              class="text-xs flex-1 md:w-full justify-center"
+                                              title="Обновить время, прикрепленное к задаче"
                                           >
                                             <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                             </svg>
                                             Обновить
                                           </B24Button>
                                           <B24Button
                                               @click="showUnlinkTaskModal(pageData)"
                                               size="xs"
-                                              color="air-primary-alert"
-                                              class="text-xs flex-1 md:flex-none"
-                                              title="Удалить связь"
+                                              color="air-secondary-alert"
+                                              class="text-xs flex-1 md:w-full justify-center"
+                                              title="Открепить время от задачи"
                                           >
                                             <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                             </svg>
-                                            Удалить связь
+                                            Открепить
                                           </B24Button>
                                         </div>
                                         <!-- Кнопки для непривязанных записей -->
-                                        <div v-else class="flex flex-row md:flex-col space-y-0 md:space-y-2 space-x-2 md:space-x-0">
+                                        <div v-else class="flex flex-row md:flex-col space-y-0 md:space-y-1 space-x-2 md:space-x-0 w-full md:w-28">
                                           <B24Button
                                               @click="showAttachTaskModal(pageData, userData)"
                                               size="xs"
                                               color="air-primary-success"
-                                              class="text-xs flex-1 md:flex-none"
-                                              title="Прикрепить к задаче"
+                                              class="text-xs flex-1 md:w-full justify-center"
+                                              title="Прикрепить время к задаче"
                                           >
                                             <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -306,8 +318,8 @@
                                               @click="showCreateTaskModal(pageData, userData)"
                                               size="xs"
                                               color="air-primary"
-                                              class="text-xs flex-1 md:flex-none"
-                                              title="Создать задачу"
+                                              class="text-xs flex-1 md:w-full justify-center"
+                                              title="Создать задачу и прикрепить к ней время"
                                           >
                                             <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -398,9 +410,8 @@
                           <div v-if="userData.userId !== currentUserId && subordinateReportsEnabled" class="ml-2 hidden sm:block">
                             <B24Button
                                 @click="showRequestReportModal(userData)"
-                                size="xs"
+                                size="sm"
                                 color="air-primary-warning"
-                                class="text-xs"
                                 title="Запросить отчет"
                             >
                               <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -454,9 +465,8 @@
                           <div v-if="userData.userId !== currentUserId && subordinateReportsEnabled">
                             <B24Button
                                 @click="showRequestReportModal(userData)"
-                                size="xs"
+                                size="sm"
                                 color="air-primary-warning"
-                                class="text-xs"
                                 title="Запросить отчет"
                             >
                               <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -561,11 +571,11 @@
                                       ></div>
                                     </div>
                                     <div class="flex flex-wrap items-center gap-2 md:gap-4 text-xs text-gray-500">
-                                      <span>Время: {{ formatDuration(pageData.pageTime) }}</span>
+                                      <span>Время на странице: {{ formatDuration(pageData.pageTime) }}</span>
                                       <span v-if="pageData.count > 1">({{ pageData.count }} посещений)</span>
                                       <div class="hidden md:flex items-center space-x-4">
-                                        <span>Первое: {{ formatTime(pageData.createdAt) }}</span>
-                                        <span>Последнее: {{ formatTime(pageData.updatedAt) }}</span>
+                                        <span>Первое посещение: {{ formatTime(pageData.createdAt) }}</span>
+                                        <span>Последнее посещение: {{ formatTime(pageData.updatedAt) }}</span>
                                       </div>
                                     </div>
                                     <!-- Привязанная задача -->
@@ -585,63 +595,6 @@
                                   </div>
                                 </div>
                               </div>
-                              <!-- Кнопки действий только для текущего пользователя -->
-                              <div v-if="userData.userId === currentUserId">
-                                <!-- Кнопки для привязанных записей -->
-                                <div v-if="pageData.taskId && pageData.elapsedItemId" class="flex flex-row md:flex-col space-y-0 md:space-y-2 space-x-2 md:space-x-0">
-                                  <B24Button
-                                      @click="showUpdateTimeModal(pageData, userData)"
-                                      size="xs"
-                                      color="air-primary-success"
-                                      class="text-xs flex-1 md:flex-none"
-                                      title="Обновить время"
-                                  >
-                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                                    </svg>
-                                    Обновить
-                                  </B24Button>
-                                  <B24Button
-                                      @click="showUnlinkTaskModal(pageData)"
-                                      size="xs"
-                                      color="air-primary-alert"
-                                      class="text-xs flex-1 md:flex-none"
-                                      title="Удалить связь"
-                                  >
-                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                    </svg>
-                                    Удалить связь
-                                  </B24Button>
-                                </div>
-                                <!-- Кнопки для непривязанных записей -->
-                                <div v-else class="flex flex-row md:flex-col space-y-0 md:space-y-2 space-x-2 md:space-x-0">
-                                  <B24Button
-                                      @click="showAttachTaskModal(pageData, userData)"
-                                      size="xs"
-                                      color="air-primary-success"
-                                      class="text-xs flex-1 md:flex-none"
-                                      title="Прикрепить к задаче"
-                                  >
-                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                                    </svg>
-                                    Прикрепить
-                                  </B24Button>
-                                  <B24Button
-                                      @click="showCreateTaskModal(pageData, userData)"
-                                      size="xs"
-                                      color="air-primary"
-                                      class="text-xs flex-1 md:flex-none"
-                                      title="Создать задачу"
-                                  >
-                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                                    </svg>
-                                    Создать
-                                  </B24Button>
-                                </div>
-                              </div>
                             </div>
                           </div>
                         </div>
@@ -655,10 +608,9 @@
                         v-model:page="currentUserPage"
                         :total="filteredUsers.length"
                         :items-per-page="itemsPerPage"
-                        :sibling-count="1"
+                        :sibling-count="2"
                         show-edges
-                        size="sm"
-                        class="w-full overflow-x-auto"
+                        size="md"
                     />
                   </div>
                 </div>
@@ -1057,10 +1009,9 @@
                 v-model:page="currentTaskPage"
                 :total="filteredTasks.length"
                 :items-per-page="tasksPerPage"
-                :sibling-count="1"
+                :sibling-count="2"
                 show-edges
-                size="sm"
-                class="w-full overflow-x-auto"
+                size="md"
             />
           </div>
 
@@ -1197,7 +1148,7 @@
                 <div class="text-sm text-yellow-700">
                   Вы собираетесь удалить связь записи с задачей. Это действие:
                   <ul class="list-disc list-inside mt-1 ml-2">
-                    <li>Удалит запись времени из задачи #{{ modalPageData.taskId }}</li>
+                    <li>Удалит запись времени из задачи</li>
                     <li>Удалит ID задачи и записи времени из хранилища</li>
                     <li>Не изменит саму запись посещения</li>
                     <li>Позволит создать новую связь с этой или другой задачей</li>
@@ -1392,7 +1343,7 @@ class HierarchicalDataManager {
       { label: 'Высокий', value: '3' }
     ])
     this.taskStatusOptions = ref([
-      { label: 'Все статусы', value: '' },
+      { label: 'Все статусы', value: null },
       { label: 'Ждет выполнения', value: '2' },
       { label: 'Выполняется', value: '3' },
       { label: 'Ожидает контроля', value: '4' },
@@ -1946,7 +1897,8 @@ class HierarchicalDataManager {
   showUnlinkTaskModal(pageData) {
     this.modalPageData.value = {
       ...pageData,
-      originalItemId: pageData.itemId
+      originalItemId: pageData.itemId,
+      taskId: pageData.taskId
     }
     this.isShowUnlinkTaskModal.value = true
   }
@@ -2064,6 +2016,145 @@ class HierarchicalDataManager {
       this.showNotification('error', 'Ошибка при создании задачи')
       this.isCreatingTask.value = false
     }
+  }
+
+  async actualizeAllTimes() {
+    try {
+      this.isProcessingData.value = true;
+
+      // 1. Загружаем все записи за сегодня
+      const today = this.getTodayDate();
+      const sectionId = await this.findSectionForDate(today);
+
+      if (!sectionId) {
+        this.showNotification('info', 'Нет данных за сегодня для актуализации');
+        this.isProcessingData.value = false;
+        return;
+      }
+
+      // 2. Получаем все записи за сегодня
+      const items = await new Promise((resolve, reject) => {
+        BX24.callBatch({
+          items: [
+            'entity.item.get',
+            {
+              ENTITY: 'pr_tracking',
+              FILTER: { SECTION_ID: sectionId },
+              SELECT: ['ID', 'PROPERTY_VALUES']
+            }
+          ]
+        }, (result) => {
+          if (result.items.error()) {
+            reject(result.items.error());
+          } else {
+            resolve(result.items.data());
+          }
+        }, true);
+      });
+
+      // 3. Фильтруем записи, которые привязаны к задачам
+      const taskItems = items.filter(item =>
+          item.PROPERTY_VALUES?.TASK_ID &&
+          item.PROPERTY_VALUES?.ELAPSED_ITEM_ID
+      );
+
+      if (taskItems.length === 0) {
+        this.showNotification('info', 'Нет записей, привязанных к задачам');
+        this.isProcessingData.value = false;
+        return;
+      }
+
+      // 4. Обновляем время во всех привязанных задачах
+      let updatedCount = 0;
+      let totalTimeDifference = 0; // Для подсчета общей разницы времени
+
+      for (const item of taskItems) {
+        const { TASK_ID, ELAPSED_ITEM_ID, PAGE_TIME, PAGE_URL } = item.PROPERTY_VALUES;
+
+        try {
+          // Получаем текущее время из задачи
+          const currentTime = await this.getCurrentTaskTime(TASK_ID, ELAPSED_ITEM_ID);
+
+          // Обновляем запись времени в задаче
+          await this.updateTaskTimeInBitrix(TASK_ID, ELAPSED_ITEM_ID, PAGE_TIME, PAGE_URL);
+
+          // Считаем разницу времени
+          const timeDifference = PAGE_TIME - (currentTime || 0);
+          totalTimeDifference += timeDifference;
+
+          updatedCount++;
+
+        } catch (error) {
+          console.warn(`Ошибка при обработке записи ${item.ID}:`, error);
+        }
+      }
+
+      // 5. Обновляем общий счетчик сохраненного времени
+      if (totalTimeDifference !== 0 && bitrixHelper) {
+        try {
+          await bitrixHelper.updateSavedTime(totalTimeDifference);
+          this.refreshSidebarSavedTimeCounter();
+        } catch (error) {
+          console.warn('Ошибка обновления общего счетчика:', error);
+        }
+      }
+
+      this.showNotification(
+          'success',
+          `Актуализировано ${updatedCount} из ${taskItems.length} записей времени`
+      );
+
+    } catch (error) {
+      this.showNotification('error', 'Ошибка при актуализации времени');
+    } finally {
+      this.isProcessingData.value = false;
+      // Обновляем данные на экране
+      await this.refreshCurrentTabData();
+    }
+  }
+
+  async getCurrentTaskTime(taskId, elapsedItemId) {
+    return new Promise((resolve) => {
+      BX24.callBatch({
+        get_time: [
+          'task.elapseditem.get',
+          {
+            TASKID: taskId,
+            ITEMID: elapsedItemId
+          }
+        ]
+      }, (result) => {
+        if (result.get_time.error()) {
+          resolve(0);
+        } else {
+          resolve(parseInt(result.get_time.data().SECONDS) || 0);
+        }
+      }, true);
+    });
+  }
+
+  async updateTaskTimeInBitrix(taskId, elapsedItemId, newTime, pageUrl) {
+    return new Promise((resolve, reject) => {
+      BX24.callBatch({
+        update_time: [
+          'task.elapseditem.update',
+          {
+            TASKID: taskId,
+            ITEMID: elapsedItemId,
+            ARFIELDS: {
+              SECONDS: newTime,
+              COMMENT_TEXT: `Обновлено время на странице: ${pageUrl}`
+            }
+          }
+        ]
+      }, (result) => {
+        if (result.update_time.error()) {
+          reject(result.update_time.error());
+        } else {
+          resolve();
+        }
+      }, true);
+    });
   }
 
   async getUserProfile(userId) {
@@ -2500,10 +2591,7 @@ class HierarchicalDataManager {
           // 8. Закрываем модальное окно
           this.closeUpdateTimeModal()
 
-          // 9. Обновляем данные и восстанавливаем состояния
-          await this.updateDataAndRestoreStates()
-
-          // 10. Принудительно обновляем UI
+          // 9. Принудительно обновляем UI
           this.forceUIUpdate()
 
           this.isUpdatingTime.value = false
@@ -2558,8 +2646,7 @@ class HierarchicalDataManager {
 
     try {
       this.isUnlinkingTask.value = true
-      const { itemId, taskId, elapsedItemId, pageTime, elapsedItemTime } = this.modalPageData.value
-
+      const { itemId, taskId, elapsedItemId, pageTime } = this.modalPageData.value
       // 1. Получаем детали записи времени перед удалением, чтобы узнать точное время
       let elapsedTimeToDeduct = 0
 
@@ -2585,9 +2672,6 @@ class HierarchicalDataManager {
 
         if (elapsedItemInfo && elapsedItemInfo.SECONDS) {
           elapsedTimeToDeduct = elapsedItemInfo.SECONDS
-        } else if (elapsedItemTime) {
-          // Если не удалось получить из API, используем значение из modalPageData
-          elapsedTimeToDeduct = elapsedItemTime
         }
       } catch (error) {
         // Продолжаем с имеющимися данными
@@ -2636,7 +2720,6 @@ class HierarchicalDataManager {
       })
 
       // 4. Уменьшаем счетчик сохраненного времени через хелпер
-      // Используем время из записи задачи, а не текущее время страницы
       if (elapsedTimeToDeduct > 0 && bitrixHelper) {
         try {
           // Передаем отрицательное значение, чтобы уменьшить счетчик
@@ -3366,8 +3449,15 @@ export default {
       sendReportRequest: hierarchicalDataManager.sendReportRequest.bind(hierarchicalDataManager),
       refreshCurrentTabData: hierarchicalDataManager.refreshCurrentTabData.bind(hierarchicalDataManager),
       createStructuredReportRequest: hierarchicalDataManager.createStructuredReportRequest?.bind(hierarchicalDataManager),
-      refreshSidebarSavedTimeCounter: hierarchicalDataManager.refreshSidebarSavedTimeCounter?.bind(hierarchicalDataManager)
+      refreshSidebarSavedTimeCounter: hierarchicalDataManager.refreshSidebarSavedTimeCounter?.bind(hierarchicalDataManager),
+      actualizeAllTimes: hierarchicalDataManager.actualizeAllTimes?.bind(hierarchicalDataManager)
     }
   }
 }
 </script>
+
+<style>
+  button {
+    cursor: pointer!important;
+  }
+</style>

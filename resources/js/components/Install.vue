@@ -117,7 +117,7 @@
                           </div>
                           <div class="flex-1">
                             <h3 class="text-lg font-semibold text-gray-900">
-                              Отслеживание посещений страниц
+                              Отслеживание посещений страниц пользователями
                             </h3>
                             <p class="text-sm text-gray-500">Сбор и хранение истории посещений страниц сотрудниками</p>
                           </div>
@@ -126,7 +126,7 @@
                           <div class="w-2 h-2 rounded-full" :class="selectedFeatures.pageTracking ? 'bg-green-500' : 'bg-red-500'"></div>
                           <B24Switch
                               v-model="selectedFeatures.pageTracking"
-                              :disabled="featureStatus.pageTracking.installed && selectedFeatures.pageTracking"
+                              :disabled="isInstalling"
                               class="large-bordered-switch"
                           />
                         </div>
@@ -149,7 +149,7 @@
                                   v-model.number="configSettings.pageTracking.historyDays"
                                   :disabled="isInstalling"
                                   :min="1"
-                                  :max="7"
+                                  :max="30"
                                   type="number"
                                   class="w-full"
                                   @blur="validateHistoryDays"
@@ -167,7 +167,7 @@
                                   v-model.number="configSettings.pageTracking.historyDays"
                                   :disabled="isInstalling"
                                   min="1"
-                                  max="7"
+                                  max="30"
                                   class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                                   @input="validateHistoryDays"
                               >
@@ -178,6 +178,14 @@
                             </div>
                           </div>
 
+                          <!-- Ошибка валидации -->
+                          <div v-if="historyDaysError" class="mt-2 text-sm text-red-600 flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                            </svg>
+                            {{ historyDaysError }}
+                          </div>
+
                           <!-- Информация о хранении -->
                           <div class="mt-3">
                             <div class="flex items-start p-3 bg-blue-50 rounded-lg">
@@ -186,7 +194,7 @@
                               </svg>
                               <div class="text-sm text-blue-700">
                                 <span class="font-medium">Важно:</span> Система будет автоматически удалять записи о посещениях, которые старше указанного количества дней.
-                                Это помогает поддерживать оптимальный размер базы данных.
+                                Это помогает поддерживать оптимальный размер внутреннего хранилища.
                               </div>
                             </div>
                           </div>
@@ -209,14 +217,14 @@
                             <h3 class="text-lg font-semibold text-gray-900">
                               Контроль присутствия сотрудника
                             </h3>
-                            <p class="text-sm text-gray-500">Автоматический мониторинг активности сотрудников</p>
+                            <p class="text-sm text-gray-500">Автоматическая проверка реального присутствия сотрудника на рабочем месте с открытым Битрикс24</p>
                           </div>
                         </div>
                         <div class="ml-4 flex items-center space-x-4">
                           <div class="w-2 h-2 rounded-full" :class="selectedFeatures.presenceControl ? 'bg-green-500' : 'bg-red-500'"></div>
                           <B24Switch
                               v-model="selectedFeatures.presenceControl"
-                              :disabled="featureStatus.presenceControl.installed && selectedFeatures.presenceControl"
+                              :disabled="isInstalling"
                               class="large-bordered-switch"
                           />
                         </div>
@@ -264,6 +272,14 @@
                             </div>
                           </div>
 
+                          <!-- Ошибка валидации -->
+                          <div v-if="pageTimeThresholdError" class="mt-2 text-sm text-red-600 flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                            </svg>
+                            {{ pageTimeThresholdError }}
+                          </div>
+
                           <!-- Настройка уведомлений руководителя -->
                           <div class="space-y-4 pt-4">
                             <div class="flex items-center justify-between">
@@ -288,9 +304,9 @@
 
                             <!-- Дополнительные настройки уведомлений -->
                             <div v-if="configSettings.presenceControl.notifyManager.enabled" class="space-y-4">
-                              <!-- Время отсутствия до уведомления -->
+                              <!-- Время на подтверждение присутствия -->
                               <B24FormField
-                                  label="Время отсутствия до уведомления"
+                                  label="Время на подтверждение присутствия"
                                   name="absenceTimeThreshold"
                                   :help-text="`Текущее значение: ${configSettings.presenceControl.notifyManager.absenceTimeThreshold} секунд`"
                               >
@@ -329,6 +345,28 @@
                                     </div>
                                   </div>
                                 </div>
+
+                                <!-- Ошибка валидации -->
+                                <div v-if="absenceTimeThresholdError" class="mt-2 text-sm text-red-600 flex items-center">
+                                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                                  </svg>
+                                  {{ absenceTimeThresholdError }}
+                                </div>
+
+                                <!-- Информация о настройке -->
+                                <div class="mt-3">
+                                  <div class="flex items-start p-3 bg-yellow-50 rounded-lg">
+                                    <svg class="w-5 h-5 text-yellow-500 mr-2 flex-shrink-0 mt-0.5" fill="none"
+                                         stroke="currentColor" viewBox="0 0 24 24">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                                    </svg>
+                                    <div class="text-sm text-yellow-700">
+                                      <span class="font-medium">Примечание:</span> Уведомление будет отправлено
+                                      руководителю, если сотрудник отсутствует непрерывно более указанного времени.
+                                    </div>
+                                  </div>
+                                </div>
                               </B24FormField>
 
                               <!-- Способ уведомления -->
@@ -361,6 +399,7 @@
                                     size="sm"
                                     default-value="push"
                                     indicator="end"
+                                    class="overflow-scroll"
                                 />
                               </B24FormField>
                             </div>
@@ -370,7 +409,7 @@
                     </div>
                   </B24Card>
 
-                  <!-- Запрос отчетов -->
+                  <!-- Разрешить запрос отчета о деятельности подчиненных -->
                   <B24Card class="hover:shadow-lg transition-shadow duration-300">
                     <div class="p-6">
                       <div class="flex items-center justify-between mb-4">
@@ -382,16 +421,16 @@
                           </div>
                           <div class="flex-1">
                             <h3 class="text-lg font-semibold text-gray-900">
-                              Запрос отчетов о деятельности
+                              Разрешить запрос отчета о деятельности подчиненных
                             </h3>
-                            <p class="text-sm text-gray-500">Руководители могут запрашивать отчеты у подчиненных</p>
+                            <p class="text-sm text-gray-500">Удобный механизм для получения информации от сотрудника о том, чем он занимается в данный момент</p>
                           </div>
                         </div>
                         <div class="ml-4 flex items-center space-x-4">
                           <div class="w-2 h-2 rounded-full" :class="selectedFeatures.subordinateReports ? 'bg-green-500' : 'bg-red-500'"></div>
                           <B24Switch
                               v-model="selectedFeatures.subordinateReports"
-                              :disabled="featureStatus.subordinateReports.installed && selectedFeatures.subordinateReports"
+                              :disabled="isInstalling"
                               class="large-bordered-switch"
                           />
                         </div>
@@ -438,6 +477,30 @@
                               </div>
                             </div>
                           </div>
+
+                          <!-- Ошибка валидации -->
+                          <div v-if="employeeReactionTimeError" class="mt-2 text-sm text-red-600 flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                            </svg>
+                            {{ employeeReactionTimeError }}
+                          </div>
+
+                          <!-- Информация о настройке -->
+                          <div class="mt-3">
+                            <div class="flex items-start p-3 bg-blue-50 rounded-lg">
+                              <svg class="w-5 h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
+                                   viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                              </svg>
+                              <div class="text-sm text-blue-700">
+                                <span class="font-medium">Важно:</span> Сотруднику предоставляется указанное количество
+                                секунд для подготовки и отправки отчета руководителю.
+                                Если отчет не будет предоставлен в течение этого времени, его заполнение сотруднику станет не доступно. Заполнение отчета не доступно на мобильных устройствах.
+                                Данные условия обеспечивают не только оперативное получение обратной связи от сотрудников, но и гарантируют, что сотрудник действительно находится на рабочем месте и, вероятно, занимается тем, что описывает в отчете.
+                              </div>
+                            </div>
+                          </div>
                         </B24FormField>
 
                         <!-- Способ получения ответа -->
@@ -471,6 +534,7 @@
                               size="sm"
                               default-value="push"
                               indicator="end"
+                              class="overflow-scroll"
                           />
                         </B24FormField>
 
@@ -505,6 +569,7 @@
                               size="sm"
                               default-value="push"
                               indicator="end"
+                              class="overflow-scroll"
                           />
                         </B24FormField>
                       </div>
@@ -577,8 +642,8 @@
                           </svg>
                         </div>
                         <div>
-                          <p class="font-medium text-gray-900">Фоновый калькулятор</p>
-                          <p class="text-sm text-gray-500">Вычисления в фоновом режиме для обработки данных</p>
+                          <p class="font-medium text-gray-900">Фоновый счетчик</p>
+                          <p class="text-sm text-gray-500">Подсчитывает время, проведенное пользователем на странице</p>
                         </div>
                       </div>
                       <div class="ml-4">
@@ -602,8 +667,8 @@
                           <div class="w-2 h-2 rounded-full" :class="selectedPlacements.pageBackgroundWorker ? 'bg-green-500' : 'bg-red-500'"></div>
                           <B24Switch
                               v-model="selectedPlacements.pageBackgroundWorker"
+                              :disabled="isInstalling"
                               class="large-bordered-switch"
-                              disabled
                           />
                         </div>
                       </div>
@@ -618,8 +683,8 @@
                           </svg>
                         </div>
                         <div>
-                          <p class="font-medium text-gray-900">REST приложение</p>
-                          <p class="text-sm text-gray-500">Внешний REST API для интеграции с системой</p>
+                          <p class="font-medium text-gray-900">Форма для отчета</p>
+                          <p class="text-sm text-gray-500">Позволяет сотруднику заполнять запрошенные отчеты</p>
                         </div>
                       </div>
                       <div class="ml-4">
@@ -643,8 +708,8 @@
                           <div class="w-2 h-2 rounded-full" :class="selectedPlacements.restAppUri ? 'bg-green-500' : 'bg-red-500'"></div>
                           <B24Switch
                               v-model="selectedPlacements.restAppUri"
+                              :disabled="isInstalling"
                               class="large-bordered-switch"
-                              disabled
                           />
                         </div>
                       </div>
@@ -666,7 +731,7 @@
                           </svg>
                         </div>
                         <div>
-                          <p class="font-medium text-gray-900">Хранилище активности</p>
+                          <p class="font-medium text-gray-900">Хранилище истории посещений</p>
                           <p class="text-sm text-gray-500">pr_tracking - Статистика посещений</p>
                         </div>
                       </div>
@@ -691,9 +756,21 @@
                           <div class="w-2 h-2 rounded-full" :class="selectedStorage ? 'bg-green-500' : 'bg-red-500'"></div>
                           <B24Switch
                               v-model="selectedStorage"
+                              :disabled="isInstalling"
                               class="large-bordered-switch"
-                              disabled
                           />
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Информация о хранилище -->
+                    <div class="mt-3">
+                      <div class="flex items-start p-3 bg-blue-50 rounded-lg">
+                        <svg class="w-5 h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <div class="text-sm text-blue-700">
+                          <span class="font-medium">Важно:</span> Выполняет роль локальной базы данных, место под хранилище выделяется на самом портале Битрикс24. Это позволяет избежать хранения данных на стороне стороннего сервера.
                         </div>
                       </div>
                     </div>
@@ -717,7 +794,7 @@
                       @click="startInstallation"
                       variant="primary"
                       size="large"
-                      :disabled="isInstalling"
+                      :disabled="isInstalling || !hasSelectedFeatures"
                       class="px-4 py-2"
                   >
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -942,13 +1019,13 @@
                         <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
-                        <span class="text-sm text-gray-700">Фоновый калькулятор</span>
+                        <span class="text-sm text-gray-700">Фоновый счетчик</span>
                       </div>
                       <div v-if="selectedPlacements.restAppUri" class="flex items-center">
                         <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
-                        <span class="text-sm text-gray-700">REST приложение</span>
+                        <span class="text-sm text-gray-700">Форма для отчета</span>
                       </div>
                       <div v-if="selectedStorage" class="flex items-center">
                         <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1040,15 +1117,15 @@ const toast = useToast()
 // Конфигурации встроек
 const PLACEMENT_CONFIGS = {
   PAGE_BACKGROUND_WORKER: {
-    title: 'Фоновый калькулятор',
-    description: 'Вычисления в фоновом режиме для обработки данных',
+    title: 'Фоновый счетчик',
+    description: 'Подсчитывает время, проведенное пользователем на странице',
     options: {
       errorHandlerUrl: `${window.location.origin}/placements/error-handler`
     }
   },
   REST_APP_URI: {
-    title: 'REST приложение',
-    description: 'Внешний REST API для интеграции с системой',
+    title: 'Форма для отчета',
+    description: 'Позволяет сотруднику заполнять запрошенные отчеты',
     options: {}
   }
 }
@@ -1137,7 +1214,7 @@ export default {
     // URL обработчиков
     const HANDLERS = {
       pageBackgroundWorker: `${window.location.origin}/placements/page-background-worker`,
-      restAppUri: `${window.location.origin}/placements/activity-report`
+      restAppUri: `${window.location.origin}/app`
     }
 
     // Функции для работы с Bitrix24 API
@@ -1421,9 +1498,9 @@ export default {
         return false
       }
 
-      if (days > 7) {
-        configSettings.value.pageTracking.historyDays = 7
-        historyDaysError.value = 'Максимальное значение: 7 дней'
+      if (days > 30) {
+        configSettings.value.pageTracking.historyDays = 30
+        historyDaysError.value = 'Максимальное значение: 30 дней'
         return false
       }
 
@@ -1554,8 +1631,8 @@ export default {
           id: 'pageBackgroundWorker',
           type: 'PAGE_BACKGROUND_WORKER',
           handler: HANDLERS.pageBackgroundWorker,
-          title: 'Фоновый калькулятор',
-          description: 'Вычисления в фоновом режиме'
+          title: 'Фоновый счетчик',
+          description: 'Подсчитывает время, проведенное пользователем на странице'
         })
       }
 
@@ -1564,8 +1641,8 @@ export default {
           id: 'restAppUri',
           type: 'REST_APP_URI',
           handler: HANDLERS.restAppUri,
-          title: 'REST приложение',
-          description: 'Внешний REST API'
+          title: 'Форма для отчета',
+          description: 'Позволяет сотруднику заполнять запрошенные отчеты'
         })
       }
 
@@ -1684,16 +1761,16 @@ export default {
       if (selectedPlacements.value.pageBackgroundWorker) {
         placements.push({
           id: 'pageBackgroundWorker',
-          title: 'Фоновый калькулятор',
-          description: 'Вычисления в фоновом режиме'
+          title: 'Фоновый счетчик',
+          description: 'Подсчитывает время, проведенное пользователем на странице'
         })
       }
 
       if (selectedPlacements.value.restAppUri) {
         placements.push({
           id: 'restAppUri',
-          title: 'REST приложение',
-          description: 'Внешний REST API'
+          title: 'Форма для отчета',
+          description: 'Позволяет сотруднику заполнять запрошенные отчеты'
         })
       }
 

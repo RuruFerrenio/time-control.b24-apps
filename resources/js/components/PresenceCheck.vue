@@ -40,9 +40,10 @@
             size="lg"
             class="w-full h-20 rounded-full text-lg font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95"
             :class="{
-            'bg-green-600 hover:bg-green-700': !isConfirmed && timeRemaining > 0,
-            'bg-gray-400 cursor-not-allowed': isConfirmed || timeRemaining <= 0
-          }"
+                'bg-green-600 hover:bg-green-700 text-white hover:text-white': !isConfirmed && timeRemaining > 0,
+                'bg-gray-300 text-gray-600 cursor-not-allowed hover:bg-gray-300': isConfirmed || timeRemaining <= 0,
+                'shadow-md hover:shadow-lg': !isConfirmed && timeRemaining > 0
+            }"
         >
           <div class="flex items-center justify-center">
             <span v-if="!isConfirmed && timeRemaining > 0">
@@ -458,22 +459,49 @@ export default {
     const sendManagerNotifications = async () => {
       try {
         managerNotificationStatus.value = 'sending'
-        showManagerNotificationStatus.value = false // Не показываем статус "отправка"
+        showManagerNotificationStatus.value = false
 
-        // Формируем сообщения
-        const userProfileLink = `/company/personal/user/${currentUser.value.id}/`
+        // Формируем структурированное сообщение с BB-кодами
+        const createStructuredMessage = () => {
+          const userProfileLink = `/company/personal/user/${currentUser.value.id}/`
+          const trackingTime = totalTimeOnPage.value
+          const trackingUrl = trackingData.value.page_url || 'неизвестная страница'
 
-        // Сообщение для push-уведомлений (можно использовать HTML)
-        const pushMessage = `Сотрудник [USER=${currentUser.value.id}]${currentUser.value.name}[/USER] не подтвердил свое присутствие на рабочем месте.`
+          // Форматируем время
+          const formatDuration = (seconds) => {
+            if (!seconds) return '0 сек'
+            const hours = Math.floor(seconds / 3600)
+            const minutes = Math.floor((seconds % 3600) / 60)
+            const secs = seconds % 60
+            const parts = []
+            if (hours > 0) parts.push(`${hours} ч`)
+            if (minutes > 0) parts.push(`${minutes} мин`)
+            if (secs > 0 || parts.length === 0) parts.push(`${secs} сек`)
+            return parts.join(' ')
+          }
 
-        // Сообщение для чата в формате BBCODE
-        const chatMessage = `Сотрудник [USER=${currentUser.value.id}]${currentUser.value.name}[/USER] не подтвердил свое присутствие на рабочем месте.\n\n`
+          const fullMessage = `[SIZE=16][B]🚨 Отсутствие сотрудника на рабочем месте[/B][/SIZE]\n\n`
+              + `👤 [B]Сотрудник:[/B] [USER=${currentUser.value.id}]${currentUser.value.name}[/USER]\n`
+              + `📅 [B]Дата/время:[/B] ${new Date().toLocaleString('ru-RU')}\n`
+              + `────────────────────\n`
+              + `[SIZE=12][COLOR=#666666]Уведомление сгенерировано автоматически[/COLOR][/SIZE]`
 
+          return {
+            shortMessage: `${currentUser.value.name} отсутствует на рабочем месте`,
+            detailedMessage: fullMessage,
+            attach: [{
+              MESSAGE: fullMessage,
+              COLOR_TOKEN: "alert"
+            }]
+          }
+        }
+
+        const messageData = createStructuredMessage()
         const notificationPromises = []
 
         // Отправляем уведомление каждому руководителю
         managersData.value.forEach(manager => {
-          // Отправляем уведомление в зависимости от настроек
+          // Отправляем push-уведомление если нужно
           if (presenceSettings.value.notificationMethod === 'push' ||
               presenceSettings.value.notificationMethod === 'all') {
 
@@ -481,21 +509,23 @@ export default {
                 new Promise((resolve, reject) => {
                   BX24.callMethod('im.notify.personal.add', {
                     USER_ID: manager.id,
-                    MESSAGE: pushMessage,
+                    MESSAGE: messageData.shortMessage,
+                    ATTACH: messageData.attach,
                     TAG: `PRESENCE_ABSENCE_${Date.now()}_${manager.id}`,
                     SUB_TAG: `ABSENCE|${currentUser.value.id}|${Date.now()}`,
                     PARAMS: {
                       URL: trackingData.value.page_url,
                       USER_ID: currentUser.value.id,
                       USER_NAME: currentUser.value.name,
-                      MANAGER_ID: manager.id
+                      MANAGER_ID: manager.id,
+                      TIMESTAMP: new Date().toISOString()
                     }
                   }, (result) => {
                     if (result.error()) {
-                      console.error(`Ошибка отправки push-уведомления руководителю ${manager.id}:`, result.error())
-                      reject({ manager, type: 'push', error: result.error() })
+                      console.error(`Ошибка push-уведомления руководителю ${manager.id}:`, result.error())
+                      resolve({ manager, type: 'push', success: false, error: result.error() })
                     } else {
-                      console.log(`Push-уведомление отправлено руководителю ${manager.name} (ID: ${manager.id})`)
+                      console.log(`Push-уведомление отправлено руководителю ${manager.name}`)
                       resolve({ manager, type: 'push', success: true })
                     }
                   })
@@ -503,6 +533,7 @@ export default {
             )
           }
 
+          // Отправляем сообщение в чат если нужно
           if (presenceSettings.value.notificationMethod === 'chat' ||
               presenceSettings.value.notificationMethod === 'all') {
 
@@ -510,14 +541,15 @@ export default {
                 new Promise((resolve, reject) => {
                   BX24.callMethod('im.message.add', {
                     DIALOG_ID: manager.id.toString(),
-                    MESSAGE: chatMessage,
+                    MESSAGE: '',
+                    ATTACH: messageData.attach,
                     SYSTEM: 'N'
                   }, (result) => {
                     if (result.error()) {
-                      console.error(`Ошибка отправки сообщения в чат руководителю ${manager.id}:`, result.error())
-                      reject({ manager, type: 'chat', error: result.error() })
+                      console.error(`Ошибка отправки в чат руководителю ${manager.id}:`, result.error())
+                      resolve({ manager, type: 'chat', success: false, error: result.error() })
                     } else {
-                      console.log(`Сообщение отправлено в чат руководителю ${manager.name} (ID: ${manager.id})`)
+                      console.log(`Сообщение отправлено в чат руководителю ${manager.name}`)
                       resolve({ manager, type: 'chat', success: true })
                     }
                   })
@@ -526,13 +558,13 @@ export default {
           }
         })
 
-        // Ждем завершения всех уведомлений
+        // Ждем результаты отправки
         const results = await Promise.allSettled(notificationPromises)
+        const successful = results.filter(r =>
+            r.status === 'fulfilled' && r.value.success
+        ).length
 
-        // Анализируем результаты
-        const successful = results.filter(r => r.status === 'fulfilled').length
-
-        console.log(`Результаты отправки: успешно ${successful}`)
+        console.log(`Результаты отправки: ${successful}/${notificationPromises.length} успешно`)
 
         if (successful > 0) {
           managerNotificationStatus.value = 'sent'
@@ -542,12 +574,8 @@ export default {
           setTimeout(() => {
             showManagerNotificationStatus.value = false
           }, 3000)
-
-          console.log(`Уведомления успешно отправлены ${successful} руководителям`)
         } else {
           managerNotificationStatus.value = null
-          showManagerNotificationStatus.value = false
-          console.log('Не удалось отправить уведомления руководителям')
         }
 
       } catch (error) {

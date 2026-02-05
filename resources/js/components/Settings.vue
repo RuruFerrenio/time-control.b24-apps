@@ -57,7 +57,7 @@
                               v-model.number="formData.pageTracking.historyDays"
                               :disabled="isProcessing"
                               :min="1"
-                              :max="7"
+                              :max="30"
                               type="number"
                               class="w-full"
                               @blur="validateHistoryDays"
@@ -75,7 +75,7 @@
                               v-model.number="formData.pageTracking.historyDays"
                               :disabled="isProcessing"
                               min="1"
-                              max="7"
+                              max="30"
                               class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                               @input="validateHistoryDays"
                           >
@@ -106,7 +106,7 @@
                           <div class="text-sm text-blue-700">
                             <span class="font-medium">Важно:</span> Система будет автоматически удалять записи о
                             посещениях, которые старше указанного количества дней.
-                            Это помогает поддерживать оптимальный размер базы данных.
+                            Это помогает поддерживать оптимальный размер внутреннего хранилища.
                           </div>
                         </div>
                       </div>
@@ -117,7 +117,7 @@
                 <!-- Информация о системе отслеживания -->
                 <div class="space-y-4 mt-6">
                   <h4 class="text-sm font-medium text-gray-900">
-                    Как работает система отслеживания
+                    Как работает система отслеживания:
                   </h4>
                   <div class="space-y-3">
                     <div class="flex items-start">
@@ -126,7 +126,7 @@
                       </div>
                       <div>
                         <p class="text-sm text-gray-700">
-                          Система записывает все посещения страниц сотрудниками
+                          Система записывает посещение страницы сотрудником, если он задерживается на странице больше 10 секунд (сократить эту задержку в данной версии приложения нельзя).
                         </p>
                       </div>
                     </div>
@@ -136,7 +136,7 @@
                       </div>
                       <div>
                         <p class="text-sm text-gray-700">
-                          Для каждого посещения сохраняется URL страницы, время нахождения, пользователь и категория
+                          Для каждого посещения сохраняется URL страницы, время нахождения, пользователь и категория страницы.
                         </p>
                       </div>
                     </div>
@@ -146,7 +146,7 @@
                       </div>
                       <div>
                         <p class="text-sm text-gray-700">
-                          Данные сохраняются в хранилище Bitrix24 с группировкой по дням
+                          Данные сохраняются в хранилище Bitrix24 с группировкой по дням.
                         </p>
                       </div>
                     </div>
@@ -156,8 +156,18 @@
                       </div>
                       <div>
                         <p class="text-sm text-gray-700">
+                          Данные из хранилища Bitrix24 об истории посещения страниц пользователям отображаются в удобном для восприятия виде на странице приложения - История посещений. Здесь пользователь может изучить свои затраты времени на каждой странице и, при желании, добавить время в задачи.
+                        </p>
+                      </div>
+                    </div>
+                    <div class="flex items-start">
+                      <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                        <span class="text-xs font-medium text-blue-600">5</span>
+                      </div>
+                      <div>
+                        <p class="text-sm text-gray-700">
                           История посещений хранится {{ formData.pageTracking.historyDays }} дней, после чего старые
-                          записи автоматически удаляются
+                          записи автоматически удаляются.
                         </p>
                       </div>
                     </div>
@@ -178,7 +188,7 @@
                     Контроль присутствия сотрудника
                   </h3>
                   <p class="text-sm text-gray-500 mt-1">
-                    Автоматический мониторинг активности сотрудников и их рабочего времени
+                    Автоматическая проверка реального присутствия сотрудника на рабочем месте с открытым Битрикс24
                   </p>
                 </div>
                 <div class="ml-4 flex items-center space-x-4">
@@ -338,7 +348,6 @@
                                 <div class="text-sm text-yellow-700">
                                   <span class="font-medium">Примечание:</span> Уведомление будет отправлено
                                   руководителю, если сотрудник отсутствует непрерывно более указанного времени.
-                                  Уведомления отправляются только в рабочие часы.
                                 </div>
                               </div>
                             </div>
@@ -379,22 +388,6 @@
                           </B24FormField>
                         </div>
                       </div>
-
-                      <!-- Информация о настройке -->
-                      <div class="mt-3">
-                        <div class="flex items-start p-3 bg-blue-50 rounded-lg">
-                          <svg class="w-5 h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
-                               viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                          </svg>
-                          <div class="text-sm text-blue-700">
-                            <span class="font-medium">Важно:</span> Система начинает отслеживать присутствие сотрудника
-                            только после того, как он провел на странице указанное количество минут.
-                            Это позволяет избежать ложных срабатываний при кратковременных посещениях.
-                          </div>
-                        </div>
-                      </div>
                     </B24FormField>
                   </div>
                 </B24Form>
@@ -411,8 +404,8 @@
                       </div>
                       <div>
                         <p class="text-sm text-gray-700">
-                          Система отслеживает активность сотрудников на странице после того, как они проведут на ней
-                          {{ formData.presenceControl.pageTimeThreshold }} минут
+                          Через {{ formData.presenceControl.pageTimeThreshold }} минут с момента открытия сотрудником страницы
+                          будет всплывать модальное окно с кнопкой подтверждения присутствия, которая доступна для нажатия {{ formData.presenceControl.notifyManager.absenceTimeThreshold }} секунд.
                         </p>
                       </div>
                     </div>
@@ -422,30 +415,19 @@
                       </div>
                       <div>
                         <p class="text-sm text-gray-700">
-                          При отсутствии активности сотрудник помечается как отсутствующий
+                          Если пользователь действительно присутствует на рабочем месте, нажатие кнопки "Я здесь" закроет модальное окно
+                          и время на странице будет фиксироваться дальше. В противном случае, учет времени на странице останавливается, пока пользователь не подаст признаки активности в Битрикс24.
                         </p>
                       </div>
                     </div>
-                    <div class="flex items-start">
+                    <div v-if="formData.presenceControl.notifyManager.enabled" class="flex items-start">
                       <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
                         <span class="text-xs font-medium text-blue-600">3</span>
                       </div>
                       <div>
                         <p class="text-sm text-gray-700">
-                          Система учитывает только длительные сессии работы, игнорируя кратковременные посещения
-                        </p>
-                      </div>
-                    </div>
-                    <div v-if="formData.presenceControl.notifyManager.enabled" class="flex items-start">
-                      <div
-                          class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                        <span class="text-xs font-medium text-green-600">4</span>
-                      </div>
-                      <div>
-                        <p class="text-sm text-gray-700">
-                          При отсутствии сотрудника более {{
-                            formData.presenceControl.notifyManager.absenceTimeThreshold
-                          }} секунд руководителю отправляется уведомление через {{ getNotificationMethodText() }}
+                          По истечении {{ formData.presenceControl.notifyManager.absenceTimeThreshold }} секунд с момента появляения модального окна у сотрудника, руководителю будет отправлено уведомление
+                          о том, что пользователь не подтвердил своего присутствия на рабочем месте.
                         </p>
                       </div>
                     </div>
@@ -466,7 +448,7 @@
                     Разрешить запрос отчета о деятельности подчиненных
                   </h3>
                   <p class="text-sm text-gray-500 mt-1">
-                    Руководители могут запрашивать отчеты о деятельности своих подчиненных
+                    Удобный механизм для получения информации от сотрудника о том, чем он занимается в данный момент
                   </p>
                 </div>
                 <div class="ml-4 flex items-center space-x-4">
@@ -550,7 +532,8 @@
                           <div class="text-sm text-blue-700">
                             <span class="font-medium">Важно:</span> Сотруднику предоставляется указанное количество
                             секунд для подготовки и отправки отчета руководителю.
-                            Если отчет не будет предоставлен в течение этого времени, система уведомит руководителя.
+                            Если отчет не будет предоставлен в течение этого времени, его заполнение сотруднику станет не доступно. Заполнение отчета не доступно на мобильных устройствах.
+                            Данные условия обеспечивают не только оперативное получение обратной связи от сотрудников, но и гарантируют, что сотрудник действительно находится на рабочем месте и, вероятно, занимается тем, что описывает в отчете.
                           </div>
                         </div>
                       </div>
@@ -640,7 +623,7 @@
                       </div>
                       <div>
                         <p class="text-sm text-gray-700">
-                          Руководитель может запросить отчет о деятельности подчиненного в любое время
+                          В списке "Время всех сотрудников" в истории посещений в блоке пользователя появляется кнопка "Запросить отчет", которая инициирует запрос обратной связи от сотрудника.
                         </p>
                       </div>
                     </div>
@@ -650,8 +633,8 @@
                       </div>
                       <div>
                         <p class="text-sm text-gray-700">
-                          Сотруднику предоставляется {{ formData.subordinateReports.employeeReactionTime }} секунд для
-                          подготовки отчета
+                          Сотруднику отправляется уведомление через {{ getDeliveryMethodText() }} с прикрепленной ссылкой на заполнение короткой формы и предоставляется {{ formData.subordinateReports.employeeReactionTime }} секунд для
+                          подготовки отчета.
                         </p>
                       </div>
                     </div>
@@ -661,7 +644,7 @@
                       </div>
                       <div>
                         <p class="text-sm text-gray-700">
-                          Запрос доставляется сотруднику через {{ getDeliveryMethodText() }}
+                          Сотрудник заполняет форму, описывая, чем занимается в данный момент.
                         </p>
                       </div>
                     </div>
@@ -671,27 +654,7 @@
                       </div>
                       <div>
                         <p class="text-sm text-gray-700">
-                          Отчет включает информацию о посещенных страницах, времени работы, выполненных задачах
-                        </p>
-                      </div>
-                    </div>
-                    <div class="flex items-start">
-                      <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                        <span class="text-xs font-medium text-blue-600">5</span>
-                      </div>
-                      <div>
-                        <p class="text-sm text-gray-700">
-                          Ответ от сотрудника поступает через {{ getResponseMethodText() }}
-                        </p>
-                      </div>
-                    </div>
-                    <div class="flex items-start">
-                      <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                        <span class="text-xs font-medium text-blue-600">6</span>
-                      </div>
-                      <div>
-                        <p class="text-sm text-gray-700">
-                          Руководитель получает уведомление, если отчет не предоставлен в установленный срок
+                          Информация, внесенная сотрудником в отчет автоматически возвращается инициатору запроса через {{ getResponseMethodText() }}.
                         </p>
                       </div>
                     </div>
@@ -705,8 +668,8 @@
         <!-- Хранилище активности сотрудников -->
         <StorageManager
             ref="activityStorage"
-            title="Хранилище активности сотрудников"
-            description="Хранение данных о посещениях страниц сотрудниками"
+            title="Хранилище истории посещений сотрудников"
+            description="Выполняет роль локальной базы данных, место под хранилище выделяется на самом портале Битрикс24. Это позволяет избежать хранения данных на стороне стороннего сервера."
             entity-id="pr_tracking"
             storage-name="Статистика посещений"
             :properties="activityProperties"
@@ -828,8 +791,8 @@ class SettingsSystem {
     }
 
     if (days > 7) {
-      this.formData.value.pageTracking.historyDays = 7
-      this.pageTrackingHistoryDaysError.value = 'Максимальное значение: 7 дней'
+      this.formData.value.pageTracking.historyDays = 30
+      this.pageTrackingHistoryDaysError.value = 'Максимальное значение: 30 дней'
       return false
     }
 
@@ -1164,7 +1127,7 @@ class SettingsSystem {
         if (pageTrackingHistoryDays) {
           try {
             const days = parseInt(pageTrackingHistoryDays)
-            if (!isNaN(days) && days >= 1 && days <= 7) {
+            if (!isNaN(days) && days >= 1 && days <= 30) {
               this.formData.value.pageTracking.historyDays = days
             }
           } catch {

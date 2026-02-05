@@ -8,7 +8,7 @@
               Управление встройками
             </h3>
             <p class="text-sm text-gray-500 mt-1">
-              Регистрация и обновление встроек системы контроля времени
+              Регистрация и обновление необходимых приложению мест встраивания
             </p>
           </div>
         </div>
@@ -21,7 +21,7 @@
 
           <!-- Список встроек -->
           <div class="space-y-6">
-            <!-- Фоновый таймер -->
+            <!-- Фоновый счетчик -->
             <div class="bg-gray-50 rounded-lg p-4">
               <div class="flex items-start justify-between">
                 <div class="flex-1">
@@ -32,7 +32,7 @@
                       </svg>
                     </div>
                     <div>
-                      <p class="font-medium text-gray-900">Фоновый таймер</p>
+                      <p class="font-medium text-gray-900">Фоновый счетчик</p>
                       <p class="text-sm text-gray-500">Подсчитывает время, проведенное пользователем на странице</p>
                     </div>
                   </div>
@@ -133,7 +133,7 @@
               </div>
               <div>
                 <p class="text-sm text-gray-700">
-                  Проверка существующих встроек в системе Bitrix24
+                  Проверка существующих встроек в системе Bitrix24.
                 </p>
               </div>
             </div>
@@ -143,7 +143,7 @@
               </div>
               <div>
                 <p class="text-sm text-gray-700">
-                  Удаление старых версий встроек (если они существуют)
+                  Удаление старых версий встроек (если они существуют).
                 </p>
               </div>
             </div>
@@ -153,7 +153,7 @@
               </div>
               <div>
                 <p class="text-sm text-gray-700">
-                  Регистрация новых встроек с актуальными настройками
+                  Регистрация новых встроек с актуальными настройками.
                 </p>
               </div>
             </div>
@@ -163,7 +163,7 @@
               </div>
               <div>
                 <p class="text-sm text-gray-700">
-                  Проверка успешной регистрации и обновление статусов
+                  Проверка успешной регистрации и обновление статусов.
                 </p>
               </div>
             </div>
@@ -203,7 +203,7 @@ export default {
     // Конфигурации встроек
     const PLACEMENT_CONFIGS = {
       PAGE_BACKGROUND_WORKER: {
-        title: 'Фоновый таймер',
+        title: 'Фоновый счетчик',
         description: 'Подсчитывает время, проведенное пользователем на странице',
         options: {
           errorHandlerUrl: `${window.location.origin}/placements/error-handler`
