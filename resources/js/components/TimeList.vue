@@ -99,7 +99,7 @@
                     { label: 'Время всех сотрудников', value: 'all-time' }
                   ]"
                   @update:modelValue="onTabChange"
-                  class="w-full whitespace-nowrap overflow-scroll"
+                  class="w-full whitespace-nowrap overflow-hidden"
               />
 
               <!-- Режим просмотра: Мое время -->
@@ -1456,7 +1456,7 @@ class HierarchicalDataManager {
       })
     }
 
-    const reportUrl = `/marketplace/view/itgalera.chistoe_vremya_v_bitriks24/?params[parameters]=${reportParams.parameters}`
+    const reportUrl = `/marketplace/view/local.6953c3c26d1bd5.96725557/?params[parameters]=${reportParams.parameters}`
 
     // Форматируем сообщение с BB-кодами
     const fullMessage = `[SIZE=16][B]📋 Запрос отчета о деятельности[/B][/SIZE]\n\n`
