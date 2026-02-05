@@ -465,7 +465,7 @@
                           <div v-if="userData.userId !== currentUserId && subordinateReportsEnabled">
                             <B24Button
                                 @click="showRequestReportModal(userData)"
-                                size="sm"
+                                size="md"
                                 color="air-primary-warning"
                                 title="Запросить отчет"
                             >
