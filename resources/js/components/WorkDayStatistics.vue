@@ -1879,3 +1879,126 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+/* Адаптивные стили */
+@media (max-width: 640px) {
+  .xs\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .xs\:flex-row {
+    flex-direction: row;
+  }
+
+  .xs\:items-center {
+    align-items: center;
+  }
+
+  .xs\:justify-between {
+    justify-content: space-between;
+  }
+
+  .xs\:gap-0 {
+    gap: 0;
+  }
+
+  .xs\:text-left {
+    text-align: left;
+  }
+}
+
+/* Стили для интерактивной легенды */
+.legend-item {
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.legend-item:hover {
+  border-color: #e5e7eb;
+  transform: translateY(-1px);
+}
+
+/* Анимация для графиков */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.chart-container {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Стили для скроллбара */
+.max-h-60::-webkit-scrollbar {
+  width: 6px;
+}
+
+.max-h-60::-webkit-scrollbar-track {
+  background: #f9fafb;
+  border-radius: 3px;
+}
+
+.max-h-60::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.max-h-60::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Стиль для позиционирования текста поверх графика */
+.relative .absolute {
+  pointer-events: none;
+}
+
+/* Улучшения для мобильных устройств */
+@media (max-width: 768px) {
+  .p-4 {
+    padding: 1rem;
+  }
+
+  .space-y-4 > * + * {
+    margin-top: 1rem;
+  }
+
+  .gap-6 {
+    gap: 1.5rem;
+  }
+
+  .text-lg {
+    font-size: 1.125rem;
+  }
+
+  .text-2xl {
+    font-size: 1.5rem;
+  }
+}
+
+/* Улучшения для очень маленьких экранов */
+@media (max-width: 480px) {
+  .text-sm {
+    font-size: 0.75rem;
+  }
+
+  .p-3 {
+    padding: 0.75rem;
+  }
+
+  .gap-2 {
+    gap: 0.5rem;
+  }
+}
+
+/* Улучшение отображения текста на мобильных */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.min-w-0 {
+  min-width: 0;
+}
+</style>
