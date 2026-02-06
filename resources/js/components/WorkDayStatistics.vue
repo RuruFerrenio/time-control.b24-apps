@@ -1674,7 +1674,7 @@ class WorkDayStatisticsManager {
             { 'ID': 'DESC' },
             {
               'USER_ID': this.currentUserId.value,
-              // 'CREATED_DATE': selectedDay,
+              '>=CREATED_DATE': selectedDay,
             },
             ['TASK_ID', 'ID', 'CREATED_DATE', 'DATE_START', 'DATE_STOP'],
             { // PARAMS
@@ -1702,6 +1702,7 @@ class WorkDayStatisticsManager {
       let totalElapsedTaskTime = 0
 
       allElapsedItems.forEach(item => {
+        console.log(item)
         const taskId = item.TASK_ID
         const minutes = parseInt(item.MINUTES) || 0
         const seconds = minutes * 60
