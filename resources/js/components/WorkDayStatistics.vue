@@ -1481,6 +1481,48 @@ class WorkDayStatisticsManager {
         batchCommands[`call_${index}`] = call
       })
 
+      console.log('Выполнение batch запроса:', calls.length, 'вызовов')
+
+      BX24.callBatch(batchCommands, (results) => {
+        console.log('Batch результаты получены')
+        const resultArray = []
+
+        for (let i = 0; i < calls.length; i++) {
+          const key = `call_${i}`
+          if (results[key] && !results[key].error()) {
+            const data = results[key].data()
+            // Логируем структуру ответа для отладки
+            if (i === 0) {
+              console.log('Пример ответа от API:', {
+                ключ: key,
+                данные: data,
+                структура: typeof data,
+                isArray: Array.isArray(data),
+                hasResult: data && data.result !== undefined
+              })
+            }
+            resultArray.push(data)
+          } else if (results[key]) {
+            console.error(`Ошибка в batch запросе ${key}:`, results[key].error())
+            resultArray.push(null)
+          } else {
+            console.error(`Нет результата для ${key}`)
+            resultArray.push(null)
+          }
+        }
+
+        resolve(resultArray)
+      }, true) // true для последовательного выполнения
+    })
+  }
+
+  executeSingleBatch(calls) {
+    return new Promise((resolve, reject) => {
+      const batchCommands = {}
+      calls.forEach((call, index) => {
+        batchCommands[`call_${index}`] = call
+      })
+
       BX24.callBatch(batchCommands, (results) => {
         const resultArray = []
         for (let i = 0; i < calls.length; i++) {
@@ -1505,10 +1547,10 @@ class WorkDayStatisticsManager {
         this.viewedUserId.value = parseInt(userIdFromQuery)
         this.currentUserId.value = this.viewedUserId.value
 
-        const results = await this.executeBatch([
+        const results = await this.executeSingleBatch([
           ['user.get', {
             FILTER: { 'ID': this.currentUserId.value },
-            SELECT: ['ID', 'NAME', 'LAST_NAME', 'SECOND_NAME', 'EMAIL']
+            SELECT: ['ID', 'NAME', 'LAST_NAME', 'SECOND_NAME', 'EMAIL', 'WORK_POSITION']
           }]
         ])
 
@@ -1518,20 +1560,23 @@ class WorkDayStatisticsManager {
           throw new Error('Пользователь не найден')
         }
       } else {
-        const results = await this.executeBatch([
-          ['user.current', {}]
-        ])
-
-        if (results[0]) {
-          const userData = results[0]
-          this.currentUserId.value = parseInt(userData.ID)
-          return userData
-        } else {
-          throw new Error('Ошибка загрузки текущего пользователя')
-        }
+        // Получаем текущего пользователя
+        return new Promise((resolve, reject) => {
+          BX24.callMethod('user.current', {}, (result) => {
+            if (result.error()) {
+              reject(new Error('Ошибка загрузки текущего пользователя'))
+            } else {
+              const userData = result.data()
+              this.currentUserId.value = parseInt(userData.ID)
+              this.viewedUserId.value = this.currentUserId.value
+              resolve(userData)
+            }
+          })
+        })
       }
     } catch (error) {
-      this.showNotification('error', 'Ошибка загрузки пользователя')
+      console.error('Ошибка загрузки пользователя:', error)
+      this.showNotification('error', 'Ошибка загрузки пользователя: ' + error.message)
       throw error
     }
   }
@@ -1660,11 +1705,10 @@ class WorkDayStatisticsManager {
 
   async loadTaskTimeData() {
     try {
-      const startOfDay = new Date(this.selectedDay.value + 'T00:00:00+03:00')
-      const endOfDay = new Date(this.selectedDay.value + 'T23:59:59+03:00')
+      const startOfDay = new Date(this.selectedDay.value + 'T00:00:00')
+      const endOfDay = new Date(this.selectedDay.value + 'T23:59:59')
 
-      // Преобразуем даты в строковый формат для Bitrix24 API
-      // Формат должен быть: "2024-05-16 00:00:00"
+      // Формат для Bitrix24 API: "YYYY-MM-DD HH:MM:SS"
       const formatDateForAPI = (date) => {
         return date.toISOString()
             .replace('T', ' ')
@@ -1674,60 +1718,91 @@ class WorkDayStatisticsManager {
       const startDateStr = formatDateForAPI(startOfDay)
       const endDateStr = formatDateForAPI(endOfDay)
 
-      console.log('Фильтр по дате:', {
+      console.log('Загрузка данных задач:', {
+        userId: this.currentUserId.value,
         startDate: startDateStr,
-        endDate: endDateStr,
-        userId: this.currentUserId.value
+        endDate: endDateStr
       })
 
       let allElapsedItems = []
-      let start = 0
+      let page = 1
       const pageSize = 50
 
+      // Загружаем все записи времени постранично через batch
       while (true) {
-        const results = await this.executeBatch([
+        console.log(`Загрузка страницы ${page}...`)
+
+        const result = await this.executeSingleBatch([
           ['task.elapseditem.getlist', {
-            'ORDER': {'ID': 'DESC'},
+            'ORDER': {'DATE_START': 'DESC'},
             'FILTER': {
               'USER_ID': this.currentUserId.value,
-              '>=DATE_START': startDateStr,  // Используем DATE_START, а не CREATED_DATE
+              '>=DATE_START': startDateStr,
               '<=DATE_START': endDateStr
             },
-            'SELECT': ['ID', 'TASK_ID', 'MINUTES', 'COMMENT_TEXT', 'DATE_START', 'DATE_STOP', 'CREATED_DATE'],
-            NAV_PARAMS: {
-              nPageSize: pageSize,
-              iNumPage: Math.floor(start / pageSize) + 1
+            'SELECT': ['ID', 'TASK_ID', 'MINUTES', 'SECONDS', 'COMMENT_TEXT', 'DATE_START', 'DATE_STOP', 'CREATED_DATE'],
+            'PARAMS': {
+              'NAV_PARAMS': {
+                'nPageSize': pageSize,
+                'iNumPage': page
+              }
             }
           }]
         ])
 
-        const elapsedItems = results[0] || []
-        console.log('Получено записей на странице:', elapsedItems.length)
+        if (!result || !result[0]) {
+          console.error('Ошибка загрузки страницы', page)
+          break
+        }
 
-        if (elapsedItems.length === 0) break
+        const data = result[0]
+        console.log('Ответ API (страница', page, '):', data)
+
+        // Проверяем структуру ответа
+        let elapsedItems = []
+        if (data && data.result) {
+          // Стандартная структура ответа Bitrix24
+          elapsedItems = data.result
+        } else if (Array.isArray(data)) {
+          // Иногда возвращается просто массив
+          elapsedItems = data
+        }
+
+        console.log(`Получено ${elapsedItems.length} записей на странице ${page}`)
+
+        if (elapsedItems.length === 0) {
+          console.log('Нет данных на странице', page)
+          break
+        }
 
         allElapsedItems = allElapsedItems.concat(elapsedItems)
-        if (elapsedItems.length < pageSize) break
-        start += pageSize
+
+        // Если получено меньше элементов, чем размер страницы, значит это последняя страница
+        if (elapsedItems.length < pageSize) {
+          console.log('Последняя страница достигнута')
+          break
+        }
+
+        page++
+
+        // Защита от бесконечного цикла
+        if (page > 10) {
+          console.warn('Достигнут лимит страниц (10)')
+          break
+        }
       }
 
-      console.log('Всего записей времени задач:', allElapsedItems.length)
+      console.log(`Всего найдено записей: ${allElapsedItems.length}`)
 
+      // Обработка данных
       const taskTimeMap = new Map()
       let totalElapsedTaskTime = 0
 
       allElapsedItems.forEach((item, index) => {
-        console.log(`Запись ${index}:`, {
-          taskId: item.TASK_ID,
-          minutes: item.MINUTES,
-          dateStart: item.DATE_START,
-          dateStop: item.DATE_STOP,
-          createdDate: item.CREATED_DATE
-        })
-
         const taskId = parseInt(item.TASK_ID)
-        const minutes = parseInt(item.MINUTES) || 0
-        const seconds = minutes * 60
+
+        // Используем секунды, если они есть, иначе вычисляем из минут
+        const seconds = parseInt(item.SECONDS) || (parseInt(item.MINUTES) || 0) * 60
 
         if (!taskTimeMap.has(taskId)) {
           taskTimeMap.set(taskId, {
@@ -1743,8 +1818,14 @@ class WorkDayStatisticsManager {
         const taskData = taskTimeMap.get(taskId)
         taskData.timeSpent += seconds
         taskData.elapsedItemsCount++
-        taskData.comments.push(item.COMMENT_TEXT || '')
-        taskData.dateStops.push(item.DATE_STOP)
+
+        if (item.COMMENT_TEXT) {
+          taskData.comments.push(item.COMMENT_TEXT)
+        }
+
+        if (item.DATE_STOP) {
+          taskData.dateStops.push(item.DATE_STOP)
+        }
 
         // Обновляем последнюю дату если текущая позже
         if (item.DATE_START > taskData.lastDateStart) {
@@ -1756,66 +1837,73 @@ class WorkDayStatisticsManager {
 
       console.log('Сводка по задачам:', {
         totalTasks: taskTimeMap.size,
-        totalTime: totalElapsedTaskTime,
-        totalMinutes: totalElapsedTaskTime / 60
+        totalTimeSeconds: totalElapsedTaskTime,
+        totalTimeMinutes: totalElapsedTaskTime / 60
       })
 
       const taskIds = Array.from(taskTimeMap.keys())
       const tasksArray = []
 
       if (taskIds.length > 0) {
-        console.log('Загрузка информации о задачах:', taskIds)
+        console.log('Загрузка информации о', taskIds.length, 'задачах через batch...')
 
-        // Загружаем информацию о задачах
-        const taskCalls = []
-        taskIds.forEach(taskId => {
-          taskCalls.push(['task.get', { 'TASKID': taskId }])
-        })
+        // Создаем batch запросы для загрузки информации о задачах
+        const taskCalls = taskIds.map(taskId =>
+            ['tasks.task.get', {
+              taskId: taskId,
+              select: ['ID', 'TITLE', 'STATUS', 'RESPONSIBLE_ID', 'CREATED_BY', 'DEADLINE', 'PRIORITY']
+            }]
+        )
 
+        // Выполняем все запросы пачками по 50
         const taskResults = await this.executeBatch(taskCalls)
-        console.log('Результаты загрузки задач:', taskResults)
+        console.log('Результаты загрузки задач:', taskResults.length, 'задач загружено')
 
-        // Загружаем информацию об исполнителях
-        const responsibleIds = []
+        // Собираем ID исполнителей
+        const responsibleIds = new Set()
         taskResults.forEach((taskInfo, index) => {
-          if (taskInfo && taskInfo.RESPONSIBLE_ID) {
-            responsibleIds.push(parseInt(taskInfo.RESPONSIBLE_ID))
+          if (taskInfo && taskInfo.task && taskInfo.task.RESPONSIBLE_ID) {
+            responsibleIds.add(parseInt(taskInfo.task.RESPONSIBLE_ID))
           }
         })
 
-        const uniqueResponsibleIds = [...new Set(responsibleIds)].filter(id => id)
-        console.log('Уникальные ID исполнителей:', uniqueResponsibleIds)
+        console.log('Уникальные ID исполнителей:', Array.from(responsibleIds))
 
-        const userCalls = []
-        uniqueResponsibleIds.forEach(userId => {
-          userCalls.push(['user.get', {
-            FILTER: { 'ID': userId },
-            SELECT: ['ID', 'NAME', 'LAST_NAME', 'SECOND_NAME', 'EMAIL']
-          }])
-        })
+        // Загружаем информацию о пользователях через batch
+        const userCalls = Array.from(responsibleIds).map(userId =>
+            ['user.get', {
+              FILTER: { 'ID': userId },
+              SELECT: ['ID', 'NAME', 'LAST_NAME', 'SECOND_NAME', 'EMAIL', 'WORK_POSITION']
+            }]
+        )
 
-        const userResults = userCalls.length > 0 ? await this.executeBatch(userCalls) : []
+        let userResults = []
+        if (userCalls.length > 0) {
+          userResults = await this.executeBatch(userCalls)
+          console.log('Результаты загрузки пользователей:', userResults.length)
+        }
+
         const userMap = new Map()
-
         userResults.forEach((userList, index) => {
           if (userList && userList.length > 0) {
+            const userId = Array.from(responsibleIds)[index]
             const user = userList[0]
-            userMap.set(uniqueResponsibleIds[index], user)
+            userMap.set(userId, user)
           }
         })
 
         // Формируем массив задач
         taskIds.forEach((taskId, index) => {
           const taskInfo = taskResults[index]
-          if (taskInfo) {
+          if (taskInfo && taskInfo.task) {
             const taskData = taskTimeMap.get(taskId)
-            const responsibleId = parseInt(taskInfo.RESPONSIBLE_ID)
+            const responsibleId = parseInt(taskInfo.task.RESPONSIBLE_ID)
             const responsibleUser = userMap.get(responsibleId)
 
             tasksArray.push({
               id: taskId,
-              title: taskInfo?.TITLE || `Задача #${taskId}`,
-              status: taskInfo?.STATUS || '1',
+              title: taskInfo.task.TITLE || `Задача #${taskId}`,
+              status: taskInfo.task.STATUS || '1',
               timeSpent: taskData.timeSpent,
               elapsedItemsCount: taskData.elapsedItemsCount,
               comments: taskData.comments,
@@ -1823,12 +1911,17 @@ class WorkDayStatisticsManager {
               dateStops: taskData.dateStops,
               responsibleId: responsibleId,
               responsibleName: responsibleUser ?
-                  `${responsibleUser.NAME || ''} ${responsibleUser.LAST_NAME || ''}`.trim() :
+                  `${responsibleUser.NAME || ''} ${responsibleUser.LAST_NAME || ''}`.trim() ||
+                  responsibleUser.EMAIL ||
+                  `Пользователь #${responsibleId}` :
                   'Текущий пользователь'
             })
           }
         })
       }
+
+      // Сортируем задачи по времени (самые долгие первые)
+      tasksArray.sort((a, b) => b.timeSpent - a.timeSpent)
 
       const maxTaskTime = tasksArray.length > 0
           ? Math.max(...tasksArray.map(t => t.timeSpent))
@@ -1836,8 +1929,6 @@ class WorkDayStatisticsManager {
       const averageTimePerTask = tasksArray.length > 0
           ? totalElapsedTaskTime / tasksArray.length
           : 0
-
-      tasksArray.sort((a, b) => b.timeSpent - a.timeSpent)
 
       console.log('Финальная статистика задач:', {
         tasksCount: tasksArray.length,
@@ -1856,6 +1947,12 @@ class WorkDayStatisticsManager {
     } catch (error) {
       console.error('Ошибка загрузки данных задач:', error)
       this.showNotification('error', `Ошибка загрузки данных задач: ${error.message}`)
+
+      // Сбрасываем данные в случае ошибки
+      this.taskTimeData.value.tasks = []
+      this.taskTimeData.value.elapsedTaskTimeSeconds = 0
+      this.workDayData.value.elapsedTaskTimeSeconds = 0
+
       return []
     }
   }
