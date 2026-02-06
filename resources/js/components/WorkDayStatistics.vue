@@ -1671,12 +1671,12 @@ class WorkDayStatisticsManager {
       while (true) {
         const results = await this.executeBatch([
           ['task.elapseditem.getlist', [
-            { 'ID': 'DESC' }, // ORDER
-            { // FILTER
+            { 'ID': 'DESC' },
+            {
               'USER_ID': this.currentUserId.value,
-              'CREATED_DATE': selectedDay,
+              // 'CREATED_DATE': selectedDay,
             },
-            ['TASK_ID', 'MINUTES', 'COMMENT_TEXT', 'CREATED_DATE'], // SELECT
+            ['TASK_ID', 'ID'],
             { // PARAMS
               "NAV_PARAMS": {
                 "nPageSize": pageSize,
