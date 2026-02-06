@@ -1683,9 +1683,11 @@ class WorkDayStatisticsManager {
               '<=CREATED_DATE': endOfDay
             },
             'SELECT': ['TASK_ID', 'MINUTES', 'COMMENT_TEXT', 'CREATED_DATE'],
-            'NAV_PARAMS': {
-              'nPageSize': pageSize,
-              'iNumPage': Math.floor(start / pageSize) + 1
+            {
+              'NAV_PARAMS': {
+                'nPageSize': pageSize,
+                'iNumPage': Math.floor(start / pageSize) + 1
+              }
             }
           }]
         ])
