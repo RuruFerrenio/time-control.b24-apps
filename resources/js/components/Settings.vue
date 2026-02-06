@@ -81,7 +81,7 @@
                           >
                           <div class="flex justify-between text-xs text-gray-500">
                             <span>1 день</span>
-                            <span>7 дней</span>
+                            <span>30 дней</span>
                           </div>
                         </div>
                       </div>
