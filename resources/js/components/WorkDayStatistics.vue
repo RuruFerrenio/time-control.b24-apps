@@ -1,11 +1,11 @@
 <template>
-  <div class="p-6">
+  <div class="p-0 md:p-6">
     <B24PageHeader
         :title="pageTitle"
         description="Анализ времени в Bitrix24 относительно общего рабочего времени и задач"
     />
 
-    <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="mt-0 md:mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
       <!-- Основная часть со статистикой -->
       <div class="lg:col-span-2">
         <!-- Основная карточка со статистикой -->
@@ -90,7 +90,7 @@
                     { label: 'Время задач', value: 'task-time' }
                   ]"
                   @update:modelValue="onTabChange"
-                  class="w-full"
+                  class="w-full whitespace-nowrap overflow-hidden"
               />
 
               <!-- Прелоадер -->
