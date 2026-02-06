@@ -1663,9 +1663,22 @@ class WorkDayStatisticsManager {
       const startOfDay = new Date(this.selectedDay.value + 'T00:00:00')
       const endOfDay = new Date(this.selectedDay.value + 'T23:59:59')
 
-      console.log('loadTaskTimeData')
-      console.log(startOfDay)
-      console.log(endOfDay)
+      // Преобразуем даты в строковый формат для Bitrix24 API
+      // Формат должен быть: "2024-05-16 00:00:00"
+      const formatDateForAPI = (date) => {
+        return date.toISOString()
+            .replace('T', ' ')
+            .split('.')[0]
+      }
+
+      const startDateStr = formatDateForAPI(startOfDay)
+      const endDateStr = formatDateForAPI(endOfDay)
+
+      console.log('Фильтр по дате:', {
+        startDate: startDateStr,
+        endDate: endDateStr,
+        userId: this.currentUserId.value
+      })
 
       let allElapsedItems = []
       let start = 0
@@ -1677,10 +1690,10 @@ class WorkDayStatisticsManager {
             'ORDER': {'ID': 'DESC'},
             'FILTER': {
               'USER_ID': this.currentUserId.value,
-              '>=CREATED_DATE': startOfDay.toISOString(),
-              '<=CREATED_DATE': endOfDay.toISOString()
+              '>=DATE_START': startDateStr,  // Используем DATE_START, а не CREATED_DATE
+              '<=DATE_START': endDateStr
             },
-            'SELECT': ['TASK_ID', 'MINUTES', 'COMMENT_TEXT', 'DATE_START'],
+            'SELECT': ['ID', 'TASK_ID', 'MINUTES', 'COMMENT_TEXT', 'DATE_START', 'DATE_STOP', 'CREATED_DATE'],
             NAV_PARAMS: {
               nPageSize: pageSize,
               iNumPage: Math.floor(start / pageSize) + 1
@@ -1689,6 +1702,8 @@ class WorkDayStatisticsManager {
         ])
 
         const elapsedItems = results[0] || []
+        console.log('Получено записей на странице:', elapsedItems.length)
+
         if (elapsedItems.length === 0) break
 
         allElapsedItems = allElapsedItems.concat(elapsedItems)
@@ -1696,11 +1711,21 @@ class WorkDayStatisticsManager {
         start += pageSize
       }
 
+      console.log('Всего записей времени задач:', allElapsedItems.length)
+
       const taskTimeMap = new Map()
       let totalElapsedTaskTime = 0
 
-      allElapsedItems.forEach(item => {
-        const taskId = item.TASK_ID
+      allElapsedItems.forEach((item, index) => {
+        console.log(`Запись ${index}:`, {
+          taskId: item.TASK_ID,
+          minutes: item.MINUTES,
+          dateStart: item.DATE_START,
+          dateStop: item.DATE_STOP,
+          createdDate: item.CREATED_DATE
+        })
+
+        const taskId = parseInt(item.TASK_ID)
         const minutes = parseInt(item.MINUTES) || 0
         const seconds = minutes * 60
 
@@ -1709,7 +1734,9 @@ class WorkDayStatisticsManager {
             id: taskId,
             timeSpent: 0,
             elapsedItemsCount: 0,
-            comments: []
+            comments: [],
+            lastDateStart: item.DATE_START,
+            dateStops: []
           })
         }
 
@@ -1717,13 +1744,28 @@ class WorkDayStatisticsManager {
         taskData.timeSpent += seconds
         taskData.elapsedItemsCount++
         taskData.comments.push(item.COMMENT_TEXT || '')
+        taskData.dateStops.push(item.DATE_STOP)
+
+        // Обновляем последнюю дату если текущая позже
+        if (item.DATE_START > taskData.lastDateStart) {
+          taskData.lastDateStart = item.DATE_START
+        }
+
         totalElapsedTaskTime += seconds
+      })
+
+      console.log('Сводка по задачам:', {
+        totalTasks: taskTimeMap.size,
+        totalTime: totalElapsedTaskTime,
+        totalMinutes: totalElapsedTaskTime / 60
       })
 
       const taskIds = Array.from(taskTimeMap.keys())
       const tasksArray = []
 
       if (taskIds.length > 0) {
+        console.log('Загрузка информации о задачах:', taskIds)
+
         // Загружаем информацию о задачах
         const taskCalls = []
         taskIds.forEach(taskId => {
@@ -1731,21 +1773,24 @@ class WorkDayStatisticsManager {
         })
 
         const taskResults = await this.executeBatch(taskCalls)
+        console.log('Результаты загрузки задач:', taskResults)
 
         // Загружаем информацию об исполнителях
         const responsibleIds = []
         taskResults.forEach((taskInfo, index) => {
           if (taskInfo && taskInfo.RESPONSIBLE_ID) {
-            responsibleIds.push(taskInfo.RESPONSIBLE_ID)
+            responsibleIds.push(parseInt(taskInfo.RESPONSIBLE_ID))
           }
         })
 
-        const uniqueResponsibleIds = [...new Set(responsibleIds)]
+        const uniqueResponsibleIds = [...new Set(responsibleIds)].filter(id => id)
+        console.log('Уникальные ID исполнителей:', uniqueResponsibleIds)
+
         const userCalls = []
         uniqueResponsibleIds.forEach(userId => {
           userCalls.push(['user.get', {
             FILTER: { 'ID': userId },
-            SELECT: ['ID', 'NAME', 'LAST_NAME', 'SECOND_NAME']
+            SELECT: ['ID', 'NAME', 'LAST_NAME', 'SECOND_NAME', 'EMAIL']
           }])
         })
 
@@ -1764,7 +1809,7 @@ class WorkDayStatisticsManager {
           const taskInfo = taskResults[index]
           if (taskInfo) {
             const taskData = taskTimeMap.get(taskId)
-            const responsibleId = taskInfo.RESPONSIBLE_ID
+            const responsibleId = parseInt(taskInfo.RESPONSIBLE_ID)
             const responsibleUser = userMap.get(responsibleId)
 
             tasksArray.push({
@@ -1774,9 +1819,11 @@ class WorkDayStatisticsManager {
               timeSpent: taskData.timeSpent,
               elapsedItemsCount: taskData.elapsedItemsCount,
               comments: taskData.comments,
+              lastDateStart: taskData.lastDateStart,
+              dateStops: taskData.dateStops,
               responsibleId: responsibleId,
               responsibleName: responsibleUser ?
-                  `${responsibleUser.NAME} ${responsibleUser.LAST_NAME}`.trim() :
+                  `${responsibleUser.NAME || ''} ${responsibleUser.LAST_NAME || ''}`.trim() :
                   'Текущий пользователь'
             })
           }
@@ -1792,6 +1839,13 @@ class WorkDayStatisticsManager {
 
       tasksArray.sort((a, b) => b.timeSpent - a.timeSpent)
 
+      console.log('Финальная статистика задач:', {
+        tasksCount: tasksArray.length,
+        totalElapsedTime: totalElapsedTaskTime,
+        maxTaskTime: maxTaskTime,
+        averageTimePerTask: averageTimePerTask
+      })
+
       this.taskTimeData.value.tasks = tasksArray
       this.taskTimeData.value.elapsedTaskTimeSeconds = totalElapsedTaskTime
       this.workDayData.value.elapsedTaskTimeSeconds = totalElapsedTaskTime
@@ -1800,7 +1854,8 @@ class WorkDayStatisticsManager {
 
       return tasksArray
     } catch (error) {
-      this.showNotification('error', 'Ошибка загрузки данных задач')
+      console.error('Ошибка загрузки данных задач:', error)
+      this.showNotification('error', `Ошибка загрузки данных задач: ${error.message}`)
       return []
     }
   }
