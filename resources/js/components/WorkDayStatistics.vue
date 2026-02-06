@@ -1482,8 +1482,6 @@ class WorkDayStatisticsManager {
       })
 
       BX24.callBatch(batchCommands, (results) => {
-        console.log('batchCommands')
-        console.log(results)
         const resultArray = []
         for (let i = 0; i < calls.length; i++) {
           const key = `call_${i}`
@@ -1668,6 +1666,7 @@ class WorkDayStatisticsManager {
       let start = 0
       const pageSize = 50
 
+      // Загрузка всех elapsed items с постраничной навигацией
       while (true) {
         const results = await this.executeBatch([
           ['task.elapseditem.getlist', [
@@ -1688,8 +1687,6 @@ class WorkDayStatisticsManager {
 
         const elapsedItems = results[0] || []
 
-        console.log('!!!!!!!!!!!!!!!')
-        console.log(results)
         if (elapsedItems.length === 0) break
 
         allElapsedItems = allElapsedItems.concat(elapsedItems)
@@ -1697,12 +1694,11 @@ class WorkDayStatisticsManager {
         start += pageSize
       }
 
-      // Остальной код остается без изменений
+      // Группировка данных по задачам
       const taskTimeMap = new Map()
       let totalElapsedTaskTime = 0
 
       allElapsedItems.forEach(item => {
-        console.log(item)
         const taskId = item.TASK_ID
         const minutes = parseInt(item.MINUTES) || 0
         const seconds = minutes * 60
@@ -1727,19 +1723,22 @@ class WorkDayStatisticsManager {
       const tasksArray = []
 
       if (taskIds.length > 0) {
-        // Загружаем информацию о задачах
+        // Загружаем информацию о задачах через tasks.task.get
         const taskCalls = []
         taskIds.forEach(taskId => {
-          taskCalls.push(['task.get', { 'TASKID': taskId }])
+          taskCalls.push(['tasks.task.get', {
+            taskId: parseInt(taskId),
+            select: ['ID', 'TITLE', 'STATUS', 'RESPONSIBLE_ID']
+          }])
         })
 
         const taskResults = await this.executeBatch(taskCalls)
 
         // Загружаем информацию об исполнителях
         const responsibleIds = []
-        taskResults.forEach((taskInfo, index) => {
-          if (taskInfo && taskInfo.RESPONSIBLE_ID) {
-            responsibleIds.push(taskInfo.RESPONSIBLE_ID)
+        taskResults.forEach((result, index) => {
+          if (result && result.task && result.task.responsibleId) {
+            responsibleIds.push(parseInt(result.task.responsibleId))
           }
         })
 
@@ -1764,16 +1763,17 @@ class WorkDayStatisticsManager {
 
         // Формируем массив задач
         taskIds.forEach((taskId, index) => {
-          const taskInfo = taskResults[index]
-          if (taskInfo) {
+          const result = taskResults[index]
+          if (result && result.task) {
+            const taskInfo = result.task
             const taskData = taskTimeMap.get(taskId)
-            const responsibleId = taskInfo.RESPONSIBLE_ID
+            const responsibleId = parseInt(taskInfo.responsibleId)
             const responsibleUser = userMap.get(responsibleId)
 
             tasksArray.push({
               id: taskId,
-              title: taskInfo?.TITLE || `Задача #${taskId}`,
-              status: taskInfo?.STATUS || '1',
+              title: taskInfo.title || `Задача #${taskId}`,
+              status: taskInfo.status || '1',
               timeSpent: taskData.timeSpent,
               elapsedItemsCount: taskData.elapsedItemsCount,
               comments: taskData.comments,
@@ -1786,6 +1786,7 @@ class WorkDayStatisticsManager {
         })
       }
 
+      // Расчет статистики
       const maxTaskTime = tasksArray.length > 0
           ? Math.max(...tasksArray.map(t => t.timeSpent))
           : 0
@@ -1793,8 +1794,10 @@ class WorkDayStatisticsManager {
           ? totalElapsedTaskTime / tasksArray.length
           : 0
 
+      // Сортировка по времени
       tasksArray.sort((a, b) => b.timeSpent - a.timeSpent)
 
+      // Обновление состояния
       this.taskTimeData.value.tasks = tasksArray
       this.taskTimeData.value.elapsedTaskTimeSeconds = totalElapsedTaskTime
       this.workDayData.value.elapsedTaskTimeSeconds = totalElapsedTaskTime
