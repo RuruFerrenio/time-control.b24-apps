@@ -1676,7 +1676,7 @@ class WorkDayStatisticsManager {
               'USER_ID': this.currentUserId.value,
               '>=CREATED_DATE': selectedDay,
             },
-            ['TASK_ID', 'ID', 'CREATED_DATE', 'DATE_START', 'DATE_STOP'],
+            ['TASK_ID', 'ID', 'CREATED_DATE', 'DATE_START', 'DATE_STOP', 'MINUTES', 'COMMENT_TEXT'],
             { // PARAMS
               "NAV_PARAMS": {
                 "nPageSize": pageSize,
