@@ -907,38 +907,6 @@ class WorkDayStatisticsManager {
     try {
       this.isLoading.value = true
 
-      // Ждем рендеринг DOM и графиков
-      await nextTick()
-      await new Promise(resolve => setTimeout(resolve, 500))
-
-      let chartImages = []
-
-      // Создаем скриншоты графиков, если они есть
-      try {
-        if (this.bitrixTimeChart.value) {
-          const canvas1 = this.bitrixTimeChart.value
-          const image1 = await html2canvas(canvas1, {
-            scale: 2,
-            backgroundColor: '#ffffff',
-            logging: false
-          })
-          chartImages.push(image1.toDataURL('image/png'))
-        }
-
-        if (this.timelineChart.value) {
-          const canvas2 = this.timelineChart.value
-          const image2 = await html2canvas(canvas2, {
-            scale: 2,
-            backgroundColor: '#ffffff',
-            logging: false
-          })
-          chartImages.push(image2.toDataURL('image/png'))
-        }
-      } catch (chartError) {
-        console.error('Ошибка создания скриншотов графиков:', chartError)
-        chartImages = []
-      }
-
       // Создаем временный элемент для рендеринга
       const element = document.createElement('div')
       element.style.width = '210mm'
@@ -946,264 +914,108 @@ class WorkDayStatisticsManager {
       element.style.backgroundColor = 'white'
       element.style.color = 'black'
       element.style.fontFamily = 'Arial, sans-serif'
-      element.style.opacity = '0'
-      element.style.position = 'absolute'
-      element.style.left = '-9999px'
 
-      // Генерируем HTML для PDF с графиками
-      let chartHTML = ''
-      if (chartImages.length > 0) {
-        chartImages.forEach((imgSrc, index) => {
-          chartHTML += `
-          <div style="margin: 20px 0; text-align: center;">
-            <img src="${imgSrc}" style="max-width: 100%; max-height: 300px;">
-          </div>
-        `
-        })
-      }
-
-      element.innerHTML = this.generatePDFContent(chartHTML)
+      // Генерируем HTML для PDF
+      element.innerHTML = this.generatePDFContent()
 
       // Добавляем в DOM для рендеринга
       document.body.appendChild(element)
 
       // Используем браузерную печать для экспорта в PDF
       const printWindow = window.open('', '_blank')
-
-      const printContent = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Статистика рабочего дня</title>
-          <style>
-            body {
-              margin: 0;
-              padding: 20px;
-              font-family: Arial, sans-serif;
-              color: #000;
-              -webkit-print-color-adjust: exact;
-              print-color-adjust: exact;
-            }
-            .container {
-              max-width: 210mm;
-              margin: 0 auto;
-            }
-            .header {
-              text-align: center;
-              margin-bottom: 30px;
-              border-bottom: 2px solid #333;
-              padding-bottom: 20px;
-            }
-            .stats-grid {
-              display: grid;
-              grid-template-columns: 1fr 1fr;
-              gap: 20px;
-              margin: 20px 0;
-            }
-            .stat-card {
-              border: 1px solid #ddd;
-              padding: 15px;
-              border-radius: 8px;
-              margin-bottom: 20px;
-            }
-            .legend-item {
-              display: flex;
-              align-items: center;
-              margin: 10px 0;
-              padding: 8px;
-              border: 1px solid #eee;
-              border-radius: 4px;
-            }
-            .legend-color {
-              width: 20px;
-              height: 20px;
-              border-radius: 50%;
-              margin-right: 10px;
-              border: 1px solid #ddd;
-            }
-            .task-table {
-              width: 100%;
-              border-collapse: collapse;
-              margin: 20px 0;
-              font-size: 12px;
-            }
-            .task-table th,
-            .task-table td {
-              border: 1px solid #ddd;
-              padding: 8px;
-              text-align: left;
-            }
-            .task-table th {
-              background-color: #f3f4f6;
-              font-weight: bold;
-            }
-            .chart-container {
-              text-align: center;
-              margin: 20px 0;
-              border: 1px solid #eee;
-              padding: 15px;
-              border-radius: 8px;
-            }
-            .chart-title {
-              font-size: 14px;
-              font-weight: bold;
-              margin-bottom: 10px;
-            }
-            @media print {
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Статистика рабочего дня</title>
+            <style>
               body {
-                padding: 0;
                 margin: 0;
+                padding: 20px;
+                font-family: Arial, sans-serif;
+                color: #000;
               }
               .container {
-                max-width: 100%;
-                margin: 0;
+                max-width: 210mm;
+                margin: 0 auto;
               }
-              .no-print {
-                display: none !important;
+              .header {
+                text-align: center;
+                margin-bottom: 30px;
+                border-bottom: 2px solid #333;
+                padding-bottom: 20px;
               }
-              .page-break {
-                page-break-before: always;
+              .stats-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+                margin: 20px 0;
               }
-            }
-          </style>
-          <script>
-            window.onload = function() {
-              setTimeout(function() {
-                window.print();
-                setTimeout(function() {
-                  window.close();
-                }, 500);
-              }, 1000);
-            }
-          </script>
-</head>
-<body>
-${this.generatePDFContent(chartHTML)}
-</body>
-</html>
-`
+              .stat-card {
+                border: 1px solid #ddd;
+                padding: 15px;
+                border-radius: 8px;
+              }
+              .legend-item {
+                display: flex;
+                align-items: center;
+                margin: 10px 0;
+              }
+              .legend-color {
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                margin-right: 10px;
+                border: 1px solid #ddd;
+              }
+              .task-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 20px 0;
+              }
+              .task-table th,
+              .task-table td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+              }
+              .task-table th {
+                background-color: #f3f4f6;
+                font-weight: bold;
+              }
+              @media print {
+                body {
+                  padding: 0;
+                }
+              }
+            </style>
+          </head>
+          <body>
+            ${this.generatePDFContent()}
+          </body>
+        </html>
+      `)
 
-printWindow.document.write(printContent)
-printWindow.document.close()
+      printWindow.document.close()
 
-// Удаляем временный элемент
-setTimeout(() => {
-document.body.removeChild(element)
-}, 1000)
+      // Даем время на загрузку стилей
+      setTimeout(() => {
+        printWindow.print()
+        printWindow.onafterprint = () => {
+          printWindow.close()
+          document.body.removeChild(element)
+        }
+      }, 500)
 
-this.showNotification('success', 'Подготовка к печати... Сохраните как PDF')
+      this.showNotification('success', 'Подготовка к печати... Сохраните как PDF')
 
-} catch (error) {
-console.error('Ошибка экспорта:', error)
-this.showNotification('error', 'Ошибка при экспорте: ' + error.message)
-} finally {
-this.isLoading.value = false
-}
-}
-
-generatePDFContent(chartHTML = '') {
-const today = new Date().toLocaleDateString('ru-RU', {
-day: 'numeric',
-month: 'long',
-year: 'numeric',
-hour: '2-digit',
-minute: '2-digit'
-})
-
-return `
-<div class="container">
-<div class="header">
-  <h1 style="margin: 0 0 10px 0;">${this.pageTitle}</h1>
-  <p style="margin: 5px 0;"><strong>Дата анализа:</strong> ${this.formatDayDisplay(this.selectedDay.value)}</p>
-  <p style="margin: 5px 0;"><strong>Сгенерировано:</strong> ${today}</p>
-  <p style="margin: 5px 0;"><strong>Пользователь:</strong> ID ${this.currentUserId.value}</p>
-</div>
-
-<!-- Графики -->
-${chartHTML ? `
-<div class="chart-container">
-  <div class="chart-title">Распределение времени</div>
-  ${chartHTML.split('<div')[0] || ''}
-</div>
-<div class="chart-container">
-  <div class="chart-title">Активность CRM в течение дня</div>
-  ${chartHTML.split('<div')[1] || chartHTML}
-</div>
-` : ''}
-
-<div class="stat-card">
-  <h2 style="margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-    Распределение времени
-  </h2>
-  <div style="text-align: center; margin: 20px 0; padding: 15px; background: #f9fafb; border-radius: 8px;">
-    <div style="font-size: 24px; font-weight: bold;">${this.formatPercentage(this.workDayData.value.bitrixTimePercentage)}</div>
-    <div style="color: #666;">времени в Bitrix24</div>
-  </div>
-
-  ${this.bitrixTimeLegend.map(item => `
-  <div class="legend-item">
-    <div class="legend-color" style="background-color: ${item.color}"></div>
-    <div style="flex-grow: 1">
-      <strong style="display: block;">${item.label}</strong>
-      <small style="color: #666;">${item.description}</small>
-    </div>
-    <div style="text-align: right; min-width: 120px;">
-      <strong>${this.formatDuration(item.value)}</strong><br>
-      <small style="color: #666;">${item.percentage}</small>
-    </div>
-  </div>
-  `).join('')}
-</div>
-
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
-  <div class="stat-card">
-    <h3 style="margin-top: 0; color: #1e40af;">Настройки рабочего времени</h3>
-    <p><strong>Учет времени:</strong> ${this.workDaySettings.value.UF_TIMEMAN ? 'Включен' : 'Выключен'}</p>
-    <p><strong>Свободный график:</strong> ${this.workDaySettings.value.UF_TM_FREE ? 'Да' : 'Нет'}</p>
-    <p><strong>Начало дня до:</strong> ${this.workDaySettings.value.UF_TM_MAX_START || 'Не задано'}</p>
-    <p><strong>Конец дня после:</strong> ${this.workDaySettings.value.UF_TM_MIN_FINISH || 'Не задано'}</p>
-  </div>
-
-  <div class="stat-card">
-    <h3 style="margin-top: 0; color: #1e40af;">Текущий рабочий день</h3>
-    <p><strong>Статус:</strong> ${this.getWorkDayStatusText(this.workDayStatus.value.STATUS)}</p>
-    <p><strong>Начало:</strong> ${this.formatDateTime(this.workDayStatus.value.TIME_START) || 'Не начат'}</p>
-    <p><strong>Длительность:</strong> ${this.workDayStatus.value.DURATION || '00:00:00'}</p>
-    <p><strong>Перерывы:</strong> ${this.workDayStatus.value.TIME_LEAKS || '00:00:00'}</p>
-  </div>
-</div>
-
-<div class="stat-card">
-  <h3 style="margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-    Активность CRM
-  </h3>
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px;">
-    <div>
-      <h4 style="color: #059669; margin-bottom: 10px;">Создано</h4>
-      <p><strong>Сделки:</strong> ${this.crmData.value.createdDealsCount}</p>
-      <p><strong>Лиды:</strong> ${this.crmData.value.createdLeadsCount}</p>
-      <p><strong>Контакты:</strong> ${this.crmData.value.createdContactsCount}</p>
-      <p><strong>Компании:</strong> ${this.crmData.value.createdCompaniesCount}</p>
-    </div>
-    <div>
-      <h4 style="color: #3b82f6; margin-bottom: 10px;">Обновлено</h4>
-      <p><strong>Сделки:</strong> ${this.crmData.value.updatedDealsCount}</p>
-      <p><strong>Лиды:</strong> ${this.crmData.value.updatedLeadsCount}</p>
-      <p><strong>Контакты:</strong> ${this.crmData.value.updatedContactsCount}</p>
-      <p><strong>Компании:</strong> ${this.crmData.value.updatedCompaniesCount}</p>
-    </div>
-  </div>
-</div>
-
-${this.generateTasksPDFContent()}
-
-<div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666;">
-  <p>Bitrix24 Статистика рабочего дня</p>
-  <p>Страница сгенерирована ${new Date().toLocaleDateString('ru-RU')}</p>
-</div>
-</div>
-`
-}
+    } catch (error) {
+      console.error('Ошибка экспорта:', error)
+      this.showNotification('error', 'Ошибка при экспорте')
+    } finally {
+      this.isLoading.value = false
+    }
+  }
 
   generatePDFContent() {
     const today = new Date().toLocaleDateString('ru-RU', {
@@ -1851,6 +1663,10 @@ ${this.generateTasksPDFContent()}
       const startOfDay = new Date(this.selectedDay.value + 'T00:00:00')
       const endOfDay = new Date(this.selectedDay.value + 'T23:59:59')
 
+      console.log('loadTaskTimeData')
+      console.log(startOfDay)
+      console.log(endOfDay)
+
       let allElapsedItems = []
       let start = 0
       const pageSize = 50
@@ -1861,8 +1677,8 @@ ${this.generateTasksPDFContent()}
             'ORDER': {'ID': 'DESC'},
             'FILTER': {
               'USER_ID': this.currentUserId.value,
-              '>=DATE_START': startOfDay.toISOString(),
-              '<=DATE_START': endOfDay.toISOString()
+              '>=CREATED_DATE': startOfDay.toISOString(),
+              '<=CREATED_DATE': endOfDay.toISOString()
             },
             'SELECT': ['TASK_ID', 'MINUTES', 'COMMENT_TEXT', 'DATE_START'],
             NAV_PARAMS: {
