@@ -1662,12 +1662,12 @@ class WorkDayStatisticsManager {
 
   async loadTaskTimeData() {
     try {
-      const startOfDay = new Date(this.selectedDay.value)
-      const endOfDay = new Date(this.selectedDay.value)
+      const startOfDay = this.selectedDay.value
+      const endOfDay = this.selectedDay.value
 
       console.log('qweqweqweqwerq')
-      console.log(startOfDay.toISOString())
-      console.log(endOfDay.toISOString())
+      console.log(startOfDay)
+      console.log(endOfDay)
 
       let allElapsedItems = []
       let start = 0
@@ -1679,8 +1679,8 @@ class WorkDayStatisticsManager {
             'ORDER': {'ID': 'DESC'},
             'FILTER': {
               'USER_ID': this.currentUserId.value,
-              '>=CREATED_DATE': startOfDay.toISOString(),
-              '<=CREATED_DATE': endOfDay.toISOString()
+              '>=CREATED_DATE': startOfDay,
+              '<=CREATED_DATE': endOfDay
             },
             'SELECT': ['TASK_ID', 'MINUTES', 'COMMENT_TEXT', 'CREATED_DATE'],
             NAV_PARAMS: {
