@@ -1665,9 +1665,9 @@ class WorkDayStatisticsManager {
       const startOfDay = this.selectedDay.value
       const endOfDay = this.selectedDay.value
 
-      console.log('qweqweqweqwerq')
-      console.log(startOfDay)
-      console.log(endOfDay)
+      console.log('Загрузка данных задач')
+      console.log('Начало дня:', startOfDay)
+      console.log('Конец дня:', endOfDay)
 
       let allElapsedItems = []
       let start = 0
@@ -1675,21 +1675,21 @@ class WorkDayStatisticsManager {
 
       while (true) {
         const results = await this.executeBatch([
-          ['task.elapseditem.getlist', {
-            'ORDER': {'ID': 'DESC'},
-            'FILTER': {
+          ['task.elapseditem.getlist', [
+            { 'ID': 'DESC' }, // ORDER
+            { // FILTER
               'USER_ID': this.currentUserId.value,
               '>=CREATED_DATE': startOfDay,
               '<=CREATED_DATE': endOfDay
             },
-            'SELECT': ['TASK_ID', 'MINUTES', 'COMMENT_TEXT', 'CREATED_DATE'],
-            {
-              'NAV_PARAMS': {
-                'nPageSize': pageSize,
-                'iNumPage': Math.floor(start / pageSize) + 1
+            ['TASK_ID', 'MINUTES', 'COMMENT_TEXT', 'CREATED_DATE'], // SELECT
+            { // PARAMS
+              "NAV_PARAMS": {
+                "nPageSize": pageSize,
+                "iNumPage": Math.floor(start / pageSize) + 1
               }
             }
-          }]
+          ]]
         ])
 
         const elapsedItems = results[0] || []
@@ -1700,6 +1700,7 @@ class WorkDayStatisticsManager {
         start += pageSize
       }
 
+      // Остальной код остается без изменений
       const taskTimeMap = new Map()
       let totalElapsedTaskTime = 0
 
@@ -1804,6 +1805,7 @@ class WorkDayStatisticsManager {
 
       return tasksArray
     } catch (error) {
+      console.error('Ошибка загрузки данных задач:', error)
       this.showNotification('error', 'Ошибка загрузки данных задач')
       return []
     }
