@@ -247,10 +247,21 @@
                                                   title="Самое свежее посещение"
                                               ></div>
                                             </div>
-                                            <div class="flex flex-wrap items-center gap-2 md:gap-4 text-xs text-gray-500">
-                                              <span>Время на странице: {{ formatDuration(pageData.pageTime) }}</span>
-                                              <span v-if="pageData.count > 1">({{ pageData.count }} посещений)</span>
-                                              <div class="hidden md:flex items-center space-x-4">
+                                            <div class="flex flex-col md:flex-row md:flex-wrap items-start md:items-center gap-1 md:gap-2 lg:gap-4 text-xs text-gray-500">
+                                              <!-- Основная информация - всегда видна -->
+                                              <div class="flex items-center gap-2">
+                                                <span>Время на странице: {{ formatDuration(pageData.pageTime) }}</span>
+                                                <span v-if="pageData.count > 1">({{ pageData.count }} посещений)</span>
+                                              </div>
+
+                                              <!-- Дополнительная информация - на новой строке на мобильных -->
+                                              <div class="flex flex-col xs:flex-row gap-1 xs:gap-3 md:hidden">
+                                                <span>Первое: {{ formatTime(pageData.createdAt) }}</span>
+                                                <span>Последнее: {{ formatTime(pageData.updatedAt) }}</span>
+                                              </div>
+
+                                              <!-- Дополнительная информация для десктопов -->
+                                              <div class="hidden md:flex items-center gap-4">
                                                 <span>Первое посещение: {{ formatTime(pageData.createdAt) }}</span>
                                                 <span>Последнее посещение: {{ formatTime(pageData.updatedAt) }}</span>
                                               </div>
@@ -570,10 +581,21 @@
                                           title="Самое свежее посещение"
                                       ></div>
                                     </div>
-                                    <div class="flex flex-wrap items-center gap-2 md:gap-4 text-xs text-gray-500">
-                                      <span>Время на странице: {{ formatDuration(pageData.pageTime) }}</span>
-                                      <span v-if="pageData.count > 1">({{ pageData.count }} посещений)</span>
-                                      <div class="hidden md:flex items-center space-x-4">
+                                    <div class="flex flex-col md:flex-row md:flex-wrap items-start md:items-center gap-1 md:gap-2 lg:gap-4 text-xs text-gray-500">
+                                      <!-- Основная информация - всегда видна -->
+                                      <div class="flex items-center gap-2">
+                                        <span>Время на странице: {{ formatDuration(pageData.pageTime) }}</span>
+                                        <span v-if="pageData.count > 1">({{ pageData.count }} посещений)</span>
+                                      </div>
+
+                                      <!-- Дополнительная информация - на новой строке на мобильных -->
+                                      <div class="flex flex-col xs:flex-row gap-1 xs:gap-3 md:hidden">
+                                        <span>Первое: {{ formatTime(pageData.createdAt) }}</span>
+                                        <span>Последнее: {{ formatTime(pageData.updatedAt) }}</span>
+                                      </div>
+
+                                      <!-- Дополнительная информация для десктопов -->
+                                      <div class="hidden md:flex items-center gap-4">
                                         <span>Первое посещение: {{ formatTime(pageData.createdAt) }}</span>
                                         <span>Последнее посещение: {{ formatTime(pageData.updatedAt) }}</span>
                                       </div>
