@@ -1665,6 +1665,10 @@ class WorkDayStatisticsManager {
       const startOfDay = new Date(this.selectedDay.value)
       const endOfDay = new Date(this.selectedDay.value)
 
+      console.log('qweqweqweqwerq')
+      console.log(startOfDay.toISOString())
+      console.log(endOfDay.toISOString())
+
       let allElapsedItems = []
       let start = 0
       const pageSize = 50
@@ -1675,10 +1679,10 @@ class WorkDayStatisticsManager {
             'ORDER': {'ID': 'DESC'},
             'FILTER': {
               'USER_ID': this.currentUserId.value,
-              '>=DATE_START': startOfDay.toISOString(),
-              '<=DATE_START': endOfDay.toISOString()
+              '>=CREATED_DATE': startOfDay.toISOString(),
+              '<=CREATED_DATE': endOfDay.toISOString()
             },
-            'SELECT': ['TASK_ID', 'MINUTES', 'COMMENT_TEXT', 'DATE_START'],
+            'SELECT': ['TASK_ID', 'MINUTES', 'COMMENT_TEXT', 'CREATED_DATE'],
             NAV_PARAMS: {
               nPageSize: pageSize,
               iNumPage: Math.floor(start / pageSize) + 1
