@@ -590,8 +590,8 @@
 
                                       <!-- Дополнительная информация - на новой строке на мобильных -->
                                       <div class="flex flex-col xs:flex-row gap-1 xs:gap-3 md:hidden">
-                                        <span>Первое: {{ formatTime(pageData.createdAt) }}</span>
-                                        <span>Последнее: {{ formatTime(pageData.updatedAt) }}</span>
+                                        <span>Первое посещение: {{ formatTime(pageData.createdAt) }}</span>
+                                        <span>Последнее посещение: {{ formatTime(pageData.updatedAt) }}</span>
                                       </div>
 
                                       <!-- Дополнительная информация для десктопов -->
