@@ -1482,6 +1482,8 @@ class WorkDayStatisticsManager {
       })
 
       BX24.callBatch(batchCommands, (results) => {
+        console.log('batchCommands')
+        console.log(results)
         const resultArray = []
         for (let i = 0; i < calls.length; i++) {
           const key = `call_${i}`
