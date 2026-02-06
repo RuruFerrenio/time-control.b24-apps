@@ -1676,7 +1676,7 @@ class WorkDayStatisticsManager {
               'USER_ID': this.currentUserId.value,
               // 'CREATED_DATE': selectedDay,
             },
-            ['TASK_ID', 'ID'],
+            ['TASK_ID', 'ID', 'CREATED_DATE', 'DATE_START', 'DATE_STOP'],
             { // PARAMS
               "NAV_PARAMS": {
                 "nPageSize": pageSize,
@@ -1687,6 +1687,9 @@ class WorkDayStatisticsManager {
         ])
 
         const elapsedItems = results[0] || []
+
+        console.log('!!!!!!!!!!!!!!!')
+        console.log(results)
         if (elapsedItems.length === 0) break
 
         allElapsedItems = allElapsedItems.concat(elapsedItems)
