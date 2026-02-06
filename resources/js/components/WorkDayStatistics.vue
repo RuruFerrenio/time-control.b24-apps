@@ -5,16 +5,16 @@
         description="Анализ времени в Bitrix24 относительно общего рабочего времени и задач"
     />
 
-    <div class="mt-0 md:mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="mt-0 md:mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
       <!-- Основная часть со статистикой -->
       <div class="lg:col-span-2">
         <!-- Основная карточка со статистикой -->
         <B24Card>
-          <div class="p-6">
-            <div class="space-y-6">
+          <div class="p-4 md:p-6">
+            <div class="space-y-4 md:space-y-6">
               <!-- Заголовок и кнопки -->
-              <div class="flex items-center justify-between">
-                <div>
+              <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                <div class="flex-1">
                   <h3 class="text-lg font-semibold text-gray-900">
                     Статистика рабочего времени
                   </h3>
@@ -31,6 +31,7 @@
                       :disabled="isLoading"
                       color="air-primary"
                       size="sm"
+                      class="w-full sm:w-auto justify-center"
                   >
                     <svg class="w-4 h-4 mr-2" :class="{ 'animate-spin': isLoading }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
@@ -94,8 +95,8 @@
               />
 
               <!-- Прелоадер -->
-              <div v-if="isLoading" class="text-center py-12">
-                <svg class="w-12 h-12 mx-auto mb-4 text-gray-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div v-if="isLoading" class="text-center py-8 md:py-12">
+                <svg class="w-8 h-8 md:w-12 md:h-12 mx-auto mb-3 md:mb-4 text-gray-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                 </svg>
                 <p class="text-sm text-gray-500">Загрузка данных...</p>
@@ -104,22 +105,22 @@
               <!-- Контент для таба "Время в Bitrix24" -->
               <div v-else-if="activeTab === 'bitrix-time'">
                 <!-- Контейнер для графика и легенды -->
-                <div class="flex flex-col lg:flex-row items-center justify-between mb-8 gap-6">
+                <div class="flex flex-col lg:flex-row items-center justify-between mb-6 md:mb-8 gap-6">
                   <!-- График -->
-                  <div class="relative w-82 h-82">
+                  <div class="relative w-64 h-64 md:w-82 md:h-82">
                     <canvas ref="bitrixTimeChart"></canvas>
                     <!-- Центральный текст -->
                     <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                      <div class="text-3xl font-bold text-gray-900">
+                      <div class="text-2xl md:text-3xl font-bold text-gray-900">
                         {{ formatPercentage(workDayData.bitrixTimePercentage) }}
                       </div>
-                      <div class="text-sm text-gray-500 mt-1">
+                      <div class="text-xs md:text-sm text-gray-500 mt-1">
                         времени в Bitrix24
                       </div>
                     </div>
                   </div>
                   <!-- Интерактивная легенда -->
-                  <div class="flex-1">
+                  <div class="flex-1 w-full lg:w-auto">
                     <div class="bg-white border border-gray-200 rounded-lg p-4">
                       <h4 class="text-sm font-medium text-gray-900 mb-3">Распределение времени</h4>
                       <div class="space-y-3">
@@ -128,15 +129,15 @@
                              :class="{ 'bg-gray-50 shadow-sm': hoveredLegendIndex === index }"
                              @mouseenter="hoverLegend(index)"
                              @mouseleave="hoverLegend(null)">
-                          <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                              <div class="w-4 h-4 rounded-full mr-3" :style="{ backgroundColor: item.color }"></div>
-                              <div>
-                                <div class="text-sm font-medium text-gray-900">{{ item.label }}</div>
-                                <div class="text-xs text-gray-500">{{ item.description }}</div>
+                          <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-2 xs:gap-0">
+                            <div class="flex items-center min-w-0">
+                              <div class="w-4 h-4 rounded-full mr-3 flex-shrink-0" :style="{ backgroundColor: item.color }"></div>
+                              <div class="min-w-0">
+                                <div class="text-sm font-medium text-gray-900 truncate">{{ item.label }}</div>
+                                <div class="text-xs text-gray-500 truncate">{{ item.description }}</div>
                               </div>
                             </div>
-                            <div class="text-right">
+                            <div class="text-right xs:text-left">
                               <div class="text-sm font-semibold" :style="{ color: item.color }">
                                 {{ formatDuration(item.value) }}
                               </div>
@@ -153,42 +154,42 @@
                     <!-- CRM статистика -->
                     <div class="mt-4 bg-white border border-gray-200 rounded-lg p-4">
                       <h4 class="text-sm font-medium text-gray-900 mb-3">Активность CRM</h4>
-                      <div class="grid grid-cols-2 gap-3">
+                      <div class="grid grid-cols-1 xs:grid-cols-2 gap-3">
                         <!-- Созданные -->
                         <div class="space-y-2">
                           <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                            <div class="flex items-center">
-                              <div class="w-3 h-3 rounded-full mr-2 bg-green-100 border border-green-500"></div>
-                              <span class="text-xs text-gray-700">Создано сделок</span>
+                            <div class="flex items-center min-w-0">
+                              <div class="w-3 h-3 rounded-full mr-2 bg-green-100 border border-green-500 flex-shrink-0"></div>
+                              <span class="text-xs text-gray-700 truncate">Создано сделок</span>
                             </div>
-                            <span class="text-sm font-semibold text-green-600">
+                            <span class="text-sm font-semibold text-green-600 ml-2">
                               {{ crmData.createdDealsCount }}
                             </span>
                           </div>
                           <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                            <div class="flex items-center">
-                              <div class="w-3 h-3 rounded-full mr-2 bg-green-100 border border-green-500"></div>
-                              <span class="text-xs text-gray-700">Создано лидов</span>
+                            <div class="flex items-center min-w-0">
+                              <div class="w-3 h-3 rounded-full mr-2 bg-green-100 border border-green-500 flex-shrink-0"></div>
+                              <span class="text-xs text-gray-700 truncate">Создано лидов</span>
                             </div>
-                            <span class="text-sm font-semibold text-green-600">
+                            <span class="text-sm font-semibold text-green-600 ml-2">
                               {{ crmData.createdLeadsCount }}
                             </span>
                           </div>
                           <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                            <div class="flex items-center">
-                              <div class="w-3 h-3 rounded-full mr-2 bg-green-100 border border-green-500"></div>
-                              <span class="text-xs text-gray-700">Создано контактов</span>
+                            <div class="flex items-center min-w-0">
+                              <div class="w-3 h-3 rounded-full mr-2 bg-green-100 border border-green-500 flex-shrink-0"></div>
+                              <span class="text-xs text-gray-700 truncate">Создано контактов</span>
                             </div>
-                            <span class="text-sm font-semibold text-green-600">
+                            <span class="text-sm font-semibold text-green-600 ml-2">
                               {{ crmData.createdContactsCount }}
                             </span>
                           </div>
                           <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                            <div class="flex items-center">
-                              <div class="w-3 h-3 rounded-full mr-2 bg-green-100 border border-green-500"></div>
-                              <span class="text-xs text-gray-700">Создано компаний</span>
+                            <div class="flex items-center min-w-0">
+                              <div class="w-3 h-3 rounded-full mr-2 bg-green-100 border border-green-500 flex-shrink-0"></div>
+                              <span class="text-xs text-gray-700 truncate">Создано компаний</span>
                             </div>
-                            <span class="text-sm font-semibold text-green-600">
+                            <span class="text-sm font-semibold text-green-600 ml-2">
                               {{ crmData.createdCompaniesCount }}
                             </span>
                           </div>
@@ -197,38 +198,38 @@
                         <!-- Обновленные -->
                         <div class="space-y-2">
                           <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                            <div class="flex items-center">
-                              <div class="w-3 h-3 rounded-full mr-2 bg-blue-100 border border-blue-500"></div>
-                              <span class="text-xs text-gray-700">Обновлено сделок</span>
+                            <div class="flex items-center min-w-0">
+                              <div class="w-3 h-3 rounded-full mr-2 bg-blue-100 border border-blue-500 flex-shrink-0"></div>
+                              <span class="text-xs text-gray-700 truncate">Обновлено сделок</span>
                             </div>
-                            <span class="text-sm font-semibold text-blue-600">
+                            <span class="text-sm font-semibold text-blue-600 ml-2">
                               {{ crmData.updatedDealsCount }}
                             </span>
                           </div>
                           <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                            <div class="flex items-center">
-                              <div class="w-3 h-3 rounded-full mr-2 bg-blue-100 border border-blue-500"></div>
-                              <span class="text-xs text-gray-700">Обновлено лидов</span>
+                            <div class="flex items-center min-w-0">
+                              <div class="w-3 h-3 rounded-full mr-2 bg-blue-100 border border-blue-500 flex-shrink-0"></div>
+                              <span class="text-xs text-gray-700 truncate">Обновлено лидов</span>
                             </div>
-                            <span class="text-sm font-semibold text-blue-600">
+                            <span class="text-sm font-semibold text-blue-600 ml-2">
                               {{ crmData.updatedLeadsCount }}
                             </span>
                           </div>
                           <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                            <div class="flex items-center">
-                              <div class="w-3 h-3 rounded-full mr-2 bg-blue-100 border border-blue-500"></div>
-                              <span class="text-xs text-gray-700">Обновлено контактов</span>
+                            <div class="flex items-center min-w-0">
+                              <div class="w-3 h-3 rounded-full mr-2 bg-blue-100 border border-blue-500 flex-shrink-0"></div>
+                              <span class="text-xs text-gray-700 truncate">Обновлено контактов</span>
                             </div>
-                            <span class="text-sm font-semibold text-blue-600">
+                            <span class="text-sm font-semibold text-blue-600 ml-2">
                               {{ crmData.updatedContactsCount }}
                             </span>
                           </div>
                           <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                            <div class="flex items-center">
-                              <div class="w-3 h-3 rounded-full mr-2 bg-blue-100 border border-blue-500"></div>
-                              <span class="text-xs text-gray-700">Обновлено компаний</span>
+                            <div class="flex items-center min-w-0">
+                              <div class="w-3 h-3 rounded-full mr-2 bg-blue-100 border border-blue-500 flex-shrink-0"></div>
+                              <span class="text-xs text-gray-700 truncate">Обновлено компаний</span>
                             </div>
-                            <span class="text-sm font-semibold text-blue-600">
+                            <span class="text-sm font-semibold text-blue-600 ml-2">
                               {{ crmData.updatedCompaniesCount }}
                             </span>
                           </div>
@@ -238,22 +239,22 @@
                       <!-- Статусы сделок и лидов -->
                       <div class="mt-4 pt-4 border-t border-gray-200">
                         <h5 class="text-xs font-medium text-gray-700 mb-2">Статусы сделок и лидов</h5>
-                        <div class="grid grid-cols-2 gap-2">
-                          <div class="flex items-center justify-between p-1">
-                            <span class="text-xs text-gray-600">Успешные сделки:</span>
-                            <span class="text-xs font-semibold text-green-600">{{ crmData.successfulDealsCount }}</span>
+                        <div class="grid grid-cols-1 xs:grid-cols-2 gap-2">
+                          <div class="flex items-center justify-between p-1 min-w-0">
+                            <span class="text-xs text-gray-600 truncate">Успешные сделки:</span>
+                            <span class="text-xs font-semibold text-green-600 ml-2">{{ crmData.successfulDealsCount }}</span>
                           </div>
-                          <div class="flex items-center justify-between p-1">
-                            <span class="text-xs text-gray-600">Провальные сделки:</span>
-                            <span class="text-xs font-semibold text-red-600">{{ crmData.failedDealsCount }}</span>
+                          <div class="flex items-center justify-between p-1 min-w-0">
+                            <span class="text-xs text-gray-600 truncate">Провальные сделки:</span>
+                            <span class="text-xs font-semibold text-red-600 ml-2">{{ crmData.failedDealsCount }}</span>
                           </div>
-                          <div class="flex items-center justify-between p-1">
-                            <span class="text-xs text-gray-600">Успешные лиды:</span>
-                            <span class="text-xs font-semibold text-green-600">{{ crmData.convertedLeadsCount }}</span>
+                          <div class="flex items-center justify-between p-1 min-w-0">
+                            <span class="text-xs text-gray-600 truncate">Успешные лиды:</span>
+                            <span class="text-xs font-semibold text-green-600 ml-2">{{ crmData.convertedLeadsCount }}</span>
                           </div>
-                          <div class="flex items-center justify-between p-1">
-                            <span class="text-xs text-gray-600">Провальные лиды:</span>
-                            <span class="text-xs font-semibold text-red-600">{{ crmData.junkLeadsCount }}</span>
+                          <div class="flex items-center justify-between p-1 min-w-0">
+                            <span class="text-xs text-gray-600 truncate">Провальные лиды:</span>
+                            <span class="text-xs font-semibold text-red-600 ml-2">{{ crmData.junkLeadsCount }}</span>
                           </div>
                         </div>
                       </div>
@@ -262,30 +263,30 @@
                 </div>
 
                 <!-- Информация о рабочем дне -->
-                <div class="mt-8 space-y-6">
+                <div class="mt-6 md:mt-8 space-y-4 md:space-y-6">
                   <h4 class="text-lg font-semibold text-gray-900">Данные о рабочем дне</h4>
                   <div class="bg-white border border-gray-200 rounded-lg p-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                       <div>
                         <h5 class="text-sm font-medium text-blue-900 mb-4">Настройки рабочего времени</h5>
                         <div class="space-y-3">
-                          <div class="flex justify-between items-center">
+                          <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
                             <span class="text-sm text-blue-700">Учет времени:</span>
                             <B24Badge :color="workDaySettings.UF_TIMEMAN ? 'air-primary-success' : 'air-secondary-accent'">
                               {{ workDaySettings.UF_TIMEMAN ? 'Включен' : 'Выключен' }}
                             </B24Badge>
                           </div>
-                          <div class="flex justify-between items-center">
+                          <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
                             <span class="text-sm text-blue-700">Свободный график:</span>
                             <B24Badge :color="workDaySettings.UF_TM_FREE ? 'air-primary-success' : 'air-secondary-accent'">
                               {{ workDaySettings.UF_TM_FREE ? 'Да' : 'Нет' }}
                             </B24Badge>
                           </div>
-                          <div class="flex justify-between items-center">
+                          <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
                             <span class="text-sm text-blue-700">Начало дня до:</span>
                             <span class="text-sm font-medium text-blue-900">{{ workDaySettings.UF_TM_MAX_START || 'Не задано' }}</span>
                           </div>
-                          <div class="flex justify-between items-center">
+                          <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
                             <span class="text-sm text-blue-700">Конец дня после:</span>
                             <span class="text-sm font-medium text-blue-900">{{ workDaySettings.UF_TM_MIN_FINISH || 'Не задано' }}</span>
                           </div>
@@ -295,25 +296,25 @@
                       <div>
                         <h5 class="text-sm font-medium text-blue-900 mb-4">Текущий рабочий день</h5>
                         <div class="space-y-3">
-                          <div class="flex justify-between items-center">
+                          <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
                             <span class="text-sm text-blue-700">Статус:</span>
                             <B24Badge :class="getWorkDayStatusClass(workDayStatus.STATUS)">
                               {{ getWorkDayStatusText(workDayStatus.STATUS) }}
                             </B24Badge>
                           </div>
-                          <div class="flex justify-between items-center">
+                          <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
                             <span class="text-sm text-blue-700">Начало:</span>
-                            <span class="text-sm font-medium text-blue-900">
+                            <span class="text-sm font-medium text-blue-900 truncate">
                               {{ formatDateTime(workDayStatus.TIME_START) || 'Не начат' }}
                             </span>
                           </div>
-                          <div class="flex justify-between items-center">
+                          <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
                             <span class="text-sm text-blue-700">Длительность:</span>
                             <span class="text-sm font-medium text-blue-900">
                               {{ workDayStatus.DURATION || '00:00:00' }}
                             </span>
                           </div>
-                          <div class="flex justify-between items-center">
+                          <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
                             <span class="text-sm text-blue-700">Перерывы:</span>
                             <span class="text-sm font-medium text-blue-900">
                               {{ workDayStatus.TIME_LEAKS || '00:00:00' }}
@@ -329,23 +330,23 @@
               <!-- Контент для таба "Время задач" -->
               <div v-else-if="activeTab === 'task-time'">
                 <!-- Контейнер для графика и легенды -->
-                <div class="flex flex-col lg:flex-row items-center justify-between mb-8 gap-6">
+                <div class="flex flex-col lg:flex-row items-center justify-between mb-6 md:mb-8 gap-6">
                   <!-- График -->
-                  <div class="relative w-82 h-82">
+                  <div class="relative w-64 h-64 md:w-82 md:h-82">
                     <canvas ref="taskTimeChart"></canvas>
                     <!-- Центральный текст -->
                     <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                      <div class="text-3xl font-bold text-gray-900">
+                      <div class="text-2xl md:text-3xl font-bold text-gray-900">
                         {{ formatPercentage(taskTimeData.taskTimePercentage) }}
                       </div>
-                      <div class="text-sm text-gray-500 mt-1">
+                      <div class="text-xs md:text-sm text-gray-500 mt-1">
                         времени на задачи
                       </div>
                     </div>
                   </div>
 
                   <!-- Интерактивная легенда -->
-                  <div class="flex-1">
+                  <div class="flex-1 w-full lg:w-auto">
                     <div class="bg-white border border-gray-200 rounded-lg p-4">
                       <h4 class="text-sm font-medium text-gray-900 mb-3">Распределение времени</h4>
                       <div class="space-y-3">
@@ -354,15 +355,15 @@
                              :class="{ 'bg-gray-50 shadow-sm': hoveredLegendIndex === index }"
                              @mouseenter="hoverLegend(index)"
                              @mouseleave="hoverLegend(null)">
-                          <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                              <div class="w-4 h-4 rounded-full mr-3" :style="{ backgroundColor: item.color }"></div>
-                              <div>
-                                <div class="text-sm font-medium text-gray-900">{{ item.label }}</div>
-                                <div class="text-xs text-gray-500">{{ item.description }}</div>
+                          <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-2 xs:gap-0">
+                            <div class="flex items-center min-w-0">
+                              <div class="w-4 h-4 rounded-full mr-3 flex-shrink-0" :style="{ backgroundColor: item.color }"></div>
+                              <div class="min-w-0">
+                                <div class="text-sm font-medium text-gray-900 truncate">{{ item.label }}</div>
+                                <div class="text-xs text-gray-500 truncate">{{ item.description }}</div>
                               </div>
                             </div>
-                            <div class="text-right">
+                            <div class="text-right xs:text-left">
                               <div class="text-sm font-semibold" :style="{ color: item.color }">
                                 {{ formatDuration(item.value) }}
                               </div>
@@ -377,7 +378,7 @@
                     <div class="mt-4 bg-white border border-gray-200 rounded-lg p-4">
                       <h4 class="text-sm font-medium text-gray-900 mb-3">Статистика задач</h4>
                       <div class="space-y-3">
-                        <div class="flex justify-between items-center">
+                        <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
                           <span class="text-xs text-gray-700">Всего задач:</span>
                           <span class="text-sm font-semibold text-orange-600">{{ taskTimeData.tasks.length }}</span>
                         </div>
@@ -387,30 +388,30 @@
                 </div>
 
                 <!-- Информация о рабочем дне -->
-                <div class="mt-8 space-y-6">
+                <div class="mt-6 md:mt-8 space-y-4 md:space-y-6">
                   <h4 class="text-lg font-semibold text-gray-900">Данные о рабочем дне</h4>
                   <div class="bg-white border border-gray-200 rounded-lg p-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                       <div>
                         <h5 class="text-sm font-medium text-blue-900 mb-4">Настройки рабочего времени</h5>
                         <div class="space-y-3">
-                          <div class="flex justify-between items-center">
+                          <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
                             <span class="text-sm text-blue-700">Учет времени:</span>
                             <B24Badge :color="workDaySettings.UF_TIMEMAN ? 'air-primary-success' : 'air-secondary-accent'">
                               {{ workDaySettings.UF_TIMEMAN ? 'Включен' : 'Выключен' }}
                             </B24Badge>
                           </div>
-                          <div class="flex justify-between items-center">
+                          <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
                             <span class="text-sm text-blue-700">Свободный график:</span>
                             <B24Badge :color="workDaySettings.UF_TM_FREE ? 'air-primary-success' : 'air-secondary-accent'">
                               {{ workDaySettings.UF_TM_FREE ? 'Да' : 'Нет' }}
                             </B24Badge>
                           </div>
-                          <div class="flex justify-between items-center">
+                          <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
                             <span class="text-sm text-blue-700">Начало дня до:</span>
                             <span class="text-sm font-medium text-blue-900">{{ workDaySettings.UF_TM_MAX_START || 'Не задано' }}</span>
                           </div>
-                          <div class="flex justify-between items-center">
+                          <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
                             <span class="text-sm text-blue-700">Конец дня после:</span>
                             <span class="text-sm font-medium text-blue-900">{{ workDaySettings.UF_TM_MIN_FINISH || 'Не задано' }}</span>
                           </div>
@@ -420,25 +421,25 @@
                       <div>
                         <h5 class="text-sm font-medium text-blue-900 mb-4">Текущий рабочий день</h5>
                         <div class="space-y-3">
-                          <div class="flex justify-between items-center">
+                          <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
                             <span class="text-sm text-blue-700">Статус:</span>
                             <B24Badge :class="getWorkDayStatusClass(workDayStatus.STATUS)">
                               {{ getWorkDayStatusText(workDayStatus.STATUS) }}
                             </B24Badge>
                           </div>
-                          <div class="flex justify-between items-center">
+                          <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
                             <span class="text-sm text-blue-700">Начало:</span>
-                            <span class="text-sm font-medium text-blue-900">
+                            <span class="text-sm font-medium text-blue-900 truncate">
                               {{ formatDateTime(workDayStatus.TIME_START) || 'Не начат' }}
                             </span>
                           </div>
-                          <div class="flex justify-between items-center">
+                          <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
                             <span class="text-sm text-blue-700">Длительность:</span>
                             <span class="text-sm font-medium text-blue-900">
                               {{ workDayStatus.DURATION || '00:00:00' }}
                             </span>
                           </div>
-                          <div class="flex justify-between items-center">
+                          <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
                             <span class="text-sm text-blue-700">Перерывы:</span>
                             <span class="text-sm font-medium text-blue-900">
                               {{ workDayStatus.TIME_LEAKS || '00:00:00' }}
@@ -452,12 +453,12 @@
               </div>
 
               <!-- Сообщение об отсутствии данных -->
-              <div v-else-if="!isLoading && !hasData" class="text-center py-12 text-gray-500">
-                <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div v-else-if="!isLoading && !hasData" class="text-center py-8 md:py-12 text-gray-500">
+                <svg class="w-12 h-12 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
                 <p class="text-sm">Нет данных за выбранный день</p>
-                <B24Button @click="refreshData" color="air-tertiary" class="mt-4">
+                <B24Button @click="refreshData" color="air-tertiary" class="mt-3 md:mt-4 w-full sm:w-auto">
                   Попробовать снова
                 </B24Button>
               </div>
@@ -482,36 +483,30 @@ import { useRoute } from 'vue-router'
 import Sidebar from './Sidebar.vue'
 import Chart from 'chart.js/auto'
 
-export default {
-  name: 'WorkDayStatistics',
-  components: {
-    Sidebar
-  },
-  setup() {
-    const route = useRoute()
+const toast = useToast()
 
-    // Получаем userId из query параметров
-    const viewedUserId = ref(null)
-
-    // Основные данные
-    const activeTab = ref('bitrix-time')
-    const selectedDay = ref(new Date().toISOString().split('T')[0])
-    const calendarDate = ref(null)
-    const isLoading = ref(false)
-    const currentUserId = ref(null)
-    const historyDays = ref(30)
-    const hoveredLegendIndex = ref(null)
+class WorkDayStatisticsManager {
+  constructor() {
+    this.route = useRoute()
+    this.viewedUserId = ref(null)
+    this.activeTab = ref('bitrix-time')
+    this.selectedDay = ref(new Date().toISOString().split('T')[0])
+    this.calendarDate = ref(null)
+    this.isLoading = ref(false)
+    this.currentUserId = ref(null)
+    this.historyDays = ref(30)
+    this.hoveredLegendIndex = ref(null)
 
     // Refs для canvas элементов
-    const bitrixTimeChart = ref(null)
-    const taskTimeChart = ref(null)
+    this.bitrixTimeChart = ref(null)
+    this.taskTimeChart = ref(null)
 
     // Экземпляры Chart.js
-    let bitrixChartInstance = null
-    let taskChartInstance = null
+    this.bitrixChartInstance = null
+    this.taskChartInstance = null
 
     // Данные о рабочем дне
-    const workDaySettings = ref({
+    this.workDaySettings = ref({
       UF_TIMEMAN: false,
       UF_TM_FREE: false,
       UF_TM_MAX_START: null,
@@ -521,7 +516,7 @@ export default {
       ADMIN: false
     })
 
-    const workDayStatus = ref({
+    this.workDayStatus = ref({
       STATUS: 'CLOSED',
       TIME_START: null,
       TIME_FINISH: null,
@@ -530,8 +525,8 @@ export default {
       ACTIVE: false
     })
 
-    const workDayData = ref({
-      totalWorkDaySeconds: 28800, // 8 часов по умолчанию
+    this.workDayData = ref({
+      totalWorkDaySeconds: 28800,
       bitrixTimeSeconds: 0,
       elapsedTaskTimeSeconds: 0,
       bitrixTimeNonTaskSeconds: 0,
@@ -551,7 +546,7 @@ export default {
       projectedPercentage: 0
     })
 
-    const taskTimeData = ref({
+    this.taskTimeData = ref({
       totalWorkDaySeconds: 28800,
       workDurationSeconds: 0,
       elapsedTaskTimeSeconds: 0,
@@ -568,8 +563,7 @@ export default {
       projectedTaskPercentage: 0
     })
 
-    const crmData = ref({
-      // Созданные сущности
+    this.crmData = ref({
       createdDealsCount: 0,
       createdLeadsCount: 0,
       createdContactsCount: 0,
@@ -577,7 +571,6 @@ export default {
       createdInvoicesCount: 0,
       createdQuotesCount: 0,
 
-      // Обновленные сущности
       updatedDealsCount: 0,
       updatedLeadsCount: 0,
       updatedContactsCount: 0,
@@ -585,1318 +578,1336 @@ export default {
       updatedInvoicesCount: 0,
       updatedQuotesCount: 0,
 
-      // Статусы сделок
       successfulDealsCount: 0,
       failedDealsCount: 0,
 
-      // Статусы лидов
       convertedLeadsCount: 0,
       junkLeadsCount: 0
     })
 
     // Константы
-    const minCalendarDate = new CalendarDate(2020, 1, 1)
-    const maxCalendarDate = new CalendarDate(2030, 12, 31)
+    this.minCalendarDate = new CalendarDate(2020, 1, 1)
+    this.maxCalendarDate = new CalendarDate(2030, 12, 31)
 
-    // Цветовая схема согласно требованиям
-    const CHART_COLORS = {
-      WORK_DAY: '#f3f4f6', // Светло-серый - рабочий день по плану
-      BITRIX_TIME: '#3b82f6', // Синий - время в Bitrix24
-      BREAK_TIME: '#f97316', // Оранжевый - перерыв
-      TASK_TIME: '#f97316', // Оранжевый - время на задачи
-      NON_TASK_TIME: '#10b981' // Зеленый - время вне задач
+    // Цветовая схема
+    this.CHART_COLORS = {
+      WORK_DAY: '#f3f4f6',
+      BITRIX_TIME: '#3b82f6',
+      BREAK_TIME: '#f97316',
+      TASK_TIME: '#f97316',
+      NON_TASK_TIME: '#10b981'
     }
 
-    // Вычисляемые свойства для легенды
-    const bitrixTimeLegend = computed(() => {
-      const data = workDayData.value
-      const workDayStatusValue = workDayStatus.value
+    // Кэш профилей пользователей
+    this.userProfilesCache = ref({})
+  }
 
-      // Проверяем, сегодняшний ли рабочий день
-      const today = new Date().toISOString().split('T')[0]
-      const workDayStart = workDayStatusValue.TIME_START
-      const isTodayWorkDay = workDayStart && workDayStart.includes(today)
+  // Вычисляемые свойства
+  get bitrixTimeLegend() {
+    const data = this.workDayData.value
+    const workDayStatusValue = this.workDayStatus.value
 
-      // Если рабочий день не сегодняшний, используем totalWorkDaySeconds
-      let baseTime = isTodayWorkDay ?
-          (data.workDurationSeconds || data.totalWorkDaySeconds) :
-          data.totalWorkDaySeconds
+    const today = new Date().toISOString().split('T')[0]
+    const workDayStart = workDayStatusValue.TIME_START
+    const isTodayWorkDay = workDayStart && workDayStart.includes(today)
 
-      let nonBitrixTime = Math.max(0, baseTime - data.bitrixTimeSeconds -
-          (isTodayWorkDay ? data.breakTimeSeconds : 0))
+    let baseTime = isTodayWorkDay ?
+        (data.workDurationSeconds || data.totalWorkDaySeconds) :
+        data.totalWorkDaySeconds
 
-      return [
-        {
-          label: 'Время в Bitrix24',
-          description: 'Время всех записей',
-          value: data.bitrixTimeSeconds,
-          percentage: baseTime > 0 ? `${((data.bitrixTimeSeconds / baseTime) * 100).toFixed(1)}%` : '0%',
-          color: CHART_COLORS.BITRIX_TIME
-        },
-        {
-          label: 'Перерывы',
-          description: 'Время перерывов',
-          value: isTodayWorkDay ? data.breakTimeSeconds : 0,
-          percentage: isTodayWorkDay && baseTime > 0 ?
-              `${((data.breakTimeSeconds / baseTime) * 100).toFixed(1)}%` : '0%',
-          color: CHART_COLORS.BREAK_TIME,
-          details: !isTodayWorkDay ? 'Только для сегодняшних рабочих дней' : null
-        },
-        {
-          label: isTodayWorkDay ? 'Вне Bitrix24' : 'Рабочее время',
-          description: isTodayWorkDay ? 'Время вне системы' : 'Запланированное рабочее время',
-          value: nonBitrixTime,
-          percentage: baseTime > 0 ? `${((nonBitrixTime / baseTime) * 100).toFixed(1)}%` : '0%',
-          color: CHART_COLORS.WORK_DAY
-        }
-      ]
-    })
+    let nonBitrixTime = Math.max(0, baseTime - data.bitrixTimeSeconds -
+        (isTodayWorkDay ? data.breakTimeSeconds : 0))
 
-    const taskTimeLegend = computed(() => {
-      const data = taskTimeData.value
-      const workDayStatusValue = workDayStatus.value
-
-      // Проверяем, сегодняшний ли рабочий день
-      const today = new Date().toISOString().split('T')[0]
-      const workDayStart = workDayStatusValue.TIME_START
-      const isTodayWorkDay = workDayStart && workDayStart.includes(today)
-
-      // Если рабочий день не сегодняшний, используем totalWorkDaySeconds
-      let baseTime = isTodayWorkDay ?
-          (data.workDurationSeconds || data.totalWorkDaySeconds) :
-          data.totalWorkDaySeconds
-
-      let nonTaskTime = Math.max(0, baseTime - data.elapsedTaskTimeSeconds -
-          (isTodayWorkDay ? workDayData.value.breakTimeSeconds : 0))
-
-      return [
-        {
-          label: 'Время на задачи',
-          description: 'Затраченное время на выполнение задач',
-          value: data.elapsedTaskTimeSeconds,
-          percentage: baseTime > 0 ? `${((data.elapsedTaskTimeSeconds / baseTime) * 100).toFixed(1)}%` : '0%',
-          color: CHART_COLORS.TASK_TIME
-        },
-        {
-          label: 'Перерывы',
-          description: 'Время перерывов',
-          value: isTodayWorkDay ? workDayData.value.breakTimeSeconds : 0,
-          percentage: isTodayWorkDay && baseTime > 0 ?
-              `${((workDayData.value.breakTimeSeconds / baseTime) * 100).toFixed(1)}%` : '0%',
-          color: CHART_COLORS.BREAK_TIME,
-          details: !isTodayWorkDay ? 'Только для сегодняшних рабочих дней' : null
-        },
-        {
-          label: isTodayWorkDay ? 'Вне задач' : 'Рабочее время',
-          description: isTodayWorkDay ? 'Время работы вне задач' : 'Запланированное рабочее время',
-          value: nonTaskTime,
-          percentage: baseTime > 0 ? `${((nonTaskTime / baseTime) * 100).toFixed(1)}%` : '0%',
-          color: CHART_COLORS.WORK_DAY
-        }
-      ]
-    })
-
-    // Вычисляемые свойства
-    const pageTitle = computed(() => {
-      if (viewedUserId.value && viewedUserId.value !== currentUserId.value) {
-        return `Статистика рабочего дня пользователя #${viewedUserId.value}`
+    return [
+      {
+        label: 'Время в Bitrix24',
+        description: 'Время всех записей',
+        value: data.bitrixTimeSeconds,
+        percentage: baseTime > 0 ? `${((data.bitrixTimeSeconds / baseTime) * 100).toFixed(1)}%` : '0%',
+        color: this.CHART_COLORS.BITRIX_TIME
+      },
+      {
+        label: 'Перерывы',
+        description: 'Время перерывов',
+        value: isTodayWorkDay ? data.breakTimeSeconds : 0,
+        percentage: isTodayWorkDay && baseTime > 0 ?
+            `${((data.breakTimeSeconds / baseTime) * 100).toFixed(1)}%` : '0%',
+        color: this.CHART_COLORS.BREAK_TIME,
+        details: !isTodayWorkDay ? 'Только для сегодняшних рабочих дней' : null
+      },
+      {
+        label: isTodayWorkDay ? 'Вне Bitrix24' : 'Рабочее время',
+        description: isTodayWorkDay ? 'Время вне системы' : 'Запланированное рабочее время',
+        value: nonBitrixTime,
+        percentage: baseTime > 0 ? `${((nonBitrixTime / baseTime) * 100).toFixed(1)}%` : '0%',
+        color: this.CHART_COLORS.WORK_DAY
       }
-      return 'Статистика рабочего дня'
+    ]
+  }
+
+  get taskTimeLegend() {
+    const data = this.taskTimeData.value
+    const workDayStatusValue = this.workDayStatus.value
+
+    const today = new Date().toISOString().split('T')[0]
+    const workDayStart = workDayStatusValue.TIME_START
+    const isTodayWorkDay = workDayStart && workDayStart.includes(today)
+
+    let baseTime = isTodayWorkDay ?
+        (data.workDurationSeconds || data.totalWorkDaySeconds) :
+        data.totalWorkDaySeconds
+
+    let nonTaskTime = Math.max(0, baseTime - data.elapsedTaskTimeSeconds -
+        (isTodayWorkDay ? this.workDayData.value.breakTimeSeconds : 0))
+
+    return [
+      {
+        label: 'Время на задачи',
+        description: 'Затраченное время на выполнение задач',
+        value: data.elapsedTaskTimeSeconds,
+        percentage: baseTime > 0 ? `${((data.elapsedTaskTimeSeconds / baseTime) * 100).toFixed(1)}%` : '0%',
+        color: this.CHART_COLORS.TASK_TIME
+      },
+      {
+        label: 'Перерывы',
+        description: 'Время перерывов',
+        value: isTodayWorkDay ? this.workDayData.value.breakTimeSeconds : 0,
+        percentage: isTodayWorkDay && baseTime > 0 ?
+            `${((this.workDayData.value.breakTimeSeconds / baseTime) * 100).toFixed(1)}%` : '0%',
+        color: this.CHART_COLORS.BREAK_TIME,
+        details: !isTodayWorkDay ? 'Только для сегодняшних рабочих дней' : null
+      },
+      {
+        label: isTodayWorkDay ? 'Вне задач' : 'Рабочее время',
+        description: isTodayWorkDay ? 'Время работы вне задач' : 'Запланированное рабочее время',
+        value: nonTaskTime,
+        percentage: baseTime > 0 ? `${((nonTaskTime / baseTime) * 100).toFixed(1)}%` : '0%',
+        color: this.CHART_COLORS.WORK_DAY
+      }
+    ]
+  }
+
+  get pageTitle() {
+    if (this.viewedUserId.value && this.viewedUserId.value !== this.currentUserId.value) {
+      return `Статистика рабочего дня пользователя #${this.viewedUserId.value}`
+    }
+    return 'Статистика рабочего дня'
+  }
+
+  get hasData() {
+    return this.workDayData.value.bitrixTimeSeconds > 0 ||
+        this.workDayData.value.elapsedTaskTimeSeconds > 0 ||
+        this.workDayData.value.workDurationSeconds > 0 ||
+        this.workDayStatus.value.STATUS !== 'CLOSED' ||
+        this.taskTimeData.value.elapsedTaskTimeSeconds > 0
+  }
+
+  // Вспомогательные методы
+  getCalendarDateFromString(dateString) {
+    if (!dateString) return null
+    const date = new Date(dateString)
+    return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate())
+  }
+
+  getStringFromCalendarDate(calendarDate) {
+    if (!calendarDate) return ''
+    const year = calendarDate.year
+    const month = calendarDate.month.toString().padStart(2, '0')
+    const day = calendarDate.day.toString().padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  formatDayDisplay(dateString) {
+    if (!dateString) return 'Выберите дату'
+    const date = new Date(dateString)
+    const today = new Date()
+    const yesterday = new Date(today)
+    yesterday.setDate(yesterday.getDate() - 1)
+
+    if (date.toDateString() === today.toDateString()) return 'Сегодня'
+    if (date.toDateString() === yesterday.toDateString()) return 'Вчера'
+
+    return date.toLocaleDateString('ru-RU', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
     })
+  }
 
-    const hasData = computed(() => {
-      return workDayData.value.bitrixTimeSeconds > 0 ||
-          workDayData.value.elapsedTaskTimeSeconds > 0 ||
-          workDayData.value.workDurationSeconds > 0 ||
-          workDayStatus.value.STATUS !== 'CLOSED' ||
-          taskTimeData.value.elapsedTaskTimeSeconds > 0
+  formatDuration(seconds) {
+    if (!seconds || seconds <= 0) return '0 сек'
+    const hours = Math.floor(seconds / 3600)
+    const minutes = Math.floor((seconds % 3600) / 60)
+    const secs = seconds % 60
+
+    const parts = []
+    if (hours > 0) parts.push(`${hours} ч`)
+    if (minutes > 0) parts.push(`${minutes} мин`)
+    if (secs > 0 || parts.length === 0) parts.push(`${secs} сек`)
+
+    return parts.join(' ')
+  }
+
+  formatPercentage(value) {
+    return `${value.toFixed(1)}%`
+  }
+
+  formatDateTime(dateTime) {
+    if (!dateTime) return null
+    return new Date(dateTime).toLocaleString('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      hour: '2-digit',
+      minute: '2-digit'
     })
+  }
 
-    // Вспомогательные методы
-    const getCalendarDateFromString = (dateString) => {
-      if (!dateString) return null
-      const date = new Date(dateString)
-      return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate())
+  timeStringToSeconds(timeString) {
+    if (!timeString) return 0
+    const parts = timeString.split(':')
+    if (parts.length !== 3) return 0
+
+    const hours = parseInt(parts[0])
+    const minutes = parseInt(parts[1])
+    const seconds = parseInt(parts[2])
+
+    return hours * 3600 + minutes * 60 + seconds
+  }
+
+  getWorkDayStatusClass(status) {
+    const statusMap = {
+      'OPENED': 'bg-green-100 text-green-800',
+      'CLOSED': 'bg-gray-100 text-gray-800',
+      'PAUSED': 'bg-yellow-100 text-yellow-800',
+      'EXPIRED': 'bg-red-100 text-red-800'
     }
+    return statusMap[status] || 'bg-gray-100 text-gray-800'
+  }
 
-    const getStringFromCalendarDate = (calendarDate) => {
-      if (!calendarDate) return ''
-      const year = calendarDate.year
-      const month = calendarDate.month.toString().padStart(2, '0')
-      const day = calendarDate.day.toString().padStart(2, '0')
-      return `${year}-${month}-${day}`
+  getWorkDayStatusText(status) {
+    const statusMap = {
+      'OPENED': 'Открыт',
+      'CLOSED': 'Закрыт',
+      'PAUSED': 'Приостановлен',
+      'EXPIRED': 'Истек'
     }
+    return statusMap[status] || 'Неизвестно'
+  }
 
-    const formatDayDisplay = (dateString) => {
-      if (!dateString) return 'Выберите дату'
-      const date = new Date(dateString)
-      const today = new Date()
-      const yesterday = new Date(today)
-      yesterday.setDate(yesterday.getDate() - 1)
+  isDateDisabled(date) {
+    const dayOfWeek = date.toDate('UTC').getDay()
+    return dayOfWeek === 0 || dayOfWeek === 6
+  }
 
-      if (date.toDateString() === today.toDateString()) return 'Сегодня'
-      if (date.toDateString() === yesterday.toDateString()) return 'Вчера'
+  isDateUnavailable(date) {
+    if (!this.historyDays.value || this.historyDays.value <= 0) return false
 
-      return date.toLocaleDateString('ru-RU', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-      })
-    }
+    const today = new Date()
+    const selectedDate = date.toDate('UTC')
+    const diffTime = today.getTime() - selectedDate.getTime()
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return diffDays > this.historyDays.value
+  }
 
-    const formatDuration = (seconds) => {
-      if (!seconds || seconds <= 0) return '0 сек'
-      const hours = Math.floor(seconds / 3600)
-      const minutes = Math.floor((seconds % 3600) / 60)
-      const secs = seconds % 60
+  // Методы для работы с Chart.js
+  hoverLegend(index) {
+    this.hoveredLegendIndex.value = index
 
-      const parts = []
-      if (hours > 0) parts.push(`${hours} ч`)
-      if (minutes > 0) parts.push(`${minutes} мин`)
-      if (secs > 0 || parts.length === 0) parts.push(`${secs} сек`)
-
-      return parts.join(' ')
-    }
-
-    const formatPercentage = (value) => {
-      return `${value.toFixed(1)}%`
-    }
-
-    const formatDateTime = (dateTime) => {
-      if (!dateTime) return null
-      return new Date(dateTime).toLocaleString('ru-RU', {
-        day: 'numeric',
-        month: 'long',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    }
-
-    const timeStringToSeconds = (timeString) => {
-      if (!timeString) return 0
-      const parts = timeString.split(':')
-      if (parts.length !== 3) return 0
-
-      const hours = parseInt(parts[0])
-      const minutes = parseInt(parts[1])
-      const seconds = parseInt(parts[2])
-
-      return hours * 3600 + minutes * 60 + seconds
-    }
-
-    const getWorkDayStatusClass = (status) => {
-      const statusMap = {
-        'OPENED': 'bg-green-100 text-green-800',
-        'CLOSED': 'bg-gray-100 text-gray-800',
-        'PAUSED': 'bg-yellow-100 text-yellow-800',
-        'EXPIRED': 'bg-red-100 text-red-800'
-      }
-      return statusMap[status] || 'bg-gray-100 text-gray-800'
-    }
-
-    const getWorkDayStatusText = (status) => {
-      const statusMap = {
-        'OPENED': 'Открыт',
-        'CLOSED': 'Закрыт',
-        'PAUSED': 'Приостановлен',
-        'EXPIRED': 'Истек'
-      }
-      return statusMap[status] || 'Неизвестно'
-    }
-
-    const isDateDisabled = (date) => {
-      const dayOfWeek = date.toDate('UTC').getDay()
-      return dayOfWeek === 0 || dayOfWeek === 6
-    }
-
-    const isDateUnavailable = (date) => {
-      if (!historyDays.value || historyDays.value <= 0) return false
-
-      const today = new Date()
-      const selectedDate = date.toDate('UTC')
-      const diffTime = today.getTime() - selectedDate.getTime()
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-      return diffDays > historyDays.value
-    }
-
-    // Методы для работы с Chart.js
-    const hoverLegend = (index) => {
-      hoveredLegendIndex.value = index
-
-      if (activeTab.value === 'bitrix-time' && bitrixChartInstance) {
-        const dataset = bitrixChartInstance.data.datasets[0]
-        dataset.backgroundColor = dataset.backgroundColor.map((color, i) =>
-            i === index ? lightenColor(color, 20) : bitrixTimeLegend.value[i].color
-        )
-        bitrixChartInstance.update('none')
-      } else if (activeTab.value === 'task-time' && taskChartInstance) {
-        const dataset = taskChartInstance.data.datasets[0]
-        dataset.backgroundColor = dataset.backgroundColor.map((color, i) =>
-            i === index ? lightenColor(color, 20) : taskTimeLegend.value[i].color
-        )
-        taskChartInstance.update('none')
-      }
-    }
-
-    const lightenColor = (color, percent) => {
-      const num = parseInt(color.replace("#", ""), 16)
-      const amt = Math.round(2.55 * percent)
-      const R = (num >> 16) + amt
-      const G = (num >> 8 & 0x00FF) + amt
-      const B = (num & 0x0000FF) + amt
-
-      return `#${(
-          0x1000000 +
-          (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
-          (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 +
-          (B < 255 ? (B < 1 ? 0 : B) : 255)
+    if (this.activeTab.value === 'bitrix-time' && this.bitrixChartInstance) {
+      const dataset = this.bitrixChartInstance.data.datasets[0]
+      dataset.backgroundColor = dataset.backgroundColor.map((color, i) =>
+          i === index ? this.lightenColor(color, 20) : this.bitrixTimeLegend[i].color
       )
-          .toString(16)
-          .slice(1)}`
+      this.bitrixChartInstance.update('none')
+    } else if (this.activeTab.value === 'task-time' && this.taskChartInstance) {
+      const dataset = this.taskChartInstance.data.datasets[0]
+      dataset.backgroundColor = dataset.backgroundColor.map((color, i) =>
+          i === index ? this.lightenColor(color, 20) : this.taskTimeLegend[i].color
+      )
+      this.taskChartInstance.update('none')
+    }
+  }
+
+  lightenColor(color, percent) {
+    const num = parseInt(color.replace("#", ""), 16)
+    const amt = Math.round(2.55 * percent)
+    const R = (num >> 16) + amt
+    const G = (num >> 8 & 0x00FF) + amt
+    const B = (num & 0x0000FF) + amt
+
+    return `#${(
+        0x1000000 +
+        (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
+        (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 +
+        (B < 255 ? (B < 1 ? 0 : B) : 255)
+    )
+        .toString(16)
+        .slice(1)}`
+  }
+
+  createBitrixTimeChart() {
+    if (this.bitrixChartInstance) {
+      this.bitrixChartInstance.destroy()
     }
 
-    const createBitrixTimeChart = () => {
-      if (bitrixChartInstance) {
-        bitrixChartInstance.destroy()
-      }
+    if (!this.bitrixTimeChart.value) return
 
-      if (!bitrixTimeChart.value) return
+    const chartData = {
+      labels: this.bitrixTimeLegend.map(item => item.label),
+      datasets: [{
+        data: this.bitrixTimeLegend.map(item => item.value),
+        backgroundColor: this.bitrixTimeLegend.map(item => item.color),
+        borderWidth: 2,
+        borderColor: '#ffffff',
+        hoverOffset: 15,
+        hoverBorderWidth: 3
+      }]
+    }
 
-      const chartData = {
-        labels: bitrixTimeLegend.value.map(item => item.label),
-        datasets: [{
-          data: bitrixTimeLegend.value.map(item => item.value),
-          backgroundColor: bitrixTimeLegend.value.map(item => item.color),
-          borderWidth: 2,
-          borderColor: '#ffffff',
-          hoverOffset: 15,
-          hoverBorderWidth: 3
-        }]
-      }
-
-      const options = {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '70%',
-        plugins: {
-          legend: {
-            display: false
+    const options = {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '70%',
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          callbacks: {
+            label: (context) => {
+              const item = this.bitrixTimeLegend[context.dataIndex]
+              return [
+                item.label,
+                `${this.formatDuration(context.raw)} (${item.percentage})`,
+                item.description
+              ]
+            }
           },
-          tooltip: {
-            callbacks: {
-              label: (context) => {
-                const item = bitrixTimeLegend.value[context.dataIndex]
-                return [
-                  item.label,
-                  `${formatDuration(context.raw)} (${item.percentage})`,
-                  item.description
-                ]
-              }
-            },
-            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-            titleColor: '#1f2937',
-            bodyColor: '#4b5563',
-            borderColor: '#e5e7eb',
-            borderWidth: 1,
-            padding: 12,
-            boxPadding: 6
-          }
-        },
-        interaction: {
-          intersect: false,
-          mode: 'index'
-        },
-        animation: {
-          animateScale: true,
-          animateRotate: true,
-          duration: 1000,
-          easing: 'easeOutQuart'
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          titleColor: '#1f2937',
+          bodyColor: '#4b5563',
+          borderColor: '#e5e7eb',
+          borderWidth: 1,
+          padding: 12,
+          boxPadding: 6
         }
+      },
+      interaction: {
+        intersect: false,
+        mode: 'index'
+      },
+      animation: {
+        animateScale: true,
+        animateRotate: true,
+        duration: 1000,
+        easing: 'easeOutQuart'
       }
-
-      bitrixChartInstance = new Chart(bitrixTimeChart.value, {
-        type: 'doughnut',
-        data: chartData,
-        options: options
-      })
-
-      bitrixTimeChart.value.addEventListener('mouseleave', () => {
-        hoverLegend(null)
-      })
     }
 
-    const createTaskTimeChart = () => {
-      if (taskChartInstance) {
-        taskChartInstance.destroy()
-      }
+    this.bitrixChartInstance = new Chart(this.bitrixTimeChart.value, {
+      type: 'doughnut',
+      data: chartData,
+      options: options
+    })
 
-      if (!taskTimeChart.value) return
+    this.bitrixTimeChart.value.addEventListener('mouseleave', () => {
+      this.hoverLegend(null)
+    })
+  }
 
-      const chartData = {
-        labels: taskTimeLegend.value.map(item => item.label),
-        datasets: [{
-          data: taskTimeLegend.value.map(item => item.value),
-          backgroundColor: taskTimeLegend.value.map(item => item.color),
-          borderWidth: 2,
-          borderColor: '#ffffff',
-          hoverOffset: 15,
-          hoverBorderWidth: 3
-        }]
-      }
+  createTaskTimeChart() {
+    if (this.taskChartInstance) {
+      this.taskChartInstance.destroy()
+    }
 
-      const options = {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '70%',
-        plugins: {
-          legend: {
-            display: false
+    if (!this.taskTimeChart.value) return
+
+    const chartData = {
+      labels: this.taskTimeLegend.map(item => item.label),
+      datasets: [{
+        data: this.taskTimeLegend.map(item => item.value),
+        backgroundColor: this.taskTimeLegend.map(item => item.color),
+        borderWidth: 2,
+        borderColor: '#ffffff',
+        hoverOffset: 15,
+        hoverBorderWidth: 3
+      }]
+    }
+
+    const options = {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '70%',
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          callbacks: {
+            label: (context) => {
+              const item = this.taskTimeLegend[context.dataIndex]
+              return [
+                item.label,
+                `${this.formatDuration(context.raw)} (${item.percentage})`,
+                item.description
+              ]
+            }
           },
-          tooltip: {
-            callbacks: {
-              label: (context) => {
-                const item = taskTimeLegend.value[context.dataIndex]
-                return [
-                  item.label,
-                  `${formatDuration(context.raw)} (${item.percentage})`,
-                  item.description
-                ]
-              }
-            },
-            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-            titleColor: '#1f2937',
-            bodyColor: '#4b5563',
-            borderColor: '#e5e7eb',
-            borderWidth: 1,
-            padding: 12,
-            boxPadding: 6
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          titleColor: '#1f2937',
+          bodyColor: '#4b5563',
+          borderColor: '#e5e7eb',
+          borderWidth: 1,
+          padding: 12,
+          boxPadding: 6
+        }
+      },
+      interaction: {
+        intersect: false,
+        mode: 'index'
+      },
+      animation: {
+        animateScale: true,
+        animateRotate: true,
+        duration: 1000,
+        easing: 'easeOutQuart'
+      }
+    }
+
+    this.taskChartInstance = new Chart(this.taskTimeChart.value, {
+      type: 'doughnut',
+      data: chartData,
+      options: options
+    })
+
+    this.taskTimeChart.value.addEventListener('mouseleave', () => {
+      this.hoverLegend(null)
+    })
+  }
+
+  updateCharts() {
+    nextTick(() => {
+      if (this.activeTab.value === 'bitrix-time') {
+        this.createBitrixTimeChart()
+      } else if (this.activeTab.value === 'task-time') {
+        this.createTaskTimeChart()
+      }
+    })
+  }
+
+  // Основные методы
+  handleCalendarDateChange(newDate) {
+    if (newDate) {
+      this.selectedDay.value = this.getStringFromCalendarDate(newDate)
+      this.loadData()
+    }
+  }
+
+  onTabChange(newTab) {
+    this.activeTab.value = newTab
+    this.updateCharts()
+  }
+
+  refreshData() {
+    // Сбрасываем данные
+    this.workDayData.value = {
+      totalWorkDaySeconds: 28800,
+      bitrixTimeSeconds: 0,
+      elapsedTaskTimeSeconds: 0,
+      bitrixTimeNonTaskSeconds: 0,
+      workDurationSeconds: 0,
+      breakTimeSeconds: 0,
+
+      bitrixTimePercentage: 0,
+      workDurationPercentage: 0,
+      bitrixTimeOfWorkedPercentage: 0,
+      taskTimeOfBitrixPercentage: 0,
+      nonBitrixTimeSeconds: 0,
+      nonBitrixTimePercentage: 0,
+      remainingWorkDaySeconds: 0,
+      remainingPercentage: 0,
+      averageActivityPerHour: 0,
+      projectedBitrixTime: 0,
+      projectedPercentage: 0
+    }
+
+    this.taskTimeData.value = {
+      totalWorkDaySeconds: 28800,
+      workDurationSeconds: 0,
+      elapsedTaskTimeSeconds: 0,
+      tasks: [],
+
+      taskTimePercentage: 0,
+      workDurationPercentage: 0,
+      taskTimeOfWorkedPercentage: 0,
+      taskEfficiencyPercentage: 0,
+      nonTaskTimeSeconds: 0,
+      averageTimePerTask: 0,
+      maxTaskTime: 0,
+      projectedTaskTime: 0,
+      projectedTaskPercentage: 0
+    }
+
+    this.crmData.value = {
+      createdDealsCount: 0,
+      createdLeadsCount: 0,
+      createdContactsCount: 0,
+      createdCompaniesCount: 0,
+      createdInvoicesCount: 0,
+      createdQuotesCount: 0,
+
+      updatedDealsCount: 0,
+      updatedLeadsCount: 0,
+      updatedContactsCount: 0,
+      updatedCompaniesCount: 0,
+      updatedInvoicesCount: 0,
+      updatedQuotesCount: 0,
+
+      successfulDealsCount: 0,
+      failedDealsCount: 0,
+
+      convertedLeadsCount: 0,
+      junkLeadsCount: 0
+    }
+
+    this.loadData()
+  }
+
+  showNotification(type, message) {
+    if (typeof toast !== 'undefined') {
+      toast.add({
+        description: message,
+        variant: type
+      })
+    } else {
+      console[type === 'error' ? 'error' : type === 'success' ? 'log' : 'info'](message)
+    }
+  }
+
+  // Методы для batch запросов
+  async executeBatch(calls) {
+    const batchSize = 50
+    const results = []
+
+    for (let i = 0; i < calls.length; i += batchSize) {
+      const batchCalls = calls.slice(i, i + batchSize)
+      const batchResult = await this.executeSingleBatch(batchCalls)
+      results.push(...batchResult)
+    }
+
+    return results
+  }
+
+  executeSingleBatch(calls) {
+    return new Promise((resolve, reject) => {
+      const batchCommands = {}
+      calls.forEach((call, index) => {
+        batchCommands[`call_${index}`] = call
+      })
+
+      BX24.callBatch(batchCommands, (results) => {
+        const resultArray = []
+        for (let i = 0; i < calls.length; i++) {
+          const key = `call_${i}`
+          if (results[key] && !results[key].error()) {
+            resultArray.push(results[key].data())
+          } else {
+            resultArray.push(null)
           }
-        },
-        interaction: {
-          intersect: false,
-          mode: 'index'
-        },
-        animation: {
-          animateScale: true,
-          animateRotate: true,
-          duration: 1000,
-          easing: 'easeOutQuart'
         }
-      }
+        resolve(resultArray)
+      }, true)
+    })
+  }
 
-      taskChartInstance = new Chart(taskTimeChart.value, {
-        type: 'doughnut',
-        data: chartData,
-        options: options
-      })
+  // Методы загрузки данных с использованием batch
+  async loadCurrentUser() {
+    try {
+      const userIdFromQuery = this.route.query.userId
 
-      taskTimeChart.value.addEventListener('mouseleave', () => {
-        hoverLegend(null)
-      })
-    }
+      if (userIdFromQuery) {
+        this.viewedUserId.value = parseInt(userIdFromQuery)
+        this.currentUserId.value = this.viewedUserId.value
 
-    const updateCharts = () => {
-      nextTick(() => {
-        if (activeTab.value === 'bitrix-time') {
-          createBitrixTimeChart()
-        } else if (activeTab.value === 'task-time') {
-          createTaskTimeChart()
-        }
-      })
-    }
-
-    // Основные методы
-    const handleCalendarDateChange = (newDate) => {
-      if (newDate) {
-        selectedDay.value = getStringFromCalendarDate(newDate)
-        loadData()
-      }
-    }
-
-    const onTabChange = (newTab) => {
-      activeTab.value = newTab
-      updateCharts()
-    }
-
-    const refreshData = () => {
-      // Сбрасываем данные перед загрузкой
-      workDayData.value = {
-        totalWorkDaySeconds: 28800,
-        bitrixTimeSeconds: 0,
-        elapsedTaskTimeSeconds: 0,
-        bitrixTimeNonTaskSeconds: 0,
-        workDurationSeconds: 0,
-        breakTimeSeconds: 0,
-
-        bitrixTimePercentage: 0,
-        workDurationPercentage: 0,
-        bitrixTimeOfWorkedPercentage: 0,
-        taskTimeOfBitrixPercentage: 0,
-        nonBitrixTimeSeconds: 0,
-        nonBitrixTimePercentage: 0,
-        remainingWorkDaySeconds: 0,
-        remainingPercentage: 0,
-        averageActivityPerHour: 0,
-        projectedBitrixTime: 0,
-        projectedPercentage: 0
-      }
-
-      taskTimeData.value = {
-        totalWorkDaySeconds: 28800,
-        workDurationSeconds: 0,
-        elapsedTaskTimeSeconds: 0,
-        tasks: [],
-
-        taskTimePercentage: 0,
-        workDurationPercentage: 0,
-        taskTimeOfWorkedPercentage: 0,
-        taskEfficiencyPercentage: 0,
-        nonTaskTimeSeconds: 0,
-        averageTimePerTask: 0,
-        maxTaskTime: 0,
-        projectedTaskTime: 0,
-        projectedTaskPercentage: 0
-      }
-
-      crmData.value = {
-        createdDealsCount: 0,
-        createdLeadsCount: 0,
-        createdContactsCount: 0,
-        createdCompaniesCount: 0,
-        createdInvoicesCount: 0,
-        createdQuotesCount: 0,
-
-        updatedDealsCount: 0,
-        updatedLeadsCount: 0,
-        updatedContactsCount: 0,
-        updatedCompaniesCount: 0,
-        updatedInvoicesCount: 0,
-        updatedQuotesCount: 0,
-
-        successfulDealsCount: 0,
-        failedDealsCount: 0,
-
-        convertedLeadsCount: 0,
-        junkLeadsCount: 0
-      }
-
-      loadData()
-    }
-
-    // Методы загрузки данных
-    const loadCurrentUser = () => {
-      return new Promise((resolve, reject) => {
-        // Проверяем, есть ли userId в query параметрах
-        const userIdFromQuery = route.query.userId
-
-        if (userIdFromQuery) {
-          viewedUserId.value = parseInt(userIdFromQuery)
-          currentUserId.value = viewedUserId.value
-
-          // Загружаем профиль выбранного пользователя
-          BX24.callMethod('user.get', {
-            FILTER: { 'ID': currentUserId.value },
+        const results = await this.executeBatch([
+          ['user.get', {
+            FILTER: { 'ID': this.currentUserId.value },
             SELECT: ['ID', 'NAME', 'LAST_NAME', 'SECOND_NAME', 'EMAIL']
-          }, (result) => {
-            if (result.error()) {
-              reject(result.error())
-            } else {
-              const userData = result.data()
-              if (userData.length > 0) {
-                resolve(userData[0])
-              } else {
-                reject(new Error('Пользователь не найден'))
-              }
-            }
-          })
+          }]
+        ])
+
+        if (results[0] && results[0].length > 0) {
+          return results[0][0]
         } else {
-          // Иначе используем текущего пользователя
-          viewedUserId.value = null
-          BX24.callMethod('user.current', {}, (result) => {
-            if (result.error()) {
-              reject(result.error())
-            } else {
-              const userData = result.data()
-              currentUserId.value = parseInt(userData.ID)
-              resolve(userData)
-            }
-          })
+          throw new Error('Пользователь не найден')
         }
-      })
-    }
+      } else {
+        const results = await this.executeBatch([
+          ['user.current', {}]
+        ])
 
-    const loadWorkDaySettings = () => {
-      return new Promise((resolve, reject) => {
-        BX24.callMethod('timeman.settings', {
-          USER_ID: currentUserId.value
-        }, (result) => {
-          if (result.error()) {
-            reject(result.error())
-          } else {
-            workDaySettings.value = result.data()
-
-            if (workDaySettings.value.UF_TM_MIN_DURATION) {
-              const totalSeconds = timeStringToSeconds(
-                  workDaySettings.value.UF_TM_MIN_DURATION
-              )
-              workDayData.value.totalWorkDaySeconds = totalSeconds
-              taskTimeData.value.totalWorkDaySeconds = totalSeconds
-            }
-
-            resolve(result.data())
-          }
-        })
-      })
-    }
-
-    const loadWorkDayStatus = () => {
-      return new Promise((resolve, reject) => {
-        BX24.callMethod('timeman.status', {
-          USER_ID: currentUserId.value
-        }, (result) => {
-          if (result.error()) {
-            reject(result.error())
-          } else {
-            workDayStatus.value = result.data()
-
-            const workDurationSeconds = timeStringToSeconds(
-                workDayStatus.value.DURATION
-            )
-            const breakTimeSeconds = timeStringToSeconds(
-                workDayStatus.value.TIME_LEAKS || '00:00:00'
-            )
-
-            workDayData.value.workDurationSeconds = workDurationSeconds
-            taskTimeData.value.workDurationSeconds = workDurationSeconds
-
-            // Ключевое изменение: проверяем, что рабочий день сегодняшний
-            const today = new Date().toISOString().split('T')[0]
-            const workDayStart = workDayStatus.value.TIME_START
-            const isTodayWorkDay = workDayStart && workDayStart.includes(today)
-
-            if (isTodayWorkDay) {
-              // Сегодняшний рабочий день - учитываем перерывы
-              workDayData.value.breakTimeSeconds = breakTimeSeconds
-            } else {
-              // Не сегодняшний день - игнорируем перерывы (baseTime = totalWorkDaySeconds)
-              workDayData.value.breakTimeSeconds = 0
-            }
-
-            resolve(result.data())
-          }
-        })
-      })
-    }
-
-    const loadBitrixTimeData = async () => {
-      try {
-        const sectionResult = await new Promise((resolve, reject) => {
-          BX24.callMethod('entity.section.get', {
-            ENTITY: 'pr_tracking',
-            FILTER: { 'NAME': selectedDay.value },
-            SELECT: ['ID', 'NAME']
-          }, (result) => {
-            if (result.error()) {
-              reject(result.error())
-              return
-            }
-            resolve(result.data())
-          })
-        })
-
-        const sections = sectionResult
-        if (sections.length === 0) {
-          workDayData.value.bitrixTimeSeconds = 0
-          return []
+        if (results[0]) {
+          const userData = results[0]
+          this.currentUserId.value = parseInt(userData.ID)
+          return userData
+        } else {
+          throw new Error('Ошибка загрузки текущего пользователя')
         }
+      }
+    } catch (error) {
+      this.showNotification('error', 'Ошибка загрузки пользователя')
+      throw error
+    }
+  }
 
-        const sectionId = sections[0].ID
+  async loadWorkDaySettings() {
+    try {
+      const results = await this.executeBatch([
+        ['timeman.settings', {
+          USER_ID: this.currentUserId.value
+        }]
+      ])
 
-        const itemsResult = await new Promise((resolve, reject) => {
-          BX24.callMethod('entity.item.get', {
+      if (results[0]) {
+        this.workDaySettings.value = results[0]
+
+        if (this.workDaySettings.value.UF_TM_MIN_DURATION) {
+          const totalSeconds = this.timeStringToSeconds(
+              this.workDaySettings.value.UF_TM_MIN_DURATION
+          )
+          this.workDayData.value.totalWorkDaySeconds = totalSeconds
+          this.taskTimeData.value.totalWorkDaySeconds = totalSeconds
+        }
+      }
+    } catch (error) {
+      this.showNotification('error', 'Ошибка загрузки настроек рабочего дня')
+    }
+  }
+
+  async loadWorkDayStatus() {
+    try {
+      const results = await this.executeBatch([
+        ['timeman.status', {
+          USER_ID: this.currentUserId.value
+        }]
+      ])
+
+      if (results[0]) {
+        this.workDayStatus.value = results[0]
+
+        const workDurationSeconds = this.timeStringToSeconds(
+            this.workDayStatus.value.DURATION
+        )
+        const breakTimeSeconds = this.timeStringToSeconds(
+            this.workDayStatus.value.TIME_LEAKS || '00:00:00'
+        )
+
+        this.workDayData.value.workDurationSeconds = workDurationSeconds
+        this.taskTimeData.value.workDurationSeconds = workDurationSeconds
+
+        const today = new Date().toISOString().split('T')[0]
+        const workDayStart = this.workDayStatus.value.TIME_START
+        const isTodayWorkDay = workDayStart && workDayStart.includes(today)
+
+        if (isTodayWorkDay) {
+          this.workDayData.value.breakTimeSeconds = breakTimeSeconds
+        } else {
+          this.workDayData.value.breakTimeSeconds = 0
+        }
+      }
+    } catch (error) {
+      this.showNotification('error', 'Ошибка загрузки статуса рабочего дня')
+    }
+  }
+
+  async loadBitrixTimeData() {
+    try {
+      const sectionResults = await this.executeBatch([
+        ['entity.section.get', {
+          ENTITY: 'pr_tracking',
+          FILTER: { 'NAME': this.selectedDay.value },
+          SELECT: ['ID', 'NAME']
+        }]
+      ])
+
+      const sections = sectionResults[0] || []
+      if (sections.length === 0) {
+        this.workDayData.value.bitrixTimeSeconds = 0
+        return []
+      }
+
+      const sectionId = sections[0].ID
+      let allItems = []
+      let start = 0
+      const pageSize = 50
+
+      while (true) {
+        const itemsResults = await this.executeBatch([
+          ['entity.item.get', {
             ENTITY: 'pr_tracking',
             FILTER: {
               SECTION_ID: sectionId,
-              'PROPERTY_USER_ID': currentUserId.value
+              'PROPERTY_USER_ID': this.currentUserId.value
             },
-            SELECT: ['PROPERTY_VALUES']
-          }, (result) => {
-            if (result.error()) {
-              reject(result.error())
-              return
+            SELECT: ['PROPERTY_VALUES'],
+            NAV_PARAMS: {
+              nPageSize: pageSize,
+              iNumPage: Math.floor(start / pageSize) + 1
             }
-            resolve(result.data())
-          })
-        })
-
-        const items = itemsResult
-        let totalBitrixTime = 0
-
-        items.forEach(item => {
-          const props = item.PROPERTY_VALUES || {}
-          const pageTime = parseInt(props.PAGE_TIME) || 0
-          totalBitrixTime += pageTime
-        })
-
-        workDayData.value.bitrixTimeSeconds = totalBitrixTime
-
-        return items
-      } catch (error) {
-        console.error('Ошибка загрузки данных Bitrix24:', error)
-        workDayData.value.bitrixTimeSeconds = 0
-        return []
-      }
-    }
-
-    const loadElapsedTaskTime = async () => {
-      try {
-        const startOfDay = new Date(selectedDay.value + 'T00:00:00')
-        const endOfDay = new Date(selectedDay.value + 'T23:59:59')
-
-        return new Promise((resolve, reject) => {
-          BX24.callMethod('task.elapseditem.getlist', {
-            'ORDER': {'ID': 'DESC'},
-            'FILTER': {
-              'USER_ID': currentUserId.value,
-              '>=CREATED_DATE': startOfDay.toISOString(),
-              '<=CREATED_DATE': endOfDay.toISOString()
-            },
-            'SELECT': ['TASK_ID', 'MINUTES', 'COMMENT_TEXT', 'CREATED_DATE']
-          }, (result) => {
-            if (result.error()) {
-              reject(result.error())
-              return
-            }
-
-            const elapsedItems = result.data()
-            let totalTaskTime = 0
-
-            elapsedItems.forEach(item => {
-              const minutes = parseInt(item.MINUTES) || 0
-              totalTaskTime += minutes * 60
-            })
-
-            resolve(totalTaskTime)
-          })
-        })
-      } catch (error) {
-        console.error('Ошибка загрузки времени задач:', error)
-        return 0
-      }
-    }
-
-    const loadTaskTimeData = async () => {
-      try {
-        const startOfDay = new Date(selectedDay.value + 'T00:00:00')
-        const endOfDay = new Date(selectedDay.value + 'T23:59:59')
-
-        const elapsedItemsResult = await new Promise((resolve, reject) => {
-          BX24.callMethod('task.elapseditem.getlist', {
-            'ORDER': {'ID': 'DESC'},
-            'FILTER': {
-              'USER_ID': currentUserId.value,
-              '>=CREATED_DATE': startOfDay.toISOString(),
-              '<=CREATED_DATE': endOfDay.toISOString()
-            },
-            'SELECT': ['TASK_ID', 'MINUTES', 'COMMENT_TEXT', 'CREATED_DATE']
-          }, (result) => {
-            if (result.error()) {
-              reject(result.error())
-              return
-            }
-            resolve(result.data())
-          })
-        })
-
-        const elapsedItems = elapsedItemsResult
-        const taskTimeMap = new Map()
-        let totalElapsedTaskTime = 0
-
-        elapsedItems.forEach(item => {
-          const taskId = item.TASK_ID
-          const minutes = parseInt(item.MINUTES) || 0
-          const seconds = minutes * 60
-
-          if (!taskTimeMap.has(taskId)) {
-            taskTimeMap.set(taskId, {
-              id: taskId,
-              timeSpent: 0,
-              elapsedItemsCount: 0,
-              comments: []
-            })
-          }
-
-          const taskData = taskTimeMap.get(taskId)
-          taskData.timeSpent += seconds
-          taskData.elapsedItemsCount++
-          taskData.comments.push(item.COMMENT_TEXT || '')
-          totalElapsedTaskTime += seconds
-        })
-
-        const taskIds = Array.from(taskTimeMap.keys())
-        const tasksArray = []
-
-        if (taskIds.length > 0) {
-          const batchCalls = taskIds.map(taskId => ['task.get', { 'TASKID': taskId }])
-
-          await new Promise((resolve, reject) => {
-            BX24.callBatch(batchCalls, (results) => {
-              taskIds.forEach((taskId, index) => {
-                const result = results[index]
-                if (result && !result.error()) {
-                  const taskInfo = result.data()
-                  const taskData = taskTimeMap.get(taskId)
-                  tasksArray.push({
-                    id: taskId,
-                    title: taskInfo?.TITLE || `Задача #${taskId}`,
-                    status: taskInfo?.STATUS || 'Неизвестен',
-                    timeSpent: taskData.timeSpent,
-                    elapsedItemsCount: taskData.elapsedItemsCount,
-                    comments: taskData.comments
-                  })
-                }
-              })
-              resolve()
-            })
-          })
-        }
-
-        const maxTaskTime = tasksArray.length > 0
-            ? Math.max(...tasksArray.map(t => t.timeSpent))
-            : 0
-        const averageTimePerTask = tasksArray.length > 0
-            ? totalElapsedTaskTime / tasksArray.length
-            : 0
-
-        tasksArray.sort((a, b) => b.timeSpent - a.timeSpent)
-
-        taskTimeData.value.tasks = tasksArray
-        taskTimeData.value.elapsedTaskTimeSeconds = totalElapsedTaskTime
-        workDayData.value.elapsedTaskTimeSeconds = totalElapsedTaskTime
-        taskTimeData.value.maxTaskTime = maxTaskTime
-        taskTimeData.value.averageTimePerTask = averageTimePerTask
-
-        return tasksArray
-      } catch (error) {
-        console.error('Ошибка загрузки данных задач:', error)
-        return []
-      }
-    }
-
-    const loadCrmData = async () => {
-      try {
-        const startOfDay = new Date(selectedDay.value + 'T00:00:00')
-        const endOfDay = new Date(selectedDay.value + 'T23:59:59')
-
-        const formatDateForAPI = (date) => {
-          return date.toISOString().replace('T', ' ').split('.')[0]
-        }
-
-        const startDateStr = formatDateForAPI(startOfDay)
-        const endDateStr = formatDateForAPI(endOfDay)
-
-        // Загружаем данные о сделках (созданные и обновленные)
-        const dealsCreated = await new Promise((resolve) => {
-          BX24.callMethod('crm.deal.list', {
-            'ORDER': {'DATE_CREATE': 'DESC'},
-            'FILTER': {
-              '>=DATE_CREATE': startDateStr,
-              '<=DATE_CREATE': endDateStr,
-              'ASSIGNED_BY_ID': currentUserId.value
-            },
-            'SELECT': ['ID', 'STAGE_ID', 'CLOSED', 'DATE_MODIFY']
-          }, (result) => {
-            if (result.error()) {
-              resolve([])
-            } else {
-              resolve(result.data())
-            }
-          })
-        })
-
-        const dealsUpdated = await new Promise((resolve) => {
-          BX24.callMethod('crm.deal.list', {
-            'ORDER': {'DATE_MODIFY': 'DESC'},
-            'FILTER': {
-              '>=DATE_MODIFY': startDateStr,
-              '<=DATE_MODIFY': endDateStr,
-              'ASSIGNED_BY_ID': currentUserId.value,
-              '!DATE_CREATE': startDateStr
-            },
-            'SELECT': ['ID', 'STAGE_ID', 'CLOSED']
-          }, (result) => {
-            if (result.error()) {
-              resolve([])
-            } else {
-              resolve(result.data())
-            }
-          })
-        })
-
-        // Загружаем данные о лидах
-        const leadsCreated = await new Promise((resolve) => {
-          BX24.callMethod('crm.lead.list', {
-            'ORDER': {'DATE_CREATE': 'DESC'},
-            'FILTER': {
-              '>=DATE_CREATE': startDateStr,
-              '<=DATE_CREATE': endDateStr,
-              'ASSIGNED_BY_ID': currentUserId.value
-            },
-            'SELECT': ['ID', 'STATUS_ID', 'DATE_MODIFY']
-          }, (result) => {
-            if (result.error()) {
-              resolve([])
-            } else {
-              resolve(result.data())
-            }
-          })
-        })
-
-        const leadsUpdated = await new Promise((resolve) => {
-          BX24.callMethod('crm.lead.list', {
-            'ORDER': {'DATE_MODIFY': 'DESC'},
-            'FILTER': {
-              '>=DATE_MODIFY': startDateStr,
-              '<=DATE_MODIFY': endDateStr,
-              'ASSIGNED_BY_ID': currentUserId.value,
-              '!DATE_CREATE': startDateStr
-            },
-            'SELECT': ['ID', 'STATUS_ID']
-          }, (result) => {
-            if (result.error()) {
-              resolve([])
-            } else {
-              resolve(result.data())
-            }
-          })
-        })
-
-        // Загружаем данные о контактах
-        const contactsCreated = await new Promise((resolve) => {
-          BX24.callMethod('crm.contact.list', {
-            'ORDER': {'DATE_CREATE': 'DESC'},
-            'FILTER': {
-              '>=DATE_CREATE': startDateStr,
-              '<=DATE_CREATE': endDateStr,
-              'ASSIGNED_BY_ID': currentUserId.value
-            },
-            'SELECT': ['ID', 'DATE_MODIFY']
-          }, (result) => {
-            if (result.error()) {
-              resolve([])
-            } else {
-              resolve(result.data())
-            }
-          })
-        })
-
-        const contactsUpdated = await new Promise((resolve) => {
-          BX24.callMethod('crm.contact.list', {
-            'ORDER': {'DATE_MODIFY': 'DESC'},
-            'FILTER': {
-              '>=DATE_MODIFY': startDateStr,
-              '<=DATE_MODIFY': endDateStr,
-              'ASSIGNED_BY_ID': currentUserId.value,
-              '!DATE_CREATE': startDateStr
-            },
-            'SELECT': ['ID']
-          }, (result) => {
-            if (result.error()) {
-              resolve([])
-            } else {
-              resolve(result.data())
-            }
-          })
-        })
-
-        // Загружаем данные о компаниях
-        const companiesCreated = await new Promise((resolve) => {
-          BX24.callMethod('crm.company.list', {
-            'ORDER': {'DATE_CREATE': 'DESC'},
-            'FILTER': {
-              '>=DATE_CREATE': startDateStr,
-              '<=DATE_CREATE': endDateStr,
-              'ASSIGNED_BY_ID': currentUserId.value
-            },
-            'SELECT': ['ID', 'DATE_MODIFY']
-          }, (result) => {
-            if (result.error()) {
-              resolve([])
-            } else {
-              resolve(result.data())
-            }
-          })
-        })
-
-        const companiesUpdated = await new Promise((resolve) => {
-          BX24.callMethod('crm.company.list', {
-            'ORDER': {'DATE_MODIFY': 'DESC'},
-            'FILTER': {
-              '>=DATE_MODIFY': startDateStr,
-              '<=DATE_MODIFY': endDateStr,
-              'ASSIGNED_BY_ID': currentUserId.value,
-              '!DATE_CREATE': startDateStr
-            },
-            'SELECT': ['ID']
-          }, (result) => {
-            if (result.error()) {
-              resolve([])
-            } else {
-              resolve(result.data())
-            }
-          })
-        })
-
-        // Считаем успешные и провальные сделки
-        let successfulDeals = 0
-        let failedDeals = 0
-
-        dealsCreated.forEach(deal => {
-          if (deal.CLOSED === 'Y') {
-            // Проверяем, успешная ли сделка (обычно STAGE_ID для успешных сделок содержит "WON" или "SUCCESS")
-            if (deal.STAGE_ID && (deal.STAGE_ID.includes('WON') || deal.STAGE_ID.includes('SUCCESS'))) {
-              successfulDeals++
-            } else {
-              failedDeals++
-            }
-          }
-        })
-
-        // Считаем конвертированные и провальные лиды
-        let convertedLeads = 0
-        let junkLeads = 0
-
-        leadsCreated.forEach(lead => {
-          if (lead.STATUS_ID === 'CONVERTED') {
-            convertedLeads++
-          } else if (lead.STATUS_ID === 'JUNK') {
-            junkLeads++
-          }
-        })
-
-        crmData.value = {
-          createdDealsCount: dealsCreated.length,
-          createdLeadsCount: leadsCreated.length,
-          createdContactsCount: contactsCreated.length,
-          createdCompaniesCount: companiesCreated.length,
-          createdInvoicesCount: 0, // Можно добавить аналогичную логику для инвойсов
-          createdQuotesCount: 0, // Можно добавить аналогичную логику для квот
-
-          updatedDealsCount: dealsUpdated.length,
-          updatedLeadsCount: leadsUpdated.length,
-          updatedContactsCount: contactsUpdated.length,
-          updatedCompaniesCount: companiesUpdated.length,
-          updatedInvoicesCount: 0,
-          updatedQuotesCount: 0,
-
-          successfulDealsCount: successfulDeals,
-          failedDealsCount: failedDeals,
-
-          convertedLeadsCount: convertedLeads,
-          junkLeadsCount: junkLeads
-        }
-
-      } catch (error) {
-        console.error('Ошибка загрузки данных CRM:', error)
-        // В случае ошибки устанавливаем нулевые значения
-        Object.keys(crmData.value).forEach(key => {
-          crmData.value[key] = 0
-        })
-      }
-    }
-
-    const calculateDerivedData = () => {
-      const data = workDayData.value
-      const totalBitrixTime = data.bitrixTimeSeconds
-
-      // Проверяем, сегодняшний ли рабочий день
-      const today = new Date().toISOString().split('T')[0]
-      const workDayStart = workDayStatus.value.TIME_START
-      const isTodayWorkDay = workDayStart && workDayStart.includes(today)
-
-      const actualBreakTime = isTodayWorkDay ? data.breakTimeSeconds : 0
-
-      // Базовое время зависит от того, сегодняшний ли день
-      const baseTime = isTodayWorkDay ?
-          (data.workDurationSeconds || data.totalWorkDaySeconds) :
-          data.totalWorkDaySeconds
-
-      // Время вне Bitrix24
-      data.nonBitrixTimeSeconds = Math.max(0,
-          baseTime - totalBitrixTime - actualBreakTime
-      )
-
-      // Процентные соотношения
-      data.bitrixTimePercentage = baseTime > 0
-          ? (totalBitrixTime / baseTime) * 100
-          : 0
-
-      data.workDurationPercentage = data.totalWorkDaySeconds > 0
-          ? (data.workDurationSeconds / data.totalWorkDaySeconds) * 100
-          : 0
-
-      data.bitrixTimeOfWorkedPercentage = data.workDurationSeconds > 0
-          ? (totalBitrixTime / data.workDurationSeconds) * 100
-          : 0
-
-      data.taskTimeOfBitrixPercentage = totalBitrixTime > 0
-          ? (data.elapsedTaskTimeSeconds / totalBitrixTime) * 100
-          : 0
-
-      data.nonBitrixTimePercentage = baseTime > 0
-          ? (data.nonBitrixTimeSeconds / baseTime) * 100
-          : 0
-
-      // Для сегодняшних дней считаем оставшееся время
-      if (isTodayWorkDay) {
-        data.remainingWorkDaySeconds = Math.max(0, data.totalWorkDaySeconds - data.workDurationSeconds)
-      } else {
-        // Для несегодняшних дней - рабочее время уже прошло полностью
-        data.remainingWorkDaySeconds = 0
-      }
-
-      data.remainingPercentage = data.totalWorkDaySeconds > 0
-          ? (data.remainingWorkDaySeconds / data.totalWorkDaySeconds) * 100
-          : 0
-
-      // Средняя активность в час
-      const workDurationHours = data.workDurationSeconds / 3600
-      data.averageActivityPerHour = workDurationHours > 0
-          ? totalBitrixTime / 3600 / workDurationHours
-          : 0
-
-      // Прогнозируемое время
-      const workDayProgress = isTodayWorkDay && data.totalWorkDaySeconds > 0
-          ? data.workDurationSeconds / data.totalWorkDaySeconds
-          : 1 // Для несегодняшних дней считаем, что рабочий день полностью отработан
-
-      data.projectedBitrixTime = workDayProgress > 0
-          ? totalBitrixTime / workDayProgress
-          : totalBitrixTime
-
-      data.projectedPercentage = data.totalWorkDaySeconds > 0
-          ? (data.projectedBitrixTime / data.totalWorkDaySeconds) * 100
-          : 0
-
-      // Ограничиваем значения до 100%
-      data.bitrixTimePercentage = Math.min(data.bitrixTimePercentage, 100)
-      data.workDurationPercentage = Math.min(data.workDurationPercentage, 100)
-      data.bitrixTimeOfWorkedPercentage = Math.min(data.bitrixTimeOfWorkedPercentage, 100)
-      data.taskTimeOfBitrixPercentage = Math.min(data.taskTimeOfBitrixPercentage, 100)
-      data.nonBitrixTimePercentage = Math.min(data.nonBitrixTimePercentage, 100)
-      data.projectedPercentage = Math.min(data.projectedPercentage, 100)
-
-      // Для несегодняшних дней устанавливаем некоторые значения более логично
-      if (!isTodayWorkDay) {
-        // Для прошлых дней прогресс всегда 100%
-        data.workDurationPercentage = 100
-        data.remainingPercentage = 0
-        data.projectedBitrixTime = totalBitrixTime
-      }
-    }
-
-    const calculateTaskTimeData = () => {
-      const data = taskTimeData.value
-      const elapsedTaskTime = data.elapsedTaskTimeSeconds
-
-      // Проверяем, сегодняшний ли рабочий день
-      const today = new Date().toISOString().split('T')[0]
-      const workDayStart = workDayStatus.value.TIME_START
-      const isTodayWorkDay = workDayStart && workDayStart.includes(today)
-
-      const actualBreakTime = isTodayWorkDay ? workDayData.value.breakTimeSeconds : 0
-
-      // Базовое время зависит от того, сегодняшний ли день
-      const baseTime = isTodayWorkDay ?
-          (data.workDurationSeconds || data.totalWorkDaySeconds) :
-          data.totalWorkDaySeconds
-
-      data.taskTimePercentage = baseTime > 0
-          ? (elapsedTaskTime / baseTime) * 100
-          : 0
-
-      data.workDurationPercentage = data.totalWorkDaySeconds > 0
-          ? (data.workDurationSeconds / data.totalWorkDaySeconds) * 100
-          : 0
-
-      data.taskTimeOfWorkedPercentage = data.workDurationSeconds > 0
-          ? (elapsedTaskTime / data.workDurationSeconds) * 100
-          : 0
-
-      const totalBitrixTime = workDayData.value.bitrixTimeSeconds
-      data.taskEfficiencyPercentage = totalBitrixTime > 0
-          ? (elapsedTaskTime / totalBitrixTime) * 100
-          : 0
-
-      data.nonTaskTimeSeconds = Math.max(0, baseTime - elapsedTaskTime - actualBreakTime)
-
-      const workDayProgress = isTodayWorkDay && data.totalWorkDaySeconds > 0
-          ? data.workDurationSeconds / data.totalWorkDaySeconds
-          : 1
-
-      data.projectedTaskTime = workDayProgress > 0
-          ? elapsedTaskTime / workDayProgress
-          : 0
-
-      data.projectedTaskPercentage = data.totalWorkDaySeconds > 0
-          ? (data.projectedTaskTime / data.totalWorkDaySeconds) * 100
-          : 0
-
-      // Ограничиваем значения до 100%
-      data.taskTimePercentage = Math.min(data.taskTimePercentage, 100)
-      data.workDurationPercentage = Math.min(data.workDurationPercentage, 100)
-      data.taskTimeOfWorkedPercentage = Math.min(data.taskTimeOfWorkedPercentage, 100)
-      data.taskEfficiencyPercentage = Math.min(data.taskEfficiencyPercentage, 100)
-      data.projectedTaskPercentage = Math.min(data.projectedTaskPercentage, 100)
-    }
-
-    const loadData = async () => {
-      try {
-        isLoading.value = true
-
-        calendarDate.value = getCalendarDateFromString(selectedDay.value)
-
-        await loadCurrentUser()
-        await loadWorkDaySettings()
-        await loadWorkDayStatus()
-        await Promise.all([
-          loadBitrixTimeData(),
-          loadTaskTimeData(),
-          loadCrmData()
+          }]
         ])
 
-        calculateDerivedData()
-        calculateTaskTimeData()
+        const items = itemsResults[0] || []
+        if (items.length === 0) break
 
-        updateCharts()
-
-        if (typeof toast !== 'undefined') {
-          toast.add({
-            description: 'Данные успешно загружены',
-            variant: 'success'
-          })
-        }
-      } catch (error) {
-        console.error('Ошибка загрузки данных:', error)
-
-        if (typeof toast !== 'undefined') {
-          toast.add({
-            description: 'Ошибка при загрузке данных',
-            variant: 'error'
-          })
-        }
-      } finally {
-        isLoading.value = false
+        allItems = allItems.concat(items)
+        if (items.length < pageSize) break
+        start += pageSize
       }
-    }
 
-    const loadAppSettings = async () => {
-      try {
-        if (typeof BX24 !== 'undefined' && BX24.appOption) {
-          const days = BX24.appOption.get('page_tracking_history_days')
-          if (days) {
-            historyDays.value = parseInt(days) || 30
+      let totalBitrixTime = 0
+      allItems.forEach(item => {
+        const props = item.PROPERTY_VALUES || {}
+        const pageTime = parseInt(props.PAGE_TIME) || 0
+        totalBitrixTime += pageTime
+      })
+
+      this.workDayData.value.bitrixTimeSeconds = totalBitrixTime
+
+      return allItems
+    } catch (error) {
+      this.showNotification('error', 'Ошибка загрузки данных Bitrix24')
+      this.workDayData.value.bitrixTimeSeconds = 0
+      return []
+    }
+  }
+
+  async loadElapsedTaskTime() {
+    try {
+      const startOfDay = new Date(this.selectedDay.value + 'T00:00:00')
+      const endOfDay = new Date(this.selectedDay.value + 'T23:59:59')
+
+      let allElapsedItems = []
+      let start = 0
+      const pageSize = 50
+
+      while (true) {
+        const results = await this.executeBatch([
+          ['task.elapseditem.getlist', {
+            'ORDER': {'ID': 'DESC'},
+            'FILTER': {
+              'USER_ID': this.currentUserId.value,
+              '>=CREATED_DATE': startOfDay.toISOString(),
+              '<=CREATED_DATE': endOfDay.toISOString()
+            },
+            'SELECT': ['TASK_ID', 'MINUTES', 'COMMENT_TEXT', 'CREATED_DATE'],
+            NAV_PARAMS: {
+              nPageSize: pageSize,
+              iNumPage: Math.floor(start / pageSize) + 1
+            }
+          }]
+        ])
+
+        const elapsedItems = results[0] || []
+        if (elapsedItems.length === 0) break
+
+        allElapsedItems = allElapsedItems.concat(elapsedItems)
+        if (elapsedItems.length < pageSize) break
+        start += pageSize
+      }
+
+      let totalTaskTime = 0
+      allElapsedItems.forEach(item => {
+        const minutes = parseInt(item.MINUTES) || 0
+        totalTaskTime += minutes * 60
+      })
+
+      return totalTaskTime
+    } catch (error) {
+      this.showNotification('error', 'Ошибка загрузки времени задач')
+      return 0
+    }
+  }
+
+  async loadTaskTimeData() {
+    try {
+      const startOfDay = new Date(this.selectedDay.value + 'T00:00:00')
+      const endOfDay = new Date(this.selectedDay.value + 'T23:59:59')
+
+      let allElapsedItems = []
+      let start = 0
+      const pageSize = 50
+
+      while (true) {
+        const results = await this.executeBatch([
+          ['task.elapseditem.getlist', {
+            'ORDER': {'ID': 'DESC'},
+            'FILTER': {
+              'USER_ID': this.currentUserId.value,
+              '>=CREATED_DATE': startOfDay.toISOString(),
+              '<=CREATED_DATE': endOfDay.toISOString()
+            },
+            'SELECT': ['TASK_ID', 'MINUTES', 'COMMENT_TEXT', 'CREATED_DATE'],
+            NAV_PARAMS: {
+              nPageSize: pageSize,
+              iNumPage: Math.floor(start / pageSize) + 1
+            }
+          }]
+        ])
+
+        const elapsedItems = results[0] || []
+        if (elapsedItems.length === 0) break
+
+        allElapsedItems = allElapsedItems.concat(elapsedItems)
+        if (elapsedItems.length < pageSize) break
+        start += pageSize
+      }
+
+      const taskTimeMap = new Map()
+      let totalElapsedTaskTime = 0
+
+      allElapsedItems.forEach(item => {
+        const taskId = item.TASK_ID
+        const minutes = parseInt(item.MINUTES) || 0
+        const seconds = minutes * 60
+
+        if (!taskTimeMap.has(taskId)) {
+          taskTimeMap.set(taskId, {
+            id: taskId,
+            timeSpent: 0,
+            elapsedItemsCount: 0,
+            comments: []
+          })
+        }
+
+        const taskData = taskTimeMap.get(taskId)
+        taskData.timeSpent += seconds
+        taskData.elapsedItemsCount++
+        taskData.comments.push(item.COMMENT_TEXT || '')
+        totalElapsedTaskTime += seconds
+      })
+
+      const taskIds = Array.from(taskTimeMap.keys())
+      const tasksArray = []
+
+      if (taskIds.length > 0) {
+        const taskCalls = []
+        taskIds.forEach(taskId => {
+          taskCalls.push(['task.get', { 'TASKID': taskId }])
+        })
+
+        const taskResults = await this.executeBatch(taskCalls)
+
+        taskIds.forEach((taskId, index) => {
+          const taskInfo = taskResults[index]
+          if (taskInfo) {
+            const taskData = taskTimeMap.get(taskId)
+            tasksArray.push({
+              id: taskId,
+              title: taskInfo?.TITLE || `Задача #${taskId}`,
+              status: taskInfo?.STATUS || 'Неизвестен',
+              timeSpent: taskData.timeSpent,
+              elapsedItemsCount: taskData.elapsedItemsCount,
+              comments: taskData.comments
+            })
+          }
+        })
+      }
+
+      const maxTaskTime = tasksArray.length > 0
+          ? Math.max(...tasksArray.map(t => t.timeSpent))
+          : 0
+      const averageTimePerTask = tasksArray.length > 0
+          ? totalElapsedTaskTime / tasksArray.length
+          : 0
+
+      tasksArray.sort((a, b) => b.timeSpent - a.timeSpent)
+
+      this.taskTimeData.value.tasks = tasksArray
+      this.taskTimeData.value.elapsedTaskTimeSeconds = totalElapsedTaskTime
+      this.workDayData.value.elapsedTaskTimeSeconds = totalElapsedTaskTime
+      this.taskTimeData.value.maxTaskTime = maxTaskTime
+      this.taskTimeData.value.averageTimePerTask = averageTimePerTask
+
+      return tasksArray
+    } catch (error) {
+      this.showNotification('error', 'Ошибка загрузки данных задач')
+      return []
+    }
+  }
+
+  async loadCrmData() {
+    try {
+      const startOfDay = new Date(this.selectedDay.value + 'T00:00:00')
+      const endOfDay = new Date(this.selectedDay.value + 'T23:59:59')
+
+      const formatDateForAPI = (date) => {
+        return date.toISOString().replace('T', ' ').split('.')[0]
+      }
+
+      const startDateStr = formatDateForAPI(startOfDay)
+      const endDateStr = formatDateForAPI(endOfDay)
+
+      // Загружаем данные пачками
+      const calls = [
+        // Сделки созданные
+        ['crm.deal.list', {
+          'ORDER': {'DATE_CREATE': 'DESC'},
+          'FILTER': {
+            '>=DATE_CREATE': startDateStr,
+            '<=DATE_CREATE': endDateStr,
+            'ASSIGNED_BY_ID': this.currentUserId.value
+          },
+          'SELECT': ['ID', 'STAGE_ID', 'CLOSED', 'DATE_MODIFY'],
+          NAV_PARAMS: { nPageSize: 50 }
+        }],
+        // Сделки обновленные
+        ['crm.deal.list', {
+          'ORDER': {'DATE_MODIFY': 'DESC'},
+          'FILTER': {
+            '>=DATE_MODIFY': startDateStr,
+            '<=DATE_MODIFY': endDateStr,
+            'ASSIGNED_BY_ID': this.currentUserId.value,
+            '!DATE_CREATE': startDateStr
+          },
+          'SELECT': ['ID', 'STAGE_ID', 'CLOSED'],
+          NAV_PARAMS: { nPageSize: 50 }
+        }],
+        // Лиды созданные
+        ['crm.lead.list', {
+          'ORDER': {'DATE_CREATE': 'DESC'},
+          'FILTER': {
+            '>=DATE_CREATE': startDateStr,
+            '<=DATE_CREATE': endDateStr,
+            'ASSIGNED_BY_ID': this.currentUserId.value
+          },
+          'SELECT': ['ID', 'STATUS_ID', 'DATE_MODIFY'],
+          NAV_PARAMS: { nPageSize: 50 }
+        }],
+        // Лиды обновленные
+        ['crm.lead.list', {
+          'ORDER': {'DATE_MODIFY': 'DESC'},
+          'FILTER': {
+            '>=DATE_MODIFY': startDateStr,
+            '<=DATE_MODIFY': endDateStr,
+            'ASSIGNED_BY_ID': this.currentUserId.value,
+            '!DATE_CREATE': startDateStr
+          },
+          'SELECT': ['ID', 'STATUS_ID'],
+          NAV_PARAMS: { nPageSize: 50 }
+        }],
+        // Контакты созданные
+        ['crm.contact.list', {
+          'ORDER': {'DATE_CREATE': 'DESC'},
+          'FILTER': {
+            '>=DATE_CREATE': startDateStr,
+            '<=DATE_CREATE': endDateStr,
+            'ASSIGNED_BY_ID': this.currentUserId.value
+          },
+          'SELECT': ['ID', 'DATE_MODIFY'],
+          NAV_PARAMS: { nPageSize: 50 }
+        }],
+        // Контакты обновленные
+        ['crm.contact.list', {
+          'ORDER': {'DATE_MODIFY': 'DESC'},
+          'FILTER': {
+            '>=DATE_MODIFY': startDateStr,
+            '<=DATE_MODIFY': endDateStr,
+            'ASSIGNED_BY_ID': this.currentUserId.value,
+            '!DATE_CREATE': startDateStr
+          },
+          'SELECT': ['ID'],
+          NAV_PARAMS: { nPageSize: 50 }
+        }],
+        // Компании созданные
+        ['crm.company.list', {
+          'ORDER': {'DATE_CREATE': 'DESC'},
+          'FILTER': {
+            '>=DATE_CREATE': startDateStr,
+            '<=DATE_CREATE': endDateStr,
+            'ASSIGNED_BY_ID': this.currentUserId.value
+          },
+          'SELECT': ['ID', 'DATE_MODIFY'],
+          NAV_PARAMS: { nPageSize: 50 }
+        }],
+        // Компании обновленные
+        ['crm.company.list', {
+          'ORDER': {'DATE_MODIFY': 'DESC'},
+          'FILTER': {
+            '>=DATE_MODIFY': startDateStr,
+            '<=DATE_MODIFY': endDateStr,
+            'ASSIGNED_BY_ID': this.currentUserId.value,
+            '!DATE_CREATE': startDateStr
+          },
+          'SELECT': ['ID'],
+          NAV_PARAMS: { nPageSize: 50 }
+        }]
+      ]
+
+      const results = await this.executeBatch(calls)
+
+      const dealsCreated = results[0] || []
+      const dealsUpdated = results[1] || []
+      const leadsCreated = results[2] || []
+      const leadsUpdated = results[3] || []
+      const contactsCreated = results[4] || []
+      const contactsUpdated = results[5] || []
+      const companiesCreated = results[6] || []
+      const companiesUpdated = results[7] || []
+
+      // Считаем успешные и провальные сделки
+      let successfulDeals = 0
+      let failedDeals = 0
+
+      dealsCreated.forEach(deal => {
+        if (deal.CLOSED === 'Y') {
+          if (deal.STAGE_ID && (deal.STAGE_ID.includes('WON') || deal.STAGE_ID.includes('SUCCESS'))) {
+            successfulDeals++
+          } else {
+            failedDeals++
           }
         }
-      } catch (error) {
-        console.error('Ошибка загрузки настроек приложения:', error)
+      })
+
+      // Считаем конвертированные и провальные лиды
+      let convertedLeads = 0
+      let junkLeads = 0
+
+      leadsCreated.forEach(lead => {
+        if (lead.STATUS_ID === 'CONVERTED') {
+          convertedLeads++
+        } else if (lead.STATUS_ID === 'JUNK') {
+          junkLeads++
+        }
+      })
+
+      this.crmData.value = {
+        createdDealsCount: dealsCreated.length,
+        createdLeadsCount: leadsCreated.length,
+        createdContactsCount: contactsCreated.length,
+        createdCompaniesCount: companiesCreated.length,
+        createdInvoicesCount: 0,
+        createdQuotesCount: 0,
+
+        updatedDealsCount: dealsUpdated.length,
+        updatedLeadsCount: leadsUpdated.length,
+        updatedContactsCount: contactsUpdated.length,
+        updatedCompaniesCount: companiesUpdated.length,
+        updatedInvoicesCount: 0,
+        updatedQuotesCount: 0,
+
+        successfulDealsCount: successfulDeals,
+        failedDealsCount: failedDeals,
+
+        convertedLeadsCount: convertedLeads,
+        junkLeadsCount: junkLeads
       }
+
+    } catch (error) {
+      this.showNotification('error', 'Ошибка загрузки данных CRM')
+      Object.keys(this.crmData.value).forEach(key => {
+        this.crmData.value[key] = 0
+      })
+    }
+  }
+
+  calculateDerivedData() {
+    const data = this.workDayData.value
+    const totalBitrixTime = data.bitrixTimeSeconds
+
+    const today = new Date().toISOString().split('T')[0]
+    const workDayStart = this.workDayStatus.value.TIME_START
+    const isTodayWorkDay = workDayStart && workDayStart.includes(today)
+
+    const actualBreakTime = isTodayWorkDay ? data.breakTimeSeconds : 0
+
+    const baseTime = isTodayWorkDay ?
+        (data.workDurationSeconds || data.totalWorkDaySeconds) :
+        data.totalWorkDaySeconds
+
+    data.nonBitrixTimeSeconds = Math.max(0,
+        baseTime - totalBitrixTime - actualBreakTime
+    )
+
+    data.bitrixTimePercentage = baseTime > 0
+        ? (totalBitrixTime / baseTime) * 100
+        : 0
+
+    data.workDurationPercentage = data.totalWorkDaySeconds > 0
+        ? (data.workDurationSeconds / data.totalWorkDaySeconds) * 100
+        : 0
+
+    data.bitrixTimeOfWorkedPercentage = data.workDurationSeconds > 0
+        ? (totalBitrixTime / data.workDurationSeconds) * 100
+        : 0
+
+    data.taskTimeOfBitrixPercentage = totalBitrixTime > 0
+        ? (data.elapsedTaskTimeSeconds / totalBitrixTime) * 100
+        : 0
+
+    data.nonBitrixTimePercentage = baseTime > 0
+        ? (data.nonBitrixTimeSeconds / baseTime) * 100
+        : 0
+
+    if (isTodayWorkDay) {
+      data.remainingWorkDaySeconds = Math.max(0, data.totalWorkDaySeconds - data.workDurationSeconds)
+    } else {
+      data.remainingWorkDaySeconds = 0
     }
 
+    data.remainingPercentage = data.totalWorkDaySeconds > 0
+        ? (data.remainingWorkDaySeconds / data.totalWorkDaySeconds) * 100
+        : 0
+
+    const workDurationHours = data.workDurationSeconds / 3600
+    data.averageActivityPerHour = workDurationHours > 0
+        ? totalBitrixTime / 3600 / workDurationHours
+        : 0
+
+    const workDayProgress = isTodayWorkDay && data.totalWorkDaySeconds > 0
+        ? data.workDurationSeconds / data.totalWorkDaySeconds
+        : 1
+
+    data.projectedBitrixTime = workDayProgress > 0
+        ? totalBitrixTime / workDayProgress
+        : totalBitrixTime
+
+    data.projectedPercentage = data.totalWorkDaySeconds > 0
+        ? (data.projectedBitrixTime / data.totalWorkDaySeconds) * 100
+        : 0
+
+    data.bitrixTimePercentage = Math.min(data.bitrixTimePercentage, 100)
+    data.workDurationPercentage = Math.min(data.workDurationPercentage, 100)
+    data.bitrixTimeOfWorkedPercentage = Math.min(data.bitrixTimeOfWorkedPercentage, 100)
+    data.taskTimeOfBitrixPercentage = Math.min(data.taskTimeOfBitrixPercentage, 100)
+    data.nonBitrixTimePercentage = Math.min(data.nonBitrixTimePercentage, 100)
+    data.projectedPercentage = Math.min(data.projectedPercentage, 100)
+
+    if (!isTodayWorkDay) {
+      data.workDurationPercentage = 100
+      data.remainingPercentage = 0
+      data.projectedBitrixTime = totalBitrixTime
+    }
+  }
+
+  calculateTaskTimeData() {
+    const data = this.taskTimeData.value
+    const elapsedTaskTime = data.elapsedTaskTimeSeconds
+
+    const today = new Date().toISOString().split('T')[0]
+    const workDayStart = this.workDayStatus.value.TIME_START
+    const isTodayWorkDay = workDayStart && workDayStart.includes(today)
+
+    const actualBreakTime = isTodayWorkDay ? this.workDayData.value.breakTimeSeconds : 0
+
+    const baseTime = isTodayWorkDay ?
+        (data.workDurationSeconds || data.totalWorkDaySeconds) :
+        data.totalWorkDaySeconds
+
+    data.taskTimePercentage = baseTime > 0
+        ? (elapsedTaskTime / baseTime) * 100
+        : 0
+
+    data.workDurationPercentage = data.totalWorkDaySeconds > 0
+        ? (data.workDurationSeconds / data.totalWorkDaySeconds) * 100
+        : 0
+
+    data.taskTimeOfWorkedPercentage = data.workDurationSeconds > 0
+        ? (elapsedTaskTime / data.workDurationSeconds) * 100
+        : 0
+
+    const totalBitrixTime = this.workDayData.value.bitrixTimeSeconds
+    data.taskEfficiencyPercentage = totalBitrixTime > 0
+        ? (elapsedTaskTime / totalBitrixTime) * 100
+        : 0
+
+    data.nonTaskTimeSeconds = Math.max(0, baseTime - elapsedTaskTime - actualBreakTime)
+
+    const workDayProgress = isTodayWorkDay && data.totalWorkDaySeconds > 0
+        ? data.workDurationSeconds / data.totalWorkDaySeconds
+        : 1
+
+    data.projectedTaskTime = workDayProgress > 0
+        ? elapsedTaskTime / workDayProgress
+        : 0
+
+    data.projectedTaskPercentage = data.totalWorkDaySeconds > 0
+        ? (data.projectedTaskTime / data.totalWorkDaySeconds) * 100
+        : 0
+
+    data.taskTimePercentage = Math.min(data.taskTimePercentage, 100)
+    data.workDurationPercentage = Math.min(data.workDurationPercentage, 100)
+    data.taskTimeOfWorkedPercentage = Math.min(data.taskTimeOfWorkedPercentage, 100)
+    data.taskEfficiencyPercentage = Math.min(data.taskEfficiencyPercentage, 100)
+    data.projectedTaskPercentage = Math.min(data.projectedTaskPercentage, 100)
+  }
+
+  async loadData() {
+    try {
+      this.isLoading.value = true
+
+      this.calendarDate.value = this.getCalendarDateFromString(this.selectedDay.value)
+
+      await this.loadCurrentUser()
+      await this.loadWorkDaySettings()
+      await this.loadWorkDayStatus()
+      await Promise.all([
+        this.loadBitrixTimeData(),
+        this.loadTaskTimeData(),
+        this.loadCrmData()
+      ])
+
+      this.calculateDerivedData()
+      this.calculateTaskTimeData()
+
+      this.updateCharts()
+
+      if (typeof toast !== 'undefined') {
+        toast.add({
+          description: 'Данные успешно загружены',
+          variant: 'success'
+        })
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки данных:', error)
+
+      if (typeof toast !== 'undefined') {
+        toast.add({
+          description: 'Ошибка при загрузке данных',
+          variant: 'error'
+        })
+      }
+    } finally {
+      this.isLoading.value = false
+    }
+  }
+
+  async loadAppSettings() {
+    try {
+      if (typeof BX24 !== 'undefined' && BX24.appOption) {
+        const days = BX24.appOption.get('page_tracking_history_days')
+        if (days) {
+          this.historyDays.value = parseInt(days) || 30
+        }
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки настроек приложения:', error)
+    }
+  }
+
+  async initialize() {
+    if (typeof BX24 !== 'undefined' && BX24.init) {
+      BX24.init(async () => {
+        try {
+          await this.loadAppSettings()
+          await this.loadData()
+        } catch (error) {
+          console.error('Ошибка инициализации:', error)
+          this.isLoading.value = false
+        }
+      })
+    } else {
+      this.isLoading.value = false
+    }
+  }
+}
+
+export default {
+  name: 'WorkDayStatistics',
+  components: {
+    Sidebar
+  },
+  setup() {
+    const manager = new WorkDayStatisticsManager()
+
     // Наблюдатели
-    watch(workDayData, () => {
-      if (activeTab.value === 'bitrix-time' && bitrixChartInstance && bitrixTimeChart.value) {
-        const legend = bitrixTimeLegend.value
-        bitrixChartInstance.data.datasets[0].data = legend.map(item => item.value)
-        bitrixChartInstance.data.labels = legend.map(item => item.label)
-        bitrixChartInstance.data.datasets[0].backgroundColor = legend.map(item => item.color)
-        bitrixChartInstance.update()
-      }
-    }, { deep: true })
-
-    watch(taskTimeData, () => {
-      if (activeTab.value === 'task-time' && taskChartInstance && taskTimeChart.value) {
-        const legend = taskTimeLegend.value
-        taskChartInstance.data.datasets[0].data = legend.map(item => item.value)
-        taskChartInstance.data.labels = legend.map(item => item.label)
-        taskChartInstance.data.datasets[0].backgroundColor = legend.map(item => item.color)
-        taskChartInstance.update()
-      }
-    }, { deep: true })
-
-    // Наблюдатель за изменением query параметров
-    watch(() => route.query.userId, (newUserId) => {
+    watch(() => manager.route.query.userId, (newUserId) => {
       if (newUserId) {
-        refreshData()
+        manager.refreshData()
       }
     })
 
     // Инициализация
     onMounted(async () => {
-      if (typeof BX24 !== 'undefined' && BX24.init) {
-        BX24.init(async () => {
-          try {
-            await loadAppSettings()
-            await loadData()
-          } catch (error) {
-            console.error('Ошибка инициализации:', error)
-            isLoading.value = false
-          }
-        })
-      } else {
-        isLoading.value = false
-      }
+      await manager.initialize()
     })
 
     return {
       // Данные
-      activeTab,
-      selectedDay,
-      calendarDate,
-      isLoading,
-      workDaySettings,
-      workDayStatus,
-      workDayData,
-      taskTimeData,
-      crmData,
-      bitrixTimeChart,
-      taskTimeChart,
-      hoveredLegendIndex,
-      viewedUserId,
-      currentUserId,
+      activeTab: manager.activeTab,
+      selectedDay: manager.selectedDay,
+      calendarDate: manager.calendarDate,
+      isLoading: manager.isLoading,
+      workDaySettings: manager.workDaySettings,
+      workDayStatus: manager.workDayStatus,
+      workDayData: manager.workDayData,
+      taskTimeData: manager.taskTimeData,
+      crmData: manager.crmData,
+      bitrixTimeChart: manager.bitrixTimeChart,
+      taskTimeChart: manager.taskTimeChart,
+      hoveredLegendIndex: manager.hoveredLegendIndex,
+      viewedUserId: manager.viewedUserId,
+      currentUserId: manager.currentUserId,
 
       // Легенды
-      bitrixTimeLegend,
-      taskTimeLegend,
+      bitrixTimeLegend: computed(() => manager.bitrixTimeLegend),
+      taskTimeLegend: computed(() => manager.taskTimeLegend),
 
       // Константы
-      minCalendarDate,
-      maxCalendarDate,
+      minCalendarDate: manager.minCalendarDate,
+      maxCalendarDate: manager.maxCalendarDate,
 
       // Вычисляемые свойства
-      hasData,
-      pageTitle,
+      hasData: computed(() => manager.hasData),
+      pageTitle: computed(() => manager.pageTitle),
 
       // Методы
-      handleCalendarDateChange,
-      onTabChange,
-      refreshData,
-      formatDayDisplay,
-      formatDuration,
-      formatPercentage,
-      formatDateTime,
-      getWorkDayStatusClass,
-      getWorkDayStatusText,
-      isDateDisabled,
-      isDateUnavailable,
-      hoverLegend
+      handleCalendarDateChange: manager.handleCalendarDateChange.bind(manager),
+      onTabChange: manager.onTabChange.bind(manager),
+      refreshData: manager.refreshData.bind(manager),
+      formatDayDisplay: manager.formatDayDisplay.bind(manager),
+      formatDuration: manager.formatDuration.bind(manager),
+      formatPercentage: manager.formatPercentage.bind(manager),
+      formatDateTime: manager.formatDateTime.bind(manager),
+      getWorkDayStatusClass: manager.getWorkDayStatusClass.bind(manager),
+      getWorkDayStatusText: manager.getWorkDayStatusText.bind(manager),
+      isDateDisabled: manager.isDateDisabled.bind(manager),
+      isDateUnavailable: manager.isDateUnavailable.bind(manager),
+      hoverLegend: manager.hoverLegend.bind(manager)
     }
   }
 }
 </script>
 
 <style scoped>
+/* Адаптивные стили */
+@media (max-width: 640px) {
+  .xs\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .xs\:flex-row {
+    flex-direction: row;
+  }
+
+  .xs\:items-center {
+    align-items: center;
+  }
+
+  .xs\:justify-between {
+    justify-content: space-between;
+  }
+
+  .xs\:gap-0 {
+    gap: 0;
+  }
+
+  .xs\:text-left {
+    text-align: left;
+  }
+}
+
 /* Стили для интерактивной легенды */
 .legend-item {
   transition: all 0.2s ease;
@@ -1940,5 +1951,54 @@ export default {
 /* Стиль для позиционирования текста поверх графика */
 .relative .absolute {
   pointer-events: none;
+}
+
+/* Улучшения для мобильных устройств */
+@media (max-width: 768px) {
+  .p-4 {
+    padding: 1rem;
+  }
+
+  .space-y-4 > * + * {
+    margin-top: 1rem;
+  }
+
+  .gap-6 {
+    gap: 1.5rem;
+  }
+
+  .text-lg {
+    font-size: 1.125rem;
+  }
+
+  .text-2xl {
+    font-size: 1.5rem;
+  }
+}
+
+/* Улучшения для очень маленьких экранов */
+@media (max-width: 480px) {
+  .text-sm {
+    font-size: 0.75rem;
+  }
+
+  .p-3 {
+    padding: 0.75rem;
+  }
+
+  .gap-2 {
+    gap: 0.5rem;
+  }
+}
+
+/* Улучшение отображения текста на мобильных */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.min-w-0 {
+  min-width: 0;
 }
 </style>
