@@ -9,16 +9,24 @@
       <!-- Основная часть со статистикой -->
       <div class="lg:col-span-2">
         <!-- Основная карточка со статистикой -->
-        <B24Card>
+        <B24Card class="bg-white">
           <div class="p-0 md:p-6">
             <div class="space-y-4 md:space-y-6">
               <!-- Заголовок и кнопки -->
               <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                 <div class="flex-1">
                   <h3 class="text-lg font-semibold text-gray-900">
-                    Статистика рабочего времени
+                    <span class="flex items-center gap-2">
+                      <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                      Статистика рабочего времени
+                    </span>
                   </h3>
-                  <p class="text-sm text-gray-500 mt-1">
+                  <p class="text-sm text-gray-500 mt-1 flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                     Анализ времени в Bitrix24 относительно рабочего дня
                     <span v-if="viewedUserId && viewedUserId !== currentUserId" class="font-medium text-blue-600">
                       (Пользователь #{{ viewedUserId }})
@@ -27,6 +35,18 @@
                 </div>
                 <div class="flex items-center space-x-2">
                   <B24Button
+                      @click="exportToPDF"
+                      :disabled="isLoading"
+                      color="air-secondary"
+                      size="sm"
+                      class="w-full sm:w-auto justify-center"
+                  >
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                    </svg>
+                    Экспорт PDF
+                  </B24Button>
+                  <B24Button
                       @click="refreshData"
                       :disabled="isLoading"
                       color="air-primary"
@@ -34,7 +54,7 @@
                       class="w-full sm:w-auto justify-center"
                   >
                     <svg class="w-4 h-4 mr-2" :class="{ 'animate-spin': isLoading }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
                     Обновить
                   </B24Button>
@@ -44,7 +64,12 @@
               <!-- Выбор дня -->
               <div>
                 <label class="block text-sm font-medium text-gray-900 mb-2">
-                  Выберите день для анализа
+                  <span class="flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Выберите день для анализа
+                  </span>
                 </label>
                 <B24Popover class="w-full">
                   <button
@@ -54,12 +79,12 @@
                   >
                     <div class="flex items-center space-x-3">
                       <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                       <span class="text-sm text-gray-700">{{ formatDayDisplay(selectedDay) }}</span>
                     </div>
                     <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
 
@@ -87,9 +112,9 @@
               <B24Tabs
                   v-model="activeTab"
                   :items="[
-                    { label: 'Время в Bitrix24', value: 'bitrix-time' },
-                    { label: 'Время задач', value: 'task-time' }
-                  ]"
+                  { label: 'Время в Bitrix24', value: 'bitrix-time' },
+                  { label: 'Время задач', value: 'task-time' }
+                ]"
                   @update:modelValue="onTabChange"
                   class="w-full whitespace-nowrap overflow-hidden"
               />
@@ -97,7 +122,7 @@
               <!-- Прелоадер -->
               <div v-if="isLoading" class="text-center py-8 md:py-12">
                 <svg class="w-8 h-8 md:w-12 md:h-12 mx-auto mb-3 md:mb-4 text-gray-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
                 <p class="text-sm text-gray-500">Загрузка данных...</p>
               </div>
@@ -122,16 +147,23 @@
                   <!-- Интерактивная легенда -->
                   <div class="flex-1 w-full lg:w-auto">
                     <div class="bg-white border border-gray-200 rounded-lg p-4">
-                      <h4 class="text-sm font-medium text-gray-900 mb-3">Распределение времени</h4>
+                      <h4 class="text-sm font-medium text-gray-900 mb-3">
+                        <span class="flex items-center gap-2">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                          </svg>
+                          Распределение времени
+                        </span>
+                      </h4>
                       <div class="space-y-3">
                         <div v-for="(item, index) in bitrixTimeLegend" :key="index"
-                             class="legend-item p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-                             :class="{ 'bg-gray-50 shadow-sm': hoveredLegendIndex === index }"
+                             class="p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer border border-transparent hover:border-gray-200"
+                             :class="{ 'bg-gray-50 shadow-sm border-gray-200': hoveredLegendIndex === index }"
                              @mouseenter="hoverLegend(index)"
                              @mouseleave="hoverLegend(null)">
                           <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-2 xs:gap-0">
                             <div class="flex items-center min-w-0">
-                              <div class="w-4 h-4 rounded-full mr-3 flex-shrink-0" :style="{ backgroundColor: item.color }"></div>
+                              <div class="w-4 h-4 rounded-full mr-3 flex-shrink-0 border border-gray-200" :style="{ backgroundColor: item.color }"></div>
                               <div class="min-w-0">
                                 <div class="text-sm font-medium text-gray-900 truncate">{{ item.label }}</div>
                                 <div class="text-xs text-gray-500 truncate">{{ item.description }}</div>
@@ -144,7 +176,7 @@
                               <div class="text-xs text-gray-500">{{ item.percentage }}</div>
                             </div>
                           </div>
-                          <div v-if="item.details" class="mt-2 text-xs text-gray-600">
+                          <div v-if="item.details" class="mt-2 text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded">
                             {{ item.details }}
                           </div>
                         </div>
@@ -153,7 +185,14 @@
 
                     <!-- CRM статистика -->
                     <div class="mt-4 bg-white border border-gray-200 rounded-lg p-4">
-                      <h4 class="text-sm font-medium text-gray-900 mb-3">Активность CRM</h4>
+                      <h4 class="text-sm font-medium text-gray-900 mb-3">
+                        <span class="flex items-center gap-2">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Активность CRM
+                        </span>
+                      </h4>
                       <div class="grid grid-cols-1 xs:grid-cols-2 gap-3">
                         <!-- Созданные -->
                         <div class="space-y-2">
@@ -264,11 +303,26 @@
 
                 <!-- Информация о рабочем дне -->
                 <div class="mt-6 md:mt-8 space-y-4 md:space-y-6">
-                  <h4 class="text-lg font-semibold text-gray-900">Данные о рабочем дне</h4>
+                  <h4 class="text-lg font-semibold text-gray-900">
+                    <span class="flex items-center gap-2">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Данные о рабочем дне
+                    </span>
+                  </h4>
                   <div class="bg-white border border-gray-200 rounded-lg p-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                       <div>
-                        <h5 class="text-sm font-medium text-blue-900 mb-4">Настройки рабочего времени</h5>
+                        <h5 class="text-sm font-medium text-blue-900 mb-4">
+                          <span class="flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            Настройки рабочего времени
+                          </span>
+                        </h5>
                         <div class="space-y-3">
                           <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
                             <span class="text-sm text-blue-700">Учет времени:</span>
@@ -294,7 +348,14 @@
                       </div>
 
                       <div>
-                        <h5 class="text-sm font-medium text-blue-900 mb-4">Текущий рабочий день</h5>
+                        <h5 class="text-sm font-medium text-blue-900 mb-4">
+                          <span class="flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                            </svg>
+                            Текущий рабочий день
+                          </span>
+                        </h5>
                         <div class="space-y-3">
                           <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
                             <span class="text-sm text-blue-700">Статус:</span>
@@ -348,16 +409,23 @@
                   <!-- Интерактивная легенда -->
                   <div class="flex-1 w-full lg:w-auto">
                     <div class="bg-white border border-gray-200 rounded-lg p-4">
-                      <h4 class="text-sm font-medium text-gray-900 mb-3">Распределение времени</h4>
+                      <h4 class="text-sm font-medium text-gray-900 mb-3">
+                        <span class="flex items-center gap-2">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                          </svg>
+                          Распределение времени
+                        </span>
+                      </h4>
                       <div class="space-y-3">
                         <div v-for="(item, index) in taskTimeLegend" :key="index"
-                             class="legend-item p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-                             :class="{ 'bg-gray-50 shadow-sm': hoveredLegendIndex === index }"
+                             class="p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer border border-transparent hover:border-gray-200"
+                             :class="{ 'bg-gray-50 shadow-sm border-gray-200': hoveredLegendIndex === index }"
                              @mouseenter="hoverLegend(index)"
                              @mouseleave="hoverLegend(null)">
                           <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-2 xs:gap-0">
                             <div class="flex items-center min-w-0">
-                              <div class="w-4 h-4 rounded-full mr-3 flex-shrink-0" :style="{ backgroundColor: item.color }"></div>
+                              <div class="w-4 h-4 rounded-full mr-3 flex-shrink-0 border border-gray-200" :style="{ backgroundColor: item.color }"></div>
                               <div class="min-w-0">
                                 <div class="text-sm font-medium text-gray-900 truncate">{{ item.label }}</div>
                                 <div class="text-xs text-gray-500 truncate">{{ item.description }}</div>
@@ -376,7 +444,14 @@
 
                     <!-- Статистика по задачам -->
                     <div class="mt-4 bg-white border border-gray-200 rounded-lg p-4">
-                      <h4 class="text-sm font-medium text-gray-900 mb-3">Статистика задач</h4>
+                      <h4 class="text-sm font-medium text-gray-900 mb-3">
+                        <span class="flex items-center gap-2">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Статистика задач
+                        </span>
+                      </h4>
                       <div class="space-y-3">
                         <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
                           <span class="text-xs text-gray-700">Всего задач:</span>
@@ -389,11 +464,26 @@
 
                 <!-- Информация о рабочем дне -->
                 <div class="mt-6 md:mt-8 space-y-4 md:space-y-6">
-                  <h4 class="text-lg font-semibold text-gray-900">Данные о рабочем дне</h4>
+                  <h4 class="text-lg font-semibold text-gray-900">
+                    <span class="flex items-center gap-2">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Данные о рабочем дне
+                    </span>
+                  </h4>
                   <div class="bg-white border border-gray-200 rounded-lg p-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                       <div>
-                        <h5 class="text-sm font-medium text-blue-900 mb-4">Настройки рабочего времени</h5>
+                        <h5 class="text-sm font-medium text-blue-900 mb-4">
+                          <span class="flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            Настройки рабочего времени
+                          </span>
+                        </h5>
                         <div class="space-y-3">
                           <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
                             <span class="text-sm text-blue-700">Учет времени:</span>
@@ -419,7 +509,14 @@
                       </div>
 
                       <div>
-                        <h5 class="text-sm font-medium text-blue-900 mb-4">Текущий рабочий день</h5>
+                        <h5 class="text-sm font-medium text-blue-900 mb-4">
+                          <span class="flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                            </svg>
+                            Текущий рабочий день
+                          </span>
+                        </h5>
                         <div class="space-y-3">
                           <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
                             <span class="text-sm text-blue-700">Статус:</span>
@@ -455,7 +552,7 @@
               <!-- Сообщение об отсутствии данных -->
               <div v-else-if="!isLoading && !hasData" class="text-center py-8 md:py-12 text-gray-500">
                 <svg class="w-12 h-12 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 <p class="text-sm">Нет данных за выбранный день</p>
                 <B24Button @click="refreshData" color="air-tertiary" class="mt-3 md:mt-4 w-full sm:w-auto">
@@ -482,6 +579,7 @@ import { useToast } from '@bitrix24/b24ui-nuxt/composables/useToast'
 import { useRoute } from 'vue-router'
 import Sidebar from './Sidebar.vue'
 import Chart from 'chart.js/auto'
+import html2pdf from 'html2pdf.js'
 
 const toast = useToast()
 
@@ -589,9 +687,9 @@ class WorkDayStatisticsManager {
     this.minCalendarDate = new CalendarDate(2020, 1, 1)
     this.maxCalendarDate = new CalendarDate(2030, 12, 31)
 
-    // Цветовая схема
+    // Цветовая схема - улучшенные цвета
     this.CHART_COLORS = {
-      WORK_DAY: '#f3f4f6',
+      WORK_DAY: '#6b7280', // Серый вместо светлого
       BITRIX_TIME: '#3b82f6',
       BREAK_TIME: '#f97316',
       TASK_TIME: '#f97316',
@@ -810,6 +908,262 @@ class WorkDayStatisticsManager {
     return diffDays > this.historyDays.value
   }
 
+  // Метод для экспорта в PDF
+  async exportToPDF() {
+    try {
+      this.isLoading.value = true
+
+      // Создаем элемент для экспорта
+      const element = document.createElement('div')
+      element.className = 'bg-white p-6'
+
+      // Заголовок
+      const header = document.createElement('div')
+      header.innerHTML = `
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">${this.pageTitle}</h1>
+        <p class="text-gray-600 mb-4">Дата: ${this.formatDayDisplay(this.selectedDay.value)}</p>
+        <div class="border-t border-gray-200 mb-6"></div>
+      `
+      element.appendChild(header)
+
+      // График и легенда
+      const chartsContainer = document.createElement('div')
+      chartsContainer.className = 'flex flex-col lg:flex-row gap-6 mb-6'
+
+      // График
+      const chartCanvas = this.activeTab.value === 'bitrix-time'
+          ? this.bitrixTimeChart.value
+          : this.taskTimeChart.value
+
+      const chartImage = chartCanvas.toDataURL('image/png')
+      const chartDiv = document.createElement('div')
+      chartDiv.className = 'flex-1'
+      chartDiv.innerHTML = `
+        <div class="relative w-64 h-64 mx-auto">
+          <img src="${chartImage}" class="w-full h-full" />
+          <div class="absolute inset-0 flex flex-col items-center justify-center">
+            <div class="text-2xl font-bold text-gray-900">
+              ${this.activeTab.value === 'bitrix-time'
+          ? this.formatPercentage(this.workDayData.value.bitrixTimePercentage)
+          : this.formatPercentage(this.taskTimeData.value.taskTimePercentage)}
+            </div>
+            <div class="text-sm text-gray-500 mt-1">
+              ${this.activeTab.value === 'bitrix-time' ? 'времени в Bitrix24' : 'времени на задачи'}
+            </div>
+          </div>
+        </div>
+      `
+
+      // Легенда
+      const legendDiv = document.createElement('div')
+      legendDiv.className = 'flex-1'
+      const legendItems = this.activeTab.value === 'bitrix-time'
+          ? this.bitrixTimeLegend
+          : this.taskTimeLegend
+
+      let legendHTML = `
+        <div class="bg-white border border-gray-200 rounded-lg p-4">
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">Распределение времени</h3>
+          <div class="space-y-3">
+      `
+
+      legendItems.forEach(item => {
+        legendHTML += `
+          <div class="flex items-center justify-between p-3 border border-gray-200 rounded">
+            <div class="flex items-center">
+              <div class="w-4 h-4 rounded-full mr-3" style="background-color: ${item.color}"></div>
+              <div>
+                <div class="text-sm font-medium text-gray-900">${item.label}</div>
+                <div class="text-xs text-gray-500">${item.description}</div>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="text-sm font-semibold" style="color: ${item.color}">${this.formatDuration(item.value)}</div>
+              <div class="text-xs text-gray-500">${item.percentage}</div>
+            </div>
+          </div>
+        `
+      })
+
+      legendHTML += `
+          </div>
+        </div>
+      `
+      legendDiv.innerHTML = legendHTML
+
+      chartsContainer.appendChild(chartDiv)
+      chartsContainer.appendChild(legendDiv)
+      element.appendChild(chartsContainer)
+
+      // Данные о рабочем дне
+      const workDayInfo = document.createElement('div')
+      workDayInfo.className = 'grid grid-cols-1 md:grid-cols-2 gap-6 mb-6'
+      workDayInfo.innerHTML = `
+        <div class="border border-gray-200 rounded-lg p-4">
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">Настройки рабочего времени</h3>
+          <div class="space-y-2">
+            <div class="flex justify-between">
+              <span class="text-gray-700">Учет времени:</span>
+              <span class="font-medium">${this.workDaySettings.value.UF_TIMEMAN ? 'Включен' : 'Выключен'}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-700">Свободный график:</span>
+              <span class="font-medium">${this.workDaySettings.value.UF_TM_FREE ? 'Да' : 'Нет'}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-700">Начало дня до:</span>
+              <span class="font-medium">${this.workDaySettings.value.UF_TM_MAX_START || 'Не задано'}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-700">Конец дня после:</span>
+              <span class="font-medium">${this.workDaySettings.value.UF_TM_MIN_FINISH || 'Не задано'}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="border border-gray-200 rounded-lg p-4">
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">Текущий рабочий день</h3>
+          <div class="space-y-2">
+            <div class="flex justify-between">
+              <span class="text-gray-700">Статус:</span>
+              <span class="font-medium">${this.getWorkDayStatusText(this.workDayStatus.value.STATUS)}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-700">Начало:</span>
+              <span class="font-medium">${this.formatDateTime(this.workDayStatus.value.TIME_START) || 'Не начат'}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-700">Длительность:</span>
+              <span class="font-medium">${this.workDayStatus.value.DURATION || '00:00:00'}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-700">Перерывы:</span>
+              <span class="font-medium">${this.workDayStatus.value.TIME_LEAKS || '00:00:00'}</span>
+            </div>
+          </div>
+        </div>
+      `
+      element.appendChild(workDayInfo)
+
+      // CRM данные если на вкладке Bitrix24
+      if (this.activeTab.value === 'bitrix-time') {
+        const crmInfo = document.createElement('div')
+        crmInfo.className = 'border border-gray-200 rounded-lg p-4 mb-6'
+        crmInfo.innerHTML = `
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">Активность CRM</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <h4 class="font-medium text-gray-700 mb-2">Создано</h4>
+              <div class="space-y-1">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Сделки:</span>
+                  <span class="font-medium">${this.crmData.value.createdDealsCount}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Лиды:</span>
+                  <span class="font-medium">${this.crmData.value.createdLeadsCount}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Контакты:</span>
+                  <span class="font-medium">${this.crmData.value.createdContactsCount}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Компании:</span>
+                  <span class="font-medium">${this.crmData.value.createdCompaniesCount}</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h4 class="font-medium text-gray-700 mb-2">Обновлено</h4>
+              <div class="space-y-1">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Сделки:</span>
+                  <span class="font-medium">${this.crmData.value.updatedDealsCount}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Лиды:</span>
+                  <span class="font-medium">${this.crmData.value.updatedLeadsCount}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Контакты:</span>
+                  <span class="font-medium">${this.crmData.value.updatedContactsCount}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Компании:</span>
+                  <span class="font-medium">${this.crmData.value.updatedCompaniesCount}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `
+        element.appendChild(crmInfo)
+      }
+
+      // Задачи если на вкладке задач
+      if (this.activeTab.value === 'task-time' && this.taskTimeData.value.tasks.length > 0) {
+        const tasksInfo = document.createElement('div')
+        tasksInfo.className = 'border border-gray-200 rounded-lg p-4 mb-6'
+        tasksInfo.innerHTML = `
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">Задачи (${this.taskTimeData.value.tasks.length})</h3>
+          <div class="space-y-2">
+            ${this.taskTimeData.value.tasks.slice(0, 5).map(task => `
+              <div class="flex justify-between items-center p-2 border border-gray-100 rounded">
+                <span class="text-gray-700 truncate">${task.title}</span>
+                <span class="font-medium text-orange-600">${this.formatDuration(task.timeSpent)}</span>
+              </div>
+            `).join('')}
+            ${this.taskTimeData.value.tasks.length > 5 ?
+            `<p class="text-sm text-gray-500 text-center mt-2">...и еще ${this.taskTimeData.value.tasks.length - 5} задач</p>` : ''}
+          </div>
+        `
+        element.appendChild(tasksInfo)
+      }
+
+      // Футер
+      const footer = document.createElement('div')
+      footer.className = 'text-center text-gray-500 text-sm border-t border-gray-200 pt-4'
+      footer.innerHTML = `
+        <p>Сгенерировано: ${new Date().toLocaleDateString('ru-RU', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })}</p>
+        <p>Bitrix24 Статистика рабочего дня</p>
+      `
+      element.appendChild(footer)
+
+      // Настройки PDF
+      const opt = {
+        margin: 1,
+        filename: `bitrix24-статистика-${this.selectedDay.value}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          logging: false
+        },
+        jsPDF: {
+          unit: 'in',
+          format: 'a4',
+          orientation: 'portrait'
+        }
+      }
+
+      // Генерация PDF
+      await html2pdf().set(opt).from(element).save()
+
+      this.showNotification('success', 'PDF успешно экспортирован')
+
+    } catch (error) {
+      console.error('Ошибка экспорта PDF:', error)
+      this.showNotification('error', 'Ошибка при экспорте PDF')
+    } finally {
+      this.isLoading.value = false
+    }
+  }
+
   // Методы для работы с Chart.js
   hoverLegend(index) {
     this.hoveredLegendIndex.value = index
@@ -988,11 +1342,24 @@ class WorkDayStatisticsManager {
 
   updateCharts() {
     nextTick(() => {
-      if (this.activeTab.value === 'bitrix-time') {
-        this.createBitrixTimeChart()
-      } else if (this.activeTab.value === 'task-time') {
-        this.createTaskTimeChart()
+      // Уничтожаем старые инстансы
+      if (this.bitrixChartInstance) {
+        this.bitrixChartInstance.destroy()
+        this.bitrixChartInstance = null
       }
+      if (this.taskChartInstance) {
+        this.taskChartInstance.destroy()
+        this.taskChartInstance = null
+      }
+
+      // Создаем новые после рендера
+      setTimeout(() => {
+        if (this.activeTab.value === 'bitrix-time' && this.bitrixTimeChart.value) {
+          this.createBitrixTimeChart()
+        } else if (this.activeTab.value === 'task-time' && this.taskTimeChart.value) {
+          this.createTaskTimeChart()
+        }
+      }, 50)
     })
   }
 
@@ -1828,6 +2195,16 @@ export default {
       }
     })
 
+    // Наблюдатель для обновления графиков при загрузке данных
+    watch(() => manager.isLoading.value, (newValue, oldValue) => {
+      if (oldValue === true && newValue === false) {
+        // Задержка для гарантии рендера DOM
+        setTimeout(() => {
+          manager.updateCharts()
+        }, 100)
+      }
+    })
+
     // Инициализация
     onMounted(async () => {
       await manager.initialize()
@@ -1866,6 +2243,7 @@ export default {
       handleCalendarDateChange: manager.handleCalendarDateChange.bind(manager),
       onTabChange: manager.onTabChange.bind(manager),
       refreshData: manager.refreshData.bind(manager),
+      exportToPDF: manager.exportToPDF.bind(manager),
       formatDayDisplay: manager.formatDayDisplay.bind(manager),
       formatDuration: manager.formatDuration.bind(manager),
       formatPercentage: manager.formatPercentage.bind(manager),
@@ -1879,126 +2257,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-/* Адаптивные стили */
-@media (max-width: 640px) {
-  .xs\:grid-cols-2 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .xs\:flex-row {
-    flex-direction: row;
-  }
-
-  .xs\:items-center {
-    align-items: center;
-  }
-
-  .xs\:justify-between {
-    justify-content: space-between;
-  }
-
-  .xs\:gap-0 {
-    gap: 0;
-  }
-
-  .xs\:text-left {
-    text-align: left;
-  }
-}
-
-/* Стили для интерактивной легенды */
-.legend-item {
-  transition: all 0.2s ease;
-  border: 1px solid transparent;
-}
-
-.legend-item:hover {
-  border-color: #e5e7eb;
-  transform: translateY(-1px);
-}
-
-/* Анимация для графиков */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.chart-container {
-  animation: fadeIn 0.5s ease-out;
-}
-
-/* Стили для скроллбара */
-.max-h-60::-webkit-scrollbar {
-  width: 6px;
-}
-
-.max-h-60::-webkit-scrollbar-track {
-  background: #f9fafb;
-  border-radius: 3px;
-}
-
-.max-h-60::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 3px;
-}
-
-.max-h-60::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
-}
-
-/* Стиль для позиционирования текста поверх графика */
-.relative .absolute {
-  pointer-events: none;
-}
-
-/* Улучшения для мобильных устройств */
-@media (max-width: 768px) {
-  .p-4 {
-    padding: 1rem;
-  }
-
-  .space-y-4 > * + * {
-    margin-top: 1rem;
-  }
-
-  .gap-6 {
-    gap: 1.5rem;
-  }
-
-  .text-lg {
-    font-size: 1.125rem;
-  }
-
-  .text-2xl {
-    font-size: 1.5rem;
-  }
-}
-
-/* Улучшения для очень маленьких экранов */
-@media (max-width: 480px) {
-  .text-sm {
-    font-size: 0.75rem;
-  }
-
-  .p-3 {
-    padding: 0.75rem;
-  }
-
-  .gap-2 {
-    gap: 0.5rem;
-  }
-}
-
-/* Улучшение отображения текста на мобильных */
-.truncate {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.min-w-0 {
-  min-width: 0;
-}
-</style>
