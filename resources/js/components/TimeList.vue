@@ -200,12 +200,9 @@
                                     <div class="flex items-center space-x-2 min-w-0">
                                       <B24Badge
                                           :class="getCategoryBadgeClass(categoryData.category)"
-                                          class="inline-flex items-center justify-center max-w-full min-w-0 px-2 py-1"
-                                          style="min-height: 24px; max-height: 48px;"
+                                          class="whitespace-normal md:whitespace-nowrap max-w-full inline-block max-h-40"
                                       >
-                                        <span class="truncate text-center">
-                                            {{ categoryData.category || 'Не указана' }}
-                                        </span>
+                                        {{ categoryData.category || 'Не указана' }}
                                       </B24Badge>
                                     </div>
                                   </div>
@@ -524,12 +521,9 @@
                               <div class="flex items-center space-x-2 min-w-0">
                                 <B24Badge
                                     :class="getCategoryBadgeClass(categoryData.category)"
-                                    class="inline-flex items-center justify-center max-w-full min-w-0 px-2 py-1"
-                                    style="min-height: 24px; max-height: 48px;"
+                                    class="whitespace-normal md:whitespace-nowrap max-w-full inline-block max-h-40"
                                 >
-                                  <span class="truncate text-center">
-                                      {{ categoryData.category || 'Не указана' }}
-                                  </span>
+                                  {{ categoryData.category || 'Не указана' }}
                                 </B24Badge>
                               </div>
                             </div>
