@@ -109,7 +109,7 @@
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
                   <!-- График времени -->
                   <div>
-                    <div class="bg-white border border-gray-200 rounded-lg p-4">
+                    <div class="bg-white rounded-lg p-4">
                       <h4 class="text-sm font-medium text-gray-900 mb-3">
                         <span class="flex items-center gap-2">
                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,7 +135,7 @@
 
                   <!-- Интерактивная легенда -->
                   <div>
-                    <div class="bg-white border border-gray-200 rounded-lg p-4 h-full">
+                    <div class="bg-white rounded-lg p-4 h-full">
                       <h4 class="text-sm font-medium text-gray-900 mb-3">
                         <span class="flex items-center gap-2">
                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -152,7 +152,7 @@
                              @mouseleave="hoverLegend(null)">
                           <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-2 xs:gap-0">
                             <div class="flex items-center min-w-0">
-                              <div class="w-4 h-4 rounded-full mr-3 flex-shrink-0 border border-gray-200" :style="{ backgroundColor: item.color }"></div>
+                              <div class="w-4 h-4 rounded-full mr-3 flex-shrink-0" :style="{ backgroundColor: item.color }"></div>
                               <div class="min-w-0">
                                 <div class="text-sm font-medium text-gray-900 truncate">{{ item.label }}</div>
                                 <div class="text-xs text-gray-500 truncate">{{ item.description }}</div>
@@ -192,7 +192,7 @@
 
                 <!-- График временной шкалы CRM -->
                 <div class="mt-6 md:mt-8">
-                  <div class="bg-white border border-gray-200 rounded-lg p-4">
+                  <div class="bg-white rounded-lg p-4">
                     <h4 class="text-sm font-medium text-gray-900 mb-3">
                       <span class="flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -219,7 +219,7 @@
 
                 <!-- Список задач -->
                 <div class="mt-6 md:mt-8">
-                  <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                  <div class="bg-white rounded-lg overflow-hidden">
                     <div class="p-4 border-b border-gray-200">
                       <h4 class="text-sm font-medium text-gray-900">
                         <span class="flex items-center gap-2">
@@ -327,7 +327,7 @@
                       Данные о рабочем дне
                     </span>
                   </h4>
-                  <div class="bg-white border border-gray-200 rounded-lg p-4">
+                  <div class="bg-white rounded-lg p-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                       <div>
                         <h5 class="text-sm font-medium text-blue-900 mb-4">
@@ -405,7 +405,7 @@
 
                 <!-- CRM статистика -->
                 <div class="mt-6 md:mt-8">
-                  <div class="bg-white border border-gray-200 rounded-lg p-4">
+                  <div class="bg-white rounded-lg p-4">
                     <h4 class="text-sm font-medium text-gray-900 mb-3">
                       <span class="flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
