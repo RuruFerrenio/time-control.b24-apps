@@ -273,7 +273,7 @@
                             </div>
                           </td>
                           <td class="px-4 py-3 whitespace-nowrap">
-                            <B24Badge :color="getTaskStatusColor(task.status)">
+                            <B24Badge :color="getTaskStatusColor(task.status)"  class="whitespace-nowrap overflow-scroll max-w-full inline-block">
                               {{ getTaskStatusText(task.status) }}
                             </B24Badge>
                           </td>
