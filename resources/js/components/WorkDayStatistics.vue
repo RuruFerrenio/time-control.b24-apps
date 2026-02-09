@@ -7,7 +7,7 @@
 
     <div class="mt-0 md:mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
       <!-- Основная часть со статистикой -->
-      <div class="lg:col-span-2">
+      <div class="lg:col-span-2" id="workday-statistics-container">
         <!-- Основная карточка со статистикой -->
         <B24Card class="bg-white">
           <div class="p-0 md:p-6">
