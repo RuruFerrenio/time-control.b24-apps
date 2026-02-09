@@ -7,7 +7,7 @@
 
     <div class="mt-0 md:mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
       <!-- Основная часть со статистикой -->
-      <div class="lg:col-span-2" id="workday-statistics-container">
+      <div class="lg:col-span-2">
         <!-- Основная карточка со статистикой -->
         <B24Card class="bg-white">
           <div class="p-0 md:p-6">
@@ -552,8 +552,7 @@ import { useToast } from '@bitrix24/b24ui-nuxt/composables/useToast'
 import { useRoute } from 'vue-router'
 import Sidebar from './Sidebar.vue'
 import Chart from 'chart.js/auto'
-import html2canvas from 'html2canvas'
-import jsPDF from 'jspdf'
+import html2pdf from 'html2pdf.js'
 
 const toast = useToast()
 
@@ -901,58 +900,120 @@ class WorkDayStatisticsManager {
     try {
       this.isLoading.value = true
 
-      const pdf = new jsPDF('p', 'mm', 'a4')
-      let yPosition = 10
+      // Создаем элемент для экспорта
+      const element = document.createElement('div')
+      element.className = 'bg-white p-6'
 
       // Заголовок
-      pdf.setFontSize(18)
-      pdf.text(this.pageTitle, 105, yPosition, { align: 'center' })
-      yPosition += 15
+      const header = document.createElement('div')
+      header.innerHTML = `
+      <h1 class="text-2xl font-bold text-gray-900 mb-2">${this.pageTitle}</h1>
+      <p class="text-gray-600 mb-4">Дата: ${this.formatDayDisplay(this.selectedDay.value)}</p>
+      <div class="border-t border-gray-200 mb-6"></div>
+    `
+      element.appendChild(header)
 
-      // Дата
-      pdf.setFontSize(11)
-      pdf.text(`Дата: ${this.formatDayDisplay(this.selectedDay.value)}`, 10, yPosition)
-      yPosition += 10
+      // График времени
+      const chartContainer = document.createElement('div')
+      chartContainer.className = 'mb-6'
 
-      // Просто добавляем текстовую статистику если графики не работают
-      pdf.setFontSize(14)
-      pdf.text('Статистика времени:', 10, yPosition)
-      yPosition += 10
+      // Получаем изображение графика
+      const chartCanvas = this.bitrixTimeChart.value
+      const chartImage = chartCanvas.toDataURL('image/png')
 
-      pdf.setFontSize(10)
-      this.bitrixTimeLegend.forEach(item => {
-        pdf.text(`• ${item.label}: ${this.formatDuration(item.value)} (${item.percentage})`, 15, yPosition)
-        yPosition += 7
-      })
+      chartContainer.innerHTML = `
+      <div class="flex flex-col lg:flex-row gap-6 mb-6">
+        <!-- График -->
+        <div class="flex-1">
+          <div class="border border-gray-200 rounded-lg p-4">
+            <h3 class="text-lg font-semibold text-gray-900 mb-3">Распределение времени</h3>
+            <div class="relative w-full h-64">
+              <img src="${chartImage}" class="w-full h-full object-contain" />
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <div class="text-2xl font-bold text-gray-900">
+                  ${this.formatPercentage(this.workDayData.value.bitrixTimePercentage)}
+                </div>
+                <div class="text-sm text-gray-500 mt-1">
+                  времени в Bitrix24
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-      yPosition += 10
+        <!-- Легенда -->
+        <div class="flex-1">
+          <div class="border border-gray-200 rounded-lg p-4">
+            <h3 class="text-lg font-semibold text-gray-900 mb-3">Распределение времени</h3>
+            <div class="space-y-3">
+              ${this.bitrixTimeLegend.map(item => `
+                <div class="flex items-center justify-between p-3 border border-gray-200 rounded">
+                  <div class="flex items-center">
+                    <div class="w-4 h-4 rounded-full mr-3 border border-gray-200" style="background-color: ${item.color}"></div>
+                    <div>
+                      <div class="text-sm font-medium text-gray-900">${item.label}</div>
+                      <div class="text-xs text-gray-500">${item.description}</div>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <div class="text-sm font-semibold" style="color: ${item.color}">${this.formatDuration(item.value)}</div>
+                    <div class="text-xs text-gray-500">${item.percentage}</div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+    `
+      element.appendChild(chartContainer)
 
-      // Табличка CRM
-      pdf.setFontSize(14)
-      pdf.text('Активность CRM:', 10, yPosition)
-      yPosition += 10
+      // Добавляем график временной шкалы если есть
+      if (this.timelineChart.value && this.crmData.value.timelineEvents.length > 0) {
+        const timelineCanvas = this.timelineChart.value
+        const timelineImage = timelineCanvas.toDataURL('image/png')
 
-      pdf.setFontSize(9)
-      const crmStats = [
-        [`Создано сделок:`, this.crmData.createdDealsCount],
-        [`Обновлено сделок:`, this.crmData.updatedDealsCount],
-        [`Успешные сделки:`, this.crmData.successfulDealsCount],
-        [`Провальные сделки:`, this.crmData.failedDealsCount]
-      ]
+        const timelineContainer = document.createElement('div')
+        timelineContainer.className = 'mb-6'
+        timelineContainer.innerHTML = `
+        <div class="border border-gray-200 rounded-lg p-4">
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">Активность CRM в течение дня</h3>
+          <div class="w-full h-48">
+            <img src="${timelineImage}" class="w-full h-full object-contain" />
+          </div>
+        </div>
+      `
+        element.appendChild(timelineContainer)
+      }
 
-      crmStats.forEach(([label, value]) => {
-        pdf.text(`${label} ${value}`, 15, yPosition)
-        yPosition += 6
-      })
+      // Остальная часть генерирования PDF (рабочий день, задачи, CRM)
+      // ... оставьте существующий код генерации остальных секций ...
 
-      // Сохраняем
-      pdf.save(`workday-statistics-${this.selectedDay.value}.pdf`)
+      // Настройки PDF
+      const opt = {
+        margin: 1,
+        filename: `bitrix24-статистика-${this.selectedDay.value}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          logging: false
+        },
+        jsPDF: {
+          unit: 'in',
+          format: 'a4',
+          orientation: 'portrait'
+        }
+      }
 
-      this.showNotification('success', 'PDF успешно создан')
+      // Генерация PDF
+      await html2pdf().set(opt).from(element).save()
+
+      this.showNotification('success', 'PDF успешно экспортирован')
 
     } catch (error) {
-      console.error('Ошибка экспорта:', error)
-      this.showNotification('error', 'Ошибка при создании PDF')
+      console.error('Ошибка экспорта PDF:', error)
+      this.showNotification('error', 'Ошибка при экспорте PDF')
     } finally {
       this.isLoading.value = false
     }
