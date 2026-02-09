@@ -901,53 +901,44 @@ class WorkDayStatisticsManager {
     try {
       this.isLoading.value = true
 
-      // Создаем временный элемент с полным содержимым
-      const element = document.getElementById('workday-statistics-container') // Добавьте этот ID в основной div
+      // Используем существующий метод
+      const htmlContent = this.generatePDFContent()
 
-      // Скрываем элементы, которые не нужны в PDF
-      const originalDisplay = element.style.display
-      element.style.display = 'block'
+      // Создаем временный элемент
+      const tempDiv = document.createElement('div')
+      tempDiv.style.width = '210mm'
+      tempDiv.style.padding = '20px'
+      tempDiv.style.backgroundColor = 'white'
+      tempDiv.style.color = 'black'
+      tempDiv.style.fontFamily = 'Arial, sans-serif'
+      tempDiv.innerHTML = htmlContent
 
-      // Конвертируем графики в изображения перед генерацией PDF
-      const charts = [
-        this.bitrixChartInstance,
-        this.timelineChartInstance
-      ]
+      document.body.appendChild(tempDiv)
 
-      // Создаем изображения из canvas
-      const chartImages = await Promise.all(
-          charts.filter(chart => chart).map(chart => {
-            return new Promise((resolve) => {
-              const canvas = chart.canvas
-              const image = canvas.toDataURL('image/png', 1.0)
-              resolve(image)
-            })
-          })
-      )
+      // Конвертируем графики в изображения и заменяем их в HTML
+      await this.replaceChartsWithImages(tempDiv)
 
-      // Создаем HTML для PDF с изображениями графиков
-      const htmlContent = this.generatePDFContentWithCharts(chartImages)
-
-      const pdf = new jsPDF('p', 'mm', 'a4')
-      const pageWidth = pdf.internal.pageSize.getWidth()
-      const pageHeight = pdf.internal.pageSize.getHeight()
-
-      // Используем html2canvas для рендеринга
-      const canvas = await html2canvas(element, {
+      // Используем html2canvas
+      const canvas = await html2canvas(tempDiv, {
         scale: 2,
         useCORS: true,
-        logging: false,
         backgroundColor: '#ffffff'
       })
 
       const imgData = canvas.toDataURL('image/png')
+      const pdf = new jsPDF('p', 'mm', 'a4')
+      const pageWidth = pdf.internal.pageSize.getWidth()
+
       const imgWidth = pageWidth - 20
       const imgHeight = (canvas.height * imgWidth) / canvas.width
 
       pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight)
+
+      // Сохраняем
       pdf.save(`workday-statistics-${this.selectedDay.value}.pdf`)
 
-      element.style.display = originalDisplay
+      // Убираем временный элемент
+      document.body.removeChild(tempDiv)
 
       this.showNotification('success', 'PDF успешно создан')
 
@@ -956,6 +947,40 @@ class WorkDayStatisticsManager {
       this.showNotification('error', 'Ошибка при создании PDF')
     } finally {
       this.isLoading.value = false
+    }
+  }
+
+  async replaceChartsWithImages(container) {
+    // Ждем рендера DOM
+    await nextTick()
+
+    // Для круговой диаграммы
+    if (this.bitrixChartInstance) {
+      const chartImage = this.bitrixChartInstance.toBase64Image()
+      const chartContainer = container.querySelector('.chart-container') // Добавьте класс к div с графиком
+      if (chartContainer) {
+        const img = document.createElement('img')
+        img.src = chartImage
+        img.style.width = '100%'
+        img.style.maxWidth = '400px'
+        img.style.height = 'auto'
+        chartContainer.innerHTML = ''
+        chartContainer.appendChild(img)
+      }
+    }
+
+    // Для временной шкалы
+    if (this.timelineChartInstance) {
+      const chartImage = this.timelineChartInstance.toBase64Image()
+      const timelineContainer = container.querySelector('.timeline-container') // Добавьте класс
+      if (timelineContainer) {
+        const img = document.createElement('img')
+        img.src = chartImage
+        img.style.width = '100%'
+        img.style.height = 'auto'
+        timelineContainer.innerHTML = ''
+        timelineContainer.appendChild(img)
+      }
     }
   }
 
