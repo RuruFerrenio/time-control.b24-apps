@@ -901,61 +901,6 @@ class WorkDayStatisticsManager {
     try {
       this.isLoading.value = true
 
-      // 1. Создаем изображения графиков
-      const chartImages = []
-
-      // Круговая диаграмма
-      if (this.bitrixChartInstance) {
-        // Останавливаем анимацию
-        this.bitrixChartInstance.options.animation = false
-        this.bitrixChartInstance.update('none')
-
-        // Ждем обновления
-        await new Promise(resolve => setTimeout(resolve, 100))
-
-        // Получаем base64
-        const imageData = this.bitrixChartInstance.toBase64Image('image/png', 1.0)
-        chartImages.push({
-          type: 'pie',
-          data: imageData,
-          title: 'Распределение времени',
-          width: 80, // мм
-          height: 80
-        })
-
-        // Восстанавливаем анимацию
-        this.bitrixChartInstance.options.animation = {
-          animateScale: true,
-          animateRotate: true,
-          duration: 1000
-        }
-        this.bitrixChartInstance.update()
-      }
-
-      // График временной шкалы
-      if (this.timelineChartInstance) {
-        this.timelineChartInstance.options.animation = false
-        this.timelineChartInstance.update('none')
-
-        await new Promise(resolve => setTimeout(resolve, 100))
-
-        const imageData = this.timelineChartInstance.toBase64Image('image/png', 1.0)
-        chartImages.push({
-          type: 'line',
-          data: imageData,
-          title: 'Активность CRM в течение дня',
-          width: 180,
-          height: 60
-        })
-
-        this.timelineChartInstance.options.animation = {
-          duration: 1000,
-          easing: 'easeOutQuart'
-        }
-        this.timelineChartInstance.update()
-      }
-
-      // 2. Создаем PDF
       const pdf = new jsPDF('p', 'mm', 'a4')
       let yPosition = 10
 
@@ -969,77 +914,38 @@ class WorkDayStatisticsManager {
       pdf.text(`Дата: ${this.formatDayDisplay(this.selectedDay.value)}`, 10, yPosition)
       yPosition += 10
 
-      // Вставка круговой диаграммы
-      if (chartImages[0]) {
-        const pieChart = chartImages[0]
+      // Просто добавляем текстовую статистику если графики не работают
+      pdf.setFontSize(14)
+      pdf.text('Статистика времени:', 10, yPosition)
+      yPosition += 10
 
-        // Добавляем заголовок
-        pdf.setFontSize(14)
-        pdf.text(pieChart.title, 10, yPosition)
+      pdf.setFontSize(10)
+      this.bitrixTimeLegend.forEach(item => {
+        pdf.text(`• ${item.label}: ${this.formatDuration(item.value)} (${item.percentage})`, 15, yPosition)
         yPosition += 7
+      })
 
-        // Вставляем изображение
-        pdf.addImage(
-            pieChart.data,
-            'PNG',
-            10,
-            yPosition,
-            pieChart.width,
-            pieChart.height
-        )
+      yPosition += 10
 
-        // Легенда справа
-        const legendStartY = yPosition
-        let legendY = legendStartY
+      // Табличка CRM
+      pdf.setFontSize(14)
+      pdf.text('Активность CRM:', 10, yPosition)
+      yPosition += 10
 
-        pdf.setFontSize(9)
-        this.bitrixTimeLegend.forEach((item, index) => {
-          if (legendY < yPosition + pieChart.height - 10) {
-            // Цветной квадратик
-            pdf.setFillColor(this.hexToRgb(item.color))
-            pdf.rect(115, legendY - 2, 3, 3, 'F')
+      pdf.setFontSize(9)
+      const crmStats = [
+        [`Создано сделок:`, this.crmData.createdDealsCount],
+        [`Обновлено сделок:`, this.crmData.updatedDealsCount],
+        [`Успешные сделки:`, this.crmData.successfulDealsCount],
+        [`Провальные сделки:`, this.crmData.failedDealsCount]
+      ]
 
-            // Текст
-            const text = `${item.label}: ${this.formatDuration(item.value)} (${item.percentage})`
-            pdf.text(text, 120, legendY)
+      crmStats.forEach(([label, value]) => {
+        pdf.text(`${label} ${value}`, 15, yPosition)
+        yPosition += 6
+      })
 
-            legendY += 5
-          }
-        })
-
-        yPosition += pieChart.height + 10
-      }
-
-      // Проверяем, нужна ли новая страница
-      if (yPosition > 200) {
-        pdf.addPage()
-        yPosition = 10
-      }
-
-      // Вставка графика временной шкалы
-      if (chartImages[1]) {
-        const lineChart = chartImages[1]
-
-        pdf.setFontSize(14)
-        pdf.text(lineChart.title, 10, yPosition)
-        yPosition += 7
-
-        pdf.addImage(
-            lineChart.data,
-            'PNG',
-            10,
-            yPosition,
-            lineChart.width,
-            lineChart.height
-        )
-
-        yPosition += lineChart.height + 15
-      }
-
-      // Добавляем хелпер для конвертации цвета
-      this.addHelperFunctions(pdf)
-
-      // Сохраняем PDF
+      // Сохраняем
       pdf.save(`workday-statistics-${this.selectedDay.value}.pdf`)
 
       this.showNotification('success', 'PDF успешно создан')
@@ -1049,39 +955,6 @@ class WorkDayStatisticsManager {
       this.showNotification('error', 'Ошибка при создании PDF')
     } finally {
       this.isLoading.value = false
-    }
-  }
-
-// Вспомогательная функция для конвертации HEX в RGB
-  hexToRgb(hex) {
-    // Убираем # если есть
-    hex = hex.replace('#', '')
-
-    // Конвертируем
-    const r = parseInt(hex.substring(0, 2), 16)
-    const g = parseInt(hex.substring(2, 4), 16)
-    const b = parseInt(hex.substring(4, 6), 16)
-
-    return [r, g, b]
-  }
-
-// Добавляем функции в PDF
-  addHelperFunctions(pdf) {
-    // Сохраняем оригинальную функцию text
-    const originalText = pdf.text
-
-    // Переопределяем для поддержки переноса строк
-    pdf.text = function(txt, x, y, options) {
-      const maxWidth = 190
-      const lines = pdf.splitTextToSize(txt, maxWidth)
-
-      if (Array.isArray(lines)) {
-        for (let i = 0; i < lines.length; i++) {
-          originalText.call(pdf, lines[i], x, y + (i * 7))
-        }
-      } else {
-        originalText.call(pdf, lines, x, y)
-      }
     }
   }
 
