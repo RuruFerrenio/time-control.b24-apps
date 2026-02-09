@@ -901,44 +901,146 @@ class WorkDayStatisticsManager {
     try {
       this.isLoading.value = true
 
-      // Используем существующий метод
-      const htmlContent = this.generatePDFContent()
+      // 1. Создаем изображения графиков
+      const chartImages = []
 
-      // Создаем временный элемент
-      const tempDiv = document.createElement('div')
-      tempDiv.style.width = '210mm'
-      tempDiv.style.padding = '20px'
-      tempDiv.style.backgroundColor = 'white'
-      tempDiv.style.color = 'black'
-      tempDiv.style.fontFamily = 'Arial, sans-serif'
-      tempDiv.innerHTML = htmlContent
+      // Круговая диаграмма
+      if (this.bitrixChartInstance) {
+        // Останавливаем анимацию
+        this.bitrixChartInstance.options.animation = false
+        this.bitrixChartInstance.update('none')
 
-      document.body.appendChild(tempDiv)
+        // Ждем обновления
+        await new Promise(resolve => setTimeout(resolve, 100))
 
-      // Конвертируем графики в изображения и заменяем их в HTML
-      await this.replaceChartsWithImages(tempDiv)
+        // Получаем base64
+        const imageData = this.bitrixChartInstance.toBase64Image('image/png', 1.0)
+        chartImages.push({
+          type: 'pie',
+          data: imageData,
+          title: 'Распределение времени',
+          width: 80, // мм
+          height: 80
+        })
 
-      // Используем html2canvas
-      const canvas = await html2canvas(tempDiv, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff'
-      })
+        // Восстанавливаем анимацию
+        this.bitrixChartInstance.options.animation = {
+          animateScale: true,
+          animateRotate: true,
+          duration: 1000
+        }
+        this.bitrixChartInstance.update()
+      }
 
-      const imgData = canvas.toDataURL('image/png')
+      // График временной шкалы
+      if (this.timelineChartInstance) {
+        this.timelineChartInstance.options.animation = false
+        this.timelineChartInstance.update('none')
+
+        await new Promise(resolve => setTimeout(resolve, 100))
+
+        const imageData = this.timelineChartInstance.toBase64Image('image/png', 1.0)
+        chartImages.push({
+          type: 'line',
+          data: imageData,
+          title: 'Активность CRM в течение дня',
+          width: 180,
+          height: 60
+        })
+
+        this.timelineChartInstance.options.animation = {
+          duration: 1000,
+          easing: 'easeOutQuart'
+        }
+        this.timelineChartInstance.update()
+      }
+
+      // 2. Создаем PDF
       const pdf = new jsPDF('p', 'mm', 'a4')
-      const pageWidth = pdf.internal.pageSize.getWidth()
+      let yPosition = 10
 
-      const imgWidth = pageWidth - 20
-      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      // Заголовок
+      pdf.setFontSize(18)
+      pdf.text(this.pageTitle, 105, yPosition, { align: 'center' })
+      yPosition += 15
 
-      pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight)
+      // Дата
+      pdf.setFontSize(11)
+      pdf.text(`Дата: ${this.formatDayDisplay(this.selectedDay.value)}`, 10, yPosition)
+      yPosition += 10
 
-      // Сохраняем
+      // Вставка круговой диаграммы
+      if (chartImages[0]) {
+        const pieChart = chartImages[0]
+
+        // Добавляем заголовок
+        pdf.setFontSize(14)
+        pdf.text(pieChart.title, 10, yPosition)
+        yPosition += 7
+
+        // Вставляем изображение
+        pdf.addImage(
+            pieChart.data,
+            'PNG',
+            10,
+            yPosition,
+            pieChart.width,
+            pieChart.height
+        )
+
+        // Легенда справа
+        const legendStartY = yPosition
+        let legendY = legendStartY
+
+        pdf.setFontSize(9)
+        this.bitrixTimeLegend.forEach((item, index) => {
+          if (legendY < yPosition + pieChart.height - 10) {
+            // Цветной квадратик
+            pdf.setFillColor(this.hexToRgb(item.color))
+            pdf.rect(115, legendY - 2, 3, 3, 'F')
+
+            // Текст
+            const text = `${item.label}: ${this.formatDuration(item.value)} (${item.percentage})`
+            pdf.text(text, 120, legendY)
+
+            legendY += 5
+          }
+        })
+
+        yPosition += pieChart.height + 10
+      }
+
+      // Проверяем, нужна ли новая страница
+      if (yPosition > 200) {
+        pdf.addPage()
+        yPosition = 10
+      }
+
+      // Вставка графика временной шкалы
+      if (chartImages[1]) {
+        const lineChart = chartImages[1]
+
+        pdf.setFontSize(14)
+        pdf.text(lineChart.title, 10, yPosition)
+        yPosition += 7
+
+        pdf.addImage(
+            lineChart.data,
+            'PNG',
+            10,
+            yPosition,
+            lineChart.width,
+            lineChart.height
+        )
+
+        yPosition += lineChart.height + 15
+      }
+
+      // Добавляем хелпер для конвертации цвета
+      this.addHelperFunctions(pdf)
+
+      // Сохраняем PDF
       pdf.save(`workday-statistics-${this.selectedDay.value}.pdf`)
-
-      // Убираем временный элемент
-      document.body.removeChild(tempDiv)
 
       this.showNotification('success', 'PDF успешно создан')
 
@@ -950,36 +1052,35 @@ class WorkDayStatisticsManager {
     }
   }
 
-  async replaceChartsWithImages(container) {
-    // Ждем рендера DOM
-    await nextTick()
+// Вспомогательная функция для конвертации HEX в RGB
+  hexToRgb(hex) {
+    // Убираем # если есть
+    hex = hex.replace('#', '')
 
-    // Для круговой диаграммы
-    if (this.bitrixChartInstance) {
-      const chartImage = this.bitrixChartInstance.toBase64Image()
-      const chartContainer = container.querySelector('.chart-container') // Добавьте класс к div с графиком
-      if (chartContainer) {
-        const img = document.createElement('img')
-        img.src = chartImage
-        img.style.width = '100%'
-        img.style.maxWidth = '400px'
-        img.style.height = 'auto'
-        chartContainer.innerHTML = ''
-        chartContainer.appendChild(img)
-      }
-    }
+    // Конвертируем
+    const r = parseInt(hex.substring(0, 2), 16)
+    const g = parseInt(hex.substring(2, 4), 16)
+    const b = parseInt(hex.substring(4, 6), 16)
 
-    // Для временной шкалы
-    if (this.timelineChartInstance) {
-      const chartImage = this.timelineChartInstance.toBase64Image()
-      const timelineContainer = container.querySelector('.timeline-container') // Добавьте класс
-      if (timelineContainer) {
-        const img = document.createElement('img')
-        img.src = chartImage
-        img.style.width = '100%'
-        img.style.height = 'auto'
-        timelineContainer.innerHTML = ''
-        timelineContainer.appendChild(img)
+    return [r, g, b]
+  }
+
+// Добавляем функции в PDF
+  addHelperFunctions(pdf) {
+    // Сохраняем оригинальную функцию text
+    const originalText = pdf.text
+
+    // Переопределяем для поддержки переноса строк
+    pdf.text = function(txt, x, y, options) {
+      const maxWidth = 190
+      const lines = pdf.splitTextToSize(txt, maxWidth)
+
+      if (Array.isArray(lines)) {
+        for (let i = 0; i < lines.length; i++) {
+          originalText.call(pdf, lines[i], x, y + (i * 7))
+        }
+      } else {
+        originalText.call(pdf, lines, x, y)
       }
     }
   }
