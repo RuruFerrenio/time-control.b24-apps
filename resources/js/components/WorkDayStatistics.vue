@@ -109,7 +109,7 @@
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
                   <!-- График времени -->
                   <div>
-                    <div class="bg-white rounded-lg p-4">
+                    <div class="bg-white border border-gray-200 rounded-lg p-4">
                       <h4 class="text-sm font-medium text-gray-900 mb-3">
                         <span class="flex items-center gap-2">
                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,7 +135,7 @@
 
                   <!-- Интерактивная легенда -->
                   <div>
-                    <div class="bg-white rounded-lg p-4 h-full">
+                    <div class="bg-white border border-gray-200 rounded-lg p-4 h-full">
                       <h4 class="text-sm font-medium text-gray-900 mb-3">
                         <span class="flex items-center gap-2">
                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -152,7 +152,7 @@
                              @mouseleave="hoverLegend(null)">
                           <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-2 xs:gap-0">
                             <div class="flex items-center min-w-0">
-                              <div class="w-4 h-4 rounded-full mr-3 flex-shrink-0" :style="{ backgroundColor: item.color }"></div>
+                              <div class="w-4 h-4 rounded-full mr-3 flex-shrink-0 border border-gray-200" :style="{ backgroundColor: item.color }"></div>
                               <div class="min-w-0">
                                 <div class="text-sm font-medium text-gray-900 truncate">{{ item.label }}</div>
                                 <div class="text-xs text-gray-500 truncate">{{ item.description }}</div>
@@ -192,7 +192,7 @@
 
                 <!-- График временной шкалы CRM -->
                 <div class="mt-6 md:mt-8">
-                  <div class="bg-white rounded-lg p-4">
+                  <div class="bg-white border border-gray-200 rounded-lg p-4">
                     <h4 class="text-sm font-medium text-gray-900 mb-3">
                       <span class="flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -219,7 +219,7 @@
 
                 <!-- Список задач -->
                 <div class="mt-6 md:mt-8">
-                  <div class="bg-white rounded-lg overflow-hidden">
+                  <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
                     <div class="p-4 border-b border-gray-200">
                       <h4 class="text-sm font-medium text-gray-900">
                         <span class="flex items-center gap-2">
@@ -327,7 +327,7 @@
                       Данные о рабочем дне
                     </span>
                   </h4>
-                  <div class="bg-white rounded-lg p-4">
+                  <div class="bg-white border border-gray-200 rounded-lg p-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                       <div>
                         <h5 class="text-sm font-medium text-blue-900 mb-4">
@@ -405,7 +405,7 @@
 
                 <!-- CRM статистика -->
                 <div class="mt-6 md:mt-8">
-                  <div class="bg-white rounded-lg p-4">
+                  <div class="bg-white border border-gray-200 rounded-lg p-4">
                     <h4 class="text-sm font-medium text-gray-900 mb-3">
                       <span class="flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -552,6 +552,8 @@ import { useToast } from '@bitrix24/b24ui-nuxt/composables/useToast'
 import { useRoute } from 'vue-router'
 import Sidebar from './Sidebar.vue'
 import Chart from 'chart.js/auto'
+import html2canvas from 'html2canvas'
+import jsPDF from 'jspdf'
 
 const toast = useToast()
 
@@ -899,111 +901,59 @@ class WorkDayStatisticsManager {
     try {
       this.isLoading.value = true
 
-      // Создаем временный элемент для рендеринга
-      const element = document.createElement('div')
-      element.style.width = '210mm'
-      element.style.padding = '20px'
-      element.style.backgroundColor = 'white'
-      element.style.color = 'black'
-      element.style.fontFamily = 'Arial, sans-serif'
+      // Создаем временный элемент с полным содержимым
+      const element = document.getElementById('workday-statistics-container') // Добавьте этот ID в основной div
 
-      // Генерируем HTML для PDF
-      element.innerHTML = this.generatePDFContent()
+      // Скрываем элементы, которые не нужны в PDF
+      const originalDisplay = element.style.display
+      element.style.display = 'block'
 
-      // Добавляем в DOM для рендеринга
-      document.body.appendChild(element)
+      // Конвертируем графики в изображения перед генерацией PDF
+      const charts = [
+        this.bitrixChartInstance,
+        this.timelineChartInstance
+      ]
 
-      // Используем браузерную печать для экспорта в PDF
-      const printWindow = window.open('', '_blank')
-      printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>Статистика рабочего дня</title>
-            <style>
-              body {
-                margin: 0;
-                padding: 20px;
-                font-family: Arial, sans-serif;
-                color: #000;
-              }
-              .container {
-                max-width: 210mm;
-                margin: 0 auto;
-              }
-              .header {
-                text-align: center;
-                margin-bottom: 30px;
-                border-bottom: 2px solid #333;
-                padding-bottom: 20px;
-              }
-              .stats-grid {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 20px;
-                margin: 20px 0;
-              }
-              .stat-card {
-                border: 1px solid #ddd;
-                padding: 15px;
-                border-radius: 8px;
-              }
-              .legend-item {
-                display: flex;
-                align-items: center;
-                margin: 10px 0;
-              }
-              .legend-color {
-                width: 20px;
-                height: 20px;
-                border-radius: 50%;
-                margin-right: 10px;
-                border: 1px solid #ddd;
-              }
-              .task-table {
-                width: 100%;
-                border-collapse: collapse;
-                margin: 20px 0;
-              }
-              .task-table th,
-              .task-table td {
-                border: 1px solid #ddd;
-                padding: 8px;
-                text-align: left;
-              }
-              .task-table th {
-                background-color: #f3f4f6;
-                font-weight: bold;
-              }
-              @media print {
-                body {
-                  padding: 0;
-                }
-              }
-            </style>
-          </head>
-          <body>
-            ${this.generatePDFContent()}
-          </body>
-        </html>
-      `)
+      // Создаем изображения из canvas
+      const chartImages = await Promise.all(
+          charts.filter(chart => chart).map(chart => {
+            return new Promise((resolve) => {
+              const canvas = chart.canvas
+              const image = canvas.toDataURL('image/png', 1.0)
+              resolve(image)
+            })
+          })
+      )
 
-      printWindow.document.close()
+      // Создаем HTML для PDF с изображениями графиков
+      const htmlContent = this.generatePDFContentWithCharts(chartImages)
 
-      // Даем время на загрузку стилей
-      setTimeout(() => {
-        printWindow.print()
-        printWindow.onafterprint = () => {
-          printWindow.close()
-          document.body.removeChild(element)
-        }
-      }, 500)
+      const pdf = new jsPDF('p', 'mm', 'a4')
+      const pageWidth = pdf.internal.pageSize.getWidth()
+      const pageHeight = pdf.internal.pageSize.getHeight()
 
-      this.showNotification('success', 'Подготовка к печати... Сохраните как PDF')
+      // Используем html2canvas для рендеринга
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      })
+
+      const imgData = canvas.toDataURL('image/png')
+      const imgWidth = pageWidth - 20
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+
+      pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight)
+      pdf.save(`workday-statistics-${this.selectedDay.value}.pdf`)
+
+      element.style.display = originalDisplay
+
+      this.showNotification('success', 'PDF успешно создан')
 
     } catch (error) {
       console.error('Ошибка экспорта:', error)
-      this.showNotification('error', 'Ошибка при экспорте')
+      this.showNotification('error', 'Ошибка при создании PDF')
     } finally {
       this.isLoading.value = false
     }
