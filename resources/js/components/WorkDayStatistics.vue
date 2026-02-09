@@ -213,14 +213,6 @@
                         <div class="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
                         <span class="text-xs text-gray-600">Обновлено</span>
                       </div>
-                      <div class="flex items-center">
-                        <div class="w-3 h-3 rounded-full bg-purple-500 mr-2"></div>
-                        <span class="text-xs text-gray-600">Успешные</span>
-                      </div>
-                      <div class="flex items-center">
-                        <div class="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
-                        <span class="text-xs text-gray-600">Провальные</span>
-                      </div>
                     </div>
                   </div>
                 </div>
