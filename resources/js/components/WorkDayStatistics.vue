@@ -902,112 +902,403 @@ class WorkDayStatisticsManager {
 
       // Создаем элемент для экспорта
       const element = document.createElement('div')
-      element.className = 'bg-white p-6'
+      element.className = 'bg-white p-8'
+      element.style.width = '210mm' // A4 width
+      element.style.maxWidth = '210mm'
 
       // Заголовок
       const header = document.createElement('div')
+      header.className = 'mb-8'
       header.innerHTML = `
       <h1 class="text-2xl font-bold text-gray-900 mb-2">${this.pageTitle}</h1>
-      <p class="text-gray-600 mb-4">Дата: ${this.formatDayDisplay(this.selectedDay.value)}</p>
-      <div class="border-t border-gray-200 mb-6"></div>
+      <p class="text-gray-600 mb-2"><strong>Дата:</strong> ${this.formatDayDisplay(this.selectedDay.value)}</p>
+      <p class="text-gray-600 mb-4"><strong>Пользователь:</strong> ${this.viewedUserId.value && this.viewedUserId.value !== this.currentUserId.value ? `Пользователь #${this.viewedUserId.value}` : 'Текущий пользователь'}</p>
+      <div class="border-t border-gray-300 mb-6 pt-4"></div>
     `
       element.appendChild(header)
 
-      // График времени
-      const chartContainer = document.createElement('div')
-      chartContainer.className = 'mb-6'
-
-      // Получаем изображение графика
+      // Получаем изображение графика времени
       const chartCanvas = this.bitrixTimeChart.value
-      const chartImage = chartCanvas.toDataURL('image/png')
+      const chartImage = chartCanvas.toDataURL('image/png', 1.0)
 
-      chartContainer.innerHTML = `
-      <div class="flex flex-col lg:flex-row gap-6 mb-6">
-        <!-- График -->
-        <div class="flex-1">
-          <div class="border border-gray-200 rounded-lg p-4">
-            <h3 class="text-lg font-semibold text-gray-900 mb-3">Распределение времени</h3>
-            <div class="relative w-full h-64">
-              <img src="${chartImage}" class="w-full h-full object-contain" />
-              <div class="absolute inset-0 flex flex-col items-center justify-center">
-                <div class="text-2xl font-bold text-gray-900">
-                  ${this.formatPercentage(this.workDayData.value.bitrixTimePercentage)}
+      // Секция с графиком и легендой
+      const chartSection = document.createElement('div')
+      chartSection.className = 'mb-8'
+      chartSection.innerHTML = `
+      <div class="mb-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Распределение рабочего времени</h2>
+        <div class="flex flex-col lg:flex-row gap-8 items-start">
+          <!-- График -->
+          <div class="flex-1">
+            <div class="border border-gray-300 rounded-lg p-4 bg-gray-50">
+              <div style="position: relative; width: 400px; height: 400px; margin: 0 auto;">
+                <img src="${chartImage}" style="width: 400px; height: 400px;" />
+                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none;">
+                  <div style="font-size: 32px; font-weight: bold; color: #111827;">
+                    ${this.formatPercentage(this.workDayData.value.bitrixTimePercentage)}
+                  </div>
+                  <div style="font-size: 14px; color: #6b7280; margin-top: 4px;">
+                    времени в Bitrix24
+                  </div>
                 </div>
-                <div class="text-sm text-gray-500 mt-1">
-                  времени в Bitrix24
+              </div>
+            </div>
+          </div>
+
+          <!-- Легенда -->
+          <div class="flex-1">
+            <div class="border border-gray-300 rounded-lg p-4">
+              <h3 class="text-lg font-semibold text-gray-900 mb-4">Детализация времени</h3>
+              <div class="space-y-4">
+                ${this.bitrixTimeLegend.map(item => `
+                  <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
+                    <div class="flex items-center">
+                      <div class="w-5 h-5 rounded-full mr-3 border border-gray-300" style="background-color: ${item.color}"></div>
+                      <div>
+                        <div class="text-sm font-medium text-gray-900">${item.label}</div>
+                        <div class="text-xs text-gray-500">${item.description}</div>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-sm font-semibold" style="color: ${item.color}">${this.formatDuration(item.value)}</div>
+                      <div class="text-xs text-gray-500">${item.percentage}</div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+
+              <!-- Общая статистика -->
+              <div class="mt-6 pt-6 border-t border-gray-200">
+                <h4 class="text-sm font-medium text-gray-900 mb-3">Общая статистика</h4>
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="text-center p-3 bg-gray-50 rounded">
+                    <div class="text-xs text-gray-500">Рабочий день</div>
+                    <div class="text-sm font-semibold text-gray-900">${this.formatDuration(this.workDayData.value.totalWorkDaySeconds)}</div>
+                  </div>
+                  <div class="text-center p-3 bg-gray-50 rounded">
+                    <div class="text-xs text-gray-500">Эффективность</div>
+                    <div class="text-sm font-semibold ${this.getEfficiencyColor(this.workDayData.value.bitrixTimePercentage)}">
+                      ${this.formatPercentage(this.workDayData.value.bitrixTimePercentage)}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+      </div>
+    `
+      element.appendChild(chartSection)
 
-        <!-- Легенда -->
-        <div class="flex-1">
-          <div class="border border-gray-200 rounded-lg p-4">
-            <h3 class="text-lg font-semibold text-gray-900 mb-3">Распределение времени</h3>
-            <div class="space-y-3">
-              ${this.bitrixTimeLegend.map(item => `
-                <div class="flex items-center justify-between p-3 border border-gray-200 rounded">
-                  <div class="flex items-center">
-                    <div class="w-4 h-4 rounded-full mr-3 border border-gray-200" style="background-color: ${item.color}"></div>
-                    <div>
-                      <div class="text-sm font-medium text-gray-900">${item.label}</div>
-                      <div class="text-xs text-gray-500">${item.description}</div>
-                    </div>
-                  </div>
-                  <div class="text-right">
-                    <div class="text-sm font-semibold" style="color: ${item.color}">${this.formatDuration(item.value)}</div>
-                    <div class="text-xs text-gray-500">${item.percentage}</div>
-                  </div>
-                </div>
-              `).join('')}
+      // График временной шкалы CRM
+      if (this.timelineChart.value && this.crmData.value.timelineEvents.length > 0) {
+        const timelineCanvas = this.timelineChart.value
+        const timelineImage = timelineCanvas.toDataURL('image/png', 1.0)
+
+        const timelineSection = document.createElement('div')
+        timelineSection.className = 'mb-8'
+        timelineSection.innerHTML = `
+        <div class="border border-gray-300 rounded-lg p-6">
+          <h2 class="text-xl font-bold text-gray-900 mb-4">Активность CRM в течение дня</h2>
+          <div style="width: 100%; height: 300px;">
+            <img src="${timelineImage}" style="width: 100%; height: 100%; object-fit: contain;" />
+          </div>
+          <div class="mt-4 flex flex-wrap gap-4">
+            <div class="flex items-center">
+              <div class="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+              <span class="text-sm text-gray-600">Создано</span>
+            </div>
+            <div class="flex items-center">
+              <div class="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
+              <span class="text-sm text-gray-600">Обновлено</span>
+            </div>
+          </div>
+        </div>
+      `
+        element.appendChild(timelineSection)
+      }
+
+      // Информация о рабочем дне
+      const workDaySection = document.createElement('div')
+      workDaySection.className = 'mb-8'
+      workDaySection.innerHTML = `
+      <h2 class="text-xl font-bold text-gray-900 mb-4">Данные о рабочем дне</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="border border-gray-300 rounded-lg p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            <span style="display: flex; align-items: center; gap: 8px;">
+              <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Настройки рабочего времени
+            </span>
+          </h3>
+          <div class="space-y-3">
+            <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
+              <span class="text-sm text-blue-700">Учет времени:</span>
+              <span style="padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 500; background-color: ${this.workDaySettings.value.UF_TIMEMAN ? '#d1fae5' : '#f3f4f6'}; color: ${this.workDaySettings.value.UF_TIMEMAN ? '#065f46' : '#374151'}">
+                ${this.workDaySettings.value.UF_TIMEMAN ? 'Включен' : 'Выключен'}
+              </span>
+            </div>
+            <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
+              <span class="text-sm text-blue-700">Свободный график:</span>
+              <span style="padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 500; background-color: ${this.workDaySettings.value.UF_TM_FREE ? '#d1fae5' : '#f3f4f6'}; color: ${this.workDaySettings.value.UF_TM_FREE ? '#065f46' : '#374151'}">
+                ${this.workDaySettings.value.UF_TM_FREE ? 'Да' : 'Нет'}
+              </span>
+            </div>
+            <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
+              <span class="text-sm text-blue-700">Начало дня до:</span>
+              <span class="text-sm font-medium text-blue-900">${this.workDaySettings.value.UF_TM_MAX_START || 'Не задано'}</span>
+            </div>
+            <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
+              <span class="text-sm text-blue-700">Конец дня после:</span>
+              <span class="text-sm font-medium text-blue-900">${this.workDaySettings.value.UF_TM_MIN_FINISH || 'Не задано'}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="border border-gray-300 rounded-lg p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            <span style="display: flex; align-items: center; gap: 8px;">
+              <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+              </svg>
+              Текущий рабочий день
+            </span>
+          </h3>
+          <div class="space-y-3">
+            <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
+              <span class="text-sm text-blue-700">Статус:</span>
+              <span style="padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 500; ${this.getWorkDayStatusClass(this.workDayStatus.value.STATUS)}">
+                ${this.getWorkDayStatusText(this.workDayStatus.value.STATUS)}
+              </span>
+            </div>
+            <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
+              <span class="text-sm text-blue-700">Начало:</span>
+              <span class="text-sm font-medium text-blue-900 truncate">
+                ${this.formatDateTime(this.workDayStatus.value.TIME_START) || 'Не начат'}
+              </span>
+            </div>
+            <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
+              <span class="text-sm text-blue-700">Длительность:</span>
+              <span class="text-sm font-medium text-blue-900">
+                ${this.workDayStatus.value.DURATION || '00:00:00'}
+              </span>
+            </div>
+            <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
+              <span class="text-sm text-blue-700">Перерывы:</span>
+              <span class="text-sm font-medium text-blue-900">
+                ${this.workDayStatus.value.TIME_LEAKS || '00:00:00'}
+              </span>
             </div>
           </div>
         </div>
       </div>
     `
-      element.appendChild(chartContainer)
+      element.appendChild(workDaySection)
 
-      // Добавляем график временной шкалы если есть
-      if (this.timelineChart.value && this.crmData.value.timelineEvents.length > 0) {
-        const timelineCanvas = this.timelineChart.value
-        const timelineImage = timelineCanvas.toDataURL('image/png')
+      // Статистика CRM
+      const crmSection = document.createElement('div')
+      crmSection.className = 'mb-8'
+      crmSection.innerHTML = `
+      <h2 class="text-xl font-bold text-gray-900 mb-4">Активность CRM</h2>
+      <div class="border border-gray-300 rounded-lg p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <!-- Созданные -->
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4" style="display: flex; align-items: center; gap: 8px;">
+              <div style="width: 12px; height: 12px; border-radius: 50%; background-color: #10b981; border: 2px solid #059669;"></div>
+              Создано
+            </h3>
+            <div class="space-y-3">
+              <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
+                <span class="text-sm text-gray-700">Сделки:</span>
+                <span class="text-sm font-semibold text-green-600">${this.crmData.value.createdDealsCount}</span>
+              </div>
+              <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
+                <span class="text-sm text-gray-700">Лиды:</span>
+                <span class="text-sm font-semibold text-green-600">${this.crmData.value.createdLeadsCount}</span>
+              </div>
+              <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
+                <span class="text-sm text-gray-700">Контакты:</span>
+                <span class="text-sm font-semibold text-green-600">${this.crmData.value.createdContactsCount}</span>
+              </div>
+              <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
+                <span class="text-sm text-gray-700">Компании:</span>
+                <span class="text-sm font-semibold text-green-600">${this.crmData.value.createdCompaniesCount}</span>
+              </div>
+            </div>
+          </div>
 
-        const timelineContainer = document.createElement('div')
-        timelineContainer.className = 'mb-6'
-        timelineContainer.innerHTML = `
-        <div class="border border-gray-200 rounded-lg p-4">
-          <h3 class="text-lg font-semibold text-gray-900 mb-3">Активность CRM в течение дня</h3>
-          <div class="w-full h-48">
-            <img src="${timelineImage}" class="w-full h-full object-contain" />
+          <!-- Обновленные -->
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4" style="display: flex; align-items: center; gap: 8px;">
+              <div style="width: 12px; height: 12px; border-radius: 50%; background-color: #3b82f6; border: 2px solid #2563eb;"></div>
+              Обновлено
+            </h3>
+            <div class="space-y-3">
+              <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
+                <span class="text-sm text-gray-700">Сделки:</span>
+                <span class="text-sm font-semibold text-blue-600">${this.crmData.value.updatedDealsCount}</span>
+              </div>
+              <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
+                <span class="text-sm text-gray-700">Лиды:</span>
+                <span class="text-sm font-semibold text-blue-600">${this.crmData.value.updatedLeadsCount}</span>
+              </div>
+              <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
+                <span class="text-sm text-gray-700">Контакты:</span>
+                <span class="text-sm font-semibold text-blue-600">${this.crmData.value.updatedContactsCount}</span>
+              </div>
+              <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
+                <span class="text-sm text-gray-700">Компании:</span>
+                <span class="text-sm font-semibold text-blue-600">${this.crmData.value.updatedCompaniesCount}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Статусы сделок и лидов -->
+        <div class="mt-8 pt-8 border-t border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Результаты</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="p-4 border border-gray-200 rounded-lg">
+              <div class="text-center mb-2">
+                <div class="text-xs text-gray-500">Успешные сделки</div>
+                <div class="text-xl font-bold text-green-600">${this.crmData.value.successfulDealsCount}</div>
+              </div>
+              <div class="text-center">
+                <div class="text-xs text-gray-500">Провальные сделки</div>
+                <div class="text-xl font-bold text-red-600">${this.crmData.value.failedDealsCount}</div>
+              </div>
+            </div>
+            <div class="p-4 border border-gray-200 rounded-lg">
+              <div class="text-center mb-2">
+                <div class="text-xs text-gray-500">Конвертированные лиды</div>
+                <div class="text-xl font-bold text-green-600">${this.crmData.value.convertedLeadsCount}</div>
+              </div>
+              <div class="text-center">
+                <div class="text-xs text-gray-500">Отклоненные лиды</div>
+                <div class="text-xl font-bold text-red-600">${this.crmData.value.junkLeadsCount}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `
+      element.appendChild(crmSection)
+
+      // Задачи
+      if (this.taskTimeData.value.tasks.length > 0) {
+        const tasksToShow = this.taskTimeData.value.tasks.slice(0, 10)
+        const tasksSection = document.createElement('div')
+        tasksSection.className = 'mb-8'
+        tasksSection.innerHTML = `
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Задачи за день</h2>
+        <div class="border border-gray-300 rounded-lg overflow-hidden">
+          <div class="p-4 bg-gray-50 border-b border-gray-300">
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-medium text-gray-700">Всего задач: ${this.taskTimeData.value.tasks.length}</span>
+              <span class="text-sm font-medium text-orange-600">Общее время: ${this.formatDuration(this.taskTimeData.value.elapsedTaskTimeSeconds)}</span>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="background-color: #f9fafb;">
+                  <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 1px solid #e5e7eb;">Задача</th>
+                  <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 1px solid #e5e7eb;">Статус</th>
+                  <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 1px solid #e5e7eb;">Время</th>
+                  <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 1px solid #e5e7eb;">Исполнитель</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${tasksToShow.map(task => `
+                  <tr style="border-bottom: 1px solid #e5e7eb;">
+                    <td style="padding: 12px;">
+                      <div style="font-size: 14px; font-weight: 500; color: #111827;">${task.title || `Задача #${task.id}`}</div>
+                      <div style="font-size: 12px; color: #6b7280;">ID: ${task.id}</div>
+                    </td>
+                    <td style="padding: 12px;">
+                      <span style="display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 500; ${this.getTaskStatusColor(task.status).replace('air-', '')}">
+                        ${this.getTaskStatusText(task.status)}
+                      </span>
+                    </td>
+                    <td style="padding: 12px;">
+                      <div style="font-size: 14px; font-weight: 600; color: #059669;">${this.formatDuration(task.timeSpent)}</div>
+                      <div style="font-size: 12px; color: #6b7280;">${task.elapsedItemsCount} записей</div>
+                    </td>
+                    <td style="padding: 12px;">
+                      <div style="font-size: 14px; color: #111827;">${task.responsibleName || 'Текущий пользователь'}</div>
+                    </td>
+                  </tr>
+                `).join('')}
+                ${this.taskTimeData.value.tasks.length > 10 ? `
+                  <tr>
+                    <td colspan="4" style="padding: 16px; text-align: center; font-size: 14px; color: #6b7280;">
+                      ... и еще ${this.taskTimeData.value.tasks.length - 10} задач
+                    </td>
+                  </tr>
+                ` : ''}
+              </tbody>
+            </table>
           </div>
         </div>
       `
-        element.appendChild(timelineContainer)
+        element.appendChild(tasksSection)
       }
 
-      // Остальная часть генерирования PDF (рабочий день, задачи, CRM)
-      // ... оставьте существующий код генерации остальных секций ...
+      // Футер
+      const footer = document.createElement('div')
+      footer.className = 'mt-8 pt-8 border-t border-gray-300'
+      footer.innerHTML = `
+      <div class="text-center">
+        <p class="text-sm text-gray-500 mb-2">Сгенерировано: ${new Date().toLocaleDateString('ru-RU', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })}</p>
+        <p class="text-sm text-gray-500">Bitrix24 Статистика рабочего дня</p>
+      </div>
+    `
+      element.appendChild(footer)
+
+      // Добавляем временно в DOM для рендеринга
+      document.body.appendChild(element)
 
       // Настройки PDF
       const opt = {
-        margin: 1,
+        margin: 0.5,
         filename: `bitrix24-статистика-${this.selectedDay.value}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
+        image: {
+          type: 'jpeg',
+          quality: 0.98
+        },
         html2canvas: {
           scale: 2,
           useCORS: true,
-          logging: false
+          logging: false,
+          width: 800,
+          windowWidth: 800
         },
         jsPDF: {
-          unit: 'in',
+          unit: 'mm',
           format: 'a4',
-          orientation: 'portrait'
+          orientation: 'portrait',
+          compress: true
+        },
+        pagebreak: {
+          mode: ['avoid-all', 'css', 'legacy']
         }
       }
 
       // Генерация PDF
       await html2pdf().set(opt).from(element).save()
+
+      // Удаляем временный элемент
+      document.body.removeChild(element)
 
       this.showNotification('success', 'PDF успешно экспортирован')
 
@@ -1017,6 +1308,20 @@ class WorkDayStatisticsManager {
     } finally {
       this.isLoading.value = false
     }
+  }
+
+  // В конструкторе класса добавьте этот метод
+  getTaskStatusColor(status) {
+    const statusMap = {
+      '1': 'background-color: #f3f4f6; color: #374151;', // Новая
+      '2': 'background-color: #fef3c7; color: #92400e;', // В работе
+      '3': 'background-color: #dbeafe; color: #1e40af;', // Ждет выполнения
+      '4': 'background-color: #e0e7ff; color: #3730a3;', // Отложена
+      '5': 'background-color: #d1fae5; color: #065f46;', // Выполнена
+      '6': 'background-color: #f3f4f6; color: #374151;', // Отменена
+      '7': 'background-color: #fee2e2; color: #991b1b;', // Просрочена
+    }
+    return statusMap[status] || 'background-color: #f3f4f6; color: #374151;'
   }
 
   generatePDFContent() {
