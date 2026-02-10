@@ -66,7 +66,7 @@
                     <B24Icon :icon="CalendarIcon" class="text-gray-400" />
                     <span class="text-sm text-gray-700">{{ formatDayDisplay(selectedDay) }}</span>
                   </div>
-                  <B24Icon :icon="ChevronDownIcon" class="text-gray-400" />
+                  <B24Icon class="text-gray-400" />
                 </B24Button>
 
                 <template #content>
@@ -104,7 +104,7 @@
                   <B24CardHeader>
                     <B24CardTitle>
                       <div class="flex items-center gap-2">
-                        <B24Icon :icon="PieChartIcon" />
+                        <B24Icon />
                         Распределение времени
                       </div>
                     </B24CardTitle>
@@ -130,7 +130,7 @@
                   <B24CardHeader>
                     <B24CardTitle>
                       <div class="flex items-center gap-2">
-                        <B24Icon :icon="BarChartIcon" />
+                        <B24Icon />
                         Распределение времени
                       </div>
                     </B24CardTitle>
@@ -295,7 +295,7 @@
 
                       <div>
                         <div class="flex items-center gap-2 mb-4">
-                          <B24Icon :icon="CalendarDaysIcon" class="text-green-600" />
+                          <B24Icon class="text-green-600" />
                           <h5 class="text-sm font-medium text-green-900">Текущий рабочий день</h5>
                         </div>
                         <div class="space-y-3">
@@ -335,7 +335,7 @@
                 <B24CardHeader>
                   <B24CardTitle>
                     <div class="flex items-center gap-2">
-                      <B24Icon :icon="ChartBarIcon" />
+                      <B24Icon />
                       Активность CRM
                     </div>
                   </B24CardTitle>
@@ -396,7 +396,7 @@
 
             <!-- Сообщение об отсутствии данных -->
             <div v-if="!isLoading && !hasData" class="text-center py-8 md:py-12 text-gray-500">
-              <B24Icon :icon="DocumentTextIcon" class="w-12 h-12 md:w-16 md:h-16 mx-auto mb-4 text-gray-300" />
+              <B24Icon class="w-12 h-12 md:w-16 md:h-16 mx-auto mb-4 text-gray-300" />
               <p class="text-sm">Нет данных за выбранный день</p>
               <B24Button @click="refreshData" color="air-tertiary" class="mt-4 w-full sm:w-auto">
                 Попробовать снова
@@ -428,16 +428,10 @@ import html2pdf from 'html2pdf.js'
 import RefreshIcon from '@bitrix24/b24icons-vue/outline/RefreshIcon'
 import DownloadIcon from '@bitrix24/b24icons-vue/outline/DownloadIcon'
 import CalendarIcon from '@bitrix24/b24icons-vue/outline/CalendarIcon'
-import ChevronDownIcon from '@bitrix24/b24icons-vue/outline/ChevronDownIcon'
-import PieChartIcon from '@bitrix24/b24icons-vue/outline/PieChartIcon'
-import BarChartIcon from '@bitrix24/b24icons-vue/outline/BarChartIcon'
 import TimelineIcon from '@bitrix24/b24icons-vue/outline/TimelineIcon'
 import TaskIcon from '@bitrix24/b24icons-vue/outline/TaskIcon'
 import ClockIcon from '@bitrix24/b24icons-vue/outline/ClockIcon'
 import SettingsIcon from '@bitrix24/b24icons-vue/outline/SettingsIcon'
-import CalendarDaysIcon from '@bitrix24/b24icons-vue/outline/CalendarDaysIcon'
-import ChartBarIcon from '@bitrix24/b24icons-vue/outline/ChartBarIcon'
-import DocumentTextIcon from '@bitrix24/b24icons-vue/outline/DocumentTextIcon'
 
 const toast = useToast()
 const route = useRoute()
