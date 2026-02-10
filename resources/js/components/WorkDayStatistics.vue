@@ -744,53 +744,6 @@ const crmStatusItems = computed(() => [
   { label: 'Успешные лиды:', value: crmData.value.convertedLeadsCount, colorClass: 'text-green-600' },
   { label: 'Провальные лиды:', value: crmData.value.junkLeadsCount, colorClass: 'text-red-600' }
 ])
-
-function formatDayDisplay(dateString: string): string {
-  if (!dateString) return 'Выберите дату'
-  const date = new Date(dateString)
-  const today = new Date()
-  const yesterday = new Date(today)
-  yesterday.setDate(yesterday.getDate() - 1)
-
-  if (date.toDateString() === today.toDateString()) return 'Сегодня'
-  if (date.toDateString() === yesterday.toDateString()) return 'Вчера'
-
-  return date.toLocaleDateString('ru-RU', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  })
-}
-
-function formatDuration(seconds: number): string {
-  if (!seconds || seconds <= 0) return '0 сек'
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-  const secs = seconds % 60
-
-  const parts = []
-  if (hours > 0) parts.push(`${hours} ч`)
-  if (minutes > 0) parts.push(`${minutes} мин`)
-  if (secs > 0 || parts.length === 0) parts.push(`${secs} сек`)
-
-  return parts.join(' ')
-}
-
-function formatPercentage(value: number): string {
-  return `${value.toFixed(1)}%`
-}
-
-function formatDateTime(dateTime: string | null): string | null {
-  if (!dateTime) return null
-  return new Date(dateTime).toLocaleString('ru-RU', {
-    day: 'numeric',
-    month: 'long',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
-
 function timeStringToSeconds(timeString: string | null): number {
   if (!timeString) return 0
   const parts = timeString.split(':')
@@ -801,16 +754,6 @@ function timeStringToSeconds(timeString: string | null): number {
   const seconds = parseInt(parts[2])
 
   return hours * 3600 + minutes * 60 + seconds
-}
-
-function getWorkDayStatusBadgeColor(status: string): string {
-  const statusMap = {
-    'OPENED': 'air-primary-success',
-    'CLOSED': 'air-secondary-accent',
-    'PAUSED': 'air-warning',
-    'EXPIRED': 'air-critical'
-  }
-  return statusMap[status as keyof typeof statusMap] || 'air-secondary-accent'
 }
 
 function getWorkDayStatusText(status: string): string {
