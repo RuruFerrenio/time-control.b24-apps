@@ -743,15 +743,7 @@ const crmStatusItems = computed(() => [
   { label: 'Провальные сделки:', value: crmData.value.failedDealsCount, colorClass: 'text-red-600' },
   { label: 'Успешные лиды:', value: crmData.value.convertedLeadsCount, colorClass: 'text-green-600' },
   { label: 'Провальные лиды:', value: crmData.value.junkLeadsCount, colorClass: 'text-red-600' }
-])
-
-function getStringFromCalendarDate(calendarDate: CalendarDate | null): string {
-  if (!calendarDate) return ''
-  const year = calendarDate.year
-  const month = calendarDate.month.toString().padStart(2, '0')
-  const day = calendarDate.day.toString().padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
+]
 
 function formatDayDisplay(dateString: string): string {
   if (!dateString) return 'Выберите дату'
