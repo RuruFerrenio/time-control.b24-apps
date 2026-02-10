@@ -1712,9 +1712,9 @@ class WorkDayStatisticsManager {
       this.timelineChartInstance.destroy()
     }
 
-    if (!this.timelineChart.value || this.crmData.value.timelineEvents.length === 0) return
+    if (!this.timelineChart.value) return // Убираем проверку на наличие событий
 
-    // Группируем события по часовым интервалам (12:00-13:00 и т.д.)
+    // Всегда инициализируем данные, даже если событий нет
     const hourlyEvents = {}
 
     // Создаем интервалы 00:00-01:00, 01:00-02:00, ..., 23:00-00:00
@@ -1727,18 +1727,20 @@ class WorkDayStatisticsManager {
       }
     }
 
-    // Группируем события по часам
-    this.crmData.value.timelineEvents.forEach(event => {
-      const date = new Date(event.timestamp)
-      const hour = date.getHours() // Получаем час (0-23)
+    // Если есть события - группируем их
+    if (this.crmData.value.timelineEvents.length > 0) {
+      this.crmData.value.timelineEvents.forEach(event => {
+        const date = new Date(event.timestamp)
+        const hour = date.getHours() // Получаем час (0-23)
 
-      if (hourlyEvents[hour]) {
-        if (event.type === 'created') hourlyEvents[hour].created++
-        if (event.type === 'updated') hourlyEvents[hour].updated++
-        if (event.type === 'successful') hourlyEvents[hour].successful++
-        if (event.type === 'failed') hourlyEvents[hour].failed++
-      }
-    })
+        if (hourlyEvents[hour]) {
+          if (event.type === 'created') hourlyEvents[hour].created++
+          if (event.type === 'updated') hourlyEvents[hour].updated++
+          if (event.type === 'successful') hourlyEvents[hour].successful++
+          if (event.type === 'failed') hourlyEvents[hour].failed++
+        }
+      })
+    }
 
     // Создаем метки для осей в формате "12:00-13:00"
     const labels = Array.from({ length: 24 }, (_, i) => {
@@ -1747,7 +1749,7 @@ class WorkDayStatisticsManager {
       return `${startHour}:00-${endHour}:00`
     })
 
-    // Данные для графиков
+    // Данные для графиков (всегда массив из 24 элементов, даже если нули)
     const createdData = Array.from({ length: 24 }, (_, i) => hourlyEvents[i].created)
     const updatedData = Array.from({ length: 24 }, (_, i) => hourlyEvents[i].updated)
 
@@ -1762,7 +1764,7 @@ class WorkDayStatisticsManager {
           borderWidth: 2,
           fill: true,
           tension: 0.4,
-          pointRadius: 6, // Увеличиваем точки для наглядности
+          pointRadius: 6,
           pointHoverRadius: 8
         },
         {
@@ -1779,7 +1781,6 @@ class WorkDayStatisticsManager {
       ]
     }
 
-    // Остальная конфигурация остается прежней
     const options = {
       responsive: true,
       maintainAspectRatio: false,
@@ -1806,8 +1807,16 @@ class WorkDayStatisticsManager {
             color: '#6b7280'
           },
           ticks: {
-            stepSize: 1
-          }
+            stepSize: 1,
+            callback: function(value) {
+              // Всегда показываем целые числа
+              return Number.isInteger(value) ? value : ''
+            }
+          },
+          // Устанавливаем минимальное значение 0
+          min: 0,
+          // Устанавливаем максимальное значение автоматически, но минимум 5
+          suggestedMax: Math.max(5, Math.max(...createdData, ...updatedData) + 1)
         }
       },
       plugins: {
@@ -1823,7 +1832,6 @@ class WorkDayStatisticsManager {
           intersect: false,
           callbacks: {
             title: (context) => {
-              // Показываем интервал в тултипе
               return context[0].label
             },
             label: (context) => {
@@ -1832,6 +1840,13 @@ class WorkDayStatisticsManager {
               return `${label}: ${value} событий`
             }
           }
+        }
+      },
+      // Даже если все данные нулевые, показываем график
+      elements: {
+        line: {
+          // Показывать линию даже если все точки в 0
+          spanGaps: true
         }
       }
     }
@@ -1860,8 +1875,8 @@ class WorkDayStatisticsManager {
         if (this.bitrixTimeChart.value) {
           this.createBitrixTimeChart()
         }
-        if (this.timelineChart.value && this.crmData.value.timelineEvents.length > 0) {
-          this.createTimelineChart()
+        if (this.timelineChart.value) {
+          this.createTimelineChart() // Всегда создаем график
         }
       }, 50)
     })
