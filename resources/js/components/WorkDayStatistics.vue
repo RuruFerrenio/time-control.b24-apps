@@ -743,7 +743,7 @@ const crmStatusItems = computed(() => [
   { label: 'Провальные сделки:', value: crmData.value.failedDealsCount, colorClass: 'text-red-600' },
   { label: 'Успешные лиды:', value: crmData.value.convertedLeadsCount, colorClass: 'text-green-600' },
   { label: 'Провальные лиды:', value: crmData.value.junkLeadsCount, colorClass: 'text-red-600' }
-]
+])
 
 function formatDayDisplay(dateString: string): string {
   if (!dateString) return 'Выберите дату'
