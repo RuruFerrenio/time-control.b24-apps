@@ -204,16 +204,6 @@
                     <div class="w-full h-48">
                       <canvas ref="timelineChart"></canvas>
                     </div>
-                    <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      <div class="flex items-center">
-                        <div class="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
-                        <span class="text-xs text-gray-600">Создано</span>
-                      </div>
-                      <div class="flex items-center">
-                        <div class="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
-                        <span class="text-xs text-gray-600">Обновлено</span>
-                      </div>
-                    </div>
                   </div>
                 </div>
 
