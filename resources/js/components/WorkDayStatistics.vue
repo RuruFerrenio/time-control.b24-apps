@@ -1714,8 +1714,10 @@ class WorkDayStatisticsManager {
 
     if (!this.timelineChart.value || this.crmData.value.timelineEvents.length === 0) return
 
-    // Группируем события по часам
+    // Группируем события по часовым интервалам (12:00-13:00 и т.д.)
     const hourlyEvents = {}
+
+    // Создаем интервалы 00:00-01:00, 01:00-02:00, ..., 23:00-00:00
     for (let i = 0; i < 24; i++) {
       hourlyEvents[i] = {
         created: 0,
@@ -1725,8 +1727,11 @@ class WorkDayStatisticsManager {
       }
     }
 
+    // Группируем события по часам
     this.crmData.value.timelineEvents.forEach(event => {
-      const hour = new Date(event.timestamp).getHours()
+      const date = new Date(event.timestamp)
+      const hour = date.getHours() // Получаем час (0-23)
+
       if (hourlyEvents[hour]) {
         if (event.type === 'created') hourlyEvents[hour].created++
         if (event.type === 'updated') hourlyEvents[hour].updated++
@@ -1735,11 +1740,16 @@ class WorkDayStatisticsManager {
       }
     })
 
-    const labels = Array.from({ length: 24 }, (_, i) => `${i}:00`)
+    // Создаем метки для осей в формате "12:00-13:00"
+    const labels = Array.from({ length: 24 }, (_, i) => {
+      const startHour = i.toString().padStart(2, '0')
+      const endHour = ((i + 1) % 24).toString().padStart(2, '0')
+      return `${startHour}:00-${endHour}:00`
+    })
+
+    // Данные для графиков
     const createdData = Array.from({ length: 24 }, (_, i) => hourlyEvents[i].created)
     const updatedData = Array.from({ length: 24 }, (_, i) => hourlyEvents[i].updated)
-    const successfulData = Array.from({ length: 24 }, (_, i) => hourlyEvents[i].successful)
-    const failedData = Array.from({ length: 24 }, (_, i) => hourlyEvents[i].failed)
 
     const chartData = {
       labels: labels,
@@ -1751,7 +1761,9 @@ class WorkDayStatisticsManager {
           backgroundColor: 'rgba(16, 185, 129, 0.1)',
           borderWidth: 2,
           fill: true,
-          tension: 0.4
+          tension: 0.4,
+          pointRadius: 6, // Увеличиваем точки для наглядности
+          pointHoverRadius: 8
         },
         {
           label: 'Обновлено',
@@ -1760,11 +1772,14 @@ class WorkDayStatisticsManager {
           backgroundColor: 'rgba(59, 130, 246, 0.1)',
           borderWidth: 2,
           fill: true,
-          tension: 0.4
+          tension: 0.4,
+          pointRadius: 6,
+          pointHoverRadius: 8
         }
       ]
     }
 
+    // Остальная конфигурация остается прежней
     const options = {
       responsive: true,
       maintainAspectRatio: false,
@@ -1776,7 +1791,7 @@ class WorkDayStatisticsManager {
         x: {
           title: {
             display: true,
-            text: 'Время суток',
+            text: 'Часовые интервалы',
             color: '#6b7280'
           },
           grid: {
@@ -1807,6 +1822,10 @@ class WorkDayStatisticsManager {
           mode: 'index',
           intersect: false,
           callbacks: {
+            title: (context) => {
+              // Показываем интервал в тултипе
+              return context[0].label
+            },
             label: (context) => {
               const label = context.dataset.label || ''
               const value = context.parsed.y
