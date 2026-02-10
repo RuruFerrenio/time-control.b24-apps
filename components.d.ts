@@ -12,6 +12,23 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     B24App: typeof import('./node_modules/@bitrix24/b24ui-nuxt/dist/runtime/components/App.vue')['default']
+    B24Badge: typeof import('./node_modules/@bitrix24/b24ui-nuxt/dist/runtime/components/Badge.vue')['default']
+    B24Button: typeof import('./node_modules/@bitrix24/b24ui-nuxt/dist/runtime/components/Button.vue')['default']
+    B24Calendar: typeof import('./node_modules/@bitrix24/b24ui-nuxt/dist/runtime/components/Calendar.vue')['default']
+    B24Card: typeof import('./node_modules/@bitrix24/b24ui-nuxt/dist/runtime/components/Card.vue')['default']
+    B24Collapsible: typeof import('./node_modules/@bitrix24/b24ui-nuxt/dist/runtime/components/Collapsible.vue')['default']
+    B24Form: typeof import('./node_modules/@bitrix24/b24ui-nuxt/dist/runtime/components/Form.vue')['default']
+    B24FormField: typeof import('./node_modules/@bitrix24/b24ui-nuxt/dist/runtime/components/FormField.vue')['default']
+    B24Input: typeof import('./node_modules/@bitrix24/b24ui-nuxt/dist/runtime/components/Input.vue')['default']
+    B24Modal: typeof import('./node_modules/@bitrix24/b24ui-nuxt/dist/runtime/components/Modal.vue')['default']
+    B24Pagination: typeof import('./node_modules/@bitrix24/b24ui-nuxt/dist/runtime/components/Pagination.vue')['default']
+    B24Popover: typeof import('./node_modules/@bitrix24/b24ui-nuxt/dist/runtime/components/Popover.vue')['default']
+    B24RadioGroup: typeof import('./node_modules/@bitrix24/b24ui-nuxt/dist/runtime/components/RadioGroup.vue')['default']
+    B24Select: typeof import('./node_modules/@bitrix24/b24ui-nuxt/dist/runtime/components/Select.vue')['default']
+    B24Switch: typeof import('./node_modules/@bitrix24/b24ui-nuxt/dist/runtime/components/Switch.vue')['default']
+    B24Tabs: typeof import('./node_modules/@bitrix24/b24ui-nuxt/dist/runtime/components/Tabs.vue')['default']
+    B24Textarea: typeof import('./node_modules/@bitrix24/b24ui-nuxt/dist/runtime/components/Textarea.vue')['default']
+    B24User: typeof import('./node_modules/@bitrix24/b24ui-nuxt/dist/runtime/components/User.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }
