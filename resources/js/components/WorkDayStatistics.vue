@@ -745,13 +745,6 @@ const crmStatusItems = computed(() => [
   { label: 'Провальные лиды:', value: crmData.value.junkLeadsCount, colorClass: 'text-red-600' }
 ])
 
-// Вспомогательные методы
-function getCalendarDateFromString(dateString: string): CalendarDate | null {
-  if (!dateString) return null
-  const date = new Date(dateString)
-  return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate())
-}
-
 function getStringFromCalendarDate(calendarDate: CalendarDate | null): string {
   if (!calendarDate) return ''
   const year = calendarDate.year
