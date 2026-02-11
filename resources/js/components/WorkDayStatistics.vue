@@ -106,10 +106,10 @@
               <!-- Основной контент -->
               <div v-else>
                 <!-- Первая строка: График и легенда -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+                <div class="grid grid-cols-1 border border-gray-200 gap-6 md:gap-8">
                   <!-- График времени -->
                   <div>
-                    <div class="bg-white border border-gray-200 rounded-lg p-4">
+                    <div class="bg-white rounded-lg p-4">
                       <h4 class="text-sm font-medium text-gray-900 mb-3">
                         <span class="flex items-center gap-2">
                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,7 +135,7 @@
 
                   <!-- Интерактивная легенда -->
                   <div>
-                    <div class="bg-white border border-gray-200 rounded-lg p-4 h-full">
+                    <div class="bg-white rounded-lg p-4 h-full">
                       <h4 class="text-sm font-medium text-gray-900 mb-3">
                         <span class="flex items-center gap-2">
                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
