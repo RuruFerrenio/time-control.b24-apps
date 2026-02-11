@@ -190,23 +190,6 @@
                   </div>
                 </div>
 
-                <!-- График временной шкалы CRM -->
-                <div class="mt-6 md:mt-8">
-                  <div class="bg-white border border-gray-200 rounded-lg p-4">
-                    <h4 class="text-sm font-medium text-gray-900 mb-3">
-                      <span class="flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Активность CRM в течение дня
-                      </span>
-                    </h4>
-                    <div class="w-full h-48">
-                      <canvas ref="timelineChart"></canvas>
-                    </div>
-                  </div>
-                </div>
-
                 <!-- Список задач -->
                 <div class="mt-6 md:mt-8">
                   <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
@@ -291,6 +274,23 @@
                           {{ showAllTasks ? 'Скрыть' : 'Показать все' }}
                         </B24Button>
                       </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- График временной шкалы CRM -->
+                <div class="mt-6 md:mt-8">
+                  <div class="bg-white border border-gray-200 rounded-lg p-4">
+                    <h4 class="text-sm font-medium text-gray-900 mb-3">
+                      <span class="flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Активность CRM в течение дня
+                      </span>
+                    </h4>
+                    <div class="w-full h-48">
+                      <canvas ref="timelineChart"></canvas>
                     </div>
                   </div>
                 </div>
