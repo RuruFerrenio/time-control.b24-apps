@@ -235,7 +235,7 @@
                             <a
                                 :href="`/company/personal/user/${currentUserId}/tasks/task/view/${row.original.id}/`"
                                 target="_blank"
-                                class="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline truncate block max-w-xs"
+                                class="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline truncate block"
                             >
                               {{ row.original.title || `Задача #${row.original.id}` }}
                             </a>
@@ -246,7 +246,7 @@
                         </template>
 
                         <template #status-cell="{ row }">
-                          <B24Badge :color="getTaskStatusColor(row.original.status)" class="whitespace-nowrap overflow-scroll max-w-full inline-block">
+                          <B24Badge :color="getTaskStatusColor(row.original.status)" class="whitespace-nowrap overflow-scroll inline-block">
                             {{ getTaskStatusText(row.original.status) }}
                           </B24Badge>
                         </template>
