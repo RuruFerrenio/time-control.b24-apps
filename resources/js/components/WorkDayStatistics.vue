@@ -106,10 +106,10 @@
               <!-- Основной контент -->
               <div v-else>
                 <!-- Первая строка: График и легенда -->
-                <div class="grid grid-cols-1 border border-gray-200 gap-6 md:gap-8">
+                <div class="grid grid-cols-1 border border-gray-200 rounded-lg gap-6 md:gap-8">
                   <!-- График времени -->
                   <div>
-                    <div class="bg-white rounded-lg p-4">
+                    <div class="bg-white p-4">
                       <h4 class="text-sm font-medium text-gray-900 mb-3">
                         <span class="flex items-center gap-2">
                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,15 +135,7 @@
 
                   <!-- Интерактивная легенда -->
                   <div>
-                    <div class="bg-white rounded-lg p-4 h-full">
-                      <h4 class="text-sm font-medium text-gray-900 mb-3">
-                        <span class="flex items-center gap-2">
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                          </svg>
-                          Распределение времени
-                        </span>
-                      </h4>
+                    <div class="bg-white p-4 h-full">
                       <div class="space-y-3">
                         <div v-for="(item, index) in bitrixTimeLegend" :key="index"
                              class="p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer border border-transparent hover:border-gray-200"
