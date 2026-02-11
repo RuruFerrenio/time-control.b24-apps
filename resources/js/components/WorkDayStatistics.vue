@@ -106,7 +106,7 @@
               <!-- Основной контент -->
               <div v-else>
                 <!-- Первая строка: График и легенда -->
-                <div class="grid grid-cols-1 gap-6 md:gap-8">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
                   <!-- График времени -->
                   <div>
                     <div class="bg-white border border-gray-200 rounded-lg p-4">
@@ -221,79 +221,67 @@
                       </h4>
                     </div>
 
-                    <!-- Таблица задач -->
+                    <!-- Таблица задач с использованием B24Table -->
                     <div class="overflow-x-auto">
-                      <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                        <tr>
-                          <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Задача
-                          </th>
-                          <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Статус
-                          </th>
-                          <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Время
-                          </th>
-                          <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Исполнитель
-                          </th>
-                        </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                        <tr v-for="task in taskTimeData.tasks" :key="task.id" class="hover:bg-gray-50">
-                          <td class="px-4 py-3 whitespace-nowrap">
+                      <B24Table
+                          :data="displayedTasks"
+                          :columns="taskColumns"
+                          :loading="isLoading"
+                          class="w-full"
+                          empty="Нет задач за выбранный день"
+                      >
+                        <template #task-cell="{ row }">
+                          <div class="flex flex-col min-w-0">
                             <a
-                                :href="`/company/personal/user/${currentUserId}/tasks/task/view/${task.id}/`"
+                                :href="`/company/personal/user/${currentUserId}/tasks/task/view/${row.original.id}/`"
                                 target="_blank"
                                 class="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline truncate block max-w-xs"
                             >
-                              {{ task.title || `Задача #${task.id}` }}
+                              {{ row.original.title || `Задача #${row.original.id}` }}
                             </a>
                             <div class="text-xs text-gray-500">
-                              ID: {{ task.id }}
+                              ID: {{ row.original.id }}
                             </div>
-                          </td>
-                          <td class="px-4 py-3 whitespace-nowrap">
-                            <B24Badge :color="getTaskStatusColor(task.status)"  class="whitespace-nowrap overflow-scroll max-w-full inline-block">
-                              {{ getTaskStatusText(task.status) }}
-                            </B24Badge>
-                          </td>
-                          <td class="px-4 py-3 whitespace-nowrap">
+                          </div>
+                        </template>
+
+                        <template #status-cell="{ row }">
+                          <B24Badge :color="getTaskStatusColor(row.original.status)" class="whitespace-nowrap overflow-scroll max-w-full inline-block">
+                            {{ getTaskStatusText(row.original.status) }}
+                          </B24Badge>
+                        </template>
+
+                        <template #time-cell="{ row }">
+                          <div class="flex flex-col">
                             <div class="text-sm font-semibold text-green-600">
-                              {{ formatDuration(task.timeSpent) }}
+                              {{ formatDuration(row.original.timeSpent) }}
                             </div>
                             <div class="text-xs text-gray-500">
-                              {{ task.elapsedItemsCount }} записей
+                              {{ row.original.elapsedItemsCount }} записей
                             </div>
-                          </td>
-                          <td class="px-4 py-3 whitespace-nowrap">
-                            <a
-                                :href="`/company/personal/user/${task.responsibleId || currentUserId}/`"
-                                target="_blank"
-                                class="text-sm text-gray-900 hover:text-blue-600 hover:underline flex items-center gap-2"
-                            >
-                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                              </svg>
-                              {{ task.responsibleName || 'Текущий пользователь' }}
-                            </a>
-                          </td>
-                        </tr>
-                        <tr v-if="taskTimeData.tasks.length === 0">
-                          <td colspan="4" class="px-4 py-8 text-center text-gray-500">
-                            Нет задач за выбранный день
-                          </td>
-                        </tr>
-                        </tbody>
-                      </table>
+                          </div>
+                        </template>
+
+                        <template #responsible-cell="{ row }">
+                          <a
+                              :href="`/company/personal/user/${row.original.responsibleId || currentUserId}/`"
+                              target="_blank"
+                              class="text-sm text-gray-900 hover:text-blue-600 hover:underline flex items-center gap-2"
+                          >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            {{ row.original.responsibleName || 'Текущий пользователь' }}
+                          </a>
+                        </template>
+                      </B24Table>
                     </div>
 
                     <!-- Пагинация для задач -->
                     <div v-if="taskTimeData.tasks.length > 10" class="px-4 py-3 border-t border-gray-200">
                       <div class="flex items-center justify-between">
                         <div class="text-sm text-gray-500">
-                          Показано 10 из {{ taskTimeData.tasks.length }} задач
+                          Показано {{ Math.min(10, taskTimeData.tasks.length) }} из {{ taskTimeData.tasks.length }} задач
                         </div>
                         <B24Button
                             @click="showAllTasks = !showAllTasks"
@@ -319,6 +307,7 @@
                   </h4>
                   <div class="bg-white border border-gray-200 rounded-lg p-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                      <!-- Настройки рабочего времени -->
                       <div>
                         <h5 class="text-sm font-medium text-blue-900 mb-4">
                           <span class="flex items-center gap-2">
@@ -329,30 +318,30 @@
                             Настройки рабочего времени
                           </span>
                         </h5>
-                        <div class="space-y-3">
-                          <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
-                            <span class="text-sm text-blue-700">Учет времени:</span>
-                            <B24Badge :color="workDaySettings.UF_TIMEMAN ? 'air-primary-success' : 'air-secondary-accent'">
-                              {{ workDaySettings.UF_TIMEMAN ? 'Включен' : 'Выключен' }}
-                            </B24Badge>
-                          </div>
-                          <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
-                            <span class="text-sm text-blue-700">Свободный график:</span>
-                            <B24Badge :color="workDaySettings.UF_TM_FREE ? 'air-primary-success' : 'air-secondary-accent'">
-                              {{ workDaySettings.UF_TM_FREE ? 'Да' : 'Нет' }}
-                            </B24Badge>
-                          </div>
-                          <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
-                            <span class="text-sm text-blue-700">Начало дня до:</span>
-                            <span class="text-sm font-medium text-blue-900">{{ workDaySettings.UF_TM_MAX_START || 'Не задано' }}</span>
-                          </div>
-                          <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
-                            <span class="text-sm text-blue-700">Конец дня после:</span>
-                            <span class="text-sm font-medium text-blue-900">{{ workDaySettings.UF_TM_MIN_FINISH || 'Не задано' }}</span>
-                          </div>
+
+                        <!-- Таблица настроек рабочего времени -->
+                        <div class="overflow-x-auto">
+                          <B24Table
+                              :data="workDaySettingsTableData"
+                              :columns="workDaySettingsColumns"
+                              :loading="isLoading"
+                              class="w-full"
+                          >
+                            <template #value-cell="{ row }">
+                              <span v-if="row.original.badge">
+                                <B24Badge :color="row.original.badgeColor">
+                                  {{ row.original.value }}
+                                </B24Badge>
+                              </span>
+                              <span v-else class="text-sm font-medium text-blue-900">
+                                {{ row.original.value }}
+                              </span>
+                            </template>
+                          </B24Table>
                         </div>
                       </div>
 
+                      <!-- Текущий рабочий день -->
                       <div>
                         <h5 class="text-sm font-medium text-blue-900 mb-4">
                           <span class="flex items-center gap-2">
@@ -362,31 +351,26 @@
                             Текущий рабочий день
                           </span>
                         </h5>
-                        <div class="space-y-3">
-                          <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
-                            <span class="text-sm text-blue-700">Статус:</span>
-                            <B24Badge :class="getWorkDayStatusClass(workDayStatus.STATUS)">
-                              {{ getWorkDayStatusText(workDayStatus.STATUS) }}
-                            </B24Badge>
-                          </div>
-                          <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
-                            <span class="text-sm text-blue-700">Начало:</span>
-                            <span class="text-sm font-medium text-blue-900 truncate">
-                              {{ formatDateTime(workDayStatus.TIME_START) || 'Не начат' }}
-                            </span>
-                          </div>
-                          <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
-                            <span class="text-sm text-blue-700">Длительность:</span>
-                            <span class="text-sm font-medium text-blue-900">
-                              {{ workDayStatus.DURATION || '00:00:00' }}
-                            </span>
-                          </div>
-                          <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-1 xs:gap-0">
-                            <span class="text-sm text-blue-700">Перерывы:</span>
-                            <span class="text-sm font-medium text-blue-900">
-                              {{ workDayStatus.TIME_LEAKS || '00:00:00' }}
-                            </span>
-                          </div>
+
+                        <!-- Таблица статуса рабочего дня -->
+                        <div class="overflow-x-auto">
+                          <B24Table
+                              :data="workDayStatusTableData"
+                              :columns="workDayStatusColumns"
+                              :loading="isLoading"
+                              class="w-full"
+                          >
+                            <template #value-cell="{ row }">
+                              <span v-if="row.original.badge">
+                                <B24Badge :class="getWorkDayStatusClass(row.original.value)">
+                                  {{ getWorkDayStatusText(row.original.value) }}
+                                </B24Badge>
+                              </span>
+                              <span v-else class="text-sm font-medium text-blue-900 truncate">
+                                {{ row.original.value }}
+                              </span>
+                            </template>
+                          </B24Table>
                         </div>
                       </div>
                     </div>
@@ -404,84 +388,53 @@
                         Активность CRM
                       </span>
                     </h4>
-                    <div class="grid grid-cols-1 xs:grid-cols-2 gap-3">
-                      <!-- Созданные -->
-                      <div class="space-y-2">
-                        <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                          <div class="flex items-center min-w-0">
-                            <div class="w-3 h-3 rounded-full mr-2 bg-green-100 border border-green-500 flex-shrink-0"></div>
-                            <span class="text-xs text-gray-700 truncate">Создано сделок</span>
-                          </div>
-                          <span class="text-sm font-semibold text-green-600 ml-2">
-                            {{ crmData.createdDealsCount }}
-                          </span>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      <!-- Левая колонка - Создано -->
+                      <div>
+                        <div class="flex items-center gap-2 mb-3">
+                          <div class="w-3 h-3 rounded-full bg-green-100 border border-green-500"></div>
+                          <h5 class="text-xs font-medium text-gray-700 uppercase">Создано</h5>
                         </div>
-                        <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                          <div class="flex items-center min-w-0">
-                            <div class="w-3 h-3 rounded-full mr-2 bg-green-100 border border-green-500 flex-shrink-0"></div>
-                            <span class="text-xs text-gray-700 truncate">Создано лидов</span>
-                          </div>
-                          <span class="text-sm font-semibold text-green-600 ml-2">
-                            {{ crmData.createdLeadsCount }}
-                          </span>
-                        </div>
-                        <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                          <div class="flex items-center min-w-0">
-                            <div class="w-3 h-3 rounded-full mr-2 bg-green-100 border border-green-500 flex-shrink-0"></div>
-                            <span class="text-xs text-gray-700 truncate">Создано контактов</span>
-                          </div>
-                          <span class="text-sm font-semibold text-green-600 ml-2">
-                            {{ crmData.createdContactsCount }}
-                          </span>
-                        </div>
-                        <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                          <div class="flex items-center min-w-0">
-                            <div class="w-3 h-3 rounded-full mr-2 bg-green-100 border border-green-500 flex-shrink-0"></div>
-                            <span class="text-xs text-gray-700 truncate">Создано компаний</span>
-                          </div>
-                          <span class="text-sm font-semibold text-green-600 ml-2">
-                            {{ crmData.createdCompaniesCount }}
-                          </span>
+
+                        <div class="overflow-x-auto">
+                          <B24Table
+                              :data="createdCrmTableData"
+                              :columns="crmColumns"
+                              :loading="isLoading"
+                              class="w-full"
+                          >
+                            <template #entity-cell="{ row }">
+                              <span class="text-xs text-gray-700 truncate">{{ row.original.entity }}</span>
+                            </template>
+                            <template #count-cell="{ row }">
+                              <span class="text-sm font-semibold text-green-600 ml-2">{{ row.original.count }}</span>
+                            </template>
+                          </B24Table>
                         </div>
                       </div>
 
-                      <!-- Обновленные -->
-                      <div class="space-y-2">
-                        <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                          <div class="flex items-center min-w-0">
-                            <div class="w-3 h-3 rounded-full mr-2 bg-blue-100 border border-blue-500 flex-shrink-0"></div>
-                            <span class="text-xs text-gray-700 truncate">Обновлено сделок</span>
-                          </div>
-                          <span class="text-sm font-semibold text-blue-600 ml-2">
-                            {{ crmData.updatedDealsCount }}
-                          </span>
+                      <!-- Правая колонка - Обновлено -->
+                      <div>
+                        <div class="flex items-center gap-2 mb-3">
+                          <div class="w-3 h-3 rounded-full bg-blue-100 border border-blue-500"></div>
+                          <h5 class="text-xs font-medium text-gray-700 uppercase">Обновлено</h5>
                         </div>
-                        <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                          <div class="flex items-center min-w-0">
-                            <div class="w-3 h-3 rounded-full mr-2 bg-blue-100 border border-blue-500 flex-shrink-0"></div>
-                            <span class="text-xs text-gray-700 truncate">Обновлено лидов</span>
-                          </div>
-                          <span class="text-sm font-semibold text-blue-600 ml-2">
-                            {{ crmData.updatedLeadsCount }}
-                          </span>
-                        </div>
-                        <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                          <div class="flex items-center min-w-0">
-                            <div class="w-3 h-3 rounded-full mr-2 bg-blue-100 border border-blue-500 flex-shrink-0"></div>
-                            <span class="text-xs text-gray-700 truncate">Обновлено контактов</span>
-                          </div>
-                          <span class="text-sm font-semibold text-blue-600 ml-2">
-                            {{ crmData.updatedContactsCount }}
-                          </span>
-                        </div>
-                        <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                          <div class="flex items-center min-w-0">
-                            <div class="w-3 h-3 rounded-full mr-2 bg-blue-100 border border-blue-500 flex-shrink-0"></div>
-                            <span class="text-xs text-gray-700 truncate">Обновлено компаний</span>
-                          </div>
-                          <span class="text-sm font-semibold text-blue-600 ml-2">
-                            {{ crmData.updatedCompaniesCount }}
-                          </span>
+
+                        <div class="overflow-x-auto">
+                          <B24Table
+                              :data="updatedCrmTableData"
+                              :columns="crmColumns"
+                              :loading="isLoading"
+                              class="w-full"
+                          >
+                            <template #entity-cell="{ row }">
+                              <span class="text-xs text-gray-700 truncate">{{ row.original.entity }}</span>
+                            </template>
+                            <template #count-cell="{ row }">
+                              <span class="text-sm font-semibold text-blue-600 ml-2">{{ row.original.count }}</span>
+                            </template>
+                          </B24Table>
                         </div>
                       </div>
                     </div>
@@ -489,23 +442,26 @@
                     <!-- Статусы сделок и лидов -->
                     <div class="mt-4 pt-4 border-t border-gray-200">
                       <h5 class="text-xs font-medium text-gray-700 mb-2">Статусы сделок и лидов</h5>
-                      <div class="grid grid-cols-1 xs:grid-cols-2 gap-2">
-                        <div class="flex items-center justify-between p-1 min-w-0">
-                          <span class="text-xs text-gray-600 truncate">Успешные сделки:</span>
-                          <span class="text-xs font-semibold text-green-600 ml-2">{{ crmData.successfulDealsCount }}</span>
-                        </div>
-                        <div class="flex items-center justify-between p-1 min-w-0">
-                          <span class="text-xs text-gray-600 truncate">Провальные сделки:</span>
-                          <span class="text-xs font-semibold text-red-600 ml-2">{{ crmData.failedDealsCount }}</span>
-                        </div>
-                        <div class="flex items-center justify-between p-1 min-w-0">
-                          <span class="text-xs text-gray-600 truncate">Успешные лиды:</span>
-                          <span class="text-xs font-semibold text-green-600 ml-2">{{ crmData.convertedLeadsCount }}</span>
-                        </div>
-                        <div class="flex items-center justify-between p-1 min-w-0">
-                          <span class="text-xs text-gray-600 truncate">Провальные лиды:</span>
-                          <span class="text-xs font-semibold text-red-600 ml-2">{{ crmData.junkLeadsCount }}</span>
-                        </div>
+                      <div class="overflow-x-auto">
+                        <B24Table
+                            :data="crmStatusTableData"
+                            :columns="crmStatusColumns"
+                            :loading="isLoading"
+                            class="w-full"
+                        >
+                          <template #status-cell="{ row }">
+                            <span class="text-xs text-gray-600 truncate">{{ row.original.status }}</span>
+                          </template>
+                          <template #count-cell="{ row }">
+                            <span class="text-xs font-semibold ml-2"
+                                  :class="{
+                                  'text-green-600': row.original.type === 'successful',
+                                  'text-red-600': row.original.type === 'failed'
+                                }">
+                              {{ row.original.count }}
+                            </span>
+                          </template>
+                        </B24Table>
                       </div>
                     </div>
                   </div>
@@ -651,18 +607,270 @@ class WorkDayStatisticsManager {
 
     // Цветовая схема - улучшенные цвета
     this.CHART_COLORS = {
-      WORK_DAY: '#d1d5db', // Посветлел серый цвет
+      WORK_DAY: '#d1d5db',
       BITRIX_TIME: '#3b82f6',
       BREAK_TIME: '#f97316',
-      TASK_TIME: '#10b981', // Зеленый для задач
+      TASK_TIME: '#10b981',
       OTHER_TIME: '#8b5cf6'
     }
 
     // Кэш профилей пользователей
     this.userProfilesCache = ref({})
+
+    // Колонки для таблиц B24Table
+    this.taskColumns = [
+      {
+        accessorKey: 'id',
+        header: 'ID',
+        meta: {
+          class: {
+            th: 'hidden',
+            td: 'hidden'
+          }
+        }
+      },
+      {
+        accessorKey: 'task',
+        header: 'Задача',
+        cell: 'task'
+      },
+      {
+        accessorKey: 'status',
+        header: 'Статус',
+        cell: 'status'
+      },
+      {
+        accessorKey: 'time',
+        header: 'Время',
+        cell: 'time'
+      },
+      {
+        accessorKey: 'responsible',
+        header: 'Исполнитель',
+        cell: 'responsible'
+      }
+    ]
+
+    this.workDaySettingsColumns = [
+      {
+        accessorKey: 'setting',
+        header: 'Настройка',
+        meta: {
+          class: {
+            th: 'text-sm text-blue-700',
+            td: 'text-sm text-blue-700'
+          }
+        }
+      },
+      {
+        accessorKey: 'value',
+        header: 'Значение',
+        cell: 'value',
+        meta: {
+          class: {
+            th: 'text-right',
+            td: 'text-right'
+          }
+        }
+      }
+    ]
+
+    this.workDayStatusColumns = [
+      {
+        accessorKey: 'setting',
+        header: 'Параметр',
+        meta: {
+          class: {
+            th: 'text-sm text-blue-700',
+            td: 'text-sm text-blue-700'
+          }
+        }
+      },
+      {
+        accessorKey: 'value',
+        header: 'Значение',
+        cell: 'value',
+        meta: {
+          class: {
+            th: 'text-right',
+            td: 'text-right'
+          }
+        }
+      }
+    ]
+
+    this.crmColumns = [
+      {
+        accessorKey: 'entity',
+        header: 'Тип',
+        cell: 'entity',
+        meta: {
+          class: {
+            th: 'text-xs text-gray-700',
+            td: 'text-xs text-gray-700'
+          }
+        }
+      },
+      {
+        accessorKey: 'count',
+        header: 'Количество',
+        cell: 'count',
+        meta: {
+          class: {
+            th: 'text-right text-xs text-gray-700',
+            td: 'text-right'
+          }
+        }
+      }
+    ]
+
+    this.crmStatusColumns = [
+      {
+        accessorKey: 'status',
+        header: 'Статус',
+        cell: 'status',
+        meta: {
+          class: {
+            th: 'text-xs text-gray-600',
+            td: 'text-xs text-gray-600'
+          }
+        }
+      },
+      {
+        accessorKey: 'count',
+        header: 'Количество',
+        cell: 'count',
+        meta: {
+          class: {
+            th: 'text-right text-xs text-gray-600',
+            td: 'text-right'
+          }
+        }
+      }
+    ]
   }
 
-  // Вычисляемые свойства
+  // Вычисляемые свойства для таблиц
+  get workDaySettingsTableData() {
+    return [
+      {
+        setting: 'Учет времени',
+        value: this.workDaySettings.value.UF_TIMEMAN ? 'Включен' : 'Выключен',
+        badge: true,
+        badgeColor: this.workDaySettings.value.UF_TIMEMAN ? 'air-primary-success' : 'air-secondary-accent'
+      },
+      {
+        setting: 'Свободный график',
+        value: this.workDaySettings.value.UF_TM_FREE ? 'Да' : 'Нет',
+        badge: true,
+        badgeColor: this.workDaySettings.value.UF_TM_FREE ? 'air-primary-success' : 'air-secondary-accent'
+      },
+      {
+        setting: 'Начало дня до',
+        value: this.workDaySettings.value.UF_TM_MAX_START || 'Не задано',
+        badge: false
+      },
+      {
+        setting: 'Конец дня после',
+        value: this.workDaySettings.value.UF_TM_MIN_FINISH || 'Не задано',
+        badge: false
+      }
+    ]
+  }
+
+  get workDayStatusTableData() {
+    return [
+      {
+        setting: 'Статус',
+        value: this.workDayStatus.value.STATUS,
+        badge: true
+      },
+      {
+        setting: 'Начало',
+        value: this.formatDateTime(this.workDayStatus.value.TIME_START) || 'Не начат',
+        badge: false
+      },
+      {
+        setting: 'Длительность',
+        value: this.workDayStatus.value.DURATION || '00:00:00',
+        badge: false
+      },
+      {
+        setting: 'Перерывы',
+        value: this.workDayStatus.value.TIME_LEAKS || '00:00:00',
+        badge: false
+      }
+    ]
+  }
+
+  get createdCrmTableData() {
+    return [
+      {
+        entity: 'Создано сделок',
+        count: this.crmData.value.createdDealsCount
+      },
+      {
+        entity: 'Создано лидов',
+        count: this.crmData.value.createdLeadsCount
+      },
+      {
+        entity: 'Создано контактов',
+        count: this.crmData.value.createdContactsCount
+      },
+      {
+        entity: 'Создано компаний',
+        count: this.crmData.value.createdCompaniesCount
+      }
+    ]
+  }
+
+  get updatedCrmTableData() {
+    return [
+      {
+        entity: 'Обновлено сделок',
+        count: this.crmData.value.updatedDealsCount
+      },
+      {
+        entity: 'Обновлено лидов',
+        count: this.crmData.value.updatedLeadsCount
+      },
+      {
+        entity: 'Обновлено контактов',
+        count: this.crmData.value.updatedContactsCount
+      },
+      {
+        entity: 'Обновлено компаний',
+        count: this.crmData.value.updatedCompaniesCount
+      }
+    ]
+  }
+
+  get crmStatusTableData() {
+    return [
+      {
+        status: 'Успешные сделки',
+        count: this.crmData.value.successfulDealsCount,
+        type: 'successful'
+      },
+      {
+        status: 'Провальные сделки',
+        count: this.crmData.value.failedDealsCount,
+        type: 'failed'
+      },
+      {
+        status: 'Успешные лиды',
+        count: this.crmData.value.convertedLeadsCount,
+        type: 'successful'
+      },
+      {
+        status: 'Провальные лиды',
+        count: this.crmData.value.junkLeadsCount,
+        type: 'failed'
+      }
+    ]
+  }
+
+  // Остальные вычисляемые свойства
   get bitrixTimeLegend() {
     const data = this.workDayData.value
     const workDayStatusValue = this.workDayStatus.value
@@ -839,13 +1047,13 @@ class WorkDayStatisticsManager {
 
   getTaskStatusColor(status) {
     const statusMap = {
-      '1': 'air-secondary-accent', // Новая
-      '2': 'air-warning', // В работе
-      '3': 'air-waiting', // Ждет выполнения
-      '4': 'air-info', // Отложена
-      '5': 'air-primary-success', // Выполнена
-      '6': 'air-secondary-accent', // Отменена
-      '7': 'air-critical', // Просрочена
+      '1': 'air-secondary-accent',
+      '2': 'air-warning',
+      '3': 'air-waiting',
+      '4': 'air-info',
+      '5': 'air-primary-success',
+      '6': 'air-secondary-accent',
+      '7': 'air-critical',
     }
     return statusMap[status] || 'air-secondary-accent'
   }
@@ -893,277 +1101,66 @@ class WorkDayStatisticsManager {
       // Создаем элемент для экспорта
       const element = document.createElement('div')
       element.className = 'bg-white p-6'
-
-      // Заголовок
-      const header = document.createElement('div')
-      header.innerHTML = `
-      <h1 class="text-2xl font-bold text-gray-900 mb-2">${this.pageTitle}</h1>
-      <p class="text-gray-600 mb-4">Дата: ${this.formatDayDisplay(this.selectedDay.value)}</p>
-      <div class="border-t border-gray-200 mb-6"></div>
-    `
-      element.appendChild(header)
-
-      // График времени
-      const chartContainer = document.createElement('div')
-      chartContainer.className = 'mb-6'
-
-      // Получаем изображение графика
-      const chartCanvas = this.bitrixTimeChart.value
-      const chartImage = chartCanvas.toDataURL('image/png')
-
-      chartContainer.innerHTML = `
-      <div class="flex flex-col lg:flex-row gap-6 mb-6">
-        <!-- График -->
-        <div class="flex-1">
-          <div class="border border-gray-200 rounded-lg p-4">
-            <h3 class="text-lg font-semibold text-gray-900 mb-3">Распределение времени</h3>
-            <div class="relative w-full h-64">
-              <img src="${chartImage}" class="w-full h-full object-contain" />
-              <div class="absolute inset-0 flex flex-col items-center justify-center">
-                <div class="text-2xl font-bold text-gray-900">
-                  ${this.formatPercentage(this.workDayData.value.bitrixTimePercentage)}
-                </div>
-                <div class="text-sm text-gray-500 mt-1">
-                  времени в Bitrix24
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Легенда -->
-        <div class="flex-1">
-          <div class="border border-gray-200 rounded-lg p-4">
-            <h3 class="text-lg font-semibold text-gray-900 mb-3">Распределение времени</h3>
-            <div class="space-y-3">
-              ${this.bitrixTimeLegend.map(item => `
-                <div class="flex items-center justify-between p-3 border border-gray-200 rounded">
-                  <div class="flex items-center">
-                    <div class="w-4 h-4 rounded-full mr-3 border border-gray-200" style="background-color: ${item.color}"></div>
-                    <div>
-                      <div class="text-sm font-medium text-gray-900">${item.label}</div>
-                      <div class="text-xs text-gray-500">${item.description}</div>
-                    </div>
-                  </div>
-                  <div class="text-right">
-                    <div class="text-sm font-semibold" style="color: ${item.color}">${this.formatDuration(item.value)}</div>
-                    <div class="text-xs text-gray-500">${item.percentage}</div>
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-        </div>
-      </div>
-    `
-      element.appendChild(chartContainer)
-
-      // Добавляем график временной шкалы если есть
-      if (this.timelineChart.value && this.crmData.value.timelineEvents.length > 0) {
-        const timelineCanvas = this.timelineChart.value
-        const timelineImage = timelineCanvas.toDataURL('image/png')
-
-        const timelineContainer = document.createElement('div')
-        timelineContainer.className = 'mb-6'
-        timelineContainer.innerHTML = `
-        <div class="border border-gray-200 rounded-lg p-4">
-          <h3 class="text-lg font-semibold text-gray-900 mb-3">Активность CRM в течение дня</h3>
-          <div class="w-full h-48">
-            <img src="${timelineImage}" class="w-full h-full object-contain" />
-          </div>
-        </div>
-      `
-        element.appendChild(timelineContainer)
-      }
-
-      // Остальная часть генерирования PDF (рабочий день, задачи, CRM)
-      // ... оставьте существующий код генерации остальных секций ...
-
-      // Настройки PDF
-      const opt = {
-        margin: 1,
-        filename: `bitrix24-статистика-${this.selectedDay.value}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          logging: false
-        },
-        jsPDF: {
-          unit: 'in',
-          format: 'a4',
-          orientation: 'portrait'
-        }
-      }
-
-      // Генерация PDF
-      await html2pdf().set(opt).from(element).save()
-
-      this.showNotification('success', 'PDF успешно экспортирован')
-
-    } catch (error) {
-      console.error('Ошибка экспорта PDF:', error)
-      this.showNotification('error', 'Ошибка при экспорте PDF')
-    } finally {
-      this.isLoading.value = false
-    }
-  }
-
-  generatePDFContent() {
-    const today = new Date().toLocaleDateString('ru-RU', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-
-    return `
-      <div class="container">
-        <div class="header">
-          <h1>${this.pageTitle}</h1>
-          <p><strong>Дата:</strong> ${this.formatDayDisplay(this.selectedDay.value)}</p>
-          <p><strong>Сгенерировано:</strong> ${today}</p>
-        </div>
-
-        <div class="stat-card">
-          <h2>Распределение времени</h2>
-          <div style="text-align: center; margin: 20px 0;">
-            <div style="font-size: 24px; font-weight: bold;">${this.formatPercentage(this.workDayData.value.bitrixTimePercentage)}</div>
-            <div>времени в Bitrix24</div>
-          </div>
-
-          ${this.bitrixTimeLegend.map(item => `
-            <div class="legend-item">
-              <div class="legend-color" style="background-color: ${item.color}"></div>
-              <div style="flex-grow: 1">
-                <strong>${item.label}</strong><br>
-                <small>${item.description}</small>
-              </div>
-              <div style="text-align: right">
-                <strong>${this.formatDuration(item.value)}</strong><br>
-                <small>${item.percentage}</small>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-
-        <div class="stats-grid">
-          <div class="stat-card">
-            <h3>Настройки рабочего времени</h3>
-            <p><strong>Учет времени:</strong> ${this.workDaySettings.value.UF_TIMEMAN ? 'Включен' : 'Выключен'}</p>
-            <p><strong>Свободный график:</strong> ${this.workDaySettings.value.UF_TM_FREE ? 'Да' : 'Нет'}</p>
-            <p><strong>Начало дня до:</strong> ${this.workDaySettings.value.UF_TM_MAX_START || 'Не задано'}</p>
-            <p><strong>Конец дня после:</strong> ${this.workDaySettings.value.UF_TM_MIN_FINISH || 'Не задано'}</p>
-          </div>
-
-          <div class="stat-card">
-            <h3>Текущий рабочий день</h3>
-            <p><strong>Статус:</strong> ${this.getWorkDayStatusText(this.workDayStatus.value.STATUS)}</p>
-            <p><strong>Начало:</strong> ${this.formatDateTime(this.workDayStatus.value.TIME_START) || 'Не начат'}</p>
-            <p><strong>Длительность:</strong> ${this.workDayStatus.value.DURATION || '00:00:00'}</p>
-            <p><strong>Перерывы:</strong> ${this.workDayStatus.value.TIME_LEAKS || '00:00:00'}</p>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <h3>Активность CRM</h3>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-            <div>
-              <h4>Создано</h4>
-              <p>Сделки: ${this.crmData.value.createdDealsCount}</p>
-              <p>Лиды: ${this.crmData.value.createdLeadsCount}</p>
-              <p>Контакты: ${this.crmData.value.createdContactsCount}</p>
-              <p>Компании: ${this.crmData.value.createdCompaniesCount}</p>
-            </div>
-            <div>
-              <h4>Обновлено</h4>
-              <p>Сделки: ${this.crmData.value.updatedDealsCount}</p>
-              <p>Лиды: ${this.crmData.value.updatedLeadsCount}</p>
-              <p>Контакты: ${this.crmData.value.updatedContactsCount}</p>
-              <p>Компании: ${this.crmData.value.updatedCompaniesCount}</p>
-            </div>
-          </div>
-        </div>
-
-        ${this.generateTasksPDFContent()}
-
-        <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666;">
-          <p>Bitrix24 Статистика рабочего дня</p>
-        </div>
-      </div>
-    `
-  }
-
-  // Метод для экспорта в PDF
-  async exportToPDF() {
-    try {
-      this.isLoading.value = true
-
-      // Создаем элемент для экспорта
-      const element = document.createElement('div')
-      element.className = 'bg-white p-6'
       element.style.cssText = `
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      color: #333;
-    `
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #333;
+      `
 
       // Заголовок
       const header = document.createElement('div')
       header.style.cssText = `
-      margin-bottom: 30px;
-      border-bottom: 2px solid #e5e7eb;
-      padding-bottom: 20px;
-    `
+        margin-bottom: 30px;
+        border-bottom: 2px solid #e5e7eb;
+        padding-bottom: 20px;
+      `
       header.innerHTML = `
-      <h1 style="font-size: 24px; font-weight: bold; color: #1f2937; margin-bottom: 8px;">${this.pageTitle}</h1>
-      <p style="color: #6b7280; margin-bottom: 4px;"><strong>Дата:</strong> ${this.formatDayDisplay(this.selectedDay.value)}</p>
-      <p style="color: #6b7280;">Сгенерировано: ${new Date().toLocaleString('ru-RU')}</p>
-    `
+        <h1 style="font-size: 24px; font-weight: bold; color: #1f2937; margin-bottom: 8px;">${this.pageTitle}</h1>
+        <p style="color: #6b7280; margin-bottom: 4px;"><strong>Дата:</strong> ${this.formatDayDisplay(this.selectedDay.value)}</p>
+        <p style="color: #6b7280;">Сгенерировано: ${new Date().toLocaleString('ru-RU')}</p>
+      `
       element.appendChild(header)
 
       // Статистика эффективности
       const statsHeader = document.createElement('div')
       statsHeader.style.cssText = `
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 30px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 20px;
-      border-radius: 8px;
-    `
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 8px;
+      `
       statsHeader.innerHTML = `
-      <div>
-        <div style="font-size: 14px; opacity: 0.9;">Эффективность работы в Bitrix24</div>
-        <div style="font-size: 32px; font-weight: bold; margin-top: 8px;">
-          ${this.formatPercentage(this.workDayData.value.bitrixTimePercentage)}
+        <div>
+          <div style="font-size: 14px; opacity: 0.9;">Эффективность работы в Bitrix24</div>
+          <div style="font-size: 32px; font-weight: bold; margin-top: 8px;">
+            ${this.formatPercentage(this.workDayData.value.bitrixTimePercentage)}
+          </div>
+          <div style="font-size: 14px; margin-top: 4px;">
+            Рабочий день: ${this.formatDuration(this.workDayData.value.totalWorkDaySeconds)}
+          </div>
         </div>
-        <div style="font-size: 14px; margin-top: 4px;">
-          Рабочий день: ${this.formatDuration(this.workDayData.value.totalWorkDaySeconds)}
+        <div style="text-align: center; padding-left: 30px; border-left: 1px solid rgba(255,255,255,0.2);">
+          <div style="font-size: 14px;">Время в Bitrix24</div>
+          <div style="font-size: 24px; font-weight: bold; margin-top: 4px;">
+            ${this.formatDuration(this.workDayData.value.bitrixTimeSeconds)}
+          </div>
+          <div style="font-size: 14px; margin-top: 4px;">
+            Задачи: ${this.formatDuration(this.workDayData.value.elapsedTaskTimeSeconds)}
+          </div>
         </div>
-      </div>
-      <div style="text-align: center; padding-left: 30px; border-left: 1px solid rgba(255,255,255,0.2);">
-        <div style="font-size: 14px;">Время в Bitrix24</div>
-        <div style="font-size: 24px; font-weight: bold; margin-top: 4px;">
-          ${this.formatDuration(this.workDayData.value.bitrixTimeSeconds)}
-        </div>
-        <div style="font-size: 14px; margin-top: 4px;">
-          Задачи: ${this.formatDuration(this.workDayData.value.elapsedTaskTimeSeconds)}
-        </div>
-      </div>
-    `
+      `
       element.appendChild(statsHeader)
 
       // График времени
       const chartContainer = document.createElement('div')
       chartContainer.style.cssText = `
-      margin-bottom: 30px;
-      page-break-inside: avoid;
-    `
+        margin-bottom: 30px;
+        page-break-inside: avoid;
+      `
 
-      // Получаем изображение графика
       const chartCanvas = this.bitrixTimeChart.value
       let chartImage = ''
       if (chartCanvas) {
@@ -1171,79 +1168,60 @@ class WorkDayStatisticsManager {
       }
 
       chartContainer.innerHTML = `
-      <div style="margin-bottom: 20px;">
-        <h2 style="font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb;">
-          Распределение рабочего времени
-        </h2>
-      </div>
-
-      <div style="display: flex; flex-wrap: wrap; gap: 20px;">
-        <!-- График -->
-        <div style="flex: 1; min-width: 300px;">
-          <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; background: white;">
-            <div style="position: relative; width: 100%; height: 300px;">
-              ${chartImage ? `
-                <img src="${chartImage}" style="width: 100%; height: 100%; object-fit: contain;" />
-                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
-                  <div style="font-size: 28px; font-weight: bold; color: #1f2937;">${this.formatPercentage(this.workDayData.value.bitrixTimePercentage)}</div>
-                  <div style="font-size: 14px; color: #6b7280; margin-top: 5px;">времени в Bitrix24</div>
-                </div>
-              ` : '<div style="text-align: center; padding: 50px; color: #6b7280;">График недоступен</div>'}
-            </div>
-          </div>
+        <div style="margin-bottom: 20px;">
+          <h2 style="font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb;">
+            Распределение рабочего времени
+          </h2>
         </div>
 
-        <!-- Легенда -->
-        <div style="flex: 1; min-width: 300px;">
-          <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; background: white;">
-            <div style="margin-bottom: 15px;">
-              <h3 style="font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 10px;">Детализация времени</h3>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-              ${this.bitrixTimeLegend.map(item => `
-                <div style="display: flex; justify-content: space-between; align-items: center;
-                    padding: 12px; border: 1px solid #e5e7eb; border-radius: 6px;
-                    background: #f9fafb;">
-                  <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="width: 16px; height: 16px; border-radius: 50%; border: 2px solid #fff;
-                        box-shadow: 0 1px 3px rgba(0,0,0,0.1);"
-                        style="background-color: ${item.color}"></div>
-                    <div>
-                      <div style="font-weight: 600; color: #1f2937; font-size: 14px;">${item.label}</div>
-                      <div style="font-size: 12px; color: #6b7280;">${item.description}</div>
-                    </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+          <!-- График -->
+          <div style="flex: 1; min-width: 300px;">
+            <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; background: white;">
+              <div style="position: relative; width: 100%; height: 300px;">
+                ${chartImage ? `
+                  <img src="${chartImage}" style="width: 100%; height: 100%; object-fit: contain;" />
+                  <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                    <div style="font-size: 28px; font-weight: bold; color: #1f2937;">${this.formatPercentage(this.workDayData.value.bitrixTimePercentage)}</div>
+                    <div style="font-size: 14px; color: #6b7280; margin-top: 5px;">времени в Bitrix24</div>
                   </div>
-                  <div style="text-align: right;">
-                    <div style="font-weight: bold; color: ${item.color}; font-size: 14px;">
-                      ${this.formatDuration(item.value)}
-                    </div>
-                    <div style="font-size: 12px; color: #6b7280;">${item.percentage}</div>
-                  </div>
-                </div>
-              `).join('')}
+                ` : '<div style="text-align: center; padding: 50px; color: #6b7280;">График недоступен</div>'}
+              </div>
             </div>
+          </div>
 
-            <!-- Общая статистика -->
-            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div style="text-align: center;">
-                  <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Рабочий день</div>
-                  <div style="font-size: 16px; font-weight: bold; color: #1f2937;">
-                    ${this.formatDuration(this.workDayData.value.totalWorkDaySeconds)}
+          <!-- Легенда -->
+          <div style="flex: 1; min-width: 300px;">
+            <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; background: white;">
+              <div style="margin-bottom: 15px;">
+                <h3 style="font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 10px;">Детализация времени</h3>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                ${this.bitrixTimeLegend.map(item => `
+                  <div style="display: flex; justify-content: space-between; align-items: center;
+                      padding: 12px; border: 1px solid #e5e7eb; border-radius: 6px;
+                      background: #f9fafb;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                      <div style="width: 16px; height: 16px; border-radius: 50%; border: 2px solid #fff;
+                          box-shadow: 0 1px 3px rgba(0,0,0,0.1); background-color: ${item.color}"></div>
+                      <div>
+                        <div style="font-weight: 600; color: #1f2937; font-size: 14px;">${item.label}</div>
+                        <div style="font-size: 12px; color: #6b7280;">${item.description}</div>
+                      </div>
+                    </div>
+                    <div style="text-align: right;">
+                      <div style="font-weight: bold; color: ${item.color}; font-size: 14px;">
+                        ${this.formatDuration(item.value)}
+                      </div>
+                      <div style="font-size: 12px; color: #6b7280;">${item.percentage}</div>
+                    </div>
                   </div>
-                </div>
-                <div style="text-align: center;">
-                  <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Эффективность</div>
-                  <div style="font-size: 16px; font-weight: bold; ${this.getEfficiencyColor(this.workDayData.value.bitrixTimePercentage)}">
-                    ${this.formatPercentage(this.workDayData.value.bitrixTimePercentage)}
-                  </div>
-                </div>
+                `).join('')}
               </div>
             </div>
           </div>
         </div>
-      </div>
-    `
+      `
       element.appendChild(chartContainer)
 
       // Добавляем график временной шкалы если есть
@@ -1253,314 +1231,285 @@ class WorkDayStatisticsManager {
 
         const timelineContainer = document.createElement('div')
         timelineContainer.style.cssText = `
-        margin-bottom: 30px;
-        page-break-inside: avoid;
-      `
+          margin-bottom: 30px;
+          page-break-inside: avoid;
+        `
         timelineContainer.innerHTML = `
-        <div style="margin-bottom: 20px;">
-          <h2 style="font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb;">
-            Активность CRM в течение дня
-          </h2>
-        </div>
+          <div style="margin-bottom: 20px;">
+            <h2 style="font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb;">
+              Активность CRM в течение дня
+            </h2>
+          </div>
 
-        <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; background: white;">
-          <div style="width: 100%; height: 300px;">
-            <img src="${timelineImage}" style="width: 100%; height: 100%; object-fit: contain;" />
-          </div>
-          <div style="display: flex; justify-content: center; gap: 30px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <div style="width: 12px; height: 12px; border-radius: 50%; background-color: #10b981;"></div>
-              <span style="font-size: 14px; color: #6b7280;">Создано</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <div style="width: 12px; height: 12px; border-radius: 50%; background-color: #3b82f6;"></div>
-              <span style="font-size: 14px; color: #6b7280;">Обновлено</span>
+          <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; background: white;">
+            <div style="width: 100%; height: 300px;">
+              <img src="${timelineImage}" style="width: 100%; height: 100%; object-fit: contain;" />
             </div>
           </div>
-        </div>
-      `
+        `
         element.appendChild(timelineContainer)
       }
 
       // Рабочий день информация
       const workDayContainer = document.createElement('div')
       workDayContainer.style.cssText = `
-      margin-bottom: 30px;
-      page-break-inside: avoid;
-    `
+        margin-bottom: 30px;
+        page-break-inside: avoid;
+      `
       workDayContainer.innerHTML = `
-      <div style="margin-bottom: 20px;">
-        <h2 style="font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb;">
-          Данные о рабочем дне
-        </h2>
-      </div>
+        <div style="margin-bottom: 20px;">
+          <h2 style="font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb;">
+            Данные о рабочем дне
+          </h2>
+        </div>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-        <!-- Настройки рабочего времени -->
-        <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; background: white;">
-          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-            <div style="width: 24px; height: 24px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-                border-radius: 6px; display: flex; align-items: center; justify-content: center;">
-              <span style="color: white; font-size: 14px;">⚙️</span>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <!-- Настройки рабочего времени -->
+          <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; background: white;">
+            <h3 style="font-size: 16px; font-weight: 600; color: #1e40af; margin-bottom: 15px;">Настройки рабочего времени</h3>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 14px; color: #1e40af;">Учет времени:</span>
+                <span style="font-size: 14px; font-weight: 600; padding: 4px 12px; border-radius: 16px;
+                    background: ${this.workDaySettings.value.UF_TIMEMAN ? '#d1fae5' : '#f3f4f6'};
+                    color: ${this.workDaySettings.value.UF_TIMEMAN ? '#065f46' : '#374151'};">
+                  ${this.workDaySettings.value.UF_TIMEMAN ? 'Включен' : 'Выключен'}
+                </span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 14px; color: #1e40af;">Свободный график:</span>
+                <span style="font-size: 14px; font-weight: 600; padding: 4px 12px; border-radius: 16px;
+                    background: ${this.workDaySettings.value.UF_TM_FREE ? '#d1fae5' : '#f3f4f6'};
+                    color: ${this.workDaySettings.value.UF_TM_FREE ? '#065f46' : '#374151'};">
+                  ${this.workDaySettings.value.UF_TM_FREE ? 'Да' : 'Нет'}
+                </span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 14px; color: #1e40af;">Начало дня до:</span>
+                <span style="font-size: 14px; font-weight: 600; color: #1e40af;">${this.workDaySettings.value.UF_TM_MAX_START || 'Не задано'}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 14px; color: #1e40af;">Конец дня после:</span>
+                <span style="font-size: 14px; font-weight: 600; color: #1e40af;">${this.workDaySettings.value.UF_TM_MIN_FINISH || 'Не задано'}</span>
+              </div>
             </div>
-            <h3 style="font-size: 16px; font-weight: 600; color: #1e40af;">Настройки рабочего времени</h3>
           </div>
 
-          <div style="display: flex; flex-direction: column; gap: 12px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 14px; color: #1e40af;">Учет времени:</span>
-              <span style="font-size: 14px; font-weight: 600; padding: 4px 12px; border-radius: 16px;
-                  background: ${this.workDaySettings.value.UF_TIMEMAN ? '#d1fae5' : '#f3f4f6'};
-                  color: ${this.workDaySettings.value.UF_TIMEMAN ? '#065f46' : '#374151'};">
-                ${this.workDaySettings.value.UF_TIMEMAN ? 'Включен' : 'Выключен'}
-              </span>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 14px; color: #1e40af;">Свободный график:</span>
-              <span style="font-size: 14px; font-weight: 600; padding: 4px 12px; border-radius: 16px;
-                  background: ${this.workDaySettings.value.UF_TM_FREE ? '#d1fae5' : '#f3f4f6'};
-                  color: ${this.workDaySettings.value.UF_TM_FREE ? '#065f46' : '#374151'};">
-                ${this.workDaySettings.value.UF_TM_FREE ? 'Да' : 'Нет'}
-              </span>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 14px; color: #1e40af;">Начало дня до:</span>
-              <span style="font-size: 14px; font-weight: 600; color: #1e40af;">${this.workDaySettings.value.UF_TM_MAX_START || 'Не задано'}</span>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 14px; color: #1e40af;">Конец дня после:</span>
-              <span style="font-size: 14px; font-weight: 600; color: #1e40af;">${this.workDaySettings.value.UF_TM_MIN_FINISH || 'Не задано'}</span>
+          <!-- Текущий рабочий день -->
+          <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; background: white;">
+            <h3 style="font-size: 16px; font-weight: 600; color: #065f46; margin-bottom: 15px;">Текущий рабочий день</h3>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 14px; color: #065f46;">Статус:</span>
+                <span style="font-size: 14px; font-weight: 600; padding: 4px 12px; border-radius: 16px;
+                    ${this.getWorkDayStatusClass(this.workDayStatus.value.STATUS)}">
+                  ${this.getWorkDayStatusText(this.workDayStatus.value.STATUS)}
+                </span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 14px; color: #065f46;">Начало:</span>
+                <span style="font-size: 14px; font-weight: 600; color: #065f46;">
+                  ${this.formatDateTime(this.workDayStatus.value.TIME_START) || 'Не начат'}
+                </span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 14px; color: #065f46;">Длительность:</span>
+                <span style="font-size: 14px; font-weight: 600; color: #065f46;">${this.workDayStatus.value.DURATION || '00:00:00'}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 14px; color: #065f46;">Перерывы:</span>
+                <span style="font-size: 14px; font-weight: 600; color: #065f46;">${this.workDayStatus.value.TIME_LEAKS || '00:00:00'}</span>
+              </div>
             </div>
           </div>
         </div>
-
-        <!-- Текущий рабочий день -->
-        <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; background: white;">
-          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-            <div style="width: 24px; height: 24px; background: linear-gradient(135deg, #10b981 0%, #047857 100%);
-                border-radius: 6px; display: flex; align-items: center; justify-content: center;">
-              <span style="color: white; font-size: 14px;">📅</span>
-            </div>
-            <h3 style="font-size: 16px; font-weight: 600; color: #065f46;">Текущий рабочий день</h3>
-          </div>
-
-          <div style="display: flex; flex-direction: column; gap: 12px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 14px; color: #065f46;">Статус:</span>
-              <span style="font-size: 14px; font-weight: 600; padding: 4px 12px; border-radius: 16px;
-                  ${this.getWorkDayStatusClass(this.workDayStatus.value.STATUS)}">
-                ${this.getWorkDayStatusText(this.workDayStatus.value.STATUS)}
-              </span>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 14px; color: #065f46;">Начало:</span>
-              <span style="font-size: 14px; font-weight: 600; color: #065f46; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-                ${this.formatDateTime(this.workDayStatus.value.TIME_START) || 'Не начат'}
-              </span>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 14px; color: #065f46;">Длительность:</span>
-              <span style="font-size: 14px; font-weight: 600; color: #065f46;">${this.workDayStatus.value.DURATION || '00:00:00'}</span>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 14px; color: #065f46;">Перерывы:</span>
-              <span style="font-size: 14px; font-weight: 600; color: #065f46;">${this.workDayStatus.value.TIME_LEAKS || '00:00:00'}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    `
+      `
       element.appendChild(workDayContainer)
 
       // CRM статистика
       const crmContainer = document.createElement('div')
       crmContainer.style.cssText = `
-      margin-bottom: 30px;
-      page-break-inside: avoid;
-    `
+        margin-bottom: 30px;
+        page-break-inside: avoid;
+      `
       crmContainer.innerHTML = `
-      <div style="margin-bottom: 20px;">
-        <h2 style="font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb;">
-          Активность CRM
-        </h2>
-      </div>
-
-      <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; background: white;">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-          <!-- Созданные -->
-          <div>
-            <h3 style="font-size: 16px; font-weight: 600; color: #10b981; margin-bottom: 15px;
-                padding-bottom: 10px; border-bottom: 1px solid #e5e7eb;">
-              Создано
-            </h3>
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-              ${[
-        { label: 'Сделок', value: this.crmData.value.createdDealsCount, color: '#10b981' },
-        { label: 'Лидов', value: this.crmData.value.createdLeadsCount, color: '#10b981' },
-        { label: 'Контактов', value: this.crmData.value.createdContactsCount, color: '#10b981' },
-        { label: 'Компаний', value: this.crmData.value.createdCompaniesCount, color: '#10b981' }
-      ].map(item => `
-                <div style="display: flex; justify-content: space-between; align-items: center;
-                    padding: 10px; border-radius: 6px; background: #f0fdf4; border: 1px solid #d1fae5;">
-                  <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 8px; height: 8px; border-radius: 50%; background-color: ${item.color};"></div>
-                    <span style="font-size: 14px; color: #374151;">${item.label}</span>
-                  </div>
-                  <span style="font-size: 16px; font-weight: bold; color: ${item.color};">${item.value}</span>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-
-          <!-- Обновленные -->
-          <div>
-            <h3 style="font-size: 16px; font-weight: 600; color: #3b82f6; margin-bottom: 15px;
-                padding-bottom: 10px; border-bottom: 1px solid #e5e7eb;">
-              Обновлено
-            </h3>
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-              ${[
-        { label: 'Сделок', value: this.crmData.value.updatedDealsCount, color: '#3b82f6' },
-        { label: 'Лидов', value: this.crmData.value.updatedLeadsCount, color: '#3b82f6' },
-        { label: 'Контактов', value: this.crmData.value.updatedContactsCount, color: '#3b82f6' },
-        { label: 'Компаний', value: this.crmData.value.updatedCompaniesCount, color: '#3b82f6' }
-      ].map(item => `
-                <div style="display: flex; justify-content: space-between; align-items: center;
-                    padding: 10px; border-radius: 6px; background: #eff6ff; border: 1px solid #dbeafe;">
-                  <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 8px; height: 8px; border-radius: 50%; background-color: ${item.color};"></div>
-                    <span style="font-size: 14px; color: #374151;">${item.label}</span>
-                  </div>
-                  <span style="font-size: 16px; font-weight: bold; color: ${item.color};">${item.value}</span>
-                </div>
-              `).join('')}
-            </div>
-          </div>
+        <div style="margin-bottom: 20px;">
+          <h2 style="font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb;">
+            Активность CRM
+          </h2>
         </div>
 
-        <!-- Статусы сделок и лидов -->
-        <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-          <h3 style="font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 15px;">
-            Статусы сделок и лидов
-          </h3>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-            ${[
-        { label: 'Успешные сделки:', value: this.crmData.value.successfulDealsCount, color: '#10b981' },
-        { label: 'Провальные сделки:', value: this.crmData.value.failedDealsCount, color: '#ef4444' },
-        { label: 'Успешные лиды:', value: this.crmData.value.convertedLeadsCount, color: '#10b981' },
-        { label: 'Провальные лиды:', value: this.crmData.value.junkLeadsCount, color: '#ef4444' }
-      ].map(item => `
-              <div style="display: flex; justify-content: space-between; align-items: center;
-                  padding: 8px; border-radius: 6px; background: #f9fafb;">
-                <span style="font-size: 14px; color: #6b7280;">${item.label}</span>
-                <span style="font-size: 14px; font-weight: bold; color: ${item.color};">${item.value}</span>
+        <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; background: white;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+            <!-- Созданные -->
+            <div>
+              <h3 style="font-size: 16px; font-weight: 600; color: #10b981; margin-bottom: 15px; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px;">
+                Создано
+              </h3>
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-size: 14px; color: #374151;">Сделок</span>
+                  <span style="font-size: 16px; font-weight: bold; color: #10b981;">${this.crmData.value.createdDealsCount}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-size: 14px; color: #374151;">Лидов</span>
+                  <span style="font-size: 16px; font-weight: bold; color: #10b981;">${this.crmData.value.createdLeadsCount}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-size: 14px; color: #374151;">Контактов</span>
+                  <span style="font-size: 16px; font-weight: bold; color: #10b981;">${this.crmData.value.createdContactsCount}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-size: 14px; color: #374151;">Компаний</span>
+                  <span style="font-size: 16px; font-weight: bold; color: #10b981;">${this.crmData.value.createdCompaniesCount}</span>
+                </div>
               </div>
-            `).join('')}
+            </div>
+
+            <!-- Обновленные -->
+            <div>
+              <h3 style="font-size: 16px; font-weight: 600; color: #3b82f6; margin-bottom: 15px; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px;">
+                Обновлено
+              </h3>
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-size: 14px; color: #374151;">Сделок</span>
+                  <span style="font-size: 16px; font-weight: bold; color: #3b82f6;">${this.crmData.value.updatedDealsCount}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-size: 14px; color: #374151;">Лидов</span>
+                  <span style="font-size: 16px; font-weight: bold; color: #3b82f6;">${this.crmData.value.updatedLeadsCount}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-size: 14px; color: #374151;">Контактов</span>
+                  <span style="font-size: 16px; font-weight: bold; color: #3b82f6;">${this.crmData.value.updatedContactsCount}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-size: 14px; color: #374151;">Компаний</span>
+                  <span style="font-size: 16px; font-weight: bold; color: #3b82f6;">${this.crmData.value.updatedCompaniesCount}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Статусы сделок и лидов -->
+          <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+            <h3 style="font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 15px;">
+              Статусы сделок и лидов
+            </h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 14px; color: #6b7280;">Успешные сделки:</span>
+                <span style="font-size: 14px; font-weight: bold; color: #10b981;">${this.crmData.value.successfulDealsCount}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 14px; color: #6b7280;">Провальные сделки:</span>
+                <span style="font-size: 14px; font-weight: bold; color: #ef4444;">${this.crmData.value.failedDealsCount}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 14px; color: #6b7280;">Успешные лиды:</span>
+                <span style="font-size: 14px; font-weight: bold; color: #10b981;">${this.crmData.value.convertedLeadsCount}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 14px; color: #6b7280;">Провальные лиды:</span>
+                <span style="font-size: 14px; font-weight: bold; color: #ef4444;">${this.crmData.value.junkLeadsCount}</span>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    `
+      `
       element.appendChild(crmContainer)
 
       // Список задач
       if (this.taskTimeData.value.tasks.length > 0) {
         const tasksContainer = document.createElement('div')
         tasksContainer.style.cssText = `
-        margin-bottom: 30px;
-        page-break-inside: avoid;
-      `
+          margin-bottom: 30px;
+          page-break-inside: avoid;
+        `
 
-        const tasksToShow = this.taskTimeData.value.tasks.slice(0, 50) // Ограничиваем для PDF
+        const tasksToShow = this.taskTimeData.value.tasks.slice(0, 50)
 
         tasksContainer.innerHTML = `
-        <div style="margin-bottom: 20px;">
-          <h2 style="font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb;">
-            Задачи за день (${this.taskTimeData.value.tasks.length})
-          </h2>
-        </div>
-
-        <div style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; background: white;">
-          <!-- Заголовок таблицы -->
-          <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
-              background: #f9fafb; padding: 12px 16px; border-bottom: 1px solid #e5e7eb;">
-            <div style="font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase;">Задача</div>
-            <div style="font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase;">Статус</div>
-            <div style="font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase;">Время</div>
-            <div style="font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase;">Исполнитель</div>
+          <div style="margin-bottom: 20px;">
+            <h2 style="font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb;">
+              Задачи за день (${this.taskTimeData.value.tasks.length})
+            </h2>
           </div>
 
-          <!-- Строки таблицы -->
-          <div>
-            ${tasksToShow.map((task, index) => `
-              <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
-                  padding: 12px 16px; border-bottom: 1px solid #f3f4f6;
-                  ${index % 2 === 0 ? 'background: #f9fafb;' : 'background: white;'}">
-                <div style="min-width: 0;">
-                  <div style="font-weight: 600; color: #1f2937; font-size: 14px; margin-bottom: 2px;
-                      overflow: hidden; text-overflow: ellipsis;">
-                    ${task.title || `Задача #${task.id}`}
-                  </div>
-                  <div style="font-size: 12px; color: #6b7280;">ID: ${task.id}</div>
-                </div>
+          <div style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; background: white;">
+            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+                background: #f9fafb; padding: 12px 16px; border-bottom: 1px solid #e5e7eb;">
+              <div style="font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase;">Задача</div>
+              <div style="font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase;">Статус</div>
+              <div style="font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase;">Время</div>
+              <div style="font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase;">Исполнитель</div>
+            </div>
 
-                <div>
-                  <span style="font-size: 12px; font-weight: 600; padding: 4px 8px; border-radius: 12px;
-                      background: ${this.getTaskStatusColor(task.status).includes('success') ? '#d1fae5' :
+            <div>
+              ${tasksToShow.map((task, index) => `
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+                    padding: 12px 16px; border-bottom: 1px solid #f3f4f6;
+                    ${index % 2 === 0 ? 'background: #f9fafb;' : 'background: white;'}">
+                  <div style="min-width: 0;">
+                    <div style="font-weight: 600; color: #1f2937; font-size: 14px; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis;">
+                      ${task.title || `Задача #${task.id}`}
+                    </div>
+                    <div style="font-size: 12px; color: #6b7280;">ID: ${task.id}</div>
+                  </div>
+
+                  <div>
+                    <span style="font-size: 12px; font-weight: 600; padding: 4px 8px; border-radius: 12px;
+                        background: ${this.getTaskStatusColor(task.status).includes('success') ? '#d1fae5' :
             this.getTaskStatusColor(task.status).includes('warning') ? '#fef3c7' :
                 this.getTaskStatusColor(task.status).includes('info') ? '#dbeafe' :
                     this.getTaskStatusColor(task.status).includes('critical') ? '#fee2e2' : '#f3f4f6'};
-                      color: ${this.getTaskStatusColor(task.status).includes('success') ? '#065f46' :
+                        color: ${this.getTaskStatusColor(task.status).includes('success') ? '#065f46' :
             this.getTaskStatusColor(task.status).includes('warning') ? '#92400e' :
                 this.getTaskStatusColor(task.status).includes('info') ? '#1e40af' :
                     this.getTaskStatusColor(task.status).includes('critical') ? '#991b1b' : '#374151'};">
-                    ${this.getTaskStatusText(task.status)}
-                  </span>
-                </div>
-
-                <div>
-                  <div style="font-size: 14px; font-weight: 600; color: #10b981;">
-                    ${this.formatDuration(task.timeSpent)}
+                      ${this.getTaskStatusText(task.status)}
+                    </span>
                   </div>
-                  <div style="font-size: 12px; color: #6b7280;">${task.elapsedItemsCount} записей</div>
-                </div>
 
-                <div style="font-size: 14px; color: #374151; overflow: hidden; text-overflow: ellipsis;">
-                  ${task.responsibleName || 'Текущий пользователь'}
-                </div>
-              </div>
-            `).join('')}
+                  <div>
+                    <div style="font-size: 14px; font-weight: 600; color: #10b981;">
+                      ${this.formatDuration(task.timeSpent)}
+                    </div>
+                    <div style="font-size: 12px; color: #6b7280;">${task.elapsedItemsCount} записей</div>
+                  </div>
 
-            ${this.taskTimeData.value.tasks.length > 50 ? `
-              <div style="text-align: center; padding: 20px; color: #6b7280; font-style: italic; border-top: 1px solid #e5e7eb;">
-                ...и еще ${this.taskTimeData.value.tasks.length - 50} задач
-              </div>
-            ` : ''}
+                  <div style="font-size: 14px; color: #374151; overflow: hidden; text-overflow: ellipsis;">
+                    ${task.responsibleName || 'Текущий пользователь'}
+                  </div>
+                </div>
+              `).join('')}
+
+              ${this.taskTimeData.value.tasks.length > 50 ? `
+                <div style="text-align: center; padding: 20px; color: #6b7280; font-style: italic; border-top: 1px solid #e5e7eb;">
+                  ...и еще ${this.taskTimeData.value.tasks.length - 50} задач
+                </div>
+              ` : ''}
+            </div>
           </div>
-        </div>
-      `
+        `
         element.appendChild(tasksContainer)
       }
 
       // Футер
       const footer = document.createElement('div')
       footer.style.cssText = `
-      margin-top: 40px;
-      padding-top: 20px;
-      border-top: 1px solid #e5e7eb;
-      text-align: center;
-      color: #6b7280;
-      font-size: 12px;
-    `
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid #e5e7eb;
+        text-align: center;
+        color: #6b7280;
+        font-size: 12px;
+      `
       footer.innerHTML = `
-      <p>Bitrix24 Статистика рабочего дня</p>
-      <p>Сгенерировано автоматически • ${new Date().toLocaleString('ru-RU')}</p>
-    `
+        <p>Bitrix24 Статистика рабочего дня</p>
+        <p>Сгенерировано автоматически • ${new Date().toLocaleString('ru-RU')}</p>
+      `
       element.appendChild(footer)
 
       // Настройки PDF
@@ -1702,12 +1651,10 @@ class WorkDayStatisticsManager {
       this.timelineChartInstance.destroy()
     }
 
-    if (!this.timelineChart.value) return // Убираем проверку на наличие событий
+    if (!this.timelineChart.value) return
 
-    // Всегда инициализируем данные, даже если событий нет
     const hourlyEvents = {}
 
-    // Создаем интервалы 00:00-01:00, 01:00-02:00, ..., 23:00-00:00
     for (let i = 0; i < 24; i++) {
       hourlyEvents[i] = {
         created: 0,
@@ -1717,29 +1664,24 @@ class WorkDayStatisticsManager {
       }
     }
 
-    // Если есть события - группируем их
     if (this.crmData.value.timelineEvents.length > 0) {
       this.crmData.value.timelineEvents.forEach(event => {
         const date = new Date(event.timestamp)
-        const hour = date.getHours() // Получаем час (0-23)
+        const hour = date.getHours()
 
         if (hourlyEvents[hour]) {
           if (event.type === 'created') hourlyEvents[hour].created++
           if (event.type === 'updated') hourlyEvents[hour].updated++
-          if (event.type === 'successful') hourlyEvents[hour].successful++
-          if (event.type === 'failed') hourlyEvents[hour].failed++
         }
       })
     }
 
-    // Создаем метки для осей в формате "12:00-13:00"
     const labels = Array.from({ length: 24 }, (_, i) => {
       const startHour = i.toString().padStart(2, '0')
       const endHour = ((i + 1) % 24).toString().padStart(2, '0')
       return `${startHour}:00-${endHour}:00`
     })
 
-    // Данные для графиков (всегда массив из 24 элементов, даже если нули)
     const createdData = Array.from({ length: 24 }, (_, i) => hourlyEvents[i].created)
     const updatedData = Array.from({ length: 24 }, (_, i) => hourlyEvents[i].updated)
 
@@ -1754,8 +1696,8 @@ class WorkDayStatisticsManager {
           borderWidth: 2,
           fill: true,
           tension: 0.4,
-          pointRadius: 6,
-          pointHoverRadius: 8
+          pointRadius: 4,
+          pointHoverRadius: 6
         },
         {
           label: 'Обновлено',
@@ -1765,8 +1707,8 @@ class WorkDayStatisticsManager {
           borderWidth: 2,
           fill: true,
           tension: 0.4,
-          pointRadius: 6,
-          pointHoverRadius: 8
+          pointRadius: 4,
+          pointHoverRadius: 6
         }
       ]
     }
@@ -1799,13 +1741,10 @@ class WorkDayStatisticsManager {
           ticks: {
             stepSize: 1,
             callback: function(value) {
-              // Всегда показываем целые числа
               return Number.isInteger(value) ? value : ''
             }
           },
-          // Устанавливаем минимальное значение 0
           min: 0,
-          // Устанавливаем максимальное значение автоматически, но минимум 5
           suggestedMax: Math.max(5, Math.max(...createdData, ...updatedData) + 1)
         }
       },
@@ -1819,23 +1758,11 @@ class WorkDayStatisticsManager {
         },
         tooltip: {
           mode: 'index',
-          intersect: false,
-          callbacks: {
-            title: (context) => {
-              return context[0].label
-            },
-            label: (context) => {
-              const label = context.dataset.label || ''
-              const value = context.parsed.y
-              return `${label}: ${value} событий`
-            }
-          }
+          intersect: false
         }
       },
-      // Даже если все данные нулевые, показываем график
       elements: {
         line: {
-          // Показывать линию даже если все точки в 0
           spanGaps: true
         }
       }
@@ -1850,7 +1777,6 @@ class WorkDayStatisticsManager {
 
   updateCharts() {
     nextTick(() => {
-      // Уничтожаем старые инстансы
       if (this.bitrixChartInstance) {
         this.bitrixChartInstance.destroy()
         this.bitrixChartInstance = null
@@ -1860,13 +1786,12 @@ class WorkDayStatisticsManager {
         this.timelineChartInstance = null
       }
 
-      // Создаем новые после рендера
       setTimeout(() => {
         if (this.bitrixTimeChart.value) {
           this.createBitrixTimeChart()
         }
         if (this.timelineChart.value) {
-          this.createTimelineChart() // Всегда создаем график
+          this.createTimelineChart()
         }
       }, 50)
     })
@@ -1881,7 +1806,6 @@ class WorkDayStatisticsManager {
   }
 
   refreshData() {
-    // Сбрасываем данные
     this.workDayData.value = {
       totalWorkDaySeconds: 28800,
       bitrixTimeSeconds: 0,
@@ -1889,7 +1813,6 @@ class WorkDayStatisticsManager {
       bitrixTimeNonTaskSeconds: 0,
       workDurationSeconds: 0,
       breakTimeSeconds: 0,
-
       bitrixTimePercentage: 0,
       workDurationPercentage: 0,
       bitrixTimeOfWorkedPercentage: 0,
@@ -1908,7 +1831,6 @@ class WorkDayStatisticsManager {
       workDurationSeconds: 0,
       elapsedTaskTimeSeconds: 0,
       tasks: [],
-
       taskTimePercentage: 0,
       workDurationPercentage: 0,
       taskTimeOfWorkedPercentage: 0,
@@ -1925,18 +1847,14 @@ class WorkDayStatisticsManager {
       createdLeadsCount: 0,
       createdContactsCount: 0,
       createdCompaniesCount: 0,
-
       updatedDealsCount: 0,
       updatedLeadsCount: 0,
       updatedContactsCount: 0,
       updatedCompaniesCount: 0,
-
       successfulDealsCount: 0,
       failedDealsCount: 0,
-
       convertedLeadsCount: 0,
       junkLeadsCount: 0,
-
       timelineEvents: []
     }
 
@@ -2160,7 +2078,6 @@ class WorkDayStatisticsManager {
       let start = 0
       const pageSize = 50
 
-      // Загрузка всех elapsed items с постраничной навигацией
       while (true) {
         const results = await this.executeBatch([
           ['task.elapseditem.getlist', [
@@ -2170,7 +2087,7 @@ class WorkDayStatisticsManager {
               '>=CREATED_DATE': selectedDay,
             },
             ['TASK_ID', 'ID', 'CREATED_DATE', 'DATE_START', 'DATE_STOP', 'MINUTES', 'COMMENT_TEXT'],
-            { // PARAMS
+            {
               "NAV_PARAMS": {
                 "nPageSize": pageSize,
                 "iNumPage": Math.floor(start / pageSize) + 1
@@ -2188,7 +2105,6 @@ class WorkDayStatisticsManager {
         start += pageSize
       }
 
-      // Группировка данных по задачам
       const taskTimeMap = new Map()
       let totalElapsedTaskTime = 0
 
@@ -2217,7 +2133,6 @@ class WorkDayStatisticsManager {
       const tasksArray = []
 
       if (taskIds.length > 0) {
-        // Загружаем информацию о задачах через tasks.task.get
         const taskCalls = []
         taskIds.forEach(taskId => {
           taskCalls.push(['tasks.task.get', {
@@ -2228,7 +2143,6 @@ class WorkDayStatisticsManager {
 
         const taskResults = await this.executeBatch(taskCalls)
 
-        // Загружаем информацию об исполнителях
         const responsibleIds = []
         taskResults.forEach((result, index) => {
           if (result && result.task && result.task.responsibleId) {
@@ -2255,7 +2169,6 @@ class WorkDayStatisticsManager {
           }
         })
 
-        // Формируем массив задач
         taskIds.forEach((taskId, index) => {
           const result = taskResults[index]
           if (result && result.task) {
@@ -2280,7 +2193,6 @@ class WorkDayStatisticsManager {
         })
       }
 
-      // Расчет статистики
       const maxTaskTime = tasksArray.length > 0
           ? Math.max(...tasksArray.map(t => t.timeSpent))
           : 0
@@ -2288,10 +2200,8 @@ class WorkDayStatisticsManager {
           ? totalElapsedTaskTime / tasksArray.length
           : 0
 
-      // Сортировка по времени
       tasksArray.sort((a, b) => b.timeSpent - a.timeSpent)
 
-      // Обновление состояния
       this.taskTimeData.value.tasks = tasksArray
       this.taskTimeData.value.elapsedTaskTimeSeconds = totalElapsedTaskTime
       this.workDayData.value.elapsedTaskTimeSeconds = totalElapsedTaskTime
@@ -2318,9 +2228,7 @@ class WorkDayStatisticsManager {
       const startDateStr = formatDateForAPI(startOfDay)
       const endDateStr = formatDateForAPI(endOfDay)
 
-      // Загружаем данные пачками
       const calls = [
-        // Сделки созданные
         ['crm.deal.list', {
           'ORDER': {'DATE_CREATE': 'DESC'},
           'FILTER': {
@@ -2331,7 +2239,6 @@ class WorkDayStatisticsManager {
           'SELECT': ['ID', 'STAGE_ID', 'CLOSED', 'DATE_MODIFY', 'DATE_CREATE'],
           NAV_PARAMS: { nPageSize: 50 }
         }],
-        // Сделки обновленные
         ['crm.deal.list', {
           'ORDER': {'DATE_MODIFY': 'DESC'},
           'FILTER': {
@@ -2343,7 +2250,6 @@ class WorkDayStatisticsManager {
           'SELECT': ['ID', 'STAGE_ID', 'CLOSED', 'DATE_MODIFY'],
           NAV_PARAMS: { nPageSize: 50 }
         }],
-        // Лиды созданные
         ['crm.lead.list', {
           'ORDER': {'DATE_CREATE': 'DESC'},
           'FILTER': {
@@ -2354,7 +2260,6 @@ class WorkDayStatisticsManager {
           'SELECT': ['ID', 'STATUS_ID', 'DATE_MODIFY', 'DATE_CREATE'],
           NAV_PARAMS: { nPageSize: 50 }
         }],
-        // Лиды обновленные
         ['crm.lead.list', {
           'ORDER': {'DATE_MODIFY': 'DESC'},
           'FILTER': {
@@ -2366,7 +2271,6 @@ class WorkDayStatisticsManager {
           'SELECT': ['ID', 'STATUS_ID', 'DATE_MODIFY'],
           NAV_PARAMS: { nPageSize: 50 }
         }],
-        // Контакты созданные
         ['crm.contact.list', {
           'ORDER': {'DATE_CREATE': 'DESC'},
           'FILTER': {
@@ -2377,7 +2281,6 @@ class WorkDayStatisticsManager {
           'SELECT': ['ID', 'DATE_MODIFY', 'DATE_CREATE'],
           NAV_PARAMS: { nPageSize: 50 }
         }],
-        // Контакты обновленные
         ['crm.contact.list', {
           'ORDER': {'DATE_MODIFY': 'DESC'},
           'FILTER': {
@@ -2389,7 +2292,6 @@ class WorkDayStatisticsManager {
           'SELECT': ['ID', 'DATE_MODIFY'],
           NAV_PARAMS: { nPageSize: 50 }
         }],
-        // Компании созданные
         ['crm.company.list', {
           'ORDER': {'DATE_CREATE': 'DESC'},
           'FILTER': {
@@ -2400,7 +2302,6 @@ class WorkDayStatisticsManager {
           'SELECT': ['ID', 'DATE_MODIFY', 'DATE_CREATE'],
           NAV_PARAMS: { nPageSize: 50 }
         }],
-        // Компании обновленные
         ['crm.company.list', {
           'ORDER': {'DATE_MODIFY': 'DESC'},
           'FILTER': {
@@ -2425,40 +2326,17 @@ class WorkDayStatisticsManager {
       const companiesCreated = results[6] || []
       const companiesUpdated = results[7] || []
 
-      // Собираем события для временной шкалы
       const timelineEvents = []
 
-      // Обрабатываем созданные сделки
       dealsCreated.forEach(deal => {
         timelineEvents.push({
           timestamp: deal.DATE_CREATE,
           type: 'created',
           entity: 'deal',
-          id: deal.ID,
-          successful: deal.CLOSED === 'Y' && deal.STAGE_ID &&
-              (deal.STAGE_ID.includes('WON') || deal.STAGE_ID.includes('SUCCESS'))
+          id: deal.ID
         })
-
-        if (deal.CLOSED === 'Y') {
-          if (deal.STAGE_ID && (deal.STAGE_ID.includes('WON') || deal.STAGE_ID.includes('SUCCESS'))) {
-            timelineEvents.push({
-              timestamp: deal.DATE_MODIFY,
-              type: 'successful',
-              entity: 'deal',
-              id: deal.ID
-            })
-          } else {
-            timelineEvents.push({
-              timestamp: deal.DATE_MODIFY,
-              type: 'failed',
-              entity: 'deal',
-              id: deal.ID
-            })
-          }
-        }
       })
 
-      // Обрабатываем обновленные сделки
       dealsUpdated.forEach(deal => {
         timelineEvents.push({
           timestamp: deal.DATE_MODIFY,
@@ -2468,7 +2346,6 @@ class WorkDayStatisticsManager {
         })
       })
 
-      // Обрабатываем лиды
       leadsCreated.forEach(lead => {
         timelineEvents.push({
           timestamp: lead.DATE_CREATE,
@@ -2476,22 +2353,6 @@ class WorkDayStatisticsManager {
           entity: 'lead',
           id: lead.ID
         })
-
-        if (lead.STATUS_ID === 'CONVERTED') {
-          timelineEvents.push({
-            timestamp: lead.DATE_MODIFY,
-            type: 'successful',
-            entity: 'lead',
-            id: lead.ID
-          })
-        } else if (lead.STATUS_ID === 'JUNK') {
-          timelineEvents.push({
-            timestamp: lead.DATE_MODIFY,
-            type: 'failed',
-            entity: 'lead',
-            id: lead.ID
-          })
-        }
       })
 
       leadsUpdated.forEach(lead => {
@@ -2503,7 +2364,6 @@ class WorkDayStatisticsManager {
         })
       })
 
-      // Обрабатываем контакты и компании
       contactsCreated.forEach(contact => {
         timelineEvents.push({
           timestamp: contact.DATE_CREATE,
@@ -2540,10 +2400,8 @@ class WorkDayStatisticsManager {
         })
       })
 
-      // Сортируем события по времени
       timelineEvents.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
 
-      // Считаем успешные и провальные сделки
       let successfulDeals = 0
       let failedDeals = 0
 
@@ -2557,7 +2415,6 @@ class WorkDayStatisticsManager {
         }
       })
 
-      // Считаем конвертированные и провальные лиды
       let convertedLeads = 0
       let junkLeads = 0
 
@@ -2604,7 +2461,7 @@ class WorkDayStatisticsManager {
     const data = this.workDayData.value
     const totalBitrixTime = data.bitrixTimeSeconds
     const taskTime = data.elapsedTaskTimeSeconds
-    const pureBitrixTime = totalBitrixTime - taskTime // Время в Bitrix без учета задач
+    const pureBitrixTime = totalBitrixTime - taskTime
 
     const today = new Date().toISOString().split('T')[0]
     const workDayStart = this.workDayStatus.value.TIME_START
@@ -2758,24 +2615,20 @@ export default {
   setup() {
     const manager = new WorkDayStatisticsManager()
 
-    // Наблюдатели
     watch(() => manager.route.query.userId, (newUserId) => {
       if (newUserId) {
         manager.refreshData()
       }
     })
 
-    // Наблюдатель для обновления графиков при загрузке данных
     watch(() => manager.isLoading.value, (newValue, oldValue) => {
       if (oldValue === true && newValue === false) {
-        // Задержка для гарантии рендера DOM
         setTimeout(() => {
           manager.updateCharts()
         }, 100)
       }
     })
 
-    // Инициализация
     onMounted(async () => {
       await manager.initialize()
     })
@@ -2797,9 +2650,23 @@ export default {
       currentUserId: manager.currentUserId,
       showAllTasks: manager.showAllTasks,
 
+      // Данные для таблиц B24Table
+      displayedTasks: computed(() => manager.displayedTasks),
+      workDaySettingsTableData: computed(() => manager.workDaySettingsTableData),
+      workDayStatusTableData: computed(() => manager.workDayStatusTableData),
+      createdCrmTableData: computed(() => manager.createdCrmTableData),
+      updatedCrmTableData: computed(() => manager.updatedCrmTableData),
+      crmStatusTableData: computed(() => manager.crmStatusTableData),
+
+      // Колонки таблиц
+      taskColumns: manager.taskColumns,
+      workDaySettingsColumns: manager.workDaySettingsColumns,
+      workDayStatusColumns: manager.workDayStatusColumns,
+      crmColumns: manager.crmColumns,
+      crmStatusColumns: manager.crmStatusColumns,
+
       // Легенды
       bitrixTimeLegend: computed(() => manager.bitrixTimeLegend),
-      displayedTasks: computed(() => manager.displayedTasks),
 
       // Константы
       minCalendarDate: manager.minCalendarDate,
