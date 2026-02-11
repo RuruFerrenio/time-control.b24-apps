@@ -109,7 +109,7 @@
                 <div class="grid grid-cols-1 border border-gray-200 gap-6 md:gap-8">
                   <!-- График времени -->
                   <div>
-                    <div class="bg-white rounded-lg p-4">
+                    <div class="bg-white rounded-lg p-0">
                       <h4 class="text-sm font-medium text-gray-900 mb-3">
                         <span class="flex items-center gap-2">
                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -118,7 +118,7 @@
                           Распределение времени
                         </span>
                       </h4>
-                      <div class="relative w-full h-84">
+                      <div class="relative w-full h-64">
                         <canvas ref="bitrixTimeChart"></canvas>
                         <!-- Центральный текст -->
                         <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
@@ -135,7 +135,7 @@
 
                   <!-- Интерактивная легенда -->
                   <div>
-                    <div class="bg-white rounded-lg p-4 h-full">
+                    <div class="bg-white rounded-lg p-0 h-full">
                       <h4 class="text-sm font-medium text-gray-900 mb-3">
                         <span class="flex items-center gap-2">
                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
