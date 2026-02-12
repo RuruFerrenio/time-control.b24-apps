@@ -137,222 +137,112 @@
                   <div>
                     <div class="b24-p-4 b24-bg-white b24-rounded-xl b24-shadow-sm b24-flex b24-flex-col b24-h-full">
                       <!-- Заголовок для мобилок -->
-                      <div class="b24-block b24-md-hidden b24-px-2 b24-pt-2 b24-pb-4">
-                        <UiTypography variant="small" class="b24-text-gray-600">
-                          Распределение времени
-                        </UiTypography>
+                      <div class="b24-block b24-md-hidden b24-px-1 b24-pb-3">
+                        <span class="b24-text-sm b24-text-gray-600">Распределение времени</span>
                       </div>
 
                       <!-- Список элементов легенды -->
-                      <div class="b24-flex-1 b24-overflow-y-auto b24-px-1 b24-md-px-2 b24-space-y-2 b24-md-space-y-3">
+                      <div class="b24-flex-1 b24-overflow-y-auto b24-space-y-2">
                         <div v-for="(item, index) in bitrixTimeLegend" :key="index">
-                          <UiCard
+                          <div
+                              class="b24-relative b24-p-3 b24-rounded-lg b24-transition-all b24-duration-150 b24-cursor-pointer b24-border"
                               :class="[
-            'b24-transition-all b24-duration-200 b24-cursor-pointer',
             hoveredLegendIndex === index
-              ? 'b24-bg-gray-50 b24-shadow-md b24-scale-[1.02] b24-border-gray-200'
-              : 'b24-hover-bg-gray-50 b24-border-transparent b24-hover-border-gray-200'
+              ? 'b24-bg-gray-50 b24-border-gray-200 b24-shadow-sm'
+              : 'b24-bg-white b24-border-transparent hover:b24-bg-gray-50 hover:b24-border-gray-100'
           ]"
-                              :ui="{
-            root: 'b24-p-3 b24-md-p-4 b24-rounded-xl b24-border',
-            body: 'b24-p-0'
-          }"
                               @mouseenter="hoverLegend(index)"
                               @mouseleave="hoverLegend(null)"
                           >
-                            <div class="b24-flex b24-flex-col b24-sm-flex-row b24-sm-items-center b24-justify-between b24-gap-3 b24-sm-gap-4">
-                              <!-- Левая часть с цветом и текстом -->
-                              <div class="b24-flex b24-items-center b24-min-w-0 b24-flex-1">
-                                <div class="b24-relative b24-flex-shrink-0">
-                                  <UiAvatar
-                                      :color="getAvatarColor(item.color)"
-                                      :ui="{
-                    root: 'b24-w-5 b24-h-5 b24-mr-3 b24-rounded-full b24-transition-transform b24-duration-200 group-hover:b24-scale-110',
-                    background: 'b24-bg-transparent',
-                    rounded: 'b24-rounded-full',
-                    text: 'b24-text-[0px]'
-                  }"
-                                  >
-                                    <div class="b24-w-full b24-h-full b24-rounded-full" :style="{ backgroundColor: item.color }"></div>
-                                  </UiAvatar>
+                            <!-- Активный индикатор -->
+                            <div
+                                v-if="hoveredLegendIndex === index"
+                                class="b24-absolute b24-left-0 b24-top-2 b24-bottom-2 b24-w-1 b24-rounded-r-full"
+                                :style="{ backgroundColor: item.color }"
+                            ></div>
 
-                                  <UiBadge
-                                      v-if="item.icon"
-                                      :ui="{
-                    root: 'b24-absolute -b24-bottom-1 -b24-right-1 b24-w-4 b24-h-4 b24-p-0 b24-flex b24-items-center b24-justify-center b24-text-[10px] b24-bg-white b24-shadow-sm b24-rounded-full',
-                    color: 'gray'
-                  }"
-                                  >
-                                    {{ item.icon }}
-                                  </UiBadge>
-                                </div>
-
-                                <div class="b24-min-w-0 b24-flex-1">
-                                  <div class="b24-flex b24-items-center b24-gap-2">
-                                    <UiTypography variant="small" class="b24-font-semibold b24-text-gray-900 b24-truncate">
-                                      {{ item.label }}
-                                    </UiTypography>
-
-                                    <UiBadge
-                                        v-if="item.badge"
-                                        size="xs"
-                                        color="gray"
-                                        variant="soft"
-                                        class="b24-inline-flex b24-items-center b24-px-1.5 b24-py-0.5"
-                                    >
-                                      {{ item.badge }}
-                                    </UiBadge>
-                                  </div>
-
-                                  <div class="b24-flex b24-items-center b24-gap-2">
-                                    <UiTypography variant="extra-small" class="b24-text-gray-500 b24-truncate">
-                                      {{ item.description }}
-                                    </UiTypography>
-                                    <UiIcon
-                                        name="i-bitrix24-circle"
-                                        class="b24-w-1 b24-h-1 b24-text-gray-300 b24-flex-shrink-0"
-                                    />
-                                    <UiTypography variant="extra-small" class="b24-font-medium b24-flex-shrink-0" :style="{ color: item.color }">
-                                      {{ item.percentage }}
-                                    </UiTypography>
-                                  </div>
+                            <div class="b24-flex b24-flex-col b24-gap-2 b24-sm-flex-row b24-sm-items-center b24-sm-justify-between">
+                              <!-- Левая часть -->
+                              <div class="b24-flex b24-items-center b24-gap-3">
+                                <div
+                                    class="b24-w-4 b24-h-4 b24-rounded-full b24-flex-shrink-0 b24-border b24-border-gray-200"
+                                    :style="{ backgroundColor: item.color }"
+                                ></div>
+                                <div>
+                                  <div class="b24-text-sm b24-font-medium b24-text-gray-900">{{ item.label }}</div>
+                                  <div class="b24-text-xs b24-text-gray-500">{{ item.description }}</div>
                                 </div>
                               </div>
 
-                              <!-- Правая часть со временем -->
-                              <div class="b24-flex b24-items-center b24-justify-between b24-sm-justify-end b24-gap-3 b24-sm-gap-4 b24-sm-ml-4">
+                              <!-- Правая часть -->
+                              <div class="b24-flex b24-items-center b24-justify-between b24-sm-justify-end b24-gap-4 b24-ml-7 b24-sm-ml-0">
                                 <div class="b24-text-right">
-                                  <UiTypography
-                                      variant="large"
-                                      :class="['b24-font-bold b24-leading-none', hoveredLegendIndex === index ? 'b24-text-gray-900' : '']"
-                                      :style="{ color: item.color }"
-                                  >
+                                  <div class="b24-text-base b24-font-semibold" :style="{ color: item.color }">
                                     {{ formatDuration(item.value) }}
-                                  </UiTypography>
-                                  <UiTypography variant="extra-small" class="b24-text-gray-400 b24-uppercase b24-tracking-wider b24-block b24-mt-0.5">
-                                    часов
-                                  </UiTypography>
+                                  </div>
+                                  <div class="b24-text-xs b24-text-gray-400">{{ item.percentage }}</div>
                                 </div>
 
-                                <!-- Прогресс бар для мобилок -->
+                                <!-- Прогресс на мобилках -->
                                 <div class="b24-block b24-sm-hidden b24-w-16">
-                                  <UiProgress
-                                      :value="parseFloat(item.percentage)"
-                                      :color="getProgressColor(item.color)"
-                                      size="sm"
-                                      :ui="{
-                    root: 'b24-bg-gray-100 b24-rounded-full b24-overflow-hidden',
-                    bar: 'b24-transition-all b24-duration-300'
-                  }"
-                                  />
+                                  <div class="b24-h-1.5 b24-bg-gray-100 b24-rounded-full b24-overflow-hidden">
+                                    <div
+                                        class="b24-h-full b24-rounded-full b24-transition-all b24-duration-300"
+                                        :style="{
+                      width: item.percentage,
+                      backgroundColor: item.color
+                    }"
+                                    ></div>
+                                  </div>
                                 </div>
                               </div>
                             </div>
 
-                            <!-- Детали (если есть) -->
-                            <UiAlert
+                            <!-- Детали -->
+                            <div
                                 v-if="item.details"
-                                color="gray"
-                                variant="soft"
-                                size="sm"
-                                :ui="{
-              root: 'b24-mt-2 b24-ml-8 b24-md-ml-8 b24-bg-gray-50/80 b24-backdrop-blur-sm b24-border b24-border-gray-100',
-              wrapper: 'b24-p-2',
-              title: 'b24-text-xs b24-text-gray-600'
-            }"
+                                class="b24-mt-2 b24-ml-7 b24-text-xs b24-text-gray-600 b24-bg-gray-50 b24-px-3 b24-py-2 b24-rounded-md b24-border b24-border-gray-100"
                             >
-                              <div class="b24-flex b24-items-start b24-gap-2">
-                                <UiIcon name="i-bitrix24-info-circle" class="b24-w-4 b24-h-4 b24-text-gray-400" />
-                                <span>{{ item.details }}</span>
-                              </div>
-                            </UiAlert>
-                          </UiCard>
+                              ⓘ {{ item.details }}
+                            </div>
+                          </div>
                         </div>
                       </div>
 
                       <!-- Общая статистика -->
-                      <div class="b24-mt-6 b24-pt-5 b24-border-t b24-border-gray-200">
-                        <div class="b24-grid b24-grid-cols-2 b24-gap-4 b24-md-gap-6">
+                      <div class="b24-mt-6 b24-pt-4 b24-border-t b24-border-gray-200">
+                        <div class="b24-grid b24-grid-cols-2 b24-gap-4">
                           <!-- Рабочий день -->
-                          <UiCard
-                              class="b24-relative b24-bg-gradient-to-br b24-from-gray-50 b24-to-white"
-                              :ui="{
-            root: 'b24-rounded-xl b24-border b24-border-gray-100',
-            body: 'b24-p-4 b24-flex b24-flex-col b24-items-center b24-text-center'
-          }"
-                          >
-                            <UiTypography variant="extra-small" class="b24-text-gray-500 b24-uppercase b24-tracking-wider b24-mb-1">
-                              Рабочий день
-                            </UiTypography>
-
-                            <UiTypography variant="2xlarge" class="b24-font-bold b24-text-gray-900 b24-leading-none">
+                          <div class="b24-bg-gray-50 b24-rounded-xl b24-p-4 b24-text-center">
+                            <div class="b24-text-xs b24-text-gray-500 b24-uppercase b24-tracking-wide">Рабочий день</div>
+                            <div class="b24-text-xl b24-font-bold b24-text-gray-900 b24-mt-1">
                               {{ formatDuration(workDayData.totalWorkDaySeconds) }}
-                            </UiTypography>
-
-                            <UiTypography variant="extra-small" class="b24-text-gray-400 b24-mt-1">
-                              общее время
-                            </UiTypography>
-
-                            <!-- Декоративная полоска -->
-                            <div class="b24-absolute b24-bottom-0 b24-left-4 b24-right-4 b24-h-0.5 b24-bg-gradient-to-r b24-from-blue-200 b24-to-blue-400 b24-rounded-full b24-opacity-50"></div>
-                          </UiCard>
+                            </div>
+                            <div class="b24-text-[10px] b24-text-gray-400 b24-mt-1">общее время</div>
+                          </div>
 
                           <!-- Эффективность -->
-                          <UiCard
-                              class="b24-relative b24-bg-gradient-to-br b24-from-gray-50 b24-to-white"
-                              :ui="{
-            root: 'b24-rounded-xl b24-border b24-border-gray-100',
-            body: 'b24-p-4 b24-flex b24-flex-col b24-items-center b24-text-center'
-          }"
-                          >
-                            <UiTypography variant="extra-small" class="b24-text-gray-500 b24-uppercase b24-tracking-wider b24-mb-1">
-                              Эффективность
-                            </UiTypography>
-
-                            <UiTypography
-                                variant="2xlarge"
-                                class="b24-font-bold b24-leading-none"
-                                :color="getEfficiencyColor(workDayData.bitrixTimePercentage)"
+                          <div class="b24-bg-gray-50 b24-rounded-xl b24-p-4 b24-text-center">
+                            <div class="b24-text-xs b24-text-gray-500 b24-uppercase b24-tracking-wide">Эффективность</div>
+                            <div
+                                class="b24-text-xl b24-font-bold b24-mt-1"
+                                :class="{
+              'b24-text-green-600': parseFloat(workDayData.bitrixTimePercentage) >= 80,
+              'b24-text-yellow-600': parseFloat(workDayData.bitrixTimePercentage) >= 60 && parseFloat(workDayData.bitrixTimePercentage) < 80,
+              'b24-text-red-600': parseFloat(workDayData.bitrixTimePercentage) < 60
+            }"
                             >
                               {{ formatPercentage(workDayData.bitrixTimePercentage) }}
-                            </UiTypography>
-
-                            <UiTypography variant="extra-small" class="b24-text-gray-400 b24-mt-1">
-                              время в Bitrix
-                            </UiTypography>
-
-                            <!-- Круговая индикация эффективности -->
-                            <div class="b24-absolute -b24-top-1 -b24-right-1 b24-w-8 b24-h-8">
-                              <UiKpi
-                                  :value="parseFloat(workDayData.bitrixTimePercentage)"
-                                  :max="100"
-                                  size="sm"
-                                  :color="getEfficiencyColorValue(workDayData.bitrixTimePercentage)"
-                                  :ui="{
-                root: 'b24-w-full b24-h-full',
-                svg: 'b24-w-full b24-h-full',
-                circle: 'b24-transition-all b24-duration-300'
-              }"
-                              />
                             </div>
-                          </UiCard>
+                            <div class="b24-text-[10px] b24-text-gray-400 b24-mt-1">время в Bitrix</div>
+                          </div>
                         </div>
 
-                        <!-- Кнопка подробной статистики -->
-                        <div class="b24-mt-4 b24-text-center">
-                          <UiButton
-                              variant="ghost"
-                              color="gray"
-                              size="sm"
-                              :ui="{
-            root: 'b24-text-xs b24-text-gray-400 b24-hover-text-gray-600 b24-transition-colors',
-            label: 'b24-inline-flex b24-items-center b24-gap-1'
-          }"
-                          >
-                            <span>Подробная статистика</span>
-                            <UiIcon name="i-bitrix24-arrow-right" class="b24-w-3 b24-h-3" />
-                          </UiButton>
-                        </div>
+                        <!-- Кнопка -->
+                        <button class="b24-w-full b24-mt-4 b24-py-2 b24-text-xs b24-text-gray-400 hover:b24-text-gray-600 b24-transition-colors b24-flex b24-items-center b24-justify-center b24-gap-1">
+                          <span>Подробная статистика</span>
+                          <span class="b24-text-base">→</span>
+                        </button>
                       </div>
                     </div>
                   </div>
