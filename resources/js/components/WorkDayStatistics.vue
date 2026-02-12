@@ -104,7 +104,7 @@
               </div>
 
               <!-- Основной контент -->
-              <div v-else>
+              <div id="work_day_statistic" v-else>
                 <!-- Первая строка: График и легенда -->
                 <div class="grid grid-cols-1 border border-gray-200 rounded-lg gap-6 md:gap-8">
                   <!-- График времени -->
@@ -1169,7 +1169,7 @@ class WorkDayStatisticsManager {
 
   // Метод для экспорта в PDF
   async exportToPDF() {
-    const originalElement = document.querySelector('.lg\\:col-span-2 > .bg-white');
+    const originalElement = document.querySelector('#work_day_statistic');
     const clone = originalElement.cloneNode(true);
 
     // Заменить canvas на изображения
