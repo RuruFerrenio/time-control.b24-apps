@@ -1172,7 +1172,6 @@ class WorkDayStatisticsManager {
     try {
       this.isLoading.value = true;
 
-      // Клонируем весь контейнер с аналитикой
       const originalElement = document.getElementById('work_day_statistic');
       const clone = originalElement.cloneNode(true);
 
@@ -1187,9 +1186,9 @@ class WorkDayStatisticsManager {
         canvas.parentNode.replaceChild(img, canvas);
       }
 
-      // 2. Удаляем все интерактивные элементы
-      clone.querySelectorAll('button, .hover\\:bg-gray-50, [@click], [v-if], [v-show]').forEach(el => {
-        // Сохраняем только текст кнопок
+      // 2. Удаляем все интерактивные элементы - исправленный селектор
+      const interactiveElements = clone.querySelectorAll('button, [class*="hover:"], [@click], [v-if], [v-show]');
+      interactiveElements.forEach(el => {
         if (el.tagName === 'BUTTON') {
           const span = document.createElement('span');
           span.className = el.className;
@@ -1197,14 +1196,15 @@ class WorkDayStatisticsManager {
           span.style.cssText = el.style.cssText;
           el.parentNode.replaceChild(span, el);
         } else {
-          el.classList.remove('hover:bg-gray-50', 'hover:border-gray-200');
           el.removeAttribute('@click');
           el.removeAttribute('disabled');
+          el.removeAttribute('v-if');
+          el.removeAttribute('v-show');
         }
       });
 
       // 3. Убираем попапы, выпадашки и Vue-специфичные атрибуты
-      clone.querySelectorAll('[class*="popover"], [class*="dropdown"], .b24-popover, [data-v-]').forEach(el => {
+      clone.querySelectorAll('[class*="popover"], [class*="dropdown"], [data-v-]').forEach(el => {
         el.remove();
       });
 
@@ -1221,7 +1221,7 @@ class WorkDayStatisticsManager {
     `;
       clone.prepend(header);
 
-      // 5. Копируем стили B24UI
+      // 5. Копируем стили
       const styleEl = document.createElement('style');
       const b24Styles = document.querySelector('style[data-b24ui]')?.innerHTML || '';
       const appStyles = Array.from(document.querySelectorAll('style'))
@@ -1237,13 +1237,10 @@ class WorkDayStatisticsManager {
         page-break-inside: avoid;
         box-shadow: none !important;
       }
-      @media print {
-        button, [@click] { display: none; }
-      }
     `;
       clone.prepend(styleEl);
 
-      // 6. Создаем временный контейнер
+      // 6. Временный контейнер
       const container = document.createElement('div');
       container.style.cssText = `
       position: absolute;
@@ -1285,7 +1282,7 @@ class WorkDayStatisticsManager {
 
     } catch (error) {
       console.error('Ошибка экспорта PDF:', error);
-      this.showNotification('error', 'Ошибка при экспорте PDF');
+      this.showNotification('error', 'Ошибка при экспорте PDF: ' + error.message);
     } finally {
       this.isLoading.value = false;
     }
