@@ -389,89 +389,6 @@
                     </div>
                   </div>
                 </div>
-
-                <!-- Информация о рабочем дне -->
-                <div class="mt-6 md:mt-8 space-y-4 md:space-y-6">
-                  <h4 class="text-lg font-semibold text-gray-900">
-                    <span class="flex items-center gap-2">
-                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      Данные о рабочем дне
-                    </span>
-                  </h4>
-                  <div class="bg-white border border-gray-200 rounded-lg p-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                      <!-- Настройки рабочего времени -->
-                      <div>
-                        <h5 class="text-sm font-medium text-blue-900 mb-4">
-                          <span class="flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            Настройки рабочего времени
-                          </span>
-                        </h5>
-
-                        <!-- Таблица настроек рабочего времени -->
-                        <div class="overflow-x-auto">
-                          <B24Table
-                              :data="workDaySettingsTableData"
-                              :columns="workDaySettingsColumns"
-                              :loading="isLoading"
-                              class="w-full"
-                          >
-                            <template #value-cell="{ row }">
-                              <span v-if="row.original.badge">
-                                <B24Badge :color="row.original.badgeColor">
-                                  {{ row.original.value }}
-                                </B24Badge>
-                              </span>
-                              <span v-else class="text-sm font-medium text-blue-900">
-                                {{ row.original.value }}
-                              </span>
-                            </template>
-                          </B24Table>
-                        </div>
-                      </div>
-
-                      <!-- Текущий рабочий день -->
-                      <div>
-                        <h5 class="text-sm font-medium text-blue-900 mb-4">
-                          <span class="flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                            </svg>
-                            Текущий рабочий день
-                          </span>
-                        </h5>
-
-                        <!-- Таблица статуса рабочего дня -->
-                        <div class="overflow-x-auto">
-                          <B24Table
-                              :data="workDayStatusTableData"
-                              :columns="workDayStatusColumns"
-                              :loading="isLoading"
-                              class="w-full"
-                          >
-                            <template #value-cell="{ row }">
-                              <span v-if="row.original.badge">
-                                <B24Badge :class="getWorkDayStatusClass(row.original.value)">
-                                  {{ getWorkDayStatusText(row.original.value) }}
-                                </B24Badge>
-                              </span>
-                              <span v-else class="text-sm font-medium text-blue-900 truncate">
-                                {{ row.original.value }}
-                              </span>
-                            </template>
-                          </B24Table>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
                 <!-- CRM статистика -->
                 <div class="mt-6 md:mt-8">
                   <div class="bg-white border border-gray-200 rounded-lg p-4">
@@ -547,6 +464,79 @@
                             </span>
                           </template>
                         </B24Table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Информация о рабочем дне -->
+                <div class="mt-6 md:mt-8 space-y-4 md:space-y-6">
+                  <div class="bg-white border border-gray-200 rounded-lg p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                      <!-- Настройки рабочего времени -->
+                      <div>
+                        <h5 class="text-sm font-medium text-blue-900 mb-4">
+                          <span class="flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            Настройки рабочего времени
+                          </span>
+                        </h5>
+
+                        <!-- Таблица настроек рабочего времени -->
+                        <div class="overflow-x-auto">
+                          <B24Table
+                              :data="workDaySettingsTableData"
+                              :columns="workDaySettingsColumns"
+                              :loading="isLoading"
+                              class="w-full"
+                          >
+                            <template #value-cell="{ row }">
+                              <span v-if="row.original.badge">
+                                <B24Badge :color="row.original.badgeColor">
+                                  {{ row.original.value }}
+                                </B24Badge>
+                              </span>
+                              <span v-else class="text-sm font-medium text-blue-900">
+                                {{ row.original.value }}
+                              </span>
+                            </template>
+                          </B24Table>
+                        </div>
+                      </div>
+
+                      <!-- Текущий рабочий день -->
+                      <div>
+                        <h5 class="text-sm font-medium text-blue-900 mb-4">
+                          <span class="flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                            </svg>
+                            Текущий рабочий день
+                          </span>
+                        </h5>
+
+                        <!-- Таблица статуса рабочего дня -->
+                        <div class="overflow-x-auto">
+                          <B24Table
+                              :data="workDayStatusTableData"
+                              :columns="workDayStatusColumns"
+                              :loading="isLoading"
+                              class="w-full"
+                          >
+                            <template #value-cell="{ row }">
+                              <span v-if="row.original.badge">
+                                <B24Badge :class="getWorkDayStatusClass(row.original.value)">
+                                  {{ getWorkDayStatusText(row.original.value) }}
+                                </B24Badge>
+                              </span>
+                              <span v-else class="text-sm font-medium text-blue-900 truncate">
+                                {{ row.original.value }}
+                              </span>
+                            </template>
+                          </B24Table>
+                        </div>
                       </div>
                     </div>
                   </div>
