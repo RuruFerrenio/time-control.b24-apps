@@ -200,9 +200,6 @@
                                   <div class="text-base md:text-lg font-bold leading-none" :style="{ color: item.color }">
                                     {{ formatDuration(item.value) }}
                                   </div>
-                                  <div class="text-[10px] md:text-xs text-gray-400 uppercase tracking-wider mt-0.5">
-                                    часов
-                                  </div>
                                 </div>
 
                                 <!-- Прогресс бар для мобилок -->
