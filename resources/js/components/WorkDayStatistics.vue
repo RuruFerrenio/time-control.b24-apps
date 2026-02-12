@@ -1172,131 +1172,77 @@ class WorkDayStatisticsManager {
     try {
       this.isLoading.value = true;
 
+      // 1. Дождаться обновления DOM и графиков
+      await nextTick();
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       const originalElement = document.getElementById('work_day_statistic');
+      if (!originalElement) {
+        throw new Error('Элемент не найден');
+      }
+
       const clone = originalElement.cloneNode(true);
 
-      // 1. Заменяем canvas на изображения
+      // 2. ВАЖНО: Canvas → изображения ДО добавления в DOM
       const canvases = clone.querySelectorAll('canvas');
       for (let canvas of canvases) {
-        const img = document.createElement('img');
-        img.src = canvas.toDataURL('image/png');
-        img.style.cssText = canvas.style.cssText;
-        img.style.maxWidth = '100%';
-        img.style.height = 'auto';
-        canvas.parentNode.replaceChild(img, canvas);
+        try {
+          const img = document.createElement('img');
+          img.src = canvas.toDataURL('image/png');
+          img.style.cssText = canvas.style.cssText;
+          img.style.maxWidth = '100%';
+          img.style.height = 'auto';
+          img.style.display = 'block';
+          canvas.parentNode.replaceChild(img, canvas);
+        } catch (e) {
+          console.warn('Canvas conversion failed:', e);
+        }
       }
 
-      // 2. Удаляем все интерактивные элементы - исправленный селектор
-      // Кнопки
-      const buttons = clone.querySelectorAll('button');
-      buttons.forEach(button => {
-        const span = document.createElement('span');
-        span.className = button.className;
-        span.textContent = button.textContent;
-        span.style.cssText = button.style.cssText;
-        button.parentNode.replaceChild(span, button);
+      // 3. Удалить интерактивность
+      clone.querySelectorAll('button, [class*="hover"]').forEach(el => {
+        if (el.tagName === 'BUTTON') {
+          const span = document.createElement('span');
+          span.textContent = el.textContent;
+          span.className = el.className;
+          el.parentNode.replaceChild(span, el);
+        }
       });
 
-      // Элементы с hover классами
-      const hoverElements = clone.querySelectorAll('[class*="hover\\:"]');
-      hoverElements.forEach(el => {
-        el.classList.forEach(cls => {
-          if (cls.includes('hover:')) {
-            el.classList.remove(cls);
-          }
-        });
-      });
-
-      // Удаляем Vue-атрибуты
-      const allElements = clone.querySelectorAll('*');
-      allElements.forEach(el => {
-        Array.from(el.attributes).forEach(attr => {
-          if (attr.name.startsWith('@') ||
-              attr.name === 'v-if' ||
-              attr.name === 'v-show' ||
-              attr.name === 'v-for' ||
-              attr.name === 'v-model' ||
-              attr.name.startsWith('data-v-')) {
-            el.removeAttribute(attr.name);
-          }
-        });
-      });
-
-      // 3. Убираем попапы и выпадашки
-      clone.querySelectorAll('[class*="popover"], [class*="dropdown"]').forEach(el => {
-        el.remove();
-      });
-
-      // 4. Добавляем заголовок с датой
-      const header = document.createElement('div');
-      header.className = 'pdf-header';
-      header.innerHTML = `
-      <h1 style="font-size: 24px; font-weight: bold; color: #1f2937; margin-bottom: 8px;">
-        ${this.pageTitle}
-      </h1>
-      <p style="color: #6b7280; margin-bottom: 20px;">
-        ${this.formatDayDisplay(this.selectedDay.value)}
-      </p>
-    `;
-      clone.prepend(header);
-
-      // 5. Копируем стили
-      const styleEl = document.createElement('style');
-      const b24Styles = document.querySelector('style[data-b24ui]')?.innerHTML || '';
-
-      styleEl.innerHTML = `
-      ${b24Styles}
-      .pdf-header { margin-bottom: 30px; }
-      .b24-card, .bg-white {
-        page-break-inside: avoid;
-        box-shadow: none !important;
-      }
-    `;
-      clone.prepend(styleEl);
-
-      // 6. Временный контейнер
+      // 4. Временно добавить в body и экспортировать
       const container = document.createElement('div');
       container.style.cssText = `
-      position: absolute;
-      left: -9999px;
+      position: fixed;
       top: 0;
+      left: 0;
       width: 1200px;
       background: white;
       padding: 30px;
+      z-index: 9999;
+      visibility: visible;
     `;
       container.appendChild(clone);
       document.body.appendChild(container);
 
-      // 7. Настройки PDF
+      // 5. Упрощенные настройки
       const opt = {
-        margin: [0.5, 0.5, 0.5, 0.5],
+        margin: 0.5,
         filename: `bitrix24-статистика-${this.selectedDay.value}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
         html2canvas: {
           scale: 2,
-          useCORS: true,
-          logging: false,
-          backgroundColor: '#ffffff',
-          allowTaint: false
+          logging: true,
+          backgroundColor: '#ffffff'
         },
-        jsPDF: {
-          unit: 'in',
-          format: 'a4',
-          orientation: 'portrait'
-        }
+        jsPDF: { format: 'a4', orientation: 'portrait' }
       };
 
-      // 8. Экспорт
       await html2pdf().from(container).set(opt).save();
-
-      // 9. Очистка
       document.body.removeChild(container);
 
-      this.showNotification('success', 'PDF успешно экспортирован');
-
+      this.showNotification('success', 'PDF экспортирован');
     } catch (error) {
-      console.error('Ошибка экспорта PDF:', error);
-      this.showNotification('error', 'Ошибка при экспорте PDF: ' + error.message);
+      console.error('PDF Error:', error);
+      this.showNotification('error', error.message);
     } finally {
       this.isLoading.value = false;
     }
