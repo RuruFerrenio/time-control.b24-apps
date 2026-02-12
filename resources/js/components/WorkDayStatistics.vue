@@ -248,13 +248,13 @@
                             <div class="relative bg-gradient-to-br from-gray-50 to-white rounded-xl p-4 border border-gray-100">
                               <div class="flex flex-col items-center text-center">
               <span class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
-                Эффективность
+                Потери
               </span>
                                 <span class="text-xl md:text-2xl font-bold leading-none"
                                       :class="getEfficiencyColor(workDayData.bitrixTimePercentage)">
                 {{ formatPercentage(workDayData.bitrixTimePercentage) }}
               </span>
-                                <span class="text-[10px] text-gray-400 mt-1">время в Bitrix</span>
+                                <span class="text-[10px] text-gray-400 mt-1">времени не сохранено</span>
                               </div>
                               <!-- Круговая индикация эффективности -->
                               <div class="absolute -top-1 -right-1 w-8 h-8">
