@@ -1187,24 +1187,43 @@ class WorkDayStatisticsManager {
       }
 
       // 2. Удаляем все интерактивные элементы - исправленный селектор
-      const interactiveElements = clone.querySelectorAll('button, [class*="hover:"], [@click], [v-if], [v-show]');
-      interactiveElements.forEach(el => {
-        if (el.tagName === 'BUTTON') {
-          const span = document.createElement('span');
-          span.className = el.className;
-          span.textContent = el.textContent;
-          span.style.cssText = el.style.cssText;
-          el.parentNode.replaceChild(span, el);
-        } else {
-          el.removeAttribute('@click');
-          el.removeAttribute('disabled');
-          el.removeAttribute('v-if');
-          el.removeAttribute('v-show');
-        }
+      // Кнопки
+      const buttons = clone.querySelectorAll('button');
+      buttons.forEach(button => {
+        const span = document.createElement('span');
+        span.className = button.className;
+        span.textContent = button.textContent;
+        span.style.cssText = button.style.cssText;
+        button.parentNode.replaceChild(span, button);
       });
 
-      // 3. Убираем попапы, выпадашки и Vue-специфичные атрибуты
-      clone.querySelectorAll('[class*="popover"], [class*="dropdown"], [data-v-]').forEach(el => {
+      // Элементы с hover классами
+      const hoverElements = clone.querySelectorAll('[class*="hover\\:"]');
+      hoverElements.forEach(el => {
+        el.classList.forEach(cls => {
+          if (cls.includes('hover:')) {
+            el.classList.remove(cls);
+          }
+        });
+      });
+
+      // Удаляем Vue-атрибуты
+      const allElements = clone.querySelectorAll('*');
+      allElements.forEach(el => {
+        Array.from(el.attributes).forEach(attr => {
+          if (attr.name.startsWith('@') ||
+              attr.name === 'v-if' ||
+              attr.name === 'v-show' ||
+              attr.name === 'v-for' ||
+              attr.name === 'v-model' ||
+              attr.name.startsWith('data-v-')) {
+            el.removeAttribute(attr.name);
+          }
+        });
+      });
+
+      // 3. Убираем попапы и выпадашки
+      clone.querySelectorAll('[class*="popover"], [class*="dropdown"]').forEach(el => {
         el.remove();
       });
 
@@ -1224,14 +1243,9 @@ class WorkDayStatisticsManager {
       // 5. Копируем стили
       const styleEl = document.createElement('style');
       const b24Styles = document.querySelector('style[data-b24ui]')?.innerHTML || '';
-      const appStyles = Array.from(document.querySelectorAll('style'))
-          .filter(s => s.innerHTML.includes('b24') || s.innerHTML.includes('bg-') || s.innerHTML.includes('text-'))
-          .map(s => s.innerHTML)
-          .join('');
 
       styleEl.innerHTML = `
       ${b24Styles}
-      ${appStyles}
       .pdf-header { margin-bottom: 30px; }
       .b24-card, .bg-white {
         page-break-inside: avoid;
