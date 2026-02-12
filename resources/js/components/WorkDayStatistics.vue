@@ -1174,18 +1174,21 @@ class WorkDayStatisticsManager {
     try {
       this.isLoading.value = true;
 
-      // 1. Дождаться обновления DOM и графиков
+      // 1. Отключаем лоадер и ждем рендеринга контента
+      this.isLoading.value = false;
       await nextTick();
       await new Promise(resolve => setTimeout(resolve, 500));
 
+      // 2. Получаем элемент статистики
       const originalElement = document.getElementById('work_day_statistic');
       if (!originalElement) {
-        throw new Error('Элемент не найден');
+        throw new Error('Элемент статистики не найден');
       }
 
+      // 3. Клонируем элемент
       const clone = originalElement.cloneNode(true);
 
-      // 2. ВАЖНО: Canvas → изображения ДО добавления в DOM
+      // 4. Заменяем canvas на изображения
       const canvases = clone.querySelectorAll('canvas');
       for (let canvas of canvases) {
         try {
@@ -1197,21 +1200,70 @@ class WorkDayStatisticsManager {
           img.style.display = 'block';
           canvas.parentNode.replaceChild(img, canvas);
         } catch (e) {
-          console.warn('Canvas conversion failed:', e);
+          console.warn('Ошибка конвертации canvas:', e);
         }
       }
 
-      // 3. Удалить интерактивность
-      clone.querySelectorAll('button, [class*="hover"]').forEach(el => {
-        if (el.tagName === 'BUTTON') {
-          const span = document.createElement('span');
-          span.textContent = el.textContent;
-          span.className = el.className;
-          el.parentNode.replaceChild(span, el);
-        }
+      // 5. Удаляем интерактивные элементы
+      // Кнопки → текст
+      const buttons = clone.querySelectorAll('button');
+      buttons.forEach(button => {
+        const span = document.createElement('span');
+        span.textContent = button.textContent;
+        span.className = button.className;
+        span.style.cssText = button.style.cssText;
+        button.parentNode.replaceChild(span, button);
       });
 
-      // 4. Временно добавить в body и экспортировать
+      // Удаляем Vue-атрибуты
+      const allElements = clone.querySelectorAll('*');
+      allElements.forEach(el => {
+        Array.from(el.attributes).forEach(attr => {
+          if (attr.name.startsWith('@') ||
+              attr.name.startsWith('v-') ||
+              attr.name.startsWith('data-v-')) {
+            el.removeAttribute(attr.name);
+          }
+        });
+      });
+
+      // Удаляем hover-классы
+      clone.querySelectorAll('[class*="hover:"]').forEach(el => {
+        const classes = el.className.split(' ');
+        const filteredClasses = classes.filter(cls => !cls.includes('hover:'));
+        el.className = filteredClasses.join(' ');
+      });
+
+      // 6. Добавляем заголовок
+      const header = document.createElement('div');
+      header.className = 'pdf-header';
+      header.style.cssText = `
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #e5e7eb;
+    `;
+      header.innerHTML = `
+      <h1 style="font-size: 24px; font-weight: bold; color: #1f2937; margin-bottom: 8px;">
+        ${this.pageTitle}
+      </h1>
+      <p style="color: #6b7280; font-size: 16px;">
+        ${this.formatDayDisplay(this.selectedDay.value)}
+      </p>
+    `;
+      clone.prepend(header);
+
+      // 7. Добавляем базовые стили
+      const styleEl = document.createElement('style');
+      styleEl.textContent = `
+      * { box-sizing: border-box; }
+      body { margin: 0; padding: 0; background: white; font-family: system-ui, -apple-system, sans-serif; }
+      .b24-card, .bg-white { background: white; border-radius: 8px; border: 1px solid #e5e7eb; }
+      .pdf-header { margin-bottom: 30px; }
+      canvas, img { max-width: 100%; height: auto; }
+    `;
+      clone.prepend(styleEl);
+
+      // 8. Создаем контейнер для экспорта
       const container = document.createElement('div');
       container.style.cssText = `
       position: fixed;
@@ -1219,33 +1271,51 @@ class WorkDayStatisticsManager {
       left: 0;
       width: 1200px;
       background: white;
-      padding: 30px;
-      z-index: 9999;
+      padding: 40px;
+      z-index: 999999;
       visibility: visible;
+      opacity: 1;
+      pointer-events: none;
     `;
       container.appendChild(clone);
       document.body.appendChild(container);
 
-      // 5. Упрощенные настройки
+      // 9. Настройки PDF
       const opt = {
-        margin: 0.5,
+        margin: [0.5, 0.5, 0.5, 0.5],
         filename: `bitrix24-статистика-${this.selectedDay.value}.pdf`,
+        image: { type: 'jpeg', quality: 0.95 },
         html2canvas: {
           scale: 2,
           logging: true,
-          backgroundColor: '#ffffff'
+          backgroundColor: '#ffffff',
+          allowTaint: false,
+          useCORS: true,
+          letterRendering: true
         },
-        jsPDF: { format: 'a4', orientation: 'portrait' }
+        jsPDF: {
+          unit: 'in',
+          format: 'a4',
+          orientation: 'portrait'
+        }
       };
 
+      // 10. Экспорт
       await html2pdf().from(container).set(opt).save();
+
+      // 11. Очистка
       document.body.removeChild(container);
 
-      this.showNotification('success', 'PDF экспортирован');
+      // 12. Включаем лоадер обратно
+      this.isLoading.value = true;
+      await nextTick();
+      this.isLoading.value = false;
+
+      this.showNotification('success', 'PDF успешно экспортирован');
+
     } catch (error) {
-      console.error('PDF Error:', error);
-      this.showNotification('error', error.message);
-    } finally {
+      console.error('Ошибка экспорта PDF:', error);
+      this.showNotification('error', 'Ошибка при экспорте PDF: ' + error.message);
       this.isLoading.value = false;
     }
   }
