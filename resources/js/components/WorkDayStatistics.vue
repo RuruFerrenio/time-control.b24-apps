@@ -126,7 +126,7 @@
                             {{ formatPercentage(workDayData.bitrixTimePercentage) }}
                           </div>
                           <div class="text-xs md:text-sm text-gray-500 mt-1">
-                            времени в Bitrix24
+                            Времени не сохранено
                           </div>
                         </div>
                       </div>
@@ -490,11 +490,6 @@
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       <!-- Левая колонка - Создано -->
                       <div>
-                        <div class="flex items-center gap-2 mb-3">
-                          <div class="w-3 h-3 rounded-full bg-green-100 border border-green-500"></div>
-                          <h5 class="text-xs font-medium text-gray-700 uppercase">Создано</h5>
-                        </div>
-
                         <div class="overflow-x-auto">
                           <B24Table
                               :data="createdCrmTableData"
@@ -514,11 +509,6 @@
 
                       <!-- Правая колонка - Обновлено -->
                       <div>
-                        <div class="flex items-center gap-2 mb-3">
-                          <div class="w-3 h-3 rounded-full bg-blue-100 border border-blue-500"></div>
-                          <h5 class="text-xs font-medium text-gray-700 uppercase">Обновлено</h5>
-                        </div>
-
                         <div class="overflow-x-auto">
                           <B24Table
                               :data="updatedCrmTableData"
