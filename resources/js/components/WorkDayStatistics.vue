@@ -135,153 +135,223 @@
 
                   <!-- Интерактивная легенда -->
                   <div>
-                    <div class="bg-white h-full flex flex-col">
+                    <div class="b24-p-4 b24-bg-white b24-rounded-xl b24-shadow-sm b24-flex b24-flex-col b24-h-full">
                       <!-- Заголовок для мобилок -->
-                      <div class="block md:hidden px-4 pt-4 pb-2">
-                        <h3 class="text-sm font-medium text-gray-700">Распределение времени</h3>
+                      <div class="b24-block b24-md-hidden b24-px-2 b24-pt-2 b24-pb-4">
+                        <UiTypography variant="small" class="b24-text-gray-600">
+                          Распределение времени
+                        </UiTypography>
                       </div>
 
                       <!-- Список элементов легенды -->
-                      <div class="flex-1 overflow-y-auto px-4 py-2 md:p-4">
-                        <div class="space-y-2 md:space-y-3">
-                          <div v-for="(item, index) in bitrixTimeLegend" :key="index"
-                               class="group relative p-3 rounded-xl transition-all duration-200"
-                               :class="[
-               hoveredLegendIndex === index
-                 ? 'bg-gradient-to-br from-gray-50 to-white shadow-md border-gray-200 scale-[1.02]'
-                 : 'bg-white hover:bg-gray-50 border border-transparent hover:border-gray-100'
-             ]"
-                               @mouseenter="hoverLegend(index)"
-                               @mouseleave="hoverLegend(null)">
-
-                            <!-- Активный индикатор -->
-                            <div v-if="hoveredLegendIndex === index"
-                                 class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full"
-                                 :style="{ backgroundColor: item.color }"></div>
-
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                      <div class="b24-flex-1 b24-overflow-y-auto b24-px-1 b24-md-px-2 b24-space-y-2 b24-md-space-y-3">
+                        <div v-for="(item, index) in bitrixTimeLegend" :key="index">
+                          <UiCard
+                              :class="[
+            'b24-transition-all b24-duration-200 b24-cursor-pointer',
+            hoveredLegendIndex === index
+              ? 'b24-bg-gray-50 b24-shadow-md b24-scale-[1.02] b24-border-gray-200'
+              : 'b24-hover-bg-gray-50 b24-border-transparent b24-hover-border-gray-200'
+          ]"
+                              :ui="{
+            root: 'b24-p-3 b24-md-p-4 b24-rounded-xl b24-border',
+            body: 'b24-p-0'
+          }"
+                              @mouseenter="hoverLegend(index)"
+                              @mouseleave="hoverLegend(null)"
+                          >
+                            <div class="b24-flex b24-flex-col b24-sm-flex-row b24-sm-items-center b24-justify-between b24-gap-3 b24-sm-gap-4">
                               <!-- Левая часть с цветом и текстом -->
-                              <div class="flex items-center min-w-0 flex-1">
-                                <div class="relative flex-shrink-0">
-                                  <div class="w-5 h-5 rounded-full mr-3 transition-transform duration-200 group-hover:scale-110"
-                                       :style="{
-                       backgroundColor: item.color,
-                       boxShadow: hoveredLegendIndex === index ? `0 0 0 2px ${item.color}20` : 'none'
-                     }">
-                                  </div>
-                                  <div v-if="item.icon"
-                                       class="absolute -bottom-1 -right-1 w-4 h-4 bg-white rounded-full shadow-sm flex items-center justify-center text-[10px]"
-                                       :style="{ color: item.color }">
+                              <div class="b24-flex b24-items-center b24-min-w-0 b24-flex-1">
+                                <div class="b24-relative b24-flex-shrink-0">
+                                  <UiAvatar
+                                      :color="getAvatarColor(item.color)"
+                                      :ui="{
+                    root: 'b24-w-5 b24-h-5 b24-mr-3 b24-rounded-full b24-transition-transform b24-duration-200 group-hover:b24-scale-110',
+                    background: 'b24-bg-transparent',
+                    rounded: 'b24-rounded-full',
+                    text: 'b24-text-[0px]'
+                  }"
+                                  >
+                                    <div class="b24-w-full b24-h-full b24-rounded-full" :style="{ backgroundColor: item.color }"></div>
+                                  </UiAvatar>
+
+                                  <UiBadge
+                                      v-if="item.icon"
+                                      :ui="{
+                    root: 'b24-absolute -b24-bottom-1 -b24-right-1 b24-w-4 b24-h-4 b24-p-0 b24-flex b24-items-center b24-justify-center b24-text-[10px] b24-bg-white b24-shadow-sm b24-rounded-full',
+                    color: 'gray'
+                  }"
+                                  >
                                     {{ item.icon }}
-                                  </div>
+                                  </UiBadge>
                                 </div>
 
-                                <div class="min-w-0 flex-1">
-                                  <div class="flex items-center gap-2">
-                                    <span class="text-sm font-semibold text-gray-900 truncate">{{ item.label }}</span>
-                                    <span v-if="item.badge"
-                                          class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-600">
-                    {{ item.badge }}
-                  </span>
+                                <div class="b24-min-w-0 b24-flex-1">
+                                  <div class="b24-flex b24-items-center b24-gap-2">
+                                    <UiTypography variant="small" class="b24-font-semibold b24-text-gray-900 b24-truncate">
+                                      {{ item.label }}
+                                    </UiTypography>
+
+                                    <UiBadge
+                                        v-if="item.badge"
+                                        size="xs"
+                                        color="gray"
+                                        variant="soft"
+                                        class="b24-inline-flex b24-items-center b24-px-1.5 b24-py-0.5"
+                                    >
+                                      {{ item.badge }}
+                                    </UiBadge>
                                   </div>
-                                  <div class="flex items-center gap-2 text-xs text-gray-500">
-                                    <span class="truncate">{{ item.description }}</span>
-                                    <span class="w-1 h-1 rounded-full bg-gray-300 flex-shrink-0"></span>
-                                    <span class="font-medium flex-shrink-0" :style="{ color: item.color }">
-                    {{ item.percentage }}
-                  </span>
+
+                                  <div class="b24-flex b24-items-center b24-gap-2">
+                                    <UiTypography variant="extra-small" class="b24-text-gray-500 b24-truncate">
+                                      {{ item.description }}
+                                    </UiTypography>
+                                    <UiIcon
+                                        name="i-bitrix24-circle"
+                                        class="b24-w-1 b24-h-1 b24-text-gray-300 b24-flex-shrink-0"
+                                    />
+                                    <UiTypography variant="extra-small" class="b24-font-medium b24-flex-shrink-0" :style="{ color: item.color }">
+                                      {{ item.percentage }}
+                                    </UiTypography>
                                   </div>
                                 </div>
                               </div>
 
                               <!-- Правая часть со временем -->
-                              <div class="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 sm:ml-4">
-                                <div class="text-right">
-                                  <div class="text-base md:text-lg font-bold leading-none" :style="{ color: item.color }">
+                              <div class="b24-flex b24-items-center b24-justify-between b24-sm-justify-end b24-gap-3 b24-sm-gap-4 b24-sm-ml-4">
+                                <div class="b24-text-right">
+                                  <UiTypography
+                                      variant="large"
+                                      :class="['b24-font-bold b24-leading-none', hoveredLegendIndex === index ? 'b24-text-gray-900' : '']"
+                                      :style="{ color: item.color }"
+                                  >
                                     {{ formatDuration(item.value) }}
-                                  </div>
-                                  <div class="text-[10px] md:text-xs text-gray-400 uppercase tracking-wider mt-0.5">
+                                  </UiTypography>
+                                  <UiTypography variant="extra-small" class="b24-text-gray-400 b24-uppercase b24-tracking-wider b24-block b24-mt-0.5">
                                     часов
-                                  </div>
+                                  </UiTypography>
                                 </div>
 
                                 <!-- Прогресс бар для мобилок -->
-                                <div class="block sm:hidden w-16">
-                                  <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                                    <div class="h-full rounded-full transition-all duration-300"
-                                         :style="{
-                         width: item.percentage,
-                         backgroundColor: item.color
-                       }"></div>
-                                  </div>
+                                <div class="b24-block b24-sm-hidden b24-w-16">
+                                  <UiProgress
+                                      :value="parseFloat(item.percentage)"
+                                      :color="getProgressColor(item.color)"
+                                      size="sm"
+                                      :ui="{
+                    root: 'b24-bg-gray-100 b24-rounded-full b24-overflow-hidden',
+                    bar: 'b24-transition-all b24-duration-300'
+                  }"
+                                  />
                                 </div>
                               </div>
                             </div>
 
                             <!-- Детали (если есть) -->
-                            <div v-if="item.details"
-                                 class="mt-2 ml-8 md:ml-8 text-xs text-gray-600 bg-gray-50/80 backdrop-blur-sm px-3 py-2 rounded-lg border border-gray-100">
-                              <div class="flex items-start gap-2">
-                                <span class="text-gray-400">ⓘ</span>
+                            <UiAlert
+                                v-if="item.details"
+                                color="gray"
+                                variant="soft"
+                                size="sm"
+                                :ui="{
+              root: 'b24-mt-2 b24-ml-8 b24-md-ml-8 b24-bg-gray-50/80 b24-backdrop-blur-sm b24-border b24-border-gray-100',
+              wrapper: 'b24-p-2',
+              title: 'b24-text-xs b24-text-gray-600'
+            }"
+                            >
+                              <div class="b24-flex b24-items-start b24-gap-2">
+                                <UiIcon name="i-bitrix24-info-circle" class="b24-w-4 b24-h-4 b24-text-gray-400" />
                                 <span>{{ item.details }}</span>
                               </div>
+                            </UiAlert>
+                          </UiCard>
+                        </div>
+                      </div>
+
+                      <!-- Общая статистика -->
+                      <div class="b24-mt-6 b24-pt-5 b24-border-t b24-border-gray-200">
+                        <div class="b24-grid b24-grid-cols-2 b24-gap-4 b24-md-gap-6">
+                          <!-- Рабочий день -->
+                          <UiCard
+                              class="b24-relative b24-bg-gradient-to-br b24-from-gray-50 b24-to-white"
+                              :ui="{
+            root: 'b24-rounded-xl b24-border b24-border-gray-100',
+            body: 'b24-p-4 b24-flex b24-flex-col b24-items-center b24-text-center'
+          }"
+                          >
+                            <UiTypography variant="extra-small" class="b24-text-gray-500 b24-uppercase b24-tracking-wider b24-mb-1">
+                              Рабочий день
+                            </UiTypography>
+
+                            <UiTypography variant="2xlarge" class="b24-font-bold b24-text-gray-900 b24-leading-none">
+                              {{ formatDuration(workDayData.totalWorkDaySeconds) }}
+                            </UiTypography>
+
+                            <UiTypography variant="extra-small" class="b24-text-gray-400 b24-mt-1">
+                              общее время
+                            </UiTypography>
+
+                            <!-- Декоративная полоска -->
+                            <div class="b24-absolute b24-bottom-0 b24-left-4 b24-right-4 b24-h-0.5 b24-bg-gradient-to-r b24-from-blue-200 b24-to-blue-400 b24-rounded-full b24-opacity-50"></div>
+                          </UiCard>
+
+                          <!-- Эффективность -->
+                          <UiCard
+                              class="b24-relative b24-bg-gradient-to-br b24-from-gray-50 b24-to-white"
+                              :ui="{
+            root: 'b24-rounded-xl b24-border b24-border-gray-100',
+            body: 'b24-p-4 b24-flex b24-flex-col b24-items-center b24-text-center'
+          }"
+                          >
+                            <UiTypography variant="extra-small" class="b24-text-gray-500 b24-uppercase b24-tracking-wider b24-mb-1">
+                              Эффективность
+                            </UiTypography>
+
+                            <UiTypography
+                                variant="2xlarge"
+                                class="b24-font-bold b24-leading-none"
+                                :color="getEfficiencyColor(workDayData.bitrixTimePercentage)"
+                            >
+                              {{ formatPercentage(workDayData.bitrixTimePercentage) }}
+                            </UiTypography>
+
+                            <UiTypography variant="extra-small" class="b24-text-gray-400 b24-mt-1">
+                              время в Bitrix
+                            </UiTypography>
+
+                            <!-- Круговая индикация эффективности -->
+                            <div class="b24-absolute -b24-top-1 -b24-right-1 b24-w-8 b24-h-8">
+                              <UiKpi
+                                  :value="parseFloat(workDayData.bitrixTimePercentage)"
+                                  :max="100"
+                                  size="sm"
+                                  :color="getEfficiencyColorValue(workDayData.bitrixTimePercentage)"
+                                  :ui="{
+                root: 'b24-w-full b24-h-full',
+                svg: 'b24-w-full b24-h-full',
+                circle: 'b24-transition-all b24-duration-300'
+              }"
+                              />
                             </div>
-                          </div>
+                          </UiCard>
                         </div>
 
-                        <!-- Общая статистика -->
-                        <div class="mt-6 pt-5 border-t border-gray-200">
-                          <div class="grid grid-cols-2 gap-4 md:gap-6">
-                            <!-- Рабочий день -->
-                            <div class="relative bg-gradient-to-br from-gray-50 to-white rounded-xl p-4 border border-gray-100">
-                              <div class="flex flex-col items-center text-center">
-              <span class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
-                Рабочий день
-              </span>
-                                <span class="text-xl md:text-2xl font-bold text-gray-900 leading-none">
-                {{ formatDuration(workDayData.totalWorkDaySeconds) }}
-              </span>
-                                <span class="text-[10px] text-gray-400 mt-1">общее время</span>
-                              </div>
-                              <!-- Декоративная полоска -->
-                              <div class="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-blue-200 to-blue-400 rounded-full opacity-50"></div>
-                            </div>
-
-                            <!-- Эффективность -->
-                            <div class="relative bg-gradient-to-br from-gray-50 to-white rounded-xl p-4 border border-gray-100">
-                              <div class="flex flex-col items-center text-center">
-              <span class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
-                Эффективность
-              </span>
-                                <span class="text-xl md:text-2xl font-bold leading-none"
-                                      :class="getEfficiencyColor(workDayData.bitrixTimePercentage)">
-                {{ formatPercentage(workDayData.bitrixTimePercentage) }}
-              </span>
-                                <span class="text-[10px] text-gray-400 mt-1">время в Bitrix</span>
-                              </div>
-                              <!-- Круговая индикация эффективности -->
-                              <div class="absolute -top-1 -right-1 w-8 h-8">
-                                <svg class="w-full h-full" viewBox="0 0 36 36">
-                                  <circle cx="18" cy="18" r="16" fill="none"
-                                          stroke="#e5e7eb" stroke-width="2"/>
-                                  <circle cx="18" cy="18" r="16" fill="none"
-                                          :stroke="getEfficiencyColorValue(workDayData.bitrixTimePercentage)"
-                                          stroke-width="2"
-                                          :stroke-dasharray="`${workDayData.bitrixTimePercentage * 1.0048}, 100`"
-                                          stroke-linecap="round"
-                                          transform="rotate(-90 18 18)"/>
-                                </svg>
-                              </div>
-                            </div>
-                          </div>
-
-                          <!-- Дополнительная информация -->
-                          <div class="mt-4 text-center">
-                            <button class="text-xs text-gray-400 hover:text-gray-600 transition-colors inline-flex items-center gap-1">
-                              <span>Подробная статистика</span>
-                              <span class="text-lg leading-none">→</span>
-                            </button>
-                          </div>
+                        <!-- Кнопка подробной статистики -->
+                        <div class="b24-mt-4 b24-text-center">
+                          <UiButton
+                              variant="ghost"
+                              color="gray"
+                              size="sm"
+                              :ui="{
+            root: 'b24-text-xs b24-text-gray-400 b24-hover-text-gray-600 b24-transition-colors',
+            label: 'b24-inline-flex b24-items-center b24-gap-1'
+          }"
+                          >
+                            <span>Подробная статистика</span>
+                            <UiIcon name="i-bitrix24-arrow-right" class="b24-w-3 b24-h-3" />
+                          </UiButton>
                         </div>
                       </div>
                     </div>
@@ -1169,12 +1239,12 @@ class WorkDayStatisticsManager {
     return statusMap[status] || 'Неизвестен'
   }
 
-  getEfficiencyColor(percentage) {
-    if (percentage >= 80) return 'text-green-600'
-    if (percentage >= 60) return 'text-yellow-600'
-    if (percentage >= 40) return 'text-orange-600'
-    return 'text-red-600'
-  }
+  // getEfficiencyColor(percentage) {
+  //   if (percentage >= 80) return 'text-green-600'
+  //   if (percentage >= 60) return 'text-yellow-600'
+  //   if (percentage >= 40) return 'text-orange-600'
+  //   return 'text-red-600'
+  // }
 
   isDateDisabled(date) {
     const dayOfWeek = date.toDate('UTC').getDay()
@@ -2703,11 +2773,39 @@ class WorkDayStatisticsManager {
       this.isLoading.value = false
     }
   }
+  getAvatarColor(hexColor) {
+    // Конвертируем hex в ближайший цвет из палитры B24UI
+    const colors = {
+      '#00ace3': 'blue',
+      '#4fc3f7': 'light-blue',
+      '#39b54a': 'green',
+      '#f5b342': 'yellow',
+      '#f97647': 'orange',
+      '#ff5752': 'red',
+      '#a77b55': 'brown',
+      '#9d6cc7': 'purple',
+      '#3e9bd7': 'primary'
+    }
+    return colors[hexColor] || 'gray'
+  }
+
+  getProgressColor(hexColor) {
+    // Аналогично getAvatarColor
+    return this.getAvatarColor(hexColor)
+  }
+
   getEfficiencyColorValue(percentage) {
     const num = parseFloat(percentage)
-    if (num >= 80) return '#10b981'
-    if (num >= 60) return '#f59e0b'
-    return '#ef4444'
+    if (num >= 80) return 'green'
+    if (num >= 60) return 'orange'
+    return 'red'
+  }
+
+  getEfficiencyColor(percentage) {
+    const num = parseFloat(percentage)
+    if (num >= 80) return 'green'
+    if (num >= 60) return 'yellow'
+    return 'red'
   }
 }
 
@@ -2797,7 +2895,10 @@ export default {
       isDateDisabled: manager.isDateDisabled.bind(manager),
       isDateUnavailable: manager.isDateUnavailable.bind(manager),
       hoverLegend: manager.hoverLegend.bind(manager),
-      getEfficiencyColorValue: manager.getEfficiencyColorValue.bind(manager)
+      getAvatarColor: manager.getAvatarColor.bind(manager),
+      getProgressColor: manager.getProgressColor.bind(manager),
+      getEfficiencyColorValue: manager.getEfficiencyColorValue.bind(manager),
+      getEfficiencyColor: manager.getEfficiencyColor.bind(manager),
     }
   }
 }
