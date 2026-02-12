@@ -1312,7 +1312,7 @@ class WorkDayStatisticsManager {
         timelineContainer.innerHTML = `
           <div style="margin-bottom: 20px;">
             <h2 style="font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb;">
-              Активность CRM в течение дня
+              Распределение активности в CRM в течении рабочего дня
             </h2>
           </div>
 
@@ -1751,14 +1751,19 @@ class WorkDayStatisticsManager {
       })
     }
 
-    const labels = Array.from({ length: 24 }, (_, i) => {
+    const currentHour = new Date().getHours()
+    const hoursToShow = this.selectedDay.value === new Date().toISOString().split('T')[0]
+        ? currentHour + 1
+        : 24
+
+    const labels = Array.from({ length: hoursToShow }, (_, i) => {
       const startHour = i.toString().padStart(2, '0')
       const endHour = ((i + 1) % 24).toString().padStart(2, '0')
       return `${startHour}:00-${endHour}:00`
     })
 
-    const createdData = Array.from({ length: 24 }, (_, i) => hourlyEvents[i].created)
-    const updatedData = Array.from({ length: 24 }, (_, i) => hourlyEvents[i].updated)
+    const createdData = Array.from({ length: hoursToShow }, (_, i) => hourlyEvents[i]?.created || 0)
+    const updatedData = Array.from({ length: hoursToShow }, (_, i) => hourlyEvents[i]?.updated || 0)
 
     const chartData = {
       labels: labels,
@@ -2294,7 +2299,9 @@ class WorkDayStatisticsManager {
   async loadCrmData() {
     try {
       const startOfDay = new Date(this.selectedDay.value + 'T00:00:00')
-      const endOfDay = new Date(this.selectedDay.value + 'T23:59:59')
+      const endOfDay = this.selectedDay.value === new Date().toISOString().split('T')[0]
+          ? new Date()
+          : new Date(this.selectedDay.value + 'T23:59:59')
 
       const formatDateForAPI = (date) => {
         return date.toISOString().replace('T', ' ').split('.')[0]
