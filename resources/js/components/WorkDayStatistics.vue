@@ -1169,34 +1169,126 @@ class WorkDayStatisticsManager {
 
   // Метод для экспорта в PDF
   async exportToPDF() {
-    const originalElement = document.querySelector('#work_day_statistic');
-    const clone = originalElement.cloneNode(true);
+    try {
+      this.isLoading.value = true;
 
-    // Заменить canvas на изображения
-    const canvases = clone.querySelectorAll('canvas');
-    for (let canvas of canvases) {
-      const img = document.createElement('img');
-      img.src = canvas.toDataURL('image/png');
-      img.style.cssText = canvas.style.cssText;
-      img.style.maxWidth = '100%';
-      canvas.parentNode.replaceChild(img, canvas);
+      // Клонируем весь контейнер с аналитикой
+      const originalElement = document.getElementById('work_day_statistic');
+      const clone = originalElement.cloneNode(true);
+
+      // 1. Заменяем canvas на изображения
+      const canvases = clone.querySelectorAll('canvas');
+      for (let canvas of canvases) {
+        const img = document.createElement('img');
+        img.src = canvas.toDataURL('image/png');
+        img.style.cssText = canvas.style.cssText;
+        img.style.maxWidth = '100%';
+        img.style.height = 'auto';
+        canvas.parentNode.replaceChild(img, canvas);
+      }
+
+      // 2. Удаляем все интерактивные элементы
+      clone.querySelectorAll('button, .hover\\:bg-gray-50, [@click], [v-if], [v-show]').forEach(el => {
+        // Сохраняем только текст кнопок
+        if (el.tagName === 'BUTTON') {
+          const span = document.createElement('span');
+          span.className = el.className;
+          span.textContent = el.textContent;
+          span.style.cssText = el.style.cssText;
+          el.parentNode.replaceChild(span, el);
+        } else {
+          el.classList.remove('hover:bg-gray-50', 'hover:border-gray-200');
+          el.removeAttribute('@click');
+          el.removeAttribute('disabled');
+        }
+      });
+
+      // 3. Убираем попапы, выпадашки и Vue-специфичные атрибуты
+      clone.querySelectorAll('[class*="popover"], [class*="dropdown"], .b24-popover, [data-v-]').forEach(el => {
+        el.remove();
+      });
+
+      // 4. Добавляем заголовок с датой
+      const header = document.createElement('div');
+      header.className = 'pdf-header';
+      header.innerHTML = `
+      <h1 style="font-size: 24px; font-weight: bold; color: #1f2937; margin-bottom: 8px;">
+        ${this.pageTitle}
+      </h1>
+      <p style="color: #6b7280; margin-bottom: 20px;">
+        ${this.formatDayDisplay(this.selectedDay.value)}
+      </p>
+    `;
+      clone.prepend(header);
+
+      // 5. Копируем стили B24UI
+      const styleEl = document.createElement('style');
+      const b24Styles = document.querySelector('style[data-b24ui]')?.innerHTML || '';
+      const appStyles = Array.from(document.querySelectorAll('style'))
+          .filter(s => s.innerHTML.includes('b24') || s.innerHTML.includes('bg-') || s.innerHTML.includes('text-'))
+          .map(s => s.innerHTML)
+          .join('');
+
+      styleEl.innerHTML = `
+      ${b24Styles}
+      ${appStyles}
+      .pdf-header { margin-bottom: 30px; }
+      .b24-card, .bg-white {
+        page-break-inside: avoid;
+        box-shadow: none !important;
+      }
+      @media print {
+        button, [@click] { display: none; }
+      }
+    `;
+      clone.prepend(styleEl);
+
+      // 6. Создаем временный контейнер
+      const container = document.createElement('div');
+      container.style.cssText = `
+      position: absolute;
+      left: -9999px;
+      top: 0;
+      width: 1200px;
+      background: white;
+      padding: 30px;
+    `;
+      container.appendChild(clone);
+      document.body.appendChild(container);
+
+      // 7. Настройки PDF
+      const opt = {
+        margin: [0.5, 0.5, 0.5, 0.5],
+        filename: `bitrix24-статистика-${this.selectedDay.value}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#ffffff',
+          allowTaint: false
+        },
+        jsPDF: {
+          unit: 'in',
+          format: 'a4',
+          orientation: 'portrait'
+        }
+      };
+
+      // 8. Экспорт
+      await html2pdf().from(container).set(opt).save();
+
+      // 9. Очистка
+      document.body.removeChild(container);
+
+      this.showNotification('success', 'PDF успешно экспортирован');
+
+    } catch (error) {
+      console.error('Ошибка экспорта PDF:', error);
+      this.showNotification('error', 'Ошибка при экспорте PDF');
+    } finally {
+      this.isLoading.value = false;
     }
-
-    // Удалить интерактивные элементы
-    clone.querySelectorAll('button, .hover\\:bg-gray-50, [@click]').forEach(el => {
-      el.classList.remove('hover:bg-gray-50', 'hover:border-gray-200');
-      el.removeAttribute('@click');
-      el.removeAttribute('disabled');
-    });
-
-    // Применить стили B24 компонентов
-    const styles = document.querySelector('style[data-b24ui]')?.innerHTML || '';
-    const styleEl = document.createElement('style');
-    styleEl.innerHTML = styles;
-    clone.prepend(styleEl);
-
-    // Экспорт
-    await html2pdf().from(clone).set(opt).save();
   }
 
   // Методы для работы с Chart.js
