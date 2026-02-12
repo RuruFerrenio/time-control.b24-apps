@@ -983,7 +983,6 @@ class WorkDayStatisticsManager {
         percentage: isTodayWorkDay && baseTime > 0 ?
             `${((data.breakTimeSeconds / baseTime) * 100).toFixed(1)}%` : '0%',
         color: this.CHART_COLORS.BREAK_TIME,
-        details: !isTodayWorkDay ? 'Только для сегодняшних рабочих дней' : null
       },
       {
         label: isTodayWorkDay ? 'Прочее время' : 'Рабочее время',
