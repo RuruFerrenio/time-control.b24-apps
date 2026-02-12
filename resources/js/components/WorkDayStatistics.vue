@@ -104,7 +104,7 @@
               </div>
 
               <!-- Основной контент -->
-              <div id="work_day_statistic" v-else>
+              <div v-else>
                 <div id="work_day_statistic">
                   <!-- Первая строка: График и легенда -->
                   <div class="grid grid-cols-1 border border-gray-200 rounded-lg gap-6 md:gap-8">
