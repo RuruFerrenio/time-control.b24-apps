@@ -105,437 +105,439 @@
 
               <!-- Основной контент -->
               <div id="work_day_statistic" v-else>
-                <!-- Первая строка: График и легенда -->
-                <div class="grid grid-cols-1 border border-gray-200 rounded-lg gap-6 md:gap-8">
-                  <!-- График времени -->
-                  <div>
-                    <div class="bg-white p-4">
-                      <h4 class="text-sm font-medium text-gray-900 mb-3">
-                        <span class="flex items-center gap-2">
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                          </svg>
-                          Распределение времени
-                        </span>
-                      </h4>
-                      <div class="relative w-full h-64">
-                        <canvas ref="bitrixTimeChart"></canvas>
-                        <!-- Центральный текст -->
-                        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                          <div class="text-2xl md:text-3xl font-bold text-gray-900">
-                            {{ formatPercentage(workDayData.bitrixTimePercentage) }}
-                          </div>
-                          <div class="text-xs md:text-sm text-gray-500 mt-1">
-                            Времени не сохранено
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Интерактивная легенда -->
-                  <div>
-                    <div class="bg-white h-full flex flex-col">
-                      <!-- Заголовок для мобилок -->
-                      <div class="block md:hidden px-4 pt-4 pb-2">
-                        <h3 class="text-sm font-medium text-gray-700">Распределение времени</h3>
-                      </div>
-
-                      <!-- Список элементов легенды -->
-                      <div class="flex-1 overflow-y-auto px-4 py-2 md:p-4">
-                        <div class="space-y-2 md:space-y-3">
-                          <div v-for="(item, index) in bitrixTimeLegend" :key="index"
-                               class="group relative p-3 rounded-xl transition-all duration-200"
-                               :class="[
-               hoveredLegendIndex === index
-                 ? 'bg-gradient-to-br from-gray-50 to-white shadow-md border-gray-200 scale-[1.02]'
-                 : 'bg-white hover:bg-gray-50 border border-transparent hover:border-gray-100'
-             ]"
-                               @mouseenter="hoverLegend(index)"
-                               @mouseleave="hoverLegend(null)">
-
-                            <!-- Активный индикатор -->
-                            <div v-if="hoveredLegendIndex === index"
-                                 class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full"
-                                 :style="{ backgroundColor: item.color }"></div>
-
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-                              <!-- Левая часть с цветом и текстом -->
-                              <div class="flex items-center min-w-0 flex-1">
-                                <div class="relative flex-shrink-0">
-                                  <div class="w-5 h-5 rounded-full mr-3 transition-transform duration-200 group-hover:scale-110"
-                                       :style="{
-                       backgroundColor: item.color,
-                       boxShadow: hoveredLegendIndex === index ? `0 0 0 2px ${item.color}20` : 'none'
-                     }">
-                                  </div>
-                                  <div v-if="item.icon"
-                                       class="absolute -bottom-1 -right-1 w-4 h-4 bg-white rounded-full shadow-sm flex items-center justify-center text-[10px]"
-                                       :style="{ color: item.color }">
-                                    {{ item.icon }}
-                                  </div>
-                                </div>
-
-                                <div class="min-w-0 flex-1">
-                                  <div class="flex items-center gap-2">
-                                    <span class="text-sm font-semibold text-gray-900 truncate">{{ item.label }}</span>
-                                    <span v-if="item.badge"
-                                          class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-600">
-                    {{ item.badge }}
-                  </span>
-                                  </div>
-                                  <div class="flex items-center gap-2 text-xs text-gray-500">
-                                    <span class="truncate">{{ item.description }}</span>
-                                    <span class="w-1 h-1 rounded-full bg-gray-300 flex-shrink-0"></span>
-                                    <span class="font-medium flex-shrink-0" :style="{ color: item.color }">
-                    {{ item.percentage }}
-                  </span>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <!-- Правая часть со временем -->
-                              <div class="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 sm:ml-4">
-                                <div class="text-right">
-                                  <div class="text-base md:text-lg font-bold leading-none" :style="{ color: item.color }">
-                                    {{ formatDuration(item.value) }}
-                                  </div>
-                                </div>
-
-                                <!-- Прогресс бар для мобилок -->
-                                <div class="block sm:hidden w-16">
-                                  <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                                    <div class="h-full rounded-full transition-all duration-300"
-                                         :style="{
-                         width: item.percentage,
-                         backgroundColor: item.color
-                       }"></div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-
-                            <!-- Детали (если есть) -->
-                            <div v-if="item.details"
-                                 class="mt-2 ml-8 md:ml-8 text-xs text-gray-600 bg-gray-50/80 backdrop-blur-sm px-3 py-2 rounded-lg border border-gray-100">
-                              <div class="flex items-start gap-2">
-                                <span class="text-gray-400">ⓘ</span>
-                                <span>{{ item.details }}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <!-- Общая статистика -->
-                        <div class="mt-6 pt-5 border-t border-gray-200">
-                          <div class="grid grid-cols-2 gap-4 md:gap-6">
-                            <!-- Рабочий день -->
-                            <div class="relative bg-gradient-to-br from-gray-50 to-white rounded-xl p-4 border border-gray-100">
-                              <div class="flex flex-col items-center text-center">
-              <span class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
-                Рабочий день
-              </span>
-                                <span class="text-xl md:text-2xl font-bold text-gray-900 leading-none">
-                {{ formatDuration(workDayData.totalWorkDaySeconds) }}
-              </span>
-                                <span class="text-[10px] text-gray-400 mt-1">общее время</span>
-                              </div>
-                              <!-- Декоративная полоска -->
-                              <div class="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-blue-200 to-blue-400 rounded-full opacity-50"></div>
-                            </div>
-
-                            <!-- Эффективность -->
-                            <div class="relative bg-gradient-to-br from-gray-50 to-white rounded-xl p-4 border border-gray-100">
-                              <div class="flex flex-col items-center text-center">
-              <span class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
-                Потери
-              </span>
-                                <span class="text-xl md:text-2xl font-bold leading-none"
-                                      :class="getEfficiencyColor(workDayData.bitrixTimePercentage)">
-                {{ formatPercentage(workDayData.bitrixTimePercentage) }}
-              </span>
-                                <span class="text-[10px] text-gray-400 mt-1">времени не сохранено</span>
-                              </div>
-                              <!-- Круговая индикация эффективности -->
-                              <div class="absolute -top-1 -right-1 w-8 h-8">
-                                <svg class="w-full h-full" viewBox="0 0 36 36">
-                                  <circle cx="18" cy="18" r="16" fill="none"
-                                          stroke="#e5e7eb" stroke-width="2"/>
-                                  <circle cx="18" cy="18" r="16" fill="none"
-                                          :stroke="getEfficiencyColorValue(workDayData.bitrixTimePercentage)"
-                                          stroke-width="2"
-                                          :stroke-dasharray="`${workDayData.bitrixTimePercentage * 1.0048}, 100`"
-                                          stroke-linecap="round"
-                                          transform="rotate(-90 18 18)"/>
-                                </svg>
-                              </div>
-                            </div>
-                          </div>
-
-                          <!-- Дополнительная информация -->
-                          <div class="mt-4 text-center">
-                            <button class="text-xs text-gray-400 hover:text-gray-600 transition-colors inline-flex items-center gap-1">
-                              <span>Подробная статистика</span>
-                              <span class="text-lg leading-none">→</span>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Список задач -->
-                <div class="mt-6 md:mt-8">
-                  <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                    <div class="p-4 border-b border-gray-200">
-                      <h4 class="text-sm font-medium text-gray-900">
-                        <span class="flex items-center gap-2">
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                          </svg>
-                          Задачи за день ({{ taskTimeData.tasks.length }})
-                        </span>
-                      </h4>
-                    </div>
-
-                    <!-- Таблица задач с использованием B24Table -->
-                    <div class="overflow-x-auto">
-                      <B24Table
-                          :data="displayedTasks"
-                          :columns="taskColumns"
-                          :loading="isLoading"
-                          class="w-full"
-                          empty="Нет задач за выбранный день"
-                      >
-                        <template #task-cell="{ row }">
-                          <div class="flex flex-col min-w-0">
-                            <a
-                                :href="`/company/personal/user/${currentUserId}/tasks/task/view/${row.original.id}/`"
-                                target="_blank"
-                                class="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline truncate block"
-                            >
-                              {{ row.original.title || `Задача #${row.original.id}` }}
-                            </a>
-                            <div class="text-xs text-gray-500">
-                              ID: {{ row.original.id }}
-                            </div>
-                          </div>
-                        </template>
-
-                        <template #status-cell="{ row }">
-                          <B24Badge :color="getTaskStatusColor(row.original.status)" class="whitespace-nowrap overflow-scroll inline-block">
-                            {{ getTaskStatusText(row.original.status) }}
-                          </B24Badge>
-                        </template>
-
-                        <template #time-cell="{ row }">
-                          <div class="flex flex-col">
-                            <div class="text-sm font-semibold text-green-600">
-                              {{ formatDuration(row.original.timeSpent) }}
-                            </div>
-                            <div class="text-xs text-gray-500">
-                              {{ row.original.elapsedItemsCount }} записей
-                            </div>
-                          </div>
-                        </template>
-
-                        <template #responsible-cell="{ row }">
-                          <a
-                              :href="`/company/personal/user/${row.original.responsibleId || currentUserId}/`"
-                              target="_blank"
-                              class="text-sm text-gray-900 hover:text-blue-600 hover:underline flex items-center gap-2"
-                          >
+                <div id="work_day_statistic">
+                  <!-- Первая строка: График и легенда -->
+                  <div class="grid grid-cols-1 border border-gray-200 rounded-lg gap-6 md:gap-8">
+                    <!-- График времени -->
+                    <div>
+                      <div class="bg-white p-4">
+                        <h4 class="text-sm font-medium text-gray-900 mb-3">
+                          <span class="flex items-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                             </svg>
-                            {{ row.original.responsibleName || 'Текущий пользователь' }}
-                          </a>
-                        </template>
-                      </B24Table>
+                            Распределение времени
+                          </span>
+                        </h4>
+                        <div class="relative w-full h-64">
+                          <canvas ref="bitrixTimeChart"></canvas>
+                          <!-- Центральный текст -->
+                          <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                            <div class="text-2xl md:text-3xl font-bold text-gray-900">
+                              {{ formatPercentage(workDayData.bitrixTimePercentage) }}
+                            </div>
+                            <div class="text-xs md:text-sm text-gray-500 mt-1">
+                              Времени не сохранено
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
-                    <!-- Пагинация для задач -->
-                    <div v-if="taskTimeData.tasks.length > 10" class="px-4 py-3 border-t border-gray-200">
-                      <div class="flex items-center justify-between">
-                        <div class="text-sm text-gray-500">
-                          Показано {{ Math.min(10, taskTimeData.tasks.length) }} из {{ taskTimeData.tasks.length }} задач
+                    <!-- Интерактивная легенда -->
+                    <div>
+                      <div class="bg-white h-full flex flex-col">
+                        <!-- Заголовок для мобилок -->
+                        <div class="block md:hidden px-4 pt-4 pb-2">
+                          <h3 class="text-sm font-medium text-gray-700">Распределение времени</h3>
                         </div>
-                        <B24Button
-                            @click="showAllTasks = !showAllTasks"
-                            size="sm"
-                            color="air-tertiary"
-                        >
-                          {{ showAllTasks ? 'Скрыть' : 'Показать все' }}
-                        </B24Button>
+
+                        <!-- Список элементов легенды -->
+                        <div class="flex-1 overflow-y-auto px-4 py-2 md:p-4">
+                          <div class="space-y-2 md:space-y-3">
+                            <div v-for="(item, index) in bitrixTimeLegend" :key="index"
+                                 class="group relative p-3 rounded-xl transition-all duration-200"
+                                 :class="[
+                 hoveredLegendIndex === index
+                   ? 'bg-gradient-to-br from-gray-50 to-white shadow-md border-gray-200 scale-[1.02]'
+                   : 'bg-white hover:bg-gray-50 border border-transparent hover:border-gray-100'
+               ]"
+                                 @mouseenter="hoverLegend(index)"
+                                 @mouseleave="hoverLegend(null)">
+
+                              <!-- Активный индикатор -->
+                              <div v-if="hoveredLegendIndex === index"
+                                   class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full"
+                                   :style="{ backgroundColor: item.color }"></div>
+
+                              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                                <!-- Левая часть с цветом и текстом -->
+                                <div class="flex items-center min-w-0 flex-1">
+                                  <div class="relative flex-shrink-0">
+                                    <div class="w-5 h-5 rounded-full mr-3 transition-transform duration-200 group-hover:scale-110"
+                                         :style="{
+                         backgroundColor: item.color,
+                         boxShadow: hoveredLegendIndex === index ? `0 0 0 2px ${item.color}20` : 'none'
+                       }">
+                                    </div>
+                                    <div v-if="item.icon"
+                                         class="absolute -bottom-1 -right-1 w-4 h-4 bg-white rounded-full shadow-sm flex items-center justify-center text-[10px]"
+                                         :style="{ color: item.color }">
+                                      {{ item.icon }}
+                                    </div>
+                                  </div>
+
+                                  <div class="min-w-0 flex-1">
+                                    <div class="flex items-center gap-2">
+                                      <span class="text-sm font-semibold text-gray-900 truncate">{{ item.label }}</span>
+                                      <span v-if="item.badge"
+                                            class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-600">
+                      {{ item.badge }}
+                    </span>
+                                    </div>
+                                    <div class="flex items-center gap-2 text-xs text-gray-500">
+                                      <span class="truncate">{{ item.description }}</span>
+                                      <span class="w-1 h-1 rounded-full bg-gray-300 flex-shrink-0"></span>
+                                      <span class="font-medium flex-shrink-0" :style="{ color: item.color }">
+                      {{ item.percentage }}
+                    </span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <!-- Правая часть со временем -->
+                                <div class="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 sm:ml-4">
+                                  <div class="text-right">
+                                    <div class="text-base md:text-lg font-bold leading-none" :style="{ color: item.color }">
+                                      {{ formatDuration(item.value) }}
+                                    </div>
+                                  </div>
+
+                                  <!-- Прогресс бар для мобилок -->
+                                  <div class="block sm:hidden w-16">
+                                    <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                      <div class="h-full rounded-full transition-all duration-300"
+                                           :style="{
+                           width: item.percentage,
+                           backgroundColor: item.color
+                         }"></div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <!-- Детали (если есть) -->
+                              <div v-if="item.details"
+                                   class="mt-2 ml-8 md:ml-8 text-xs text-gray-600 bg-gray-50/80 backdrop-blur-sm px-3 py-2 rounded-lg border border-gray-100">
+                                <div class="flex items-start gap-2">
+                                  <span class="text-gray-400">ⓘ</span>
+                                  <span>{{ item.details }}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <!-- Общая статистика -->
+                          <div class="mt-6 pt-5 border-t border-gray-200">
+                            <div class="grid grid-cols-2 gap-4 md:gap-6">
+                              <!-- Рабочий день -->
+                              <div class="relative bg-gradient-to-br from-gray-50 to-white rounded-xl p-4 border border-gray-100">
+                                <div class="flex flex-col items-center text-center">
+                <span class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
+                  Рабочий день
+                </span>
+                                  <span class="text-xl md:text-2xl font-bold text-gray-900 leading-none">
+                  {{ formatDuration(workDayData.totalWorkDaySeconds) }}
+                </span>
+                                  <span class="text-[10px] text-gray-400 mt-1">общее время</span>
+                                </div>
+                                <!-- Декоративная полоска -->
+                                <div class="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-blue-200 to-blue-400 rounded-full opacity-50"></div>
+                              </div>
+
+                              <!-- Эффективность -->
+                              <div class="relative bg-gradient-to-br from-gray-50 to-white rounded-xl p-4 border border-gray-100">
+                                <div class="flex flex-col items-center text-center">
+                <span class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
+                  Потери
+                </span>
+                                  <span class="text-xl md:text-2xl font-bold leading-none"
+                                        :class="getEfficiencyColor(workDayData.bitrixTimePercentage)">
+                  {{ formatPercentage(workDayData.bitrixTimePercentage) }}
+                </span>
+                                  <span class="text-[10px] text-gray-400 mt-1">времени не сохранено</span>
+                                </div>
+                                <!-- Круговая индикация эффективности -->
+                                <div class="absolute -top-1 -right-1 w-8 h-8">
+                                  <svg class="w-full h-full" viewBox="0 0 36 36">
+                                    <circle cx="18" cy="18" r="16" fill="none"
+                                            stroke="#e5e7eb" stroke-width="2"/>
+                                    <circle cx="18" cy="18" r="16" fill="none"
+                                            :stroke="getEfficiencyColorValue(workDayData.bitrixTimePercentage)"
+                                            stroke-width="2"
+                                            :stroke-dasharray="`${workDayData.bitrixTimePercentage * 1.0048}, 100`"
+                                            stroke-linecap="round"
+                                            transform="rotate(-90 18 18)"/>
+                                  </svg>
+                                </div>
+                              </div>
+                            </div>
+
+                            <!-- Дополнительная информация -->
+                            <div class="mt-4 text-center">
+                              <button class="text-xs text-gray-400 hover:text-gray-600 transition-colors inline-flex items-center gap-1">
+                                <span>Подробная статистика</span>
+                                <span class="text-lg leading-none">→</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <!-- График временной шкалы CRM -->
-                <div class="mt-6 md:mt-8">
-                  <div class="bg-white border border-gray-200 rounded-lg p-4">
-                    <h4 class="text-sm font-medium text-gray-900 mb-3">
-                      <span class="flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Активность CRM в течение дня
-                      </span>
-                    </h4>
-                    <div class="w-full h-48">
-                      <canvas ref="timelineChart"></canvas>
-                    </div>
-                  </div>
-                </div>
-                <!-- CRM статистика -->
-                <div class="mt-6 md:mt-8">
-                  <div class="bg-white border border-gray-200 rounded-lg p-4">
-                    <h4 class="text-sm font-medium text-gray-900 mb-3">
-                      <span class="flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Активность CRM
-                      </span>
-                    </h4>
-
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                      <!-- Левая колонка - Создано -->
-                      <div>
-                        <div class="overflow-x-auto">
-                          <B24Table
-                              :data="createdCrmTableData"
-                              :columns="crmColumns"
-                              :loading="isLoading"
-                              class="w-full"
-                          >
-                            <template #entity-cell="{ row }">
-                              <span class="text-xs text-gray-700 truncate">{{ row.original.entity }}</span>
-                            </template>
-                            <template #count-cell="{ row }">
-                              <span class="text-sm font-semibold text-green-600 ml-2">{{ row.original.count }}</span>
-                            </template>
-                          </B24Table>
-                        </div>
+                  <!-- Список задач -->
+                  <div class="mt-6 md:mt-8">
+                    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                      <div class="p-4 border-b border-gray-200">
+                        <h4 class="text-sm font-medium text-gray-900">
+                          <span class="flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                            Задачи за день ({{ taskTimeData.tasks.length }})
+                          </span>
+                        </h4>
                       </div>
 
-                      <!-- Правая колонка - Обновлено -->
-                      <div>
-                        <div class="overflow-x-auto">
-                          <B24Table
-                              :data="updatedCrmTableData"
-                              :columns="crmColumns"
-                              :loading="isLoading"
-                              class="w-full"
-                          >
-                            <template #entity-cell="{ row }">
-                              <span class="text-xs text-gray-700 truncate">{{ row.original.entity }}</span>
-                            </template>
-                            <template #count-cell="{ row }">
-                              <span class="text-sm font-semibold text-blue-600 ml-2">{{ row.original.count }}</span>
-                            </template>
-                          </B24Table>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Статусы сделок и лидов -->
-                    <div class="mt-4 pt-4 border-t border-gray-200">
-                      <h5 class="text-xs font-medium text-gray-700 mb-2">Статусы сделок и лидов</h5>
+                      <!-- Таблица задач с использованием B24Table -->
                       <div class="overflow-x-auto">
                         <B24Table
-                            :data="crmStatusTableData"
-                            :columns="crmStatusColumns"
+                            :data="displayedTasks"
+                            :columns="taskColumns"
                             :loading="isLoading"
                             class="w-full"
+                            empty="Нет задач за выбранный день"
                         >
-                          <template #status-cell="{ row }">
-                            <span class="text-xs text-gray-600 truncate">{{ row.original.status }}</span>
+                          <template #task-cell="{ row }">
+                            <div class="flex flex-col min-w-0">
+                              <a
+                                  :href="`/company/personal/user/${currentUserId}/tasks/task/view/${row.original.id}/`"
+                                  target="_blank"
+                                  class="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline truncate block"
+                              >
+                                {{ row.original.title || `Задача #${row.original.id}` }}
+                              </a>
+                              <div class="text-xs text-gray-500">
+                                ID: {{ row.original.id }}
+                              </div>
+                            </div>
                           </template>
-                          <template #count-cell="{ row }">
-                            <span class="text-xs font-semibold ml-2"
-                                  :class="{
-                                  'text-green-600': row.original.type === 'successful',
-                                  'text-red-600': row.original.type === 'failed'
-                                }">
-                              {{ row.original.count }}
-                            </span>
+
+                          <template #status-cell="{ row }">
+                            <B24Badge :color="getTaskStatusColor(row.original.status)" class="whitespace-nowrap overflow-scroll inline-block">
+                              {{ getTaskStatusText(row.original.status) }}
+                            </B24Badge>
+                          </template>
+
+                          <template #time-cell="{ row }">
+                            <div class="flex flex-col">
+                              <div class="text-sm font-semibold text-green-600">
+                                {{ formatDuration(row.original.timeSpent) }}
+                              </div>
+                              <div class="text-xs text-gray-500">
+                                {{ row.original.elapsedItemsCount }} записей
+                              </div>
+                            </div>
+                          </template>
+
+                          <template #responsible-cell="{ row }">
+                            <a
+                                :href="`/company/personal/user/${row.original.responsibleId || currentUserId}/`"
+                                target="_blank"
+                                class="text-sm text-gray-900 hover:text-blue-600 hover:underline flex items-center gap-2"
+                            >
+                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                              {{ row.original.responsibleName || 'Текущий пользователь' }}
+                            </a>
                           </template>
                         </B24Table>
                       </div>
+
+                      <!-- Пагинация для задач -->
+                      <div v-if="taskTimeData.tasks.length > 10" class="px-4 py-3 border-t border-gray-200">
+                        <div class="flex items-center justify-between">
+                          <div class="text-sm text-gray-500">
+                            Показано {{ Math.min(10, taskTimeData.tasks.length) }} из {{ taskTimeData.tasks.length }} задач
+                          </div>
+                          <B24Button
+                              @click="showAllTasks = !showAllTasks"
+                              size="sm"
+                              color="air-tertiary"
+                          >
+                            {{ showAllTasks ? 'Скрыть' : 'Показать все' }}
+                          </B24Button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <!-- Информация о рабочем дне -->
-                <div class="mt-6 md:mt-8 space-y-4 md:space-y-6">
-                  <div class="bg-white border border-gray-200 rounded-lg p-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                      <!-- Настройки рабочего времени -->
-                      <div>
-                        <h5 class="text-sm font-medium text-blue-900 mb-4">
-                          <span class="flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            Настройки рабочего времени
-                          </span>
-                        </h5>
 
-                        <!-- Таблица настроек рабочего времени -->
+                  <!-- График временной шкалы CRM -->
+                  <div class="mt-6 md:mt-8">
+                    <div class="bg-white border border-gray-200 rounded-lg p-4">
+                      <h4 class="text-sm font-medium text-gray-900 mb-3">
+                        <span class="flex items-center gap-2">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Активность CRM в течение дня
+                        </span>
+                      </h4>
+                      <div class="w-full h-48">
+                        <canvas ref="timelineChart"></canvas>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- CRM статистика -->
+                  <div class="mt-6 md:mt-8">
+                    <div class="bg-white border border-gray-200 rounded-lg p-4">
+                      <h4 class="text-sm font-medium text-gray-900 mb-3">
+                        <span class="flex items-center gap-2">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Активность CRM
+                        </span>
+                      </h4>
+
+                      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <!-- Левая колонка - Создано -->
+                        <div>
+                          <div class="overflow-x-auto">
+                            <B24Table
+                                :data="createdCrmTableData"
+                                :columns="crmColumns"
+                                :loading="isLoading"
+                                class="w-full"
+                            >
+                              <template #entity-cell="{ row }">
+                                <span class="text-xs text-gray-700 truncate">{{ row.original.entity }}</span>
+                              </template>
+                              <template #count-cell="{ row }">
+                                <span class="text-sm font-semibold text-green-600 ml-2">{{ row.original.count }}</span>
+                              </template>
+                            </B24Table>
+                          </div>
+                        </div>
+
+                        <!-- Правая колонка - Обновлено -->
+                        <div>
+                          <div class="overflow-x-auto">
+                            <B24Table
+                                :data="updatedCrmTableData"
+                                :columns="crmColumns"
+                                :loading="isLoading"
+                                class="w-full"
+                            >
+                              <template #entity-cell="{ row }">
+                                <span class="text-xs text-gray-700 truncate">{{ row.original.entity }}</span>
+                              </template>
+                              <template #count-cell="{ row }">
+                                <span class="text-sm font-semibold text-blue-600 ml-2">{{ row.original.count }}</span>
+                              </template>
+                            </B24Table>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Статусы сделок и лидов -->
+                      <div class="mt-4 pt-4 border-t border-gray-200">
+                        <h5 class="text-xs font-medium text-gray-700 mb-2">Статусы сделок и лидов</h5>
                         <div class="overflow-x-auto">
                           <B24Table
-                              :data="workDaySettingsTableData"
-                              :columns="workDaySettingsColumns"
+                              :data="crmStatusTableData"
+                              :columns="crmStatusColumns"
                               :loading="isLoading"
                               class="w-full"
                           >
-                            <template #value-cell="{ row }">
-                              <span v-if="row.original.badge">
-                                <B24Badge :color="row.original.badgeColor">
-                                  {{ row.original.value }}
-                                </B24Badge>
-                              </span>
-                              <span v-else class="text-sm font-medium text-blue-900">
-                                {{ row.original.value }}
+                            <template #status-cell="{ row }">
+                              <span class="text-xs text-gray-600 truncate">{{ row.original.status }}</span>
+                            </template>
+                            <template #count-cell="{ row }">
+                              <span class="text-xs font-semibold ml-2"
+                                    :class="{
+                                    'text-green-600': row.original.type === 'successful',
+                                    'text-red-600': row.original.type === 'failed'
+                                  }">
+                                {{ row.original.count }}
                               </span>
                             </template>
                           </B24Table>
                         </div>
                       </div>
+                    </div>
+                  </div>
+                  <!-- Информация о рабочем дне -->
+                  <div class="mt-6 md:mt-8 space-y-4 md:space-y-6">
+                    <div class="bg-white border border-gray-200 rounded-lg p-4">
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                        <!-- Настройки рабочего времени -->
+                        <div>
+                          <h5 class="text-sm font-medium text-blue-900 mb-4">
+                            <span class="flex items-center gap-2">
+                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                              Настройки рабочего времени
+                            </span>
+                          </h5>
 
-                      <!-- Текущий рабочий день -->
-                      <div>
-                        <h5 class="text-sm font-medium text-blue-900 mb-4">
-                          <span class="flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                            </svg>
-                            Текущий рабочий день
-                          </span>
-                        </h5>
+                          <!-- Таблица настроек рабочего времени -->
+                          <div class="overflow-x-auto">
+                            <B24Table
+                                :data="workDaySettingsTableData"
+                                :columns="workDaySettingsColumns"
+                                :loading="isLoading"
+                                class="w-full"
+                            >
+                              <template #value-cell="{ row }">
+                                <span v-if="row.original.badge">
+                                  <B24Badge :color="row.original.badgeColor">
+                                    {{ row.original.value }}
+                                  </B24Badge>
+                                </span>
+                                <span v-else class="text-sm font-medium text-blue-900">
+                                  {{ row.original.value }}
+                                </span>
+                              </template>
+                            </B24Table>
+                          </div>
+                        </div>
 
-                        <!-- Таблица статуса рабочего дня -->
-                        <div class="overflow-x-auto">
-                          <B24Table
-                              :data="workDayStatusTableData"
-                              :columns="workDayStatusColumns"
-                              :loading="isLoading"
-                              class="w-full"
-                          >
-                            <template #value-cell="{ row }">
-                              <span v-if="row.original.badge">
-                                <B24Badge :class="getWorkDayStatusClass(row.original.value)">
-                                  {{ getWorkDayStatusText(row.original.value) }}
-                                </B24Badge>
-                              </span>
-                              <span v-else class="text-sm font-medium text-blue-900 truncate">
-                                {{ row.original.value }}
-                              </span>
-                            </template>
-                          </B24Table>
+                        <!-- Текущий рабочий день -->
+                        <div>
+                          <h5 class="text-sm font-medium text-blue-900 mb-4">
+                            <span class="flex items-center gap-2">
+                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                              </svg>
+                              Текущий рабочий день
+                            </span>
+                          </h5>
+
+                          <!-- Таблица статуса рабочего дня -->
+                          <div class="overflow-x-auto">
+                            <B24Table
+                                :data="workDayStatusTableData"
+                                :columns="workDayStatusColumns"
+                                :loading="isLoading"
+                                class="w-full"
+                            >
+                              <template #value-cell="{ row }">
+                                <span v-if="row.original.badge">
+                                  <B24Badge :class="getWorkDayStatusClass(row.original.value)">
+                                    {{ getWorkDayStatusText(row.original.value) }}
+                                  </B24Badge>
+                                </span>
+                                <span v-else class="text-sm font-medium text-blue-900 truncate">
+                                  {{ row.original.value }}
+                                </span>
+                              </template>
+                            </B24Table>
+                          </div>
                         </div>
                       </div>
                     </div>
