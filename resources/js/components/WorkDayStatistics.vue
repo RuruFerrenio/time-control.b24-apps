@@ -135,46 +135,152 @@
 
                   <!-- Интерактивная легенда -->
                   <div>
-                    <div class="bg-white p-4 h-full">
-                      <div class="space-y-3">
-                        <div v-for="(item, index) in bitrixTimeLegend" :key="index"
-                             class="p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer border border-transparent hover:border-gray-200"
-                             :class="{ 'bg-gray-50 shadow-sm border-gray-200': hoveredLegendIndex === index }"
-                             @mouseenter="hoverLegend(index)"
-                             @mouseleave="hoverLegend(null)">
-                          <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-2 xs:gap-0">
-                            <div class="flex items-center min-w-0">
-                              <div class="w-4 h-4 rounded-full mr-3 flex-shrink-0 border border-gray-200" :style="{ backgroundColor: item.color }"></div>
-                              <div class="min-w-0">
-                                <div class="text-sm font-medium text-gray-900 truncate">{{ item.label }}</div>
-                                <div class="text-xs text-gray-500 truncate">{{ item.description }}</div>
-                              </div>
-                            </div>
-                            <div class="text-right xs:text-left">
-                              <div class="text-sm font-semibold" :style="{ color: item.color }">
-                                {{ formatDuration(item.value) }}
-                              </div>
-                              <div class="text-xs text-gray-500">{{ item.percentage }}</div>
-                            </div>
-                          </div>
-                          <div v-if="item.details" class="mt-2 text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded">
-                            {{ item.details }}
-                          </div>
-                        </div>
+                    <div class="bg-white h-full flex flex-col">
+                      <!-- Заголовок для мобилок -->
+                      <div class="block md:hidden px-4 pt-4 pb-2">
+                        <h3 class="text-sm font-medium text-gray-700">Распределение времени</h3>
                       </div>
 
-                      <!-- Общая статистика -->
-                      <div class="mt-4 pt-4 border-t border-gray-200">
-                        <div class="grid grid-cols-2 gap-3">
-                          <div class="text-center">
-                            <div class="text-xs text-gray-500">Рабочий день</div>
-                            <div class="text-sm font-semibold text-gray-900">{{ formatDuration(workDayData.totalWorkDaySeconds) }}</div>
-                          </div>
-                          <div class="text-center">
-                            <div class="text-xs text-gray-500">Эффективность</div>
-                            <div class="text-sm font-semibold" :class="getEfficiencyColor(workDayData.bitrixTimePercentage)">
-                              {{ formatPercentage(workDayData.bitrixTimePercentage) }}
+                      <!-- Список элементов легенды -->
+                      <div class="flex-1 overflow-y-auto px-4 py-2 md:p-4">
+                        <div class="space-y-2 md:space-y-3">
+                          <div v-for="(item, index) in bitrixTimeLegend" :key="index"
+                               class="group relative p-3 rounded-xl transition-all duration-200"
+                               :class="[
+               hoveredLegendIndex === index
+                 ? 'bg-gradient-to-br from-gray-50 to-white shadow-md border-gray-200 scale-[1.02]'
+                 : 'bg-white hover:bg-gray-50 border border-transparent hover:border-gray-100'
+             ]"
+                               @mouseenter="hoverLegend(index)"
+                               @mouseleave="hoverLegend(null)">
+
+                            <!-- Активный индикатор -->
+                            <div v-if="hoveredLegendIndex === index"
+                                 class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full"
+                                 :style="{ backgroundColor: item.color }"></div>
+
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                              <!-- Левая часть с цветом и текстом -->
+                              <div class="flex items-center min-w-0 flex-1">
+                                <div class="relative flex-shrink-0">
+                                  <div class="w-5 h-5 rounded-full mr-3 transition-transform duration-200 group-hover:scale-110"
+                                       :style="{
+                       backgroundColor: item.color,
+                       boxShadow: hoveredLegendIndex === index ? `0 0 0 2px ${item.color}20` : 'none'
+                     }">
+                                  </div>
+                                  <div v-if="item.icon"
+                                       class="absolute -bottom-1 -right-1 w-4 h-4 bg-white rounded-full shadow-sm flex items-center justify-center text-[10px]"
+                                       :style="{ color: item.color }">
+                                    {{ item.icon }}
+                                  </div>
+                                </div>
+
+                                <div class="min-w-0 flex-1">
+                                  <div class="flex items-center gap-2">
+                                    <span class="text-sm font-semibold text-gray-900 truncate">{{ item.label }}</span>
+                                    <span v-if="item.badge"
+                                          class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-600">
+                    {{ item.badge }}
+                  </span>
+                                  </div>
+                                  <div class="flex items-center gap-2 text-xs text-gray-500">
+                                    <span class="truncate">{{ item.description }}</span>
+                                    <span class="w-1 h-1 rounded-full bg-gray-300 flex-shrink-0"></span>
+                                    <span class="font-medium flex-shrink-0" :style="{ color: item.color }">
+                    {{ item.percentage }}
+                  </span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <!-- Правая часть со временем -->
+                              <div class="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 sm:ml-4">
+                                <div class="text-right">
+                                  <div class="text-base md:text-lg font-bold leading-none" :style="{ color: item.color }">
+                                    {{ formatDuration(item.value) }}
+                                  </div>
+                                  <div class="text-[10px] md:text-xs text-gray-400 uppercase tracking-wider mt-0.5">
+                                    часов
+                                  </div>
+                                </div>
+
+                                <!-- Прогресс бар для мобилок -->
+                                <div class="block sm:hidden w-16">
+                                  <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                    <div class="h-full rounded-full transition-all duration-300"
+                                         :style="{
+                         width: item.percentage,
+                         backgroundColor: item.color
+                       }"></div>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
+
+                            <!-- Детали (если есть) -->
+                            <div v-if="item.details"
+                                 class="mt-2 ml-8 md:ml-8 text-xs text-gray-600 bg-gray-50/80 backdrop-blur-sm px-3 py-2 rounded-lg border border-gray-100">
+                              <div class="flex items-start gap-2">
+                                <span class="text-gray-400">ⓘ</span>
+                                <span>{{ item.details }}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Общая статистика -->
+                        <div class="mt-6 pt-5 border-t border-gray-200">
+                          <div class="grid grid-cols-2 gap-4 md:gap-6">
+                            <!-- Рабочий день -->
+                            <div class="relative bg-gradient-to-br from-gray-50 to-white rounded-xl p-4 border border-gray-100">
+                              <div class="flex flex-col items-center text-center">
+              <span class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
+                Рабочий день
+              </span>
+                                <span class="text-xl md:text-2xl font-bold text-gray-900 leading-none">
+                {{ formatDuration(workDayData.totalWorkDaySeconds) }}
+              </span>
+                                <span class="text-[10px] text-gray-400 mt-1">общее время</span>
+                              </div>
+                              <!-- Декоративная полоска -->
+                              <div class="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-blue-200 to-blue-400 rounded-full opacity-50"></div>
+                            </div>
+
+                            <!-- Эффективность -->
+                            <div class="relative bg-gradient-to-br from-gray-50 to-white rounded-xl p-4 border border-gray-100">
+                              <div class="flex flex-col items-center text-center">
+              <span class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
+                Эффективность
+              </span>
+                                <span class="text-xl md:text-2xl font-bold leading-none"
+                                      :class="getEfficiencyColor(workDayData.bitrixTimePercentage)">
+                {{ formatPercentage(workDayData.bitrixTimePercentage) }}
+              </span>
+                                <span class="text-[10px] text-gray-400 mt-1">время в Bitrix</span>
+                              </div>
+                              <!-- Круговая индикация эффективности -->
+                              <div class="absolute -top-1 -right-1 w-8 h-8">
+                                <svg class="w-full h-full" viewBox="0 0 36 36">
+                                  <circle cx="18" cy="18" r="16" fill="none"
+                                          stroke="#e5e7eb" stroke-width="2"/>
+                                  <circle cx="18" cy="18" r="16" fill="none"
+                                          :stroke="getEfficiencyColorValue(workDayData.bitrixTimePercentage)"
+                                          stroke-width="2"
+                                          :stroke-dasharray="`${workDayData.bitrixTimePercentage * 1.0048}, 100`"
+                                          stroke-linecap="round"
+                                          transform="rotate(-90 18 18)"/>
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+
+                          <!-- Дополнительная информация -->
+                          <div class="mt-4 text-center">
+                            <button class="text-xs text-gray-400 hover:text-gray-600 transition-colors inline-flex items-center gap-1">
+                              <span>Подробная статистика</span>
+                              <span class="text-lg leading-none">→</span>
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -2597,6 +2703,12 @@ class WorkDayStatisticsManager {
       this.isLoading.value = false
     }
   }
+  getEfficiencyColorValue(percentage) {
+    const num = parseFloat(percentage)
+    if (num >= 80) return '#10b981'
+    if (num >= 60) return '#f59e0b'
+    return '#ef4444'
+  }
 }
 
 export default {
@@ -2684,7 +2796,8 @@ export default {
       getEfficiencyColor: manager.getEfficiencyColor.bind(manager),
       isDateDisabled: manager.isDateDisabled.bind(manager),
       isDateUnavailable: manager.isDateUnavailable.bind(manager),
-      hoverLegend: manager.hoverLegend.bind(manager)
+      hoverLegend: manager.hoverLegend.bind(manager),
+      getEfficiencyColorValue: manager.getEfficiencyColorValue.bind(manager)
     }
   }
 }
