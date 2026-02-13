@@ -777,6 +777,66 @@
                   </div>
                 </div>
 
+                <!-- Хранилище сохраненного времени -->
+                <div class="bg-gray-50 rounded-xl p-6 mb-8">
+                  <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    Настройка хранилища сохраненного времени
+                  </h3>
+                  <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                          <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                          </svg>
+                        </div>
+                        <div>
+                          <p class="font-medium text-gray-900">Хранилище сохраненного времени</p>
+                          <p class="text-sm text-gray-500">pr_saved_time_stats - Персональные счетчики времени</p>
+                        </div>
+                      </div>
+                      <div class="ml-4">
+                        <div v-if="savedTimeStorageStatus === 'loading'" class="ml-4">
+                          <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        </div>
+                        <div v-else-if="savedTimeStorageStatus === 'success'" class="ml-4">
+                          <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                          </svg>
+                        </div>
+                        <div v-else-if="savedTimeStorageStatus === 'error'" class="ml-4">
+                          <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                          </svg>
+                        </div>
+                        <div v-else class="flex items-center space-x-4">
+                          <div class="w-2 h-2 rounded-full" :class="selectedSavedTimeStorage ? 'bg-green-500' : 'bg-red-500'"></div>
+                          <B24Switch
+                              v-model="selectedSavedTimeStorage"
+                              :disabled="isInstalling"
+                              class="large-bordered-switch"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Информация о хранилище -->
+                    <div class="mt-3">
+                      <div class="flex items-start p-3 bg-blue-50 rounded-lg">
+                        <svg class="w-5 h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <div class="text-sm text-blue-700">
+                          <span class="font-medium">Важно:</span> Хранит персональные счетчики сохраненного времени каждого пользователя. Сбрасывайте счетчики при необходимости через раздел настроек.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <!-- Кнопки навигации -->
                 <div class="flex justify-between pt-6 border-t">
                   <B24Button
@@ -1033,6 +1093,12 @@
                         </svg>
                         <span class="text-sm text-gray-700">Хранилище активности</span>
                       </div>
+                      <div v-if="selectedSavedTimeStorage" class="flex items-center">
+                        <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">Хранилище сохраненного времени</span>
+                      </div>
                     </div>
 
                     <div class="flex items-center space-x-4 mt-6">
@@ -1141,6 +1207,14 @@ const STORAGE_PROPERTIES = [
   { PROPERTY: 'ELAPSED_ITEM_ID', NAME: 'ID записи времени', TYPE: 'N' }
 ]
 
+// Определения свойств хранилища сохраненного времени
+const SAVED_TIME_STORAGE_PROPERTIES = [
+  { PROPERTY: 'USER_ID', NAME: 'ID пользователя', TYPE: 'N' },
+  { PROPERTY: 'USER_NAME', NAME: 'Имя пользователя', TYPE: 'S' },
+  { PROPERTY: 'TOTAL_TIME', NAME: 'Общее сохраненное время (сек)', TYPE: 'N' },
+  { PROPERTY: 'UPDATED_AT', NAME: 'Дата последнего обновления', TYPE: 'S' }
+]
+
 export default {
   name: 'Install',
   setup() {
@@ -1164,6 +1238,7 @@ export default {
 
     // Хранилище
     const selectedStorage = ref(true)
+    const selectedSavedTimeStorage = ref(true
 
     // Настройки по умолчанию
     const configSettings = ref({
@@ -1203,6 +1278,7 @@ export default {
     })
 
     const storageStatus = ref(null)
+    const savedTimeStorageStatus = ref(null)
     const settingsStatus = ref(null)
 
     // Ошибки валидации
@@ -1380,6 +1456,110 @@ export default {
 
     // Менеджер хранилища
     const storageManager = {
+
+      // В объекте storageManager добавьте:
+
+// Проверка существования хранилища сохраненного времени
+      checkSavedTimeStorageExists: () => {
+        return new Promise((resolve) => {
+          if (!BX24) {
+            resolve(false)
+            return
+          }
+
+          BX24.callMethod('entity.get', {}, (result) => {
+            if (result.error()) {
+              console.error('Ошибка при проверке хранилищ:', result.error())
+              resolve(false)
+            } else {
+              const entities = result.data()
+              const exists = entities.some(entity => entity.ENTITY === 'pr_saved_time_stats')
+              resolve(exists)
+            }
+          })
+        })
+      },
+
+// Создание свойств для хранилища сохраненного времени
+      createSavedTimeStorageProperties: () => {
+        return new Promise((resolve) => {
+          let createdCount = 0
+          const totalProperties = SAVED_TIME_STORAGE_PROPERTIES.length
+
+          const createNextProperty = (index) => {
+            if (index >= totalProperties) {
+              resolve(true)
+              return
+            }
+
+            const prop = SAVED_TIME_STORAGE_PROPERTIES[index]
+            BX24.callMethod('entity.item.property.add', {
+              ENTITY: 'pr_saved_time_stats',
+              PROPERTY: prop.PROPERTY,
+              NAME: prop.NAME,
+              TYPE: prop.TYPE
+            }, (result) => {
+              if (result.error()) {
+                console.log(`Свойство ${prop.PROPERTY} уже существует или ошибка:`, result.error())
+              } else {
+                console.log(`Свойство ${prop.PROPERTY} создано`)
+                createdCount++
+              }
+              createNextProperty(index + 1)
+            })
+          }
+
+          createNextProperty(0)
+        })
+      },
+
+// Настройка хранилища сохраненного времени
+      setupSavedTimeStorage: async () => {
+        try {
+          savedTimeStorageStatus.value = 'loading'
+
+          if (!BX24) {
+            throw new Error('Библиотека Bitrix24 не доступна')
+          }
+
+          // Проверяем существование хранилища
+          const exists = await storageManager.checkSavedTimeStorageExists()
+
+          if (!exists) {
+            // Создаем новое хранилище
+            await new Promise((resolve, reject) => {
+              BX24.callMethod('entity.add', {
+                ENTITY: 'pr_saved_time_stats',
+                NAME: 'Сохраненное время',
+                ACCESS: {
+                  AU: 'W'
+                }
+              }, (result) => {
+                if (result.error()) {
+                  reject(new Error('Ошибка при создании хранилища сохраненного времени: ' + result.error()))
+                } else {
+                  console.log('Хранилище сохраненного времени успешно создано')
+                  resolve()
+                }
+              })
+            })
+
+            // Создаем свойства
+            await storageManager.createSavedTimeStorageProperties()
+          } else {
+            console.log('Хранилище сохраненного времени уже существует')
+          }
+
+          savedTimeStorageStatus.value = 'success'
+          installedCount.value++
+          return true
+        } catch (error) {
+          console.error('Ошибка настройки хранилища сохраненного времени:', error)
+          savedTimeStorageStatus.value = 'error'
+          return false
+        }
+      }
+
       // Проверка существования хранилища
       checkStorageExists: () => {
         return new Promise((resolve) => {
@@ -1399,6 +1579,7 @@ export default {
             }
           })
         })
+
       },
 
       // Создание свойств хранилища
@@ -1690,6 +1871,9 @@ export default {
         if (selectedStorage.value) {
           await storageManager.setupStorage()
         }
+        if (selectedSavedTimeStorage.value) {
+          await storageManager.setupSavedTimeStorage()
+        }
 
         // 2. Регистрация встроек (с проверкой и удалением если существуют)
         await registerPlacements()
@@ -1780,8 +1964,9 @@ export default {
     const installationsToProcess = computed(() => {
       let count = 0
 
-      // Хранилище
+      // Хранилища
       if (selectedStorage.value) count++
+      if (selectedSavedTimeStorage.value) count++
 
       // Встройки
       if (selectedPlacements.value.pageBackgroundWorker) count++
@@ -1852,7 +2037,10 @@ export default {
       featureStatus,
       placementStatus,
       storageStatus,
+      selectedSavedTimeStorage,
+      savedTimeStorageStatus,
       settingsStatus,
+
 
       // Ошибки
       historyDaysError,
