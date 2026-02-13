@@ -169,6 +169,83 @@
             </div>
           </div>
         </div>
+
+        <!-- ДОБАВЛЕНО: Секция управления хранилищем сохраненного времени -->
+        <div class="space-y-4 pt-4 border-t">
+          <h4 class="text-sm font-medium text-gray-900">
+            Управление хранилищем сохраненного времени
+          </h4>
+
+          <!-- Информация о хранилище -->
+          <div class="bg-gray-50 rounded-lg p-4">
+            <div class="flex items-start space-x-3">
+              <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+                </svg>
+              </div>
+              <div class="flex-1">
+                <p class="font-medium text-gray-900">pr_saved_time_stats</p>
+                <p class="text-sm text-gray-500 mt-1">
+                  Хранилище персональных счетчиков сохраненного времени каждого пользователя.
+                  Содержит ID пользователя, общее сохраненное время и дату последнего обновления.
+                </p>
+
+                <!-- Статистика хранилища -->
+                <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div class="bg-white rounded-lg p-3 border border-gray-200">
+                    <div class="text-xs text-gray-500">Всего записей</div>
+                    <div class="text-lg font-semibold text-gray-900">{{ storageStats.totalRecords }}</div>
+                  </div>
+                  <div class="bg-white rounded-lg p-3 border border-gray-200">
+                    <div class="text-xs text-gray-500">Общее время</div>
+                    <div class="text-lg font-semibold text-green-600">{{ formatDuration(storageStats.totalTime) }}</div>
+                  </div>
+                  <div class="bg-white rounded-lg p-3 border border-gray-200">
+                    <div class="text-xs text-gray-500">Последнее обновление</div>
+                    <div class="text-sm font-medium text-gray-900">{{ storageStats.lastUpdate || 'Нет данных' }}</div>
+                  </div>
+                </div>
+
+                <!-- Кнопки управления (только для администратора) -->
+                <div v-if="isAdmin" class="mt-4 flex flex-col sm:flex-row gap-2">
+                  <button
+                      @click="checkStorageStatus"
+                      :disabled="isCheckingStorage"
+                      class="px-3 py-2 bg-gray-600 text-white text-xs font-medium rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  >
+                    <svg v-if="isCheckingStorage" class="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    {{ isCheckingStorage ? 'Проверка...' : 'Проверить статус' }}
+                  </button>
+                  <button
+                      @click="resetAllUsersTime"
+                      :disabled="isResetting"
+                      class="px-3 py-2 bg-red-600 text-white text-xs font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  >
+                    <svg v-if="isResetting" class="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    {{ isResetting ? 'Сброс...' : 'Сбросить все счетчики' }}
+                  </button>
+                </div>
+
+                <!-- Сообщение для не-администраторов -->
+                <div v-else class="mt-4">
+                  <div class="flex items-center p-3 bg-yellow-50 rounded-lg">
+                    <svg class="w-5 h-5 text-yellow-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                    </svg>
+                    <p class="text-xs text-yellow-700">
+                      Управление хранилищем доступно только администраторам портала.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </B24Card>
@@ -176,6 +253,7 @@
 
 <script>
 import { ref, onMounted } from 'vue'
+import { bitrixHelper } from '../helpers/app.js'
 
 export default {
   name: 'PlacementsManager',
@@ -192,7 +270,18 @@ export default {
       }
     })
 
+    // Статус хранилища
+    const storageStats = ref({
+      totalRecords: 0,
+      totalTime: 0,
+      lastUpdate: null,
+      users: []
+    })
+
     const isProcessing = ref(false)
+    const isCheckingStorage = ref(false)
+    const isResetting = ref(false)
+    const isAdmin = ref(false)
 
     // URL обработчиков
     const HANDLERS = {
@@ -215,6 +304,101 @@ export default {
         options: {}
       }
     }
+
+    // ============== МЕТОДЫ ДЛЯ РАБОТЫ С ХРАНИЛИЩЕМ ==============
+
+    /**
+     * Форматирование длительности
+     */
+    const formatDuration = (seconds) => {
+      if (!seconds || seconds === 0) return '0 сек'
+      const hours = Math.floor(seconds / 3600)
+      const minutes = Math.floor((seconds % 3600) / 60)
+      const secs = seconds % 60
+      const parts = []
+      if (hours > 0) parts.push(`${hours} ч`)
+      if (minutes > 0) parts.push(`${minutes} мин`)
+      if (secs > 0 || parts.length === 0) parts.push(`${secs} сек`)
+      return parts.join(' ')
+    }
+
+    /**
+     * Форматирование даты
+     */
+    const formatDate = (dateString) => {
+      if (!dateString) return 'Нет данных'
+      return new Date(dateString).toLocaleString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    }
+
+    /**
+     * Проверка статуса хранилища
+     */
+    const checkStorageStatus = async () => {
+      try {
+        isCheckingStorage.value = true
+
+        // Получаем все записи из хранилища
+        const storage = await bitrixHelper.getSavedTimeStorage()
+
+        // Подсчитываем статистику
+        const totalTime = storage.reduce((sum, item) => sum + (item.totalTime || 0), 0)
+        const lastUpdate = storage.length > 0
+            ? storage.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))[0]?.updatedAt
+            : null
+
+        storageStats.value = {
+          totalRecords: storage.length,
+          totalTime: totalTime,
+          lastUpdate: formatDate(lastUpdate),
+          users: storage
+        }
+
+        // Показываем уведомление
+        alert(`Статистика хранилища:\nВсего записей: ${storage.length}\nОбщее время: ${formatDuration(totalTime)}`)
+      } catch (error) {
+        console.error('Ошибка проверки хранилища:', error)
+        alert('Ошибка при проверке хранилища')
+      } finally {
+        isCheckingStorage.value = false
+      }
+    }
+
+    /**
+     * Сброс времени всех пользователей (только для администратора)
+     */
+    const resetAllUsersTime = async () => {
+      if (!confirm('Вы уверены, что хотите сбросить счетчики времени ВСЕХ пользователей? Это действие нельзя отменить.')) {
+        return
+      }
+
+      try {
+        isResetting.value = true
+
+        // Сбрасываем через bitrixHelper
+        const success = await bitrixHelper.resetAllUsersTime()
+
+        if (success) {
+          alert('Счетчики времени всех пользователей успешно сброшены!')
+          // Обновляем статистику
+          await checkStorageStatus()
+        } else {
+          alert('Ошибка при сбросе счетчиков')
+        }
+      } catch (error) {
+        console.error('Ошибка сброса счетчиков:', error)
+        alert('Ошибка при сбросе счетчиков')
+      } finally {
+        isResetting.value = false
+      }
+    }
+
+    // ============== МЕТОДЫ ДЛЯ РАБОТЫ С ВСТРОЙКАМИ ==============
 
     // Функции для работы с Bitrix24 API
     const bitrixAPI = {
@@ -261,7 +445,6 @@ export default {
         try {
           const config = placementManager.getConfig(placementType)
 
-          // Для PAGE_BACKGROUND_WORKER используем специальный формат конфигурации
           const placementConfig = placementType === 'PAGE_BACKGROUND_WORKER'
               ? {
                 PLACEMENT: placementType,
@@ -315,7 +498,6 @@ export default {
           return result
         } catch (error) {
           console.error(`Ошибка удаления встройки ${placementType}:`, error)
-          // Игнорируем ошибку, если встройка не существует
           return null
         }
       },
@@ -377,10 +559,7 @@ export default {
       try {
         isProcessing.value = true
 
-        // Регистрируем обе встройки
         await registerAllPlacements()
-
-        // Проверяем статус после регистрации
         await checkPlacementsStatus()
 
         alert('Встройки успешно обновлены!')
@@ -395,7 +574,6 @@ export default {
     // Регистрация всех встроек
     const registerAllPlacements = async () => {
       try {
-        // Для каждой встройки сначала удаляем старую, затем регистрируем новую
         const placements = [
           {
             type: 'PAGE_BACKGROUND_WORKER',
@@ -409,21 +587,17 @@ export default {
 
         for (const placement of placements) {
           try {
-            // Проверяем существование встройки
             const exists = await placementManager.checkStatus(placement.type, placement.handler)
 
-            // Если существует, удаляем
             if (exists) {
               console.log(`Встройка ${placement.type} уже существует, удаляем...`)
               await placementManager.unbind(placement.type, placement.handler)
             }
 
-            // Регистрируем новую встройку
             await placementManager.bind(placement.type, placement.handler)
             console.log(`Встройка ${placement.type} успешно зарегистрирована`)
           } catch (error) {
             console.error(`Ошибка при обработке встройки ${placement.type}:`, error)
-            // Продолжаем с другими встройками
           }
         }
 
@@ -434,11 +608,27 @@ export default {
       }
     }
 
-    // Инициализация при монтировании
-    const init = () => {
+    // Инициализация
+    const init = async () => {
       if (typeof BX24 !== 'undefined' && BX24.init) {
-        BX24.init(() => {
-          checkPlacementsStatus()
+        BX24.init(async () => {
+          try {
+            // Инициализируем bitrixHelper если нужно
+            if (!bitrixHelper.isReady()) {
+              await bitrixHelper.init()
+            }
+
+            // Проверяем права администратора
+            isAdmin.value = bitrixHelper.isUserAdmin()
+
+            // Проверяем статус встроек
+            await checkPlacementsStatus()
+
+            // Проверяем статус хранилища
+            await checkStorageStatus()
+          } catch (error) {
+            console.error('Ошибка инициализации:', error)
+          }
         })
       }
     }
@@ -449,9 +639,31 @@ export default {
 
     return {
       placementsStatus,
+      storageStats,
       isProcessing,
-      updatePlacements
+      isCheckingStorage,
+      isResetting,
+      isAdmin,
+      formatDuration,
+      updatePlacements,
+      checkStorageStatus,
+      resetAllUsersTime
     }
   }
 }
 </script>
+
+<style scoped>
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+</style>

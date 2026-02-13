@@ -13,7 +13,7 @@ class Bitrix24Helper {
     this.isAdmin = false
     this.userProfile = null
     this.isInitialized = false
-    this.storageName = 'pr_saved_time_stats' // Новое хранилище
+    this.storageName = 'pr_saved_time_stats' // Единственное хранилище для сохраненного времени
     this.currentUserId = null
   }
 
@@ -124,7 +124,7 @@ class Bitrix24Helper {
     })
   }
 
-  // ============== НОВЫЕ МЕТОДЫ ДЛЯ РАБОТЫ С ХРАНИЛИЩЕМ ==============
+  // ============== МЕТОДЫ ДЛЯ РАБОТЫ С ХРАНИЛИЩЕМ ==============
 
   /**
    * Получение всего хранилища статистики времени
@@ -401,40 +401,6 @@ class Bitrix24Helper {
   }
 
   /**
-   * Миграция старого формата в новый
-   * @returns {Promise<boolean>}
-   */
-  async migrateFromOldFormat() {
-    try {
-      if (!BX24) return false
-
-      // Получаем старое значение
-      const oldTotal = await BX24.appOption.get('total_saved_time')
-
-      if (oldTotal && parseInt(oldTotal) > 0) {
-        // Получаем ID текущего пользователя
-        const currentUserId = this.currentUserId || await this.getCurrentUserId()
-
-        if (currentUserId) {
-          // Сохраняем в новом формате
-          await this.setUserSavedTime(currentUserId, parseInt(oldTotal))
-
-          // Удаляем старую опцию
-          await BX24.appOption.remove('total_saved_time')
-
-          console.log(`Миграция выполнена: ${oldTotal} сек. перенесено пользователю ${currentUserId}`)
-          return true
-        }
-      }
-
-      return false
-    } catch (error) {
-      console.error('Ошибка миграции:', error)
-      return false
-    }
-  }
-
-  /**
    * Получение ID текущего пользователя
    * @returns {Promise<number|null>}
    */
@@ -479,25 +445,6 @@ class Bitrix24Helper {
     } catch (error) {
       // Игнорируем ошибки DOM события
     }
-  }
-
-  // ============== СТАРЫЕ МЕТОДЫ (ОСТАВЛЯЕМ ДЛЯ СОВМЕСТИМОСТИ) ==============
-
-  /**
-   * @deprecated Используйте getTotalSavedTime() или getUserSavedTime()
-   */
-  async getSavedTime() {
-    console.warn('Метод getSavedTime() устарел. Используйте getTotalSavedTime() или getUserSavedTime()')
-    return this.getTotalSavedTime()
-  }
-
-  /**
-   * @deprecated Используйте updateUserSavedTime(userId, secondsToAdd)
-   */
-  async updateSavedTime(secondsToAdd) {
-    console.warn('Метод updateSavedTime() устарел. Используйте updateUserSavedTime(userId, secondsToAdd)')
-    if (!this.currentUserId) await this.getCurrentUserId()
-    return this.updateUserSavedTime(this.currentUserId, secondsToAdd)
   }
 
   // ============== МЕТОДЫ ДЛЯ ПРОВЕРКИ ТАРИФОВ ==============
@@ -597,6 +544,31 @@ class Bitrix24Helper {
    */
   isReady() {
     return this.isInitialized
+  }
+
+  /**
+   * Получение всех пользователей портала
+   * @returns {Promise<Array>}
+   */
+  async getAllUsers() {
+    return new Promise((resolve, reject) => {
+      if (typeof BX24 !== 'undefined' && BX24.callMethod) {
+        BX24.callMethod(
+          "user.get",
+          {},
+          (result) => {
+            if (result.error()) {
+              console.error("Ошибка при получении списка пользователей:", result.error())
+              reject(result.error())
+            } else {
+              resolve(result.data())
+            }
+          }
+        )
+      } else {
+        reject(new Error('Bitrix24 API не доступен'))
+      }
+    })
   }
 }
 
