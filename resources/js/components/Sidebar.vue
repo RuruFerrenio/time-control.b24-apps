@@ -148,12 +148,12 @@
             <div class="flex items-center justify-between">
               <div class="flex items-center">
                 <div>
-                  <p class="text-xs text-gray-600">Ваше сохраненное время</p>
+                  <p class="text-xs text-gray-600">Ваше сохраненное время:</p>
                   <p class="text-xl font-semibold text-blue-700">{{ formatSavedTime(mySavedTime) }}</p>
                 </div>
               </div>
               <div class="text-right">
-                <p class="text-xs text-gray-500">Ваш вклад</p>
+                <p class="text-xs text-gray-500">Ваш вклад:</p>
                 <p class="text-lg font-medium text-blue-700">{{ myPercentage }}%</p>
               </div>
             </div>
