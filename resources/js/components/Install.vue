@@ -1238,7 +1238,7 @@ export default {
 
     // Хранилище
     const selectedStorage = ref(true)
-    const selectedSavedTimeStorage = ref(true
+    const selectedSavedTimeStorage = ref(true)
 
     // Настройки по умолчанию
     const configSettings = ref({
