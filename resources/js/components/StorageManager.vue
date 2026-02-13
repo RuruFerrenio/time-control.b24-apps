@@ -37,7 +37,7 @@
               <div>
                 <div class="text-sm font-medium text-gray-900">Статус хранилища</div>
                 <p class="text-xs text-gray-500 mt-1">
-                  {{ entityId === 'pr_tracking' ? 'Хранит данные о посещениях страниц сотрудниками' : 'Хранит данные об отсутствиях сотрудников' }}
+                  {{ getStorageDescription() }}
                 </p>
               </div>
               <div class="flex items-center space-x-2">
@@ -55,8 +55,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 <div class="text-sm text-blue-700">
-                  <span class="font-medium">Важно:</span> Очистка хранилища полностью удалит все существующие данные и создаст новое чистое хранилище.
-                  Это действие нельзя отменить.
+                  <span class="font-medium">Важно:</span> {{ getClearWarning() }}
                 </div>
               </div>
             </div>
@@ -68,6 +67,9 @@
                   :disabled="isProcessing"
                   class="flex-1 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
+                <svg v-if="isProcessing" class="w-4 h-4 mr-2 inline animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
                 {{ isProcessing ? 'Очистка...' : 'Очистить хранилище' }}
               </button>
             </div>
@@ -85,7 +87,7 @@
                 </div>
                 <div>
                   <p class="text-sm text-gray-700">
-                    Полное удаление существующего хранилища со всеми данными.
+                    {{ getStepDescription(1) }}
                   </p>
                 </div>
               </div>
@@ -95,7 +97,7 @@
                 </div>
                 <div>
                   <p class="text-sm text-gray-700">
-                    Создание нового чистого хранилища с исходными настройками.
+                    {{ getStepDescription(2) }}
                   </p>
                 </div>
               </div>
@@ -105,7 +107,7 @@
                 </div>
                 <div>
                   <p class="text-sm text-gray-700">
-                    Настройка всех необходимых свойств для корректной работы системы.
+                    {{ getStepDescription(3) }}
                   </p>
                 </div>
               </div>
@@ -152,6 +154,54 @@ export default {
 
     const isProcessing = ref(false)
 
+    // Получение описания хранилища в зависимости от типа
+    const getStorageDescription = () => {
+      switch (props.entityId) {
+        case 'pr_tracking':
+          return 'Хранит данные о посещениях страниц сотрудниками'
+        case 'pr_saved_time_stats':
+          return 'Хранит персональные счетчики сохраненного времени каждого пользователя'
+        default:
+          return 'Хранит данные приложения'
+      }
+    }
+
+    // Получение предупреждения об очистке
+    const getClearWarning = () => {
+      switch (props.entityId) {
+        case 'pr_tracking':
+          return 'Очистка хранилища полностью удалит всю историю посещений всех сотрудников. Это действие нельзя отменить.'
+        case 'pr_saved_time_stats':
+          return 'Очистка хранилища полностью сбросит счетчики сохраненного времени ВСЕХ пользователей. Это действие нельзя отменить.'
+        default:
+          return 'Очистка хранилища полностью удалит все существующие данные и создаст новое чистое хранилище. Это действие нельзя отменить.'
+      }
+    }
+
+    // Получение описания шага в зависимости от типа хранилища
+    const getStepDescription = (step) => {
+      if (props.entityId === 'pr_tracking') {
+        switch (step) {
+          case 1:
+            return 'Полное удаление существующего хранилища со всей историей посещений.'
+          case 2:
+            return 'Создание нового чистого хранилища для сбора новой статистики.'
+          case 3:
+            return 'Настройка всех необходимых свойств для корректной работы системы отслеживания.'
+        }
+      } else if (props.entityId === 'pr_saved_time_stats') {
+        switch (step) {
+          case 1:
+            return 'Полное удаление существующего хранилища со всеми счетчиками пользователей.'
+          case 2:
+            return 'Создание нового чистого хранилища для персональных счетчиков времени.'
+          case 3:
+            return 'Настройка структуры хранилища для хранения данных о времени пользователей.'
+        }
+      }
+      return ''
+    }
+
     // Проверка существования хранилища
     const checkStorageExists = (callback) => {
       if (!BX24) {
@@ -178,6 +228,21 @@ export default {
         return
       }
 
+      // Для pr_saved_time_stats данные хранятся в appOption, не в entity
+      if (props.entityId === 'pr_saved_time_stats') {
+        BX24.appOption.get(props.entityId, (result) => {
+          try {
+            const storage = result ? JSON.parse(result) : []
+            callback(storage.length)
+          } catch (e) {
+            console.error('Ошибка парсинга хранилища:', e)
+            callback(0)
+          }
+        })
+        return
+      }
+
+      // Для pr_tracking стандартный подсчет
       BX24.callMethod('entity.section.get', {
         ENTITY: props.entityId
       }, (result) => {
@@ -196,7 +261,7 @@ export default {
           return
         }
 
-        sections.forEach((section, index) => {
+        sections.forEach((section) => {
           BX24.callMethod('entity.item.get', {
             ENTITY: props.entityId,
             FILTER: { SECTION_ID: section.ID }
@@ -221,6 +286,7 @@ export default {
 
       const createNextProperty = (index) => {
         if (index >= totalProperties) {
+          console.log(`Создано свойств: ${createdCount} из ${totalProperties}`)
           callback(true)
           return
         }
@@ -245,9 +311,32 @@ export default {
       createNextProperty(0)
     }
 
+    // Специальная очистка для pr_saved_time_stats
+    const clearSavedTimeStatsStorage = (callback) => {
+      // Просто удаляем опцию через appOption
+      BX24.appOption.remove(props.entityId, () => {
+        console.log('Хранилище pr_saved_time_stats очищено')
+
+        // Инициализируем пустым массивом
+        BX24.appOption.set(props.entityId, JSON.stringify([]), () => {
+          callback(true)
+        })
+      })
+    }
+
     // Очистка хранилища
     const clearStorage = () => {
-      if (!confirm(`Вы уверены, что хотите полностью очистить хранилище "${props.storageName}"? Все данные будут безвозвратно удалены.`)) {
+      let confirmMessage = ''
+
+      if (props.entityId === 'pr_tracking') {
+        confirmMessage = `Вы уверены, что хотите полностью очистить хранилище "${props.storageName}"? Вся история посещений всех сотрудников будет безвозвратно удалена.`
+      } else if (props.entityId === 'pr_saved_time_stats') {
+        confirmMessage = `Вы уверены, что хотите полностью очистить хранилище "${props.storageName}"? Все счетчики сохраненного времени ВСЕХ пользователей будут сброшены. Это действие нельзя отменить.`
+      } else {
+        confirmMessage = `Вы уверены, что хотите полностью очистить хранилище "${props.storageName}"? Все данные будут безвозвратно удалены.`
+      }
+
+      if (!confirm(confirmMessage)) {
         return
       }
 
@@ -259,7 +348,18 @@ export default {
           return
         }
 
-        // Проверяем существование хранилища
+        // Специальная обработка для pr_saved_time_stats
+        if (props.entityId === 'pr_saved_time_stats') {
+          clearSavedTimeStatsStorage(() => {
+            storageStatus.value.initialized = true
+            storageStatus.value.totalItems = 0
+            alert('Хранилище счетчиков времени успешно очищено!')
+            isProcessing.value = false
+          })
+          return
+        }
+
+        // Стандартная обработка для pr_tracking
         checkStorageExists((exists) => {
           if (exists) {
             // Удаляем существующее хранилище
@@ -268,7 +368,6 @@ export default {
             }, (deleteResult) => {
               if (deleteResult.error()) {
                 console.error('Ошибка при удалении хранилища:', deleteResult.error())
-                // Продолжаем создание нового даже при ошибке удаления
               }
 
               // Создаем новое хранилище
@@ -282,11 +381,12 @@ export default {
 
       } catch (error) {
         console.error('Ошибка при очистке хранилища:', error)
+        alert('Ошибка при очистке хранилища. Пожалуйста, попробуйте еще раз.')
         isProcessing.value = false
       }
     }
 
-    // Создание нового хранилища
+    // Создание нового хранилища (для pr_tracking)
     const createNewStorage = () => {
       BX24.callMethod('entity.add', {
         ENTITY: props.entityId,
@@ -321,14 +421,32 @@ export default {
     const init = () => {
       if (typeof BX24 !== 'undefined' && BX24.init) {
         BX24.init(() => {
-          checkStorageExists((exists) => {
-            if (exists) {
-              storageStatus.value.initialized = true
-              getTotalItemsCount((count) => {
-                storageStatus.value.totalItems = count
-              })
-            }
-          })
+          // Для pr_saved_time_stats проверяем через appOption
+          if (props.entityId === 'pr_saved_time_stats') {
+            BX24.appOption.get(props.entityId, (result) => {
+              try {
+                const storage = result ? JSON.parse(result) : []
+                storageStatus.value.initialized = true
+                storageStatus.value.totalItems = storage.length
+              } catch (e) {
+                storageStatus.value.initialized = false
+                storageStatus.value.totalItems = 0
+              }
+            })
+          } else {
+            // Стандартная проверка для pr_tracking
+            checkStorageExists((exists) => {
+              if (exists) {
+                storageStatus.value.initialized = true
+                getTotalItemsCount((count) => {
+                  storageStatus.value.totalItems = count
+                })
+              } else {
+                storageStatus.value.initialized = false
+                storageStatus.value.totalItems = 0
+              }
+            })
+          }
         })
       }
     }
@@ -340,8 +458,26 @@ export default {
     return {
       storageStatus,
       isProcessing,
-      clearStorage
+      clearStorage,
+      getStorageDescription,
+      getClearWarning,
+      getStepDescription
     }
   }
 }
 </script>
+
+<style scoped>
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+</style>
