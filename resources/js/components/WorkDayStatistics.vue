@@ -1379,53 +1379,40 @@ class WorkDayStatisticsManager {
     const options = {
       responsive: true,
       maintainAspectRatio: false,
-      interaction: {
-        mode: 'nearest', // Лучше для мобильных
-        intersect: false,
-      },
-      scales: {
-        x: {
-          grid: { display: false },
-          ticks: {
-            maxRotation: window.innerWidth < 640 ? 45 : 0, // Поворот подписей на мобильных
-            font: {
-              size: window.innerWidth < 640 ? 10 : 12
-            }
-          }
-        },
-        y: {
-          beginAtZero: true,
-          ticks: {
-            stepSize: 1,
-            precision: 0,
-            font: {
-              size: window.innerWidth < 640 ? 10 : 12
-            }
-          }
-        }
-      },
+      cutout: '70%',
       plugins: {
         legend: {
-          display: false // Убираем легенду, т.к. она теперь не нужна
+          display: false
         },
         tooltip: {
-          backgroundColor: 'rgba(17, 24, 39, 0.9)',
-          titleColor: '#fff',
-          bodyColor: '#e5e7eb',
-          padding: 12,
-          cornerRadius: 8,
-          displayColors: false,
           callbacks: {
-            title: (items) => {
-              if (!items.length) return ''
-              const hour = items[0].label
-              return `${hour}`
-            },
             label: (context) => {
-              return `Событий: ${context.raw}`
+              const item = this.bitrixTimeLegend[context.dataIndex]
+              return [
+                item.label,
+                `${this.formatDuration(context.raw)} (${item.percentage})`,
+                item.description
+              ]
             }
-          }
+          },
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          titleColor: '#1f2937',
+          bodyColor: '#4b5563',
+          borderColor: '#e5e7eb',
+          borderWidth: 1,
+          padding: 12,
+          boxPadding: 6
         }
+      },
+      interaction: {
+        intersect: false,
+        mode: 'index'
+      },
+      animation: {
+        animateScale: true,
+        animateRotate: true,
+        duration: 1000,
+        easing: 'easeOutQuart'
       }
     }
 
