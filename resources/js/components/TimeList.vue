@@ -2056,6 +2056,7 @@ class HierarchicalDataManager {
         return;
       }
 
+      // Получаем все элементы за сегодня
       const items = await new Promise((resolve, reject) => {
         BX24.callBatch({
           items: [
@@ -2075,6 +2076,7 @@ class HierarchicalDataManager {
         }, true);
       });
 
+      // Фильтруем только те, у которых есть привязка к задаче
       const taskItems = items.filter(item =>
           item.PROPERTY_VALUES?.TASK_ID &&
           item.PROPERTY_VALUES?.ELAPSED_ITEM_ID
@@ -2090,35 +2092,78 @@ class HierarchicalDataManager {
       const userTimeDifferences = {};
 
       for (const item of taskItems) {
+        const props = item.PROPERTY_VALUES || {};
         const {
           TASK_ID,
           ELAPSED_ITEM_ID,
           PAGE_TIME,
           PAGE_URL,
-          USER_ID  // Добавить USER_ID в PROPERTY_VALUES
-        } = item.PROPERTY_VALUES;
+          USER_ID
+        } = props;
+
+        // Пропускаем, если нет USER_ID
+        if (!USER_ID) {
+          console.warn(`Пропуск записи ${item.ID}: нет USER_ID`);
+          continue;
+        }
 
         try {
-          const currentTime = await this.getCurrentTaskTime(TASK_ID, ELAPSED_ITEM_ID);
-          await this.updateTaskTimeInBitrix(TASK_ID, ELAPSED_ITEM_ID, PAGE_TIME, PAGE_URL);
+          // Получаем текущее время из задачи
+          const currentTime = await new Promise((resolve) => {
+            BX24.callBatch({
+              get_time: [
+                'task.elapseditem.get',
+                {
+                  TASKID: TASK_ID,
+                  ITEMID: ELAPSED_ITEM_ID
+                }
+              ]
+            }, (result) => {
+              if (result.get_time.error()) {
+                resolve(0);
+              } else {
+                resolve(parseInt(result.get_time.data().SECONDS) || 0);
+              }
+            }, true);
+          });
 
+          // Обновляем время в задаче
+          await new Promise((resolve, reject) => {
+            BX24.callBatch({
+              update_time: [
+                'task.elapseditem.update',
+                {
+                  TASKID: TASK_ID,
+                  ITEMID: ELAPSED_ITEM_ID,
+                  ARFIELDS: {
+                    SECONDS: PAGE_TIME,
+                    COMMENT_TEXT: `Актуализировано время на странице: ${PAGE_URL}`
+                  }
+                }
+              ]
+            }, (result) => {
+              if (result.update_time.error()) {
+                reject(result.update_time.error());
+              } else {
+                resolve();
+              }
+            }, true);
+          });
+
+          // Вычисляем разницу и сохраняем для пользователя
           const timeDifference = PAGE_TIME - (currentTime || 0);
-
-          // Сохраняем разницу времени для каждого пользователя
-          if (USER_ID) {
-            if (!userTimeDifferences[USER_ID]) {
-              userTimeDifferences[USER_ID] = 0;
-            }
-            userTimeDifferences[USER_ID] += timeDifference;
+          if (!userTimeDifferences[USER_ID]) {
+            userTimeDifferences[USER_ID] = 0;
           }
+          userTimeDifferences[USER_ID] += timeDifference;
 
         } catch (error) {
           console.warn(`Ошибка при обработке записи ${item.ID}:`, error);
         }
       }
 
-      // Обновляем счетчики для каждого пользователя
-      if (bitrixHelper) {
+      // Обновляем счетчики для каждого пользователя через bitrixHelper
+      if (bitrixHelper && Object.keys(userTimeDifferences).length > 0) {
         try {
           for (const [userId, timeDiff] of Object.entries(userTimeDifferences)) {
             if (timeDiff !== 0) {
@@ -2128,6 +2173,7 @@ class HierarchicalDataManager {
           this.refreshSidebarSavedTimeCounter();
         } catch (error) {
           console.warn('Ошибка обновления счетчиков:', error);
+          this.showNotification('error', 'Ошибка обновления счетчиков');
         }
       }
 
@@ -2137,6 +2183,7 @@ class HierarchicalDataManager {
       );
 
     } catch (error) {
+      console.error('Ошибка при актуализации времени:', error);
       this.showNotification('error', 'Ошибка при актуализации времени');
     } finally {
       this.isProcessingData.value = false;
@@ -2428,6 +2475,11 @@ class HierarchicalDataManager {
 
   async addTimeToTask(taskId, pageData, userData, isNewTask = false) {
     try {
+      // Проверка инициализации bitrixHelper
+      if (!bitrixHelper || !bitrixHelper.isReady()) {
+        console.warn('bitrixHelper не инициализирован');
+      }
+
       BX24.callBatch({
         add_time: [
           'task.elapseditem.add',
@@ -2442,49 +2494,61 @@ class HierarchicalDataManager {
         ]
       }, async (result) => {
         if (result.add_time.error()) {
-          this.showNotification('error', 'Ошибка при добавлении времени к задаче')
-          this.isCreatingTask.value = false
-          this.isAttachingToTask.value = false
-        } else {
-          const elapsedItemId = result.add_time.data()
-          const originalItemId = pageData.originalItemId || pageData.itemId
+          this.showNotification('error', 'Ошибка при добавлении времени к задаче');
+          this.isCreatingTask.value = false;
+          this.isAttachingToTask.value = false;
+          return;
+        }
 
-          // 1. Обновляем хранилище и локальные данные
-          await this.updateStorageAndLocalData(originalItemId, taskId, elapsedItemId)
+        try {
+          const elapsedItemId = result.add_time.data();
+          const originalItemId = pageData.originalItemId || pageData.itemId;
 
-          // 2. Увеличиваем счетчик сохраненного времени через хелпер
+          // 1. Обновляем хранилище
+          await this.updateStorageAndLocalData(originalItemId, taskId, elapsedItemId);
+
+          // 2. Увеличиваем счетчик сохраненного времени через bitrixHelper
           if (pageData.pageTime && pageData.pageTime > 0 && bitrixHelper) {
             try {
               await bitrixHelper.updateUserSavedTime(userData.id, pageData.pageTime);
               this.refreshSidebarSavedTimeCounter();
             } catch (error) {
-              this.showNotification('error', 'Ошибка обновления счетчика')
+              console.error('Ошибка обновления счетчика:', error);
+              this.showNotification('error', 'Ошибка обновления счетчика');
             }
           }
 
           // 3. Показываем успешное уведомление
-          this.showNotification('success', 'Время успешно добавлено к задаче!')
+          this.showNotification('success', 'Время успешно добавлено к задаче!');
 
           // 4. Закрываем модальное окно
           if (isNewTask) {
-            this.isShowCreateTaskModal.value = false
+            this.isShowCreateTaskModal.value = false;
           } else {
-            this.isShowAttachTaskModal.value = false
+            this.isShowAttachTaskModal.value = false;
           }
 
           // 5. Сбрасываем состояния
-          this.isCreatingTask.value = false
-          this.isAttachingToTask.value = false
-          this.modalPageData.value = null
+          this.isCreatingTask.value = false;
+          this.isAttachingToTask.value = false;
+          this.modalPageData.value = null;
 
           // 6. Принудительно обновляем UI
-          this.forceUIUpdate()
+          this.forceUIUpdate();
+
+        } catch (error) {
+          console.error('Ошибка при обработке результата:', error);
+          this.showNotification('error', 'Ошибка при обновлении хранилища');
+          this.isCreatingTask.value = false;
+          this.isAttachingToTask.value = false;
         }
-      }, true)
+      }, true);
+
     } catch (error) {
-      this.showNotification('error', 'Ошибка при добавлении времени к задаче')
-      this.isCreatingTask.value = false
-      this.isAttachingToTask.value = false
+      console.error('Ошибка при добавлении времени к задаче:', error);
+      this.showNotification('error', 'Ошибка при добавлении времени к задаче');
+      this.isCreatingTask.value = false;
+      this.isAttachingToTask.value = false;
     }
   }
 
@@ -2546,14 +2610,26 @@ class HierarchicalDataManager {
 
   async updateTaskTime() {
     if (!this.modalPageData.value || !this.modalPageData.value.taskId || !this.modalPageData.value.elapsedItemId) {
-      this.showNotification('warning', 'Нет данных для обновления')
-      return
+      this.showNotification('warning', 'Нет данных для обновления');
+      return;
+    }
+
+    // Проверка наличия userId
+    const userId = this.modalPageData.value?.userId || this.selectedUser.value?.id;
+    if (!userId) {
+      this.showNotification('warning', 'Не удалось определить пользователя');
+      return;
+    }
+
+    // Проверка инициализации bitrixHelper
+    if (!bitrixHelper || !bitrixHelper.isReady()) {
+      console.warn('bitrixHelper не инициализирован');
     }
 
     try {
-      this.isUpdatingTime.value = true
+      this.isUpdatingTime.value = true;
 
-      const newTime = this.updateTimeData.value.newTime
+      const newTime = this.updateTimeData.value.newTime;
 
       // Используем callBatch для получения текущего времени и его обновления за один запрос
       BX24.callBatch({
@@ -2580,62 +2656,65 @@ class HierarchicalDataManager {
       }, async (result) => {
         // Проверяем ошибки обоих вызовов
         if (result.get_current_time.error() || result.update_time.error()) {
-          let errorMessage = 'Ошибка при обновлении времени в задаче'
+          let errorMessage = 'Ошибка при обновлении времени в задаче';
 
           if (result.get_current_time.error()) {
-            errorMessage = 'Ошибка при получении текущего времени задачи'
+            errorMessage = 'Ошибка при получении текущего времени задачи';
           }
 
           if (result.update_time.error()) {
-            errorMessage = 'Ошибка при обновлении времени в задаче'
+            errorMessage = 'Ошибка при обновлении времени в задаче';
           }
 
-          this.showNotification('error', errorMessage)
-          this.isUpdatingTime.value = false
-          return
+          this.showNotification('error', errorMessage);
+          this.isUpdatingTime.value = false;
+          return;
         }
 
         try {
           // 3. Получаем старое значение времени из существующей записи
-          const oldTime = parseInt(result.get_current_time.data().SECONDS) || 0
+          const oldTime = parseInt(result.get_current_time.data().SECONDS) || 0;
 
           // 4. Обновляем время в хранилище
-          await this.updateStorageItemTime(this.modalPageData.value.itemId, newTime)
+          await this.updateStorageItemTime(this.modalPageData.value.itemId, newTime);
 
           // 5. Обновляем локальные данные
-          this.modalPageData.value.pageTime = newTime
+          this.modalPageData.value.pageTime = newTime;
 
-          // 6. Обновляем счетчик сохраненного времени на разницу через хелпер
-          const timeDifference = newTime - oldTime
+          // 6. Обновляем счетчик сохраненного времени на разницу через bitrixHelper
+          const timeDifference = newTime - oldTime;
           if (timeDifference !== 0 && bitrixHelper) {
             try {
-              await bitrixHelper.updateUserSavedTime(this.selectedUser.value.id, timeDifference);
+              await bitrixHelper.updateUserSavedTime(userId, timeDifference);
               this.refreshSidebarSavedTimeCounter();
             } catch (error) {
-              this.showNotification('error', 'Ошибка обновления счетчика')
+              console.error('Ошибка обновления счетчика:', error);
+              this.showNotification('error', 'Ошибка обновления счетчика');
             }
           }
 
           // 7. Показываем успешное уведомление
-          this.showNotification('success', 'Время успешно обновлено!')
+          this.showNotification('success', 'Время успешно обновлено!');
 
           // 8. Закрываем модальное окно
-          this.closeUpdateTimeModal()
+          this.closeUpdateTimeModal();
 
           // 9. Принудительно обновляем UI
-          this.forceUIUpdate()
+          this.forceUIUpdate();
 
-          this.isUpdatingTime.value = false
+          this.isUpdatingTime.value = false;
 
         } catch (error) {
-          this.showNotification('error', 'Ошибка при обработке результатов обновления')
-          this.isUpdatingTime.value = false
+          console.error('Ошибка при обработке результатов обновления:', error);
+          this.showNotification('error', 'Ошибка при обработке результатов обновления');
+          this.isUpdatingTime.value = false;
         }
-      }, true)
+      }, true);
 
     } catch (error) {
-      this.showNotification('error', 'Ошибка при обновлении времени в задаче')
-      this.isUpdatingTime.value = false
+      console.error('Ошибка при обновлении времени в задаче:', error);
+      this.showNotification('error', 'Ошибка при обновлении времени в задаче');
+      this.isUpdatingTime.value = false;
     }
   }
 
@@ -2671,15 +2750,28 @@ class HierarchicalDataManager {
 
   async unlinkTask() {
     if (!this.modalPageData.value || !this.modalPageData.value.taskId || !this.modalPageData.value.elapsedItemId) {
-      this.showNotification('warning', 'Нет данных для удаления связи')
-      return
+      this.showNotification('warning', 'Нет данных для удаления связи');
+      return;
+    }
+
+    // Получаем userId
+    const userId = this.modalPageData.value?.userId || this.selectedUser.value?.id;
+    if (!userId) {
+      this.showNotification('warning', 'Не удалось определить пользователя');
+      return;
+    }
+
+    // Проверка инициализации bitrixHelper
+    if (!bitrixHelper || !bitrixHelper.isReady()) {
+      console.warn('bitrixHelper не инициализирован');
     }
 
     try {
-      this.isUnlinkingTask.value = true
-      const { itemId, taskId, elapsedItemId, pageTime } = this.modalPageData.value
+      this.isUnlinkingTask.value = true;
+      const { itemId, taskId, elapsedItemId, pageTime } = this.modalPageData.value;
+
       // 1. Получаем детали записи времени перед удалением, чтобы узнать точное время
-      let elapsedTimeToDeduct = 0
+      let elapsedTimeToDeduct = 0;
 
       try {
         // Получаем информацию о записи времени
@@ -2694,17 +2786,18 @@ class HierarchicalDataManager {
             ]
           }, (result) => {
             if (result.get_elapsed_item.error()) {
-              resolve(null)
+              resolve(null);
             } else {
-              resolve(result.get_elapsed_item.data())
+              resolve(result.get_elapsed_item.data());
             }
-          }, true)
-        })
+          }, true);
+        });
 
         if (elapsedItemInfo && elapsedItemInfo.SECONDS) {
-          elapsedTimeToDeduct = elapsedItemInfo.SECONDS
+          elapsedTimeToDeduct = parseInt(elapsedItemInfo.SECONDS) || 0;
         }
       } catch (error) {
+        console.warn('Ошибка получения информации о записи времени:', error);
         // Продолжаем с имеющимися данными
       }
 
@@ -2720,11 +2813,12 @@ class HierarchicalDataManager {
           ]
         }, (result) => {
           if (result.delete_time.error()) {
-            this.showNotification('error', 'Ошибка удаления записи времени')
+            console.error('Ошибка удаления записи времени:', result.delete_time.error());
+            this.showNotification('error', 'Ошибка удаления записи времени');
           }
-          resolve()
-        }, true)
-      })
+          resolve();
+        }, true);
+      });
 
       // 3. Обновляем хранилище - удаляем связь
       await new Promise((resolve, reject) => {
@@ -2742,54 +2836,45 @@ class HierarchicalDataManager {
           ]
         }, (result) => {
           if (result.unlink.error()) {
-            this.showNotification('error', 'Ошибка удаления связи из хранилища')
-            reject(result.unlink.error())
+            console.error('Ошибка удаления связи из хранилища:', result.unlink.error());
+            this.showNotification('error', 'Ошибка удаления связи из хранилища');
+            reject(result.unlink.error());
           } else {
-            resolve()
+            resolve();
           }
-        }, true)
-      })
+        }, true);
+      });
 
-      // 4. Уменьшаем счетчик сохраненного времени через хелпер
-      if (elapsedTimeToDeduct > 0 && bitrixHelper) {
+      // 4. Уменьшаем счетчик сохраненного времени через bitrixHelper
+      const timeToDeduct = elapsedTimeToDeduct > 0 ? elapsedTimeToDeduct : pageTime;
+      if (timeToDeduct > 0 && bitrixHelper) {
         try {
-          const userId = this.modalPageData.value?.userId || this.selectedUser.value?.id;
-          if (userId) {
-            await bitrixHelper.updateUserSavedTime(userId, -elapsedTimeToDeduct);
-            this.refreshSidebarSavedTimeCounter();
-          }
+          await bitrixHelper.updateUserSavedTime(userId, -timeToDeduct);
+          this.refreshSidebarSavedTimeCounter();
         } catch (error) {
-          this.showNotification('error', 'Ошибка уменьшения счетчика')
-        }
-      } else if (pageTime && pageTime > 0 && bitrixHelper) {
-        try {
-          const userId = this.modalPageData.value?.userId || this.selectedUser.value?.id;
-          if (userId) {
-            await bitrixHelper.updateUserSavedTime(userId, -pageTime);
-            this.refreshSidebarSavedTimeCounter();
-          }
-        } catch (error) {
-          this.showNotification('error', 'Ошибка уменьшения счетчика')
+          console.error('Ошибка уменьшения счетчика:', error);
+          this.showNotification('error', 'Ошибка уменьшения счетчика');
         }
       }
 
       // 5. Обновляем локальные данные
-      this.removeTaskInfoFromLocalData(itemId)
+      this.removeTaskInfoFromLocalData(itemId);
 
       // 6. Показываем уведомление
-      this.showNotification('success', 'Связь с задачей удалена и запись времени удалена!')
+      this.showNotification('success', 'Связь с задачей удалена и запись времени удалена!');
 
       // 7. Закрываем модальное окно и сбрасываем состояние
-      this.isShowUnlinkTaskModal.value = false
-      this.isUnlinkingTask.value = false
-      this.modalPageData.value = null
+      this.isShowUnlinkTaskModal.value = false;
+      this.isUnlinkingTask.value = false;
+      this.modalPageData.value = null;
 
       // 8. Принудительно обновляем UI
-      this.forceUIUpdate()
+      this.forceUIUpdate();
 
     } catch (error) {
-      this.showNotification('error', 'Ошибка при удалении связи с задачей')
-      this.isUnlinkingTask.value = false
+      console.error('Ошибка при удалении связи с задачей:', error);
+      this.showNotification('error', 'Ошибка при удалении связи с задачей');
+      this.isUnlinkingTask.value = false;
     }
   }
 
@@ -3008,14 +3093,15 @@ class HierarchicalDataManager {
           updatedAt,
           taskId,
           elapsedItemId,
-          isLatest: false
+          isLatest: false,
+          userId: userId // Добавляем userId в данные страницы
         })
       }
 
       const pageData = categoryData.pages.get(pageKey)
       pageData.pageTime += pageTime
       pageData.count++
-      pageData.userId = userId
+      pageData.userId = userId // Обновляем userId
 
       if (new Date(updatedAt) > new Date(pageData.updatedAt)) {
         pageData.updatedAt = updatedAt
@@ -3104,14 +3190,15 @@ class HierarchicalDataManager {
           updatedAt,
           taskId,
           elapsedItemId,
-          isLatest: false
+          isLatest: false,
+          userId: userId // Добавляем userId в данные страницы
         })
       }
 
       const pageData = categoryData.pages.get(pageKey)
       pageData.pageTime += pageTime
       pageData.count++
-      pageData.userId = userId
+      pageData.userId = userId // Обновляем userId
 
       if (new Date(updatedAt) > new Date(pageData.updatedAt)) {
         pageData.updatedAt = updatedAt
@@ -3327,13 +3414,23 @@ class HierarchicalDataManager {
   }
 
   // Обновить счетчик в сайдбаре
-  refreshSidebarSavedTimeCounter () {
+  refreshSidebarSavedTimeCounter() {
     if (typeof window.updateSidebarSavedTime === 'function') {
       try {
-        window.updateSidebarSavedTime()
+        window.updateSidebarSavedTime();
       } catch (error) {
-        this.showNotification('error', 'Ошибка обновления счетчика')
+        console.warn('Ошибка обновления сайдбара:', error);
       }
+    }
+
+    // Также отправляем событие для обновления других компонентов
+    try {
+      const event = new CustomEvent('saved-time-update', {
+        detail: { timestamp: Date.now() }
+      });
+      window.dispatchEvent(event);
+    } catch (error) {
+      // Игнорируем ошибки DOM события
     }
   }
 

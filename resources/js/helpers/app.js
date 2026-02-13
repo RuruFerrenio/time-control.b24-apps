@@ -343,6 +343,25 @@ class Bitrix24Helper {
     })
   }
 
+  // Добавить в начало методов, где используется bitrixHelper:
+  ensureBitrixHelper() {
+    if (!bitrixHelper) {
+      console.error('bitrixHelper не определен');
+      return false;
+    }
+
+    if (!bitrixHelper.isReady()) {
+      console.warn('bitrixHelper еще не инициализирован, пробуем инициализировать...');
+      // Можно попробовать инициализировать асинхронно
+      bitrixHelper.init().catch(err => {
+        console.error('Ошибка инициализации bitrixHelper:', err);
+      });
+      return false;
+    }
+
+    return true;
+  }
+
   /**
    * Обновление элемента
    * @param {number} itemId - ID элемента
