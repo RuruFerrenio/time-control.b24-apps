@@ -1836,7 +1836,8 @@ class HierarchicalDataManager {
   showCreateTaskModal(pageData, userData) {
     this.modalPageData.value = {
       ...pageData,
-      originalItemId: pageData.itemId
+      originalItemId: pageData.itemId,
+      userId: userData.userId
     }
     this.selectedUser.value = { id: userData.userId, name: userData.userName }
     this.taskFormData.value = {
@@ -1899,7 +1900,8 @@ class HierarchicalDataManager {
   showUpdateTimeModal(pageData, userData) {
     this.modalPageData.value = {
       ...pageData,
-      originalItemId: pageData.itemId
+      originalItemId: pageData.itemId,
+      userId: userData.userId
     }
     this.selectedUser.value = { id: userData.userId, name: userData.userName }
     this.updateTimeData.value = {
@@ -1920,7 +1922,8 @@ class HierarchicalDataManager {
     this.modalPageData.value = {
       ...pageData,
       originalItemId: pageData.itemId,
-      taskId: pageData.taskId
+      taskId: pageData.taskId,
+      userId: pageData.userId
     }
     this.isShowUnlinkTaskModal.value = true
   }
@@ -2044,7 +2047,6 @@ class HierarchicalDataManager {
     try {
       this.isProcessingData.value = true;
 
-      // 1. Загружаем все записи за сегодня
       const today = this.getTodayDate();
       const sectionId = await this.findSectionForDate(today);
 
@@ -2054,7 +2056,6 @@ class HierarchicalDataManager {
         return;
       }
 
-      // 2. Получаем все записи за сегодня
       const items = await new Promise((resolve, reject) => {
         BX24.callBatch({
           items: [
@@ -2074,7 +2075,6 @@ class HierarchicalDataManager {
         }, true);
       });
 
-      // 3. Фильтруем записи, которые привязаны к задачам
       const taskItems = items.filter(item =>
           item.PROPERTY_VALUES?.TASK_ID &&
           item.PROPERTY_VALUES?.ELAPSED_ITEM_ID
@@ -2086,51 +2086,60 @@ class HierarchicalDataManager {
         return;
       }
 
-      // 4. Обновляем время во всех привязанных задачах
-      let updatedCount = 0;
-      let totalTimeDifference = 0; // Для подсчета общей разницы времени
+      // Группируем по пользователям для обновления счетчиков
+      const userTimeDifferences = {};
 
       for (const item of taskItems) {
-        const { TASK_ID, ELAPSED_ITEM_ID, PAGE_TIME, PAGE_URL } = item.PROPERTY_VALUES;
+        const {
+          TASK_ID,
+          ELAPSED_ITEM_ID,
+          PAGE_TIME,
+          PAGE_URL,
+          USER_ID  // Добавить USER_ID в PROPERTY_VALUES
+        } = item.PROPERTY_VALUES;
 
         try {
-          // Получаем текущее время из задачи
           const currentTime = await this.getCurrentTaskTime(TASK_ID, ELAPSED_ITEM_ID);
-
-          // Обновляем запись времени в задаче
           await this.updateTaskTimeInBitrix(TASK_ID, ELAPSED_ITEM_ID, PAGE_TIME, PAGE_URL);
 
-          // Считаем разницу времени
           const timeDifference = PAGE_TIME - (currentTime || 0);
-          totalTimeDifference += timeDifference;
 
-          updatedCount++;
+          // Сохраняем разницу времени для каждого пользователя
+          if (USER_ID) {
+            if (!userTimeDifferences[USER_ID]) {
+              userTimeDifferences[USER_ID] = 0;
+            }
+            userTimeDifferences[USER_ID] += timeDifference;
+          }
 
         } catch (error) {
           console.warn(`Ошибка при обработке записи ${item.ID}:`, error);
         }
       }
 
-      // 5. Обновляем общий счетчик сохраненного времени
-      if (totalTimeDifference !== 0 && bitrixHelper) {
+      // Обновляем счетчики для каждого пользователя
+      if (bitrixHelper) {
         try {
-          await bitrixHelper.updateSavedTime(totalTimeDifference);
+          for (const [userId, timeDiff] of Object.entries(userTimeDifferences)) {
+            if (timeDiff !== 0) {
+              await bitrixHelper.updateUserSavedTime(parseInt(userId), timeDiff);
+            }
+          }
           this.refreshSidebarSavedTimeCounter();
         } catch (error) {
-          console.warn('Ошибка обновления общего счетчика:', error);
+          console.warn('Ошибка обновления счетчиков:', error);
         }
       }
 
       this.showNotification(
           'success',
-          `Актуализировано ${updatedCount} из ${taskItems.length} записей времени`
+          `Актуализировано ${taskItems.length} записей времени`
       );
 
     } catch (error) {
       this.showNotification('error', 'Ошибка при актуализации времени');
     } finally {
       this.isProcessingData.value = false;
-      // Обновляем данные на экране
       await this.refreshCurrentTabData();
     }
   }
@@ -2446,7 +2455,14 @@ class HierarchicalDataManager {
           // 2. Увеличиваем счетчик сохраненного времени через хелпер
           if (pageData.pageTime && pageData.pageTime > 0 && bitrixHelper) {
             try {
-              await bitrixHelper.updateSavedTime(pageData.pageTime)
+              if (pageData.pageTime && pageData.pageTime > 0 && bitrixHelper) {
+                try {
+                  await bitrixHelper.updateUserSavedTime(userData.id, pageData.pageTime);
+                  this.refreshSidebarSavedTimeCounter();
+                } catch (error) {
+                  this.showNotification('error', 'Ошибка обновления счетчика');
+                }
+              }
               this.refreshSidebarSavedTimeCounter()
             } catch (error) {
               this.showNotification('error', 'Ошибка обновления счетчика')
@@ -2600,7 +2616,12 @@ class HierarchicalDataManager {
           const timeDifference = newTime - oldTime
           if (timeDifference !== 0 && bitrixHelper) {
             try {
-              await bitrixHelper.updateSavedTime(timeDifference)
+              try {
+                await bitrixHelper.updateUserSavedTime(this.selectedUser.value.id, timeDifference);
+                this.refreshSidebarSavedTimeCounter();
+              } catch (error) {
+                this.showNotification('error', 'Ошибка обновления счетчика');
+              }
               this.refreshSidebarSavedTimeCounter()
             } catch (error) {
               this.showNotification('error', 'Ошибка обновления счетчика')
@@ -2744,15 +2765,30 @@ class HierarchicalDataManager {
       // 4. Уменьшаем счетчик сохраненного времени через хелпер
       if (elapsedTimeToDeduct > 0 && bitrixHelper) {
         try {
-          // Передаем отрицательное значение, чтобы уменьшить счетчик
-          await bitrixHelper.updateSavedTime(-elapsedTimeToDeduct)
+          try {
+            const userId = this.modalPageData.value?.userId || this.selectedUser.value?.id;
+            if (userId) {
+              await bitrixHelper.updateUserSavedTime(userId, -elapsedTimeToDeduct);
+              this.refreshSidebarSavedTimeCounter();
+            }
+          } catch (error) {
+            this.showNotification('error', 'Ошибка уменьшения счетчика');
+          }
           this.refreshSidebarSavedTimeCounter()
         } catch (error) {
           this.showNotification('error', 'Ошибка уменьшения счетчика')
         }
       } else if (pageTime && pageTime > 0 && bitrixHelper) {
         try {
-          await bitrixHelper.updateSavedTime(-pageTime)
+          try {
+            const userId = this.modalPageData.value?.userId || this.selectedUser.value?.id;
+            if (userId) {
+              await bitrixHelper.updateUserSavedTime(userId, -pageTime);
+              this.refreshSidebarSavedTimeCounter();
+            }
+          } catch (error) {
+            this.showNotification('error', 'Ошибка уменьшения счетчика');
+          }
           this.refreshSidebarSavedTimeCounter()
         } catch (error) {
           this.showNotification('error', 'Ошибка уменьшения счетчика')
@@ -3001,6 +3037,7 @@ class HierarchicalDataManager {
       const pageData = categoryData.pages.get(pageKey)
       pageData.pageTime += pageTime
       pageData.count++
+      pageData.userId = userId
 
       if (new Date(updatedAt) > new Date(pageData.updatedAt)) {
         pageData.updatedAt = updatedAt
@@ -3096,6 +3133,7 @@ class HierarchicalDataManager {
       const pageData = categoryData.pages.get(pageKey)
       pageData.pageTime += pageTime
       pageData.count++
+      pageData.userId = userId
 
       if (new Date(updatedAt) > new Date(pageData.updatedAt)) {
         pageData.updatedAt = updatedAt

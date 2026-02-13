@@ -133,14 +133,45 @@
             </div>
           </div>
 
-          <!-- Счетчик времени -->
+          <!-- Общий счетчик -->
           <div class="text-center py-4">
             <div class="text-3xl font-bold text-green-600 mb-2">
-              {{ formatSavedTime(savedTime) }}
+              {{ formatSavedTime(totalSavedTime) }}
             </div>
             <p class="text-sm text-gray-500">
-              Общее сохраненное время
+              Общее сохраненное время всех сотрудников
             </p>
+          </div>
+
+          <!-- Счетчик текущего пользователя -->
+          <div class="bg-blue-50 rounded-lg p-4 mt-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                  <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-600">Ваше сохраненное время</p>
+                  <p class="text-xl font-semibold text-blue-700">{{ formatSavedTime(mySavedTime) }}</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <p class="text-xs text-gray-500">Доля от общего</p>
+                <p class="text-lg font-medium text-blue-700">{{ myPercentage }}%</p>
+              </div>
+            </div>
+
+            <!-- Прогресс-бар -->
+            <div class="mt-3">
+              <div class="w-full bg-blue-200 rounded-full h-2">
+                <div
+                    class="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    :style="{ width: `${myPercentage}%` }"
+                ></div>
+              </div>
+            </div>
           </div>
 
           <!-- Кнопки действий -->
@@ -190,7 +221,7 @@
 </template>
 
 <script>
-import { ref, onMounted, inject, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, inject } from 'vue'
 import { useRouter } from 'vue-router'
 
 export default {
@@ -199,16 +230,23 @@ export default {
     const router = useRouter()
     const bitrixHelper = inject('bitrixHelper')
 
+    // Состояния
     const isAdmin = ref(false)
     const isStatisticsAvailable = ref(false)
-    const savedTime = ref(0)
+    const totalSavedTime = ref(0)
+    const mySavedTime = ref(0)
+    const myPercentage = ref(0)
+    const currentUserId = ref(null)
+    const isLoading = ref(true)
 
+    // Проверка активного маршрута
     const isActiveRoute = (path) => {
       return router.currentRoute.value.path === path
     }
 
+    // Форматирование времени
     const formatSavedTime = (seconds) => {
-      if (!seconds) return '0 сек'
+      if (!seconds && seconds !== 0) return '0 сек'
       const hours = Math.floor(seconds / 3600)
       const minutes = Math.floor((seconds % 3600) / 60)
       const secs = seconds % 60
@@ -219,50 +257,95 @@ export default {
       return parts.join(' ')
     }
 
+    // Загрузка всех данных о времени
     const loadSavedTime = async () => {
       try {
+        isLoading.value = true
+
         if (bitrixHelper && bitrixHelper.isReady()) {
-          const savedTimeValue = await bitrixHelper.getSavedTime()
-          savedTime.value = savedTimeValue || 0
+          // Получаем ID текущего пользователя
+          if (!currentUserId.value) {
+            currentUserId.value = await bitrixHelper.getCurrentUserId()
+          }
+
+          // Загружаем все данные параллельно
+          const [total, userTime, percentage] = await Promise.all([
+            bitrixHelper.getTotalSavedTime(),
+            bitrixHelper.getUserSavedTime(currentUserId.value),
+            bitrixHelper.getUserPercentage(currentUserId.value)
+          ])
+
+          totalSavedTime.value = total || 0
+          mySavedTime.value = userTime || 0
+          myPercentage.value = percentage || 0
         }
       } catch (error) {
         console.error('Ошибка загрузки сохраненного времени:', error)
+      } finally {
+        isLoading.value = false
       }
     }
 
+    // Обновление счетчика (вызывается из других компонентов)
     const refreshSavedTime = async () => {
       await loadSavedTime()
     }
 
+    // Обработчики кнопок
     const handleSupport = () => {
-      // Логика для поддержки проекта
       console.log('Поддержка проекта')
+      // TODO: Реализовать логику поддержки проекта
     }
 
     const handleReview = () => {
-      // Логика для оставления отзыва
       console.log('Оставить отзыв')
+      // TODO: Реализовать логику отзыва
     }
 
-    onMounted(() => {
-      // Проверяем, инициализирован ли bitrixHelper
-      if (bitrixHelper && bitrixHelper.isReady()) {
-        isAdmin.value = bitrixHelper.isUserAdmin()
-        isStatisticsAvailable.value = bitrixHelper.isStatisticsAvailable()
-        loadSavedTime()
-      } else {
-        // Если не инициализирован, пробуем инициализировать
-        bitrixHelper.init().then(() => {
+    // Слушатель событий обновления времени
+    const handleTimeUpdate = (event) => {
+      if (event.detail) {
+        refreshSavedTime()
+      }
+    }
+
+    // Инициализация
+    const initialize = async () => {
+      try {
+        isLoading.value = true
+
+        // Проверяем, инициализирован ли bitrixHelper
+        if (bitrixHelper && bitrixHelper.isReady()) {
           isAdmin.value = bitrixHelper.isUserAdmin()
           isStatisticsAvailable.value = bitrixHelper.isStatisticsAvailable()
-          loadSavedTime()
-        }).catch(error => {
-          console.error('Ошибка инициализации Bitrix24 в Sidebar:', error)
-        })
+          currentUserId.value = await bitrixHelper.getCurrentUserId()
+          await loadSavedTime()
+        } else {
+          // Если не инициализирован, пробуем инициализировать
+          await bitrixHelper.init()
+          isAdmin.value = bitrixHelper.isUserAdmin()
+          isStatisticsAvailable.value = bitrixHelper.isStatisticsAvailable()
+          currentUserId.value = await bitrixHelper.getCurrentUserId()
+          await loadSavedTime()
+
+          // Выполняем миграцию данных, если нужно
+          await bitrixHelper.migrateFromOldFormat()
+        }
+      } catch (error) {
+        console.error('Ошибка инициализации Sidebar:', error)
+      } finally {
+        isLoading.value = false
       }
+    }
+
+    onMounted(async () => {
+      await initialize()
 
       // Создаем глобальную функцию для обновления счетчика из других компонентов
       window.updateSidebarSavedTime = refreshSavedTime
+
+      // Подписываемся на событие обновления времени
+      window.addEventListener('saved-time-update', handleTimeUpdate)
     })
 
     onUnmounted(() => {
@@ -270,13 +353,19 @@ export default {
       if (window.updateSidebarSavedTime) {
         delete window.updateSidebarSavedTime
       }
+
+      // Отписываемся от события
+      window.removeEventListener('saved-time-update', handleTimeUpdate)
     })
 
     return {
       bitrixHelper,
       isAdmin,
       isStatisticsAvailable,
-      savedTime,
+      totalSavedTime,
+      mySavedTime,
+      myPercentage,
+      isLoading,
       isActiveRoute,
       formatSavedTime,
       handleSupport,
@@ -285,3 +374,27 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+/* Анимация для прогресс-бара */
+.bg-blue-600 {
+  transition: width 0.3s ease-in-out;
+}
+
+/* Стили для неактивных ссылок */
+.cursor-not-allowed {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 640px) {
+  .text-3xl {
+    font-size: 1.875rem;
+  }
+
+  .text-xl {
+    font-size: 1.25rem;
+  }
+}
+</style>

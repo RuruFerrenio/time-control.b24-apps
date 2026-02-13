@@ -148,10 +148,10 @@
                             <div v-for="(item, index) in bitrixTimeLegend" :key="index"
                                  class="group relative p-3 rounded-xl transition-all duration-200"
                                  :class="[
-                 hoveredLegendIndex === index
-                   ? 'bg-gradient-to-br from-gray-50 to-white shadow-md border-gray-200 scale-[1.02]'
-                   : 'bg-white hover:bg-gray-50 border border-transparent hover:border-gray-100'
-               ]"
+                                   hoveredLegendIndex === index
+                                     ? 'bg-gradient-to-br from-gray-50 to-white shadow-md border-gray-200 scale-[1.02]'
+                                     : 'bg-white hover:bg-gray-50 border border-transparent hover:border-gray-100'
+                                 ]"
                                  @mouseenter="hoverLegend(index)"
                                  @mouseleave="hoverLegend(null)">
 
@@ -166,9 +166,9 @@
                                   <div class="relative flex-shrink-0">
                                     <div class="w-5 h-5 rounded-full mr-3 transition-transform duration-200 group-hover:scale-110"
                                          :style="{
-                         backgroundColor: item.color,
-                         boxShadow: hoveredLegendIndex === index ? `0 0 0 2px ${item.color}20` : 'none'
-                       }">
+                                           backgroundColor: item.color,
+                                           boxShadow: hoveredLegendIndex === index ? `0 0 0 2px ${item.color}20` : 'none'
+                                         }">
                                     </div>
                                     <div v-if="item.icon"
                                          class="absolute -bottom-1 -right-1 w-4 h-4 bg-white rounded-full shadow-sm flex items-center justify-center text-[10px]"
@@ -182,15 +182,15 @@
                                       <span class="text-sm font-semibold text-gray-900 truncate">{{ item.label }}</span>
                                       <span v-if="item.badge"
                                             class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-600">
-                      {{ item.badge }}
-                    </span>
+                                            {{ item.badge }}
+                                      </span>
                                     </div>
                                     <div class="flex items-center gap-2 text-xs text-gray-500">
                                       <span class="truncate">{{ item.description }}</span>
                                       <span class="w-1 h-1 rounded-full bg-gray-300 flex-shrink-0"></span>
                                       <span class="font-medium flex-shrink-0" :style="{ color: item.color }">
-                      {{ item.percentage }}
-                    </span>
+                                            {{ item.percentage }}
+                                      </span>
                                     </div>
                                   </div>
                                 </div>
@@ -208,9 +208,9 @@
                                     <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                                       <div class="h-full rounded-full transition-all duration-300"
                                            :style="{
-                           width: item.percentage,
-                           backgroundColor: item.color
-                         }"></div>
+                                             width: item.percentage,
+                                             backgroundColor: item.color
+                                           }"></div>
                                     </div>
                                   </div>
                                 </div>

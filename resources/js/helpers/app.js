@@ -13,6 +13,8 @@ class Bitrix24Helper {
     this.isAdmin = false
     this.userProfile = null
     this.isInitialized = false
+    this.storageName = 'pr_saved_time_stats' // Новое хранилище
+    this.currentUserId = null
   }
 
   /**
@@ -27,6 +29,12 @@ class Bitrix24Helper {
             await this.checkAdminStatus()
             await this.getAppInfo()
             await this.getUserProfile()
+
+            // Сохраняем ID текущего пользователя
+            if (this.userProfile && this.userProfile.ID) {
+              this.currentUserId = parseInt(this.userProfile.ID)
+            }
+
             this.isInitialized = true
             resolve()
           } catch (error) {
@@ -104,6 +112,7 @@ class Bitrix24Helper {
               reject(result.error())
             } else {
               this.userProfile = result.data()
+              this.currentUserId = parseInt(this.userProfile.ID)
               console.log("Профиль пользователя:", this.userProfile)
               resolve(this.userProfile)
             }
@@ -114,6 +123,384 @@ class Bitrix24Helper {
       }
     })
   }
+
+  // ============== НОВЫЕ МЕТОДЫ ДЛЯ РАБОТЫ С ХРАНИЛИЩЕМ ==============
+
+  /**
+   * Получение всего хранилища статистики времени
+   * @returns {Promise<Array>} Массив объектов { userId, totalTime, updatedAt }
+   */
+  async getSavedTimeStorage() {
+    try {
+      if (!BX24) return []
+
+      const storage = await BX24.appOption.get(this.storageName)
+
+      // Если хранилище пустое, возвращаем пустой массив
+      if (!storage) return []
+
+      // Парсим JSON, если есть ошибка - возвращаем пустой массив
+      try {
+        return JSON.parse(storage)
+      } catch (e) {
+        console.error('Ошибка парсинга хранилища:', e)
+        return []
+      }
+    } catch (error) {
+      console.error('Ошибка получения хранилища:', error)
+      return []
+    }
+  }
+
+  /**
+   * Сохранение всего хранилища
+   * @param {Array} storage - Массив объектов статистики
+   * @returns {Promise<boolean>}
+   */
+  async saveSavedTimeStorage(storage) {
+    try {
+      if (!BX24) return false
+
+      await BX24.appOption.set(this.storageName, JSON.stringify(storage))
+      return true
+    } catch (error) {
+      console.error('Ошибка сохранения хранилища:', error)
+      return false
+    }
+  }
+
+  /**
+   * Получение общего сохраненного времени всех пользователей
+   * @returns {Promise<number>}
+   */
+  async getTotalSavedTime() {
+    try {
+      const storage = await this.getSavedTimeStorage()
+      return storage.reduce((sum, item) => sum + (item.totalTime || 0), 0)
+    } catch (error) {
+      console.error('Ошибка получения общего времени:', error)
+      return 0
+    }
+  }
+
+  /**
+   * Получение сохраненного времени конкретного пользователя
+   * @param {number|string} userId - ID пользователя
+   * @returns {Promise<number>}
+   */
+  async getUserSavedTime(userId) {
+    try {
+      if (!userId) return 0
+
+      const storage = await this.getSavedTimeStorage()
+      const userStat = storage.find(item => parseInt(item.userId) === parseInt(userId))
+
+      return userStat?.totalTime || 0
+    } catch (error) {
+      console.error('Ошибка получения времени пользователя:', error)
+      return 0
+    }
+  }
+
+  /**
+   * Обновление сохраненного времени пользователя
+   * @param {number|string} userId - ID пользователя
+   * @param {number} secondsToAdd - Количество секунд для добавления (может быть отрицательным)
+   * @returns {Promise<boolean>}
+   */
+  async updateUserSavedTime(userId, secondsToAdd) {
+    try {
+      if (!userId || !BX24) {
+        console.error('Не указан userId или BX24 не доступен')
+        return false
+      }
+
+      // Приводим userId к числу
+      const numericUserId = parseInt(userId)
+      if (isNaN(numericUserId)) return false
+
+      const storage = await this.getSavedTimeStorage()
+      let userStat = storage.find(item => parseInt(item.userId) === numericUserId)
+
+      if (userStat) {
+        // Обновляем существующую запись
+        const newTime = (userStat.totalTime || 0) + secondsToAdd
+        userStat.totalTime = newTime < 0 ? 0 : newTime
+        userStat.updatedAt = new Date().toISOString()
+      } else {
+        // Создаем новую запись
+        storage.push({
+          userId: numericUserId,
+          totalTime: secondsToAdd > 0 ? secondsToAdd : 0,
+          updatedAt: new Date().toISOString()
+        })
+      }
+
+      // Сохраняем обновленное хранилище
+      await this.saveSavedTimeStorage(storage)
+
+      // Уведомляем об обновлении через глобальное событие
+      this.notifyTimeUpdate(numericUserId, secondsToAdd)
+
+      return true
+    } catch (error) {
+      console.error('Ошибка обновления времени пользователя:', error)
+      return false
+    }
+  }
+
+  /**
+   * Установка точного значения времени для пользователя
+   * @param {number|string} userId - ID пользователя
+   * @param {number} totalTime - Точное значение времени в секундах
+   * @returns {Promise<boolean>}
+   */
+  async setUserSavedTime(userId, totalTime) {
+    try {
+      if (!userId || !BX24) return false
+
+      const numericUserId = parseInt(userId)
+      if (isNaN(numericUserId)) return false
+
+      const storage = await this.getSavedTimeStorage()
+      let userStat = storage.find(item => parseInt(item.userId) === numericUserId)
+
+      if (userStat) {
+        userStat.totalTime = totalTime < 0 ? 0 : totalTime
+        userStat.updatedAt = new Date().toISOString()
+      } else {
+        storage.push({
+          userId: numericUserId,
+          totalTime: totalTime < 0 ? 0 : totalTime,
+          updatedAt: new Date().toISOString()
+        })
+      }
+
+      await this.saveSavedTimeStorage(storage)
+      this.notifyTimeUpdate(numericUserId, 0)
+
+      return true
+    } catch (error) {
+      console.error('Ошибка установки времени пользователя:', error)
+      return false
+    }
+  }
+
+  /**
+   * Получение процента времени пользователя от общего
+   * @param {number|string} userId - ID пользователя
+   * @returns {Promise<number>} Процент (0-100)
+   */
+  async getUserPercentage(userId) {
+    try {
+      const [userTime, totalTime] = await Promise.all([
+        this.getUserSavedTime(userId),
+        this.getTotalSavedTime()
+      ])
+
+      return totalTime > 0 ? Math.round((userTime / totalTime) * 100) : 0
+    } catch (error) {
+      console.error('Ошибка расчета процента:', error)
+      return 0
+    }
+  }
+
+  /**
+   * Получение статистики всех пользователей
+   * @returns {Promise<Array>}
+   */
+  async getAllUsersStats() {
+    try {
+      const storage = await this.getSavedTimeStorage()
+      return storage.sort((a, b) => (b.totalTime || 0) - (a.totalTime || 0))
+    } catch (error) {
+      console.error('Ошибка получения статистики всех пользователей:', error)
+      return []
+    }
+  }
+
+  /**
+   * Получение статистики текущего пользователя
+   * @returns {Promise<Object>}
+   */
+  async getCurrentUserStats() {
+    try {
+      if (!this.currentUserId) return { userId: null, totalTime: 0, percentage: 0 }
+
+      const [totalTime, percentage] = await Promise.all([
+        this.getUserSavedTime(this.currentUserId),
+        this.getUserPercentage(this.currentUserId)
+      ])
+
+      return {
+        userId: this.currentUserId,
+        totalTime,
+        percentage
+      }
+    } catch (error) {
+      console.error('Ошибка получения статистики текущего пользователя:', error)
+      return { userId: this.currentUserId, totalTime: 0, percentage: 0 }
+    }
+  }
+
+  /**
+   * Сброс времени конкретного пользователя (только для администратора)
+   * @param {number|string} userId - ID пользователя
+   * @returns {Promise<boolean>}
+   */
+  async resetUserSavedTime(userId) {
+    try {
+      if (!this.isAdmin) {
+        console.error('Недостаточно прав для сброса времени')
+        return false
+      }
+
+      if (!userId || !BX24) return false
+
+      const numericUserId = parseInt(userId)
+      if (isNaN(numericUserId)) return false
+
+      const storage = await this.getSavedTimeStorage()
+      const userIndex = storage.findIndex(item => parseInt(item.userId) === numericUserId)
+
+      if (userIndex !== -1) {
+        storage[userIndex].totalTime = 0
+        storage[userIndex].updatedAt = new Date().toISOString()
+        await this.saveSavedTimeStorage(storage)
+        this.notifyTimeUpdate(numericUserId, 0)
+      }
+
+      return true
+    } catch (error) {
+      console.error('Ошибка сброса времени пользователя:', error)
+      return false
+    }
+  }
+
+  /**
+   * Сброс времени всех пользователей (только для администратора)
+   * @returns {Promise<boolean>}
+   */
+  async resetAllUsersTime() {
+    try {
+      if (!this.isAdmin) {
+        console.error('Недостаточно прав для сброса времени')
+        return false
+      }
+
+      if (!BX24) return false
+
+      await this.saveSavedTimeStorage([])
+      this.notifyTimeUpdate('all', 0)
+
+      return true
+    } catch (error) {
+      console.error('Ошибка сброса времени всех пользователей:', error)
+      return false
+    }
+  }
+
+  /**
+   * Миграция старого формата в новый
+   * @returns {Promise<boolean>}
+   */
+  async migrateFromOldFormat() {
+    try {
+      if (!BX24) return false
+
+      // Получаем старое значение
+      const oldTotal = await BX24.appOption.get('total_saved_time')
+
+      if (oldTotal && parseInt(oldTotal) > 0) {
+        // Получаем ID текущего пользователя
+        const currentUserId = this.currentUserId || await this.getCurrentUserId()
+
+        if (currentUserId) {
+          // Сохраняем в новом формате
+          await this.setUserSavedTime(currentUserId, parseInt(oldTotal))
+
+          // Удаляем старую опцию
+          await BX24.appOption.remove('total_saved_time')
+
+          console.log(`Миграция выполнена: ${oldTotal} сек. перенесено пользователю ${currentUserId}`)
+          return true
+        }
+      }
+
+      return false
+    } catch (error) {
+      console.error('Ошибка миграции:', error)
+      return false
+    }
+  }
+
+  /**
+   * Получение ID текущего пользователя
+   * @returns {Promise<number|null>}
+   */
+  async getCurrentUserId() {
+    if (this.currentUserId) return this.currentUserId
+
+    try {
+      if (this.userProfile && this.userProfile.ID) {
+        this.currentUserId = parseInt(this.userProfile.ID)
+        return this.currentUserId
+      }
+
+      await this.getUserProfile()
+      return this.currentUserId
+    } catch (error) {
+      console.error('Ошибка получения ID текущего пользователя:', error)
+      return null
+    }
+  }
+
+  /**
+   * Уведомление об обновлении времени
+   * @param {number|string} userId - ID пользователя или 'all'
+   * @param {number} change - Изменение времени
+   */
+  notifyTimeUpdate(userId, change) {
+    // Вызываем глобальную функцию обновления, если она существует
+    if (typeof window.updateSidebarSavedTime === 'function') {
+      try {
+        window.updateSidebarSavedTime()
+      } catch (error) {
+        console.warn('Ошибка обновления сайдбара:', error)
+      }
+    }
+
+    // Также можно использовать CustomEvent для более гибкого уведомления
+    try {
+      const event = new CustomEvent('saved-time-update', {
+        detail: { userId, change, timestamp: Date.now() }
+      })
+      window.dispatchEvent(event)
+    } catch (error) {
+      // Игнорируем ошибки DOM события
+    }
+  }
+
+  // ============== СТАРЫЕ МЕТОДЫ (ОСТАВЛЯЕМ ДЛЯ СОВМЕСТИМОСТИ) ==============
+
+  /**
+   * @deprecated Используйте getTotalSavedTime() или getUserSavedTime()
+   */
+  async getSavedTime() {
+    console.warn('Метод getSavedTime() устарел. Используйте getTotalSavedTime() или getUserSavedTime()')
+    return this.getTotalSavedTime()
+  }
+
+  /**
+   * @deprecated Используйте updateUserSavedTime(userId, secondsToAdd)
+   */
+  async updateSavedTime(secondsToAdd) {
+    console.warn('Метод updateSavedTime() устарел. Используйте updateUserSavedTime(userId, secondsToAdd)')
+    if (!this.currentUserId) await this.getCurrentUserId()
+    return this.updateUserSavedTime(this.currentUserId, secondsToAdd)
+  }
+
+  // ============== МЕТОДЫ ДЛЯ ПРОВЕРКИ ТАРИФОВ ==============
 
   /**
    * Проверка доступности статистики по тарифу
@@ -138,7 +525,6 @@ class Bitrix24Helper {
       'ent10000'    // Энтерпрайз 10000
     ]
 
-    // Проверяем, содержит ли лицензия один из поддерживаемых постфиксов
     return supportedTariffs.some(tariff => license.includes(tariff))
   }
 
@@ -212,43 +598,6 @@ class Bitrix24Helper {
   isReady() {
     return this.isInitialized
   }
-
-  // Добавить методы для работы с сохраненным временем
-  async getSavedTime () {
-    try {
-      if (!BX24) return 0
-      const savedTime = await BX24.appOption.get('total_saved_time')
-      console.log('saved time')
-      console.log(savedTime)
-      return parseInt(savedTime) || 0
-    } catch (error) {
-      console.error('Ошибка получения сохраненного времени:', error)
-      return 0
-    }
-  }
-
-  async updateSavedTime (secondsToAdd) {
-    try {
-      if (!BX24) return false
-      const currentTime = await this.getSavedTime()
-      console.log('second to add time')
-      console.log(secondsToAdd)
-      console.log('current time')
-      console.log(currentTime)
-      const newTime = currentTime + secondsToAdd
-      if(newTime < 0){
-        await BX24.appOption.set('total_saved_time', 0)
-      }else{
-        await BX24.appOption.set('total_saved_time', newTime.toString())
-      }
-
-      return true
-    } catch (error) {
-      console.error('Ошибка обновления сохраненного времени:', error)
-      return false
-    }
-  }
-
 }
 
 // Создаем и экспортируем экземпляр класса
