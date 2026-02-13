@@ -144,7 +144,7 @@
           </div>
 
           <!-- Счетчик текущего пользователя -->
-          <div class="bg-gray-50 rounded-lg p-4 mt-2">
+          <div class="rounded-lg p-4 mt-2">
             <div class="flex items-center justify-between">
               <div class="flex items-center">
                 <div>
@@ -153,7 +153,7 @@
                 </div>
               </div>
               <div class="text-right">
-                <p class="text-xs text-gray-500">Доля от общего</p>
+                <p class="text-xs text-gray-500">Ваш вклад</p>
                 <p class="text-lg font-medium text-blue-700">{{ myPercentage }}%</p>
               </div>
             </div>
