@@ -2455,15 +2455,8 @@ class HierarchicalDataManager {
           // 2. Увеличиваем счетчик сохраненного времени через хелпер
           if (pageData.pageTime && pageData.pageTime > 0 && bitrixHelper) {
             try {
-              if (pageData.pageTime && pageData.pageTime > 0 && bitrixHelper) {
-                try {
-                  await bitrixHelper.updateUserSavedTime(userData.id, pageData.pageTime);
-                  this.refreshSidebarSavedTimeCounter();
-                } catch (error) {
-                  this.showNotification('error', 'Ошибка обновления счетчика');
-                }
-              }
-              this.refreshSidebarSavedTimeCounter()
+              await bitrixHelper.updateUserSavedTime(userData.id, pageData.pageTime);
+              this.refreshSidebarSavedTimeCounter();
             } catch (error) {
               this.showNotification('error', 'Ошибка обновления счетчика')
             }
@@ -2616,13 +2609,8 @@ class HierarchicalDataManager {
           const timeDifference = newTime - oldTime
           if (timeDifference !== 0 && bitrixHelper) {
             try {
-              try {
-                await bitrixHelper.updateUserSavedTime(this.selectedUser.value.id, timeDifference);
-                this.refreshSidebarSavedTimeCounter();
-              } catch (error) {
-                this.showNotification('error', 'Ошибка обновления счетчика');
-              }
-              this.refreshSidebarSavedTimeCounter()
+              await bitrixHelper.updateUserSavedTime(this.selectedUser.value.id, timeDifference);
+              this.refreshSidebarSavedTimeCounter();
             } catch (error) {
               this.showNotification('error', 'Ошибка обновления счетчика')
             }
@@ -2765,31 +2753,21 @@ class HierarchicalDataManager {
       // 4. Уменьшаем счетчик сохраненного времени через хелпер
       if (elapsedTimeToDeduct > 0 && bitrixHelper) {
         try {
-          try {
-            const userId = this.modalPageData.value?.userId || this.selectedUser.value?.id;
-            if (userId) {
-              await bitrixHelper.updateUserSavedTime(userId, -elapsedTimeToDeduct);
-              this.refreshSidebarSavedTimeCounter();
-            }
-          } catch (error) {
-            this.showNotification('error', 'Ошибка уменьшения счетчика');
+          const userId = this.modalPageData.value?.userId || this.selectedUser.value?.id;
+          if (userId) {
+            await bitrixHelper.updateUserSavedTime(userId, -elapsedTimeToDeduct);
+            this.refreshSidebarSavedTimeCounter();
           }
-          this.refreshSidebarSavedTimeCounter()
         } catch (error) {
           this.showNotification('error', 'Ошибка уменьшения счетчика')
         }
       } else if (pageTime && pageTime > 0 && bitrixHelper) {
         try {
-          try {
-            const userId = this.modalPageData.value?.userId || this.selectedUser.value?.id;
-            if (userId) {
-              await bitrixHelper.updateUserSavedTime(userId, -pageTime);
-              this.refreshSidebarSavedTimeCounter();
-            }
-          } catch (error) {
-            this.showNotification('error', 'Ошибка уменьшения счетчика');
+          const userId = this.modalPageData.value?.userId || this.selectedUser.value?.id;
+          if (userId) {
+            await bitrixHelper.updateUserSavedTime(userId, -pageTime);
+            this.refreshSidebarSavedTimeCounter();
           }
-          this.refreshSidebarSavedTimeCounter()
         } catch (error) {
           this.showNotification('error', 'Ошибка уменьшения счетчика')
         }
