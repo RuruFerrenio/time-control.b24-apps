@@ -155,24 +155,24 @@ class Bitrix24Helper {
   async getRootSectionId() {
     return new Promise((resolve, reject) => {
       if (!BX24) {
-        reject(new Error('Bitrix24 не доступен'))
-        return
+        reject(new Error('Bitrix24 не доступен'));
+        return;
       }
 
       BX24.callMethod('entity.section.get', {
         ENTITY: this.storageName
       }, (result) => {
         if (result.error()) {
-          console.error('Ошибка при получении разделов:', result.error())
-          reject(result.error())
-          return
+          console.error('Ошибка при получении разделов:', result.error());
+          reject(result.error());
+          return;
         }
 
-        const sections = result.data()
+        const sections = result.data();
 
         if (sections.length > 0) {
           // Берем первый раздел как корневой
-          resolve(parseInt(sections[0].ID))
+          resolve(parseInt(sections[0].ID));
         } else {
           // Если разделов нет, создаем корневой раздел
           BX24.callMethod('entity.section.add', {
@@ -180,15 +180,15 @@ class Bitrix24Helper {
             NAME: 'Статистика пользователей'
           }, (addResult) => {
             if (addResult.error()) {
-              console.error('Ошибка при создании раздела:', addResult.error())
-              reject(addResult.error())
+              console.error('Ошибка при создании раздела:', addResult.error());
+              reject(addResult.error());
             } else {
-              resolve(parseInt(addResult.data()))
+              resolve(parseInt(addResult.data()));
             }
-          })
+          });
         }
-      })
-    })
+      });
+    });
   }
 
   /**
@@ -238,24 +238,24 @@ class Bitrix24Helper {
     return new Promise(async (resolve, reject) => {
       try {
         // Получаем корневой раздел
-        const sectionId = await this.getRootSectionId()
+        const sectionId = await this.getRootSectionId();
 
         // Получаем все элементы раздела
         BX24.callMethod('entity.item.get', {
           ENTITY: this.storageName,
-          FILTER: { SECTION_ID: sectionId }
+          FILTER: { SECTION_ID: sectionId } // Здесь FILTER с SECTION_ID - это правильно для получения
         }, (result) => {
           if (result.error()) {
-            console.error('Ошибка при получении элементов:', result.error())
-            reject(result.error())
+            console.error('Ошибка при получении элементов:', result.error());
+            reject(result.error());
           } else {
-            resolve(result.data() || [])
+            resolve(result.data() || []);
           }
-        })
+        });
       } catch (error) {
-        reject(error)
+        reject(error);
       }
-    })
+    });
   }
 
   /**
@@ -322,25 +322,29 @@ class Bitrix24Helper {
    */
   async createItem(sectionId, data) {
     return new Promise((resolve, reject) => {
+      // Формируем имя пользователя
+      const userName = data.userName || `Пользователь ${data.userId}`;
+
       BX24.callMethod('entity.item.add', {
         ENTITY: this.storageName,
-        NAME: `Пользователь ${data.userId}`,
+        NAME: `${userName} - Статистика времени`,
+        SECTION: sectionId, // ВАЖНО: используем SECTION, а не SECTION_ID
         PROPERTY_VALUES: {
           USER_ID: data.userId,
-          USER_NAME: data.userName || '',
+          USER_NAME: userName,
           TOTAL_TIME: data.totalTime || 0,
           UPDATED_AT: data.updatedAt || new Date().toISOString()
-        },
-        SECTION_ID: sectionId
+        }
       }, (result) => {
         if (result.error()) {
-          console.error('Ошибка при создании элемента:', result.error())
-          reject(result.error())
+          console.error('Ошибка при создании элемента:', result.error());
+          reject(result.error());
         } else {
-          resolve(parseInt(result.data()))
+          console.log(`Создан элемент с ID: ${result.data()} для пользователя ${data.userId}`);
+          resolve(parseInt(result.data()));
         }
-      })
-    })
+      });
+    });
   }
 
   /**
@@ -401,8 +405,6 @@ class Bitrix24Helper {
 
       const now = new Date().toISOString();
 
-      console.log('ensureAndUpdateUserTime')
-
       if (existingItem) {
         // Обновляем существующую запись
         const currentTime = parseInt(existingItem.PROPERTY_VALUES?.TOTAL_TIME || 0);
@@ -418,16 +420,29 @@ class Bitrix24Helper {
         // Получаем имя пользователя
         const userName = await this.getUserNameById(numericUserId);
 
-        // Создаем новую запись
+        // Создаем новую запись (используем SECTION, а не SECTION_ID)
         const newTime = Math.max(0, secondsToAdd);
-        await this.createItem(sectionId, {
-          userId: numericUserId,
-          userName: userName,
-          totalTime: newTime,
-          updatedAt: now
+        await new Promise((resolve, reject) => {
+          BX24.callMethod('entity.item.add', {
+            ENTITY: this.storageName,
+            NAME: `${userName} - Статистика времени`,
+            SECTION: sectionId, // ВАЖНО: используем SECTION
+            PROPERTY_VALUES: {
+              USER_ID: numericUserId,
+              USER_NAME: userName,
+              TOTAL_TIME: newTime,
+              UPDATED_AT: now
+            }
+          }, (result) => {
+            if (result.error()) {
+              console.error('Ошибка при создании элемента:', result.error());
+              reject(result.error());
+            } else {
+              console.log(`Создан новый элемент с ID: ${result.data()} для пользователя ${userId} с временем ${newTime}`);
+              resolve();
+            }
+          });
         });
-
-        console.log(`Создан новый элемент для пользователя ${userId} с временем ${newTime}`);
       }
 
       // Инвалидируем кэш
