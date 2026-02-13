@@ -141,18 +141,32 @@
             <p class="text-sm text-gray-500">
               Общее сохраненное время всех сотрудников
             </p>
-            <div class="text-2xl font-bold text-green-600 mb-2">
-              {{ formatSavedTime(mySavedTime) }}
+          </div>
+
+          <!-- Счетчик текущего пользователя -->
+          <div class="bg-gray-50 rounded-lg p-4 mt-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div>
+                  <p class="text-xs text-gray-600">Ваше сохраненное время</p>
+                  <p class="text-xl font-semibold text-blue-700">{{ formatSavedTime(mySavedTime) }}</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <p class="text-xs text-gray-500">Доля от общего</p>
+                <p class="text-lg font-medium text-blue-700">{{ myPercentage }}%</p>
+              </div>
             </div>
-            <p class="text-sm text-gray-500">
-              Ваше сохраненное время
-            </p>
-            <div class="text-xl font-bold text-green-600 mb-2">
-              {{ myPercentage }}%
+
+            <!-- Прогресс-бар -->
+            <div class="mt-3">
+              <div class="w-full bg-blue-200 rounded-full h-2">
+                <div
+                    class="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    :style="{ width: `${myPercentage}%` }"
+                ></div>
+              </div>
             </div>
-            <p class="text-sm text-gray-500">
-              Ваш вклад
-            </p>
           </div>
 
           <!-- Кнопки действий -->
