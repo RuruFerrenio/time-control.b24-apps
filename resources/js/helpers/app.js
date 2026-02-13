@@ -401,6 +401,8 @@ class Bitrix24Helper {
 
       const now = new Date().toISOString();
 
+      console.log('ensureAndUpdateUserTime')
+
       if (existingItem) {
         // Обновляем существующую запись
         const currentTime = parseInt(existingItem.PROPERTY_VALUES?.TOTAL_TIME || 0);
@@ -504,6 +506,9 @@ class Bitrix24Helper {
    * @returns {Promise<boolean>}
    */
   async updateUserSavedTime(userId, secondsToAdd) {
+    console.log('updateUserSavedTime')
+    console.log(userId)
+    console.log(secondsToAdd)
     // Используем новый метод с автоматическим созданием
     return this.ensureAndUpdateUserTime(userId, secondsToAdd);
   }
