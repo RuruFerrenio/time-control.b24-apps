@@ -15,6 +15,11 @@ class Bitrix24Helper {
     this.isInitialized = false
     this.storageName = 'pr_saved_time_stats' // Единственное хранилище для сохраненного времени
     this.currentUserId = null
+
+    // Кэш для хранения данных хранилища
+    this.storageCache = null
+    this.cacheTimestamp = null
+    this.cacheTTL = 60000 // 1 минута
   }
 
   /**
@@ -124,28 +129,101 @@ class Bitrix24Helper {
     })
   }
 
-  // ============== МЕТОДЫ ДЛЯ РАБОТЫ С ХРАНИЛИЩЕМ ==============
+  // ============== МЕТОДЫ ДЛЯ РАБОТЫ С ENTITY ХРАНИЛИЩЕМ ==============
+
+  /**
+   * Инвалидация кэша
+   */
+  invalidateCache() {
+    this.storageCache = null
+    this.cacheTimestamp = null
+  }
+
+  /**
+   * Проверка валидности кэша
+   */
+  isCacheValid() {
+    return this.storageCache !== null &&
+      this.cacheTimestamp !== null &&
+      (Date.now() - this.cacheTimestamp) < this.cacheTTL
+  }
+
+  /**
+   * Получение корневого раздела хранилища
+   * @returns {Promise<number|null>} ID раздела
+   */
+  async getRootSectionId() {
+    return new Promise((resolve, reject) => {
+      if (!BX24) {
+        reject(new Error('Bitrix24 не доступен'))
+        return
+      }
+
+      BX24.callMethod('entity.section.get', {
+        ENTITY: this.storageName
+      }, (result) => {
+        if (result.error()) {
+          console.error('Ошибка при получении разделов:', result.error())
+          reject(result.error())
+          return
+        }
+
+        const sections = result.data()
+
+        if (sections.length > 0) {
+          // Берем первый раздел как корневой
+          resolve(parseInt(sections[0].ID))
+        } else {
+          // Если разделов нет, создаем корневой раздел
+          BX24.callMethod('entity.section.add', {
+            ENTITY: this.storageName,
+            NAME: 'Статистика пользователей'
+          }, (addResult) => {
+            if (addResult.error()) {
+              console.error('Ошибка при создании раздела:', addResult.error())
+              reject(addResult.error())
+            } else {
+              resolve(parseInt(addResult.data()))
+            }
+          })
+        }
+      })
+    })
+  }
 
   /**
    * Получение всего хранилища статистики времени
+   * @param {boolean} forceRefresh - Принудительное обновление (игнорировать кэш)
    * @returns {Promise<Array>} Массив объектов { userId, totalTime, updatedAt }
    */
-  async getSavedTimeStorage() {
+  async getSavedTimeStorage(forceRefresh = false) {
     try {
       if (!BX24) return []
 
-      const storage = await BX24.appOption.get(this.storageName)
-
-      // Если хранилище пустое, возвращаем пустой массив
-      if (!storage) return []
-
-      // Парсим JSON, если есть ошибка - возвращаем пустой массив
-      try {
-        return JSON.parse(storage)
-      } catch (e) {
-        console.error('Ошибка парсинга хранилища:', e)
-        return []
+      // Проверяем кэш
+      if (!forceRefresh && this.isCacheValid()) {
+        return this.storageCache
       }
+
+      const items = await this.getAllItems()
+
+      // Преобразуем в удобный формат
+      const storage = items.map(item => {
+        const properties = item.PROPERTY_VALUES || {}
+        return {
+          userId: parseInt(properties.USER_ID || 0),
+          userName: properties.USER_NAME || '',
+          totalTime: parseInt(properties.TOTAL_TIME || 0),
+          updatedAt: properties.UPDATED_AT || new Date().toISOString(),
+          itemId: parseInt(item.ID)
+        }
+      }).filter(item => item.userId > 0) // Только валидные записи
+
+      // Сохраняем в кэш
+      this.storageCache = storage
+      this.cacheTimestamp = Date.now()
+
+      return storage
     } catch (error) {
       console.error('Ошибка получения хранилища:', error)
       return []
@@ -153,7 +231,35 @@ class Bitrix24Helper {
   }
 
   /**
-   * Сохранение всего хранилища
+   * Получение всех элементов хранилища
+   * @returns {Promise<Array>}
+   */
+  async getAllItems() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // Получаем корневой раздел
+        const sectionId = await this.getRootSectionId()
+
+        // Получаем все элементы раздела
+        BX24.callMethod('entity.item.get', {
+          ENTITY: this.storageName,
+          FILTER: { SECTION_ID: sectionId }
+        }, (result) => {
+          if (result.error()) {
+            console.error('Ошибка при получении элементов:', result.error())
+            reject(result.error())
+          } else {
+            resolve(result.data() || [])
+          }
+        })
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
+  /**
+   * Сохранение всего хранилища (замена всех элементов)
    * @param {Array} storage - Массив объектов статистики
    * @returns {Promise<boolean>}
    */
@@ -161,12 +267,103 @@ class Bitrix24Helper {
     try {
       if (!BX24) return false
 
-      await BX24.appOption.set(this.storageName, JSON.stringify(storage))
+      // Получаем корневой раздел
+      const sectionId = await this.getRootSectionId()
+
+      // Получаем все текущие элементы
+      const currentItems = await this.getAllItems()
+
+      // Удаляем все существующие элементы
+      for (const item of currentItems) {
+        await this.deleteItem(item.ID)
+      }
+
+      // Создаем новые элементы
+      for (const stat of storage) {
+        await this.createItem(sectionId, stat)
+      }
+
+      // Инвалидируем кэш
+      this.invalidateCache()
+
       return true
     } catch (error) {
       console.error('Ошибка сохранения хранилища:', error)
       return false
     }
+  }
+
+  /**
+   * Удаление элемента
+   * @param {number} itemId - ID элемента
+   * @returns {Promise<boolean>}
+   */
+  async deleteItem(itemId) {
+    return new Promise((resolve, reject) => {
+      BX24.callMethod('entity.item.delete', {
+        ENTITY: this.storageName,
+        ID: itemId
+      }, (result) => {
+        if (result.error()) {
+          console.error('Ошибка при удалении элемента:', result.error())
+          reject(result.error())
+        } else {
+          resolve(true)
+        }
+      })
+    })
+  }
+
+  /**
+   * Создание элемента
+   * @param {number} sectionId - ID раздела
+   * @param {Object} data - Данные элемента
+   * @returns {Promise<number>} ID созданного элемента
+   */
+  async createItem(sectionId, data) {
+    return new Promise((resolve, reject) => {
+      BX24.callMethod('entity.item.add', {
+        ENTITY: this.storageName,
+        NAME: `Пользователь ${data.userId}`,
+        PROPERTY_VALUES: {
+          USER_ID: data.userId,
+          USER_NAME: data.userName || '',
+          TOTAL_TIME: data.totalTime || 0,
+          UPDATED_AT: data.updatedAt || new Date().toISOString()
+        },
+        SECTION_ID: sectionId
+      }, (result) => {
+        if (result.error()) {
+          console.error('Ошибка при создании элемента:', result.error())
+          reject(result.error())
+        } else {
+          resolve(parseInt(result.data()))
+        }
+      })
+    })
+  }
+
+  /**
+   * Обновление элемента
+   * @param {number} itemId - ID элемента
+   * @param {Object} data - Данные для обновления
+   * @returns {Promise<boolean>}
+   */
+  async updateItem(itemId, data) {
+    return new Promise((resolve, reject) => {
+      BX24.callMethod('entity.item.update', {
+        ENTITY: this.storageName,
+        ID: itemId,
+        PROPERTY_VALUES: data
+      }, (result) => {
+        if (result.error()) {
+          console.error('Ошибка при обновлении элемента:', result.error())
+          reject(result.error())
+        } else {
+          resolve(true)
+        }
+      })
+    })
   }
 
   /**
@@ -193,7 +390,7 @@ class Bitrix24Helper {
       if (!userId) return 0
 
       const storage = await this.getSavedTimeStorage()
-      const userStat = storage.find(item => parseInt(item.userId) === parseInt(userId))
+      const userStat = storage.find(item => item.userId === parseInt(userId))
 
       return userStat?.totalTime || 0
     } catch (error) {
@@ -215,31 +412,56 @@ class Bitrix24Helper {
         return false
       }
 
-      // Приводим userId к числу
       const numericUserId = parseInt(userId)
       if (isNaN(numericUserId)) return false
 
-      const storage = await this.getSavedTimeStorage()
-      let userStat = storage.find(item => parseInt(item.userId) === numericUserId)
+      // Получаем корневой раздел
+      const sectionId = await this.getRootSectionId()
 
-      if (userStat) {
+      // Получаем все элементы
+      const items = await this.getAllItems()
+
+      // Ищем существующую запись
+      const existingItem = items.find(item => {
+        const props = item.PROPERTY_VALUES || {}
+        return parseInt(props.USER_ID) === numericUserId
+      })
+
+      const now = new Date().toISOString()
+
+      if (existingItem) {
         // Обновляем существующую запись
-        const newTime = (userStat.totalTime || 0) + secondsToAdd
-        userStat.totalTime = newTime < 0 ? 0 : newTime
-        userStat.updatedAt = new Date().toISOString()
+        const currentTime = parseInt(existingItem.PROPERTY_VALUES?.TOTAL_TIME || 0)
+        const newTime = Math.max(0, currentTime + secondsToAdd)
+
+        await this.updateItem(existingItem.ID, {
+          TOTAL_TIME: newTime,
+          UPDATED_AT: now
+        })
       } else {
+        // Получаем имя пользователя
+        let userName = ''
+        try {
+          const users = await this.getAllUsers()
+          const user = users.find(u => parseInt(u.ID) === numericUserId)
+          userName = user?.NAME ? `${user.NAME} ${user.LAST_NAME || ''}`.trim() : `Пользователь ${numericUserId}`
+        } catch {
+          userName = `Пользователь ${numericUserId}`
+        }
+
         // Создаем новую запись
-        storage.push({
+        await this.createItem(sectionId, {
           userId: numericUserId,
-          totalTime: secondsToAdd > 0 ? secondsToAdd : 0,
-          updatedAt: new Date().toISOString()
+          userName: userName,
+          totalTime: Math.max(0, secondsToAdd),
+          updatedAt: now
         })
       }
 
-      // Сохраняем обновленное хранилище
-      await this.saveSavedTimeStorage(storage)
+      // Инвалидируем кэш
+      this.invalidateCache()
 
-      // Уведомляем об обновлении через глобальное событие
+      // Уведомляем об обновлении
       this.notifyTimeUpdate(numericUserId, secondsToAdd)
 
       return true
@@ -262,21 +484,48 @@ class Bitrix24Helper {
       const numericUserId = parseInt(userId)
       if (isNaN(numericUserId)) return false
 
-      const storage = await this.getSavedTimeStorage()
-      let userStat = storage.find(item => parseInt(item.userId) === numericUserId)
+      // Получаем корневой раздел
+      const sectionId = await this.getRootSectionId()
 
-      if (userStat) {
-        userStat.totalTime = totalTime < 0 ? 0 : totalTime
-        userStat.updatedAt = new Date().toISOString()
+      // Получаем все элементы
+      const items = await this.getAllItems()
+
+      // Ищем существующую запись
+      const existingItem = items.find(item => {
+        const props = item.PROPERTY_VALUES || {}
+        return parseInt(props.USER_ID) === numericUserId
+      })
+
+      const now = new Date().toISOString()
+
+      if (existingItem) {
+        // Обновляем существующую запись
+        await this.updateItem(existingItem.ID, {
+          TOTAL_TIME: Math.max(0, totalTime),
+          UPDATED_AT: now
+        })
       } else {
-        storage.push({
+        // Получаем имя пользователя
+        let userName = ''
+        try {
+          const users = await this.getAllUsers()
+          const user = users.find(u => parseInt(u.ID) === numericUserId)
+          userName = user?.NAME ? `${user.NAME} ${user.LAST_NAME || ''}`.trim() : `Пользователь ${numericUserId}`
+        } catch {
+          userName = `Пользователь ${numericUserId}`
+        }
+
+        // Создаем новую запись
+        await this.createItem(sectionId, {
           userId: numericUserId,
-          totalTime: totalTime < 0 ? 0 : totalTime,
-          updatedAt: new Date().toISOString()
+          userName: userName,
+          totalTime: Math.max(0, totalTime),
+          updatedAt: now
         })
       }
 
-      await this.saveSavedTimeStorage(storage)
+      // Инвалидируем кэш
+      this.invalidateCache()
       this.notifyTimeUpdate(numericUserId, 0)
 
       return true
@@ -360,13 +609,24 @@ class Bitrix24Helper {
       const numericUserId = parseInt(userId)
       if (isNaN(numericUserId)) return false
 
-      const storage = await this.getSavedTimeStorage()
-      const userIndex = storage.findIndex(item => parseInt(item.userId) === numericUserId)
+      // Получаем все элементы
+      const items = await this.getAllItems()
 
-      if (userIndex !== -1) {
-        storage[userIndex].totalTime = 0
-        storage[userIndex].updatedAt = new Date().toISOString()
-        await this.saveSavedTimeStorage(storage)
+      // Ищем существующую запись
+      const existingItem = items.find(item => {
+        const props = item.PROPERTY_VALUES || {}
+        return parseInt(props.USER_ID) === numericUserId
+      })
+
+      if (existingItem) {
+        // Обновляем время на 0
+        await this.updateItem(existingItem.ID, {
+          TOTAL_TIME: 0,
+          UPDATED_AT: new Date().toISOString()
+        })
+
+        // Инвалидируем кэш
+        this.invalidateCache()
         this.notifyTimeUpdate(numericUserId, 0)
       }
 
@@ -390,12 +650,98 @@ class Bitrix24Helper {
 
       if (!BX24) return false
 
-      await this.saveSavedTimeStorage([])
+      // Получаем все элементы
+      const items = await this.getAllItems()
+
+      // Обновляем время у всех элементов на 0
+      for (const item of items) {
+        await this.updateItem(item.ID, {
+          TOTAL_TIME: 0,
+          UPDATED_AT: new Date().toISOString()
+        })
+      }
+
+      // Инвалидируем кэш
+      this.invalidateCache()
       this.notifyTimeUpdate('all', 0)
 
       return true
     } catch (error) {
       console.error('Ошибка сброса времени всех пользователей:', error)
+      return false
+    }
+  }
+
+  /**
+   * Полное удаление хранилища и создание заново
+   * @returns {Promise<boolean>}
+   */
+  async resetStorage() {
+    try {
+      if (!this.isAdmin) {
+        console.error('Недостаточно прав для сброса хранилища')
+        return false
+      }
+
+      if (!BX24) return false
+
+      // Удаляем хранилище
+      await new Promise((resolve, reject) => {
+        BX24.callMethod('entity.delete', {
+          ENTITY: this.storageName
+        }, (result) => {
+          if (result.error()) {
+            console.error('Ошибка при удалении хранилища:', result.error())
+            reject(result.error())
+          } else {
+            resolve(true)
+          }
+        })
+      })
+
+      // Создаем новое хранилище
+      await new Promise((resolve, reject) => {
+        BX24.callMethod('entity.add', {
+          ENTITY: this.storageName,
+          NAME: 'Сохраненное время',
+          ACCESS: {
+            AU: 'W'
+          }
+        }, (result) => {
+          if (result.error()) {
+            console.error('Ошибка при создании хранилища:', result.error())
+            reject(result.error())
+          } else {
+            resolve(true)
+          }
+        })
+      })
+
+      // Создаем свойства
+      const properties = [
+        {PROPERTY: 'USER_ID', NAME: 'ID пользователя', TYPE: 'N'},
+        {PROPERTY: 'USER_NAME', NAME: 'Имя пользователя', TYPE: 'S'},
+        {PROPERTY: 'TOTAL_TIME', NAME: 'Общее сохраненное время (сек)', TYPE: 'N'},
+        {PROPERTY: 'UPDATED_AT', NAME: 'Дата последнего обновления', TYPE: 'S'}
+      ]
+
+      for (const prop of properties) {
+        await new Promise((resolve) => {
+          BX24.callMethod('entity.item.property.add', {
+            ENTITY: this.storageName,
+            PROPERTY: prop.PROPERTY,
+            NAME: prop.NAME,
+            TYPE: prop.TYPE
+          }, () => resolve(true))
+        })
+      }
+
+      // Инвалидируем кэш
+      this.invalidateCache()
+
+      return true
+    } catch (error) {
+      console.error('Ошибка сброса хранилища:', error)
       return false
     }
   }
@@ -436,7 +782,7 @@ class Bitrix24Helper {
       }
     }
 
-    // Также можно использовать CustomEvent для более гибкого уведомления
+    // Используем CustomEvent для уведомления
     try {
       const event = new CustomEvent('saved-time-update', {
         detail: { userId, change, timestamp: Date.now() }

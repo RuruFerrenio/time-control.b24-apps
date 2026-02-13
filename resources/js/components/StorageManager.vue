@@ -202,7 +202,7 @@ export default {
       return ''
     }
 
-    // Проверка существования хранилища (только для pr_tracking)
+    // Проверка существования хранилища
     const checkStorageExists = (callback) => {
       if (!BX24) {
         callback(false)
@@ -221,28 +221,13 @@ export default {
       })
     }
 
-    // Получение количества записей
+    // Получение количества записей для entity-хранилища
     const getTotalItemsCount = (callback) => {
       if (!BX24) {
         callback(0)
         return
       }
 
-      // Для pr_saved_time_stats данные хранятся в appOption, не в entity
-      if (props.entityId === 'pr_saved_time_stats') {
-        BX24.appOption.get(props.entityId, (result) => {
-          try {
-            const storage = result ? JSON.parse(result) : []
-            callback(storage.length)
-          } catch (e) {
-            console.error('Ошибка парсинга хранилища:', e)
-            callback(0)
-          }
-        })
-        return
-      }
-
-      // Для pr_tracking стандартный подсчет
       BX24.callMethod('entity.section.get', {
         ENTITY: props.entityId
       }, (result) => {
@@ -279,7 +264,7 @@ export default {
       })
     }
 
-    // Создание свойств хранилища (только для pr_tracking)
+    // Создание свойств хранилища
     const createStorageProperties = (callback) => {
       let createdCount = 0
       const totalProperties = props.properties.length
@@ -311,37 +296,7 @@ export default {
       createNextProperty(0)
     }
 
-    // ИНИЦИАЛИЗАЦИЯ: проверка и создание хранилища pr_saved_time_stats
-    const initializeSavedTimeStats = (callback) => {
-      BX24.appOption.get(props.entityId, (result) => {
-        if (!result) {
-          // Хранилище не существует - создаем пустой массив
-          BX24.appOption.set(props.entityId, JSON.stringify([]), () => {
-            console.log('Хранилище pr_saved_time_stats инициализировано пустым массивом')
-            callback(true)
-          })
-        } else {
-          // Хранилище существует
-          callback(true)
-        }
-      })
-    }
-
-    // ОЧИСТКА: специальная очистка для pr_saved_time_stats
-    const clearSavedTimeStatsStorage = (callback) => {
-      // Удаляем опцию
-      BX24.appOption.remove(props.entityId, () => {
-        console.log('Хранилище pr_saved_time_stats удалено')
-
-        // Создаем пустой массив
-        BX24.appOption.set(props.entityId, JSON.stringify([]), () => {
-          console.log('Хранилище pr_saved_time_stats создано заново с пустым массивом')
-          callback(true)
-        })
-      })
-    }
-
-    // Очистка хранилища
+    // Очистка хранилища - УНИВЕРСАЛЬНЫЙ МЕТОД ДЛЯ ВСЕХ ТИПОВ
     const clearStorage = () => {
       let confirmMessage = ''
 
@@ -365,19 +320,7 @@ export default {
           return
         }
 
-        // Специальная обработка для pr_saved_time_stats
-        if (props.entityId === 'pr_saved_time_stats') {
-          clearSavedTimeStatsStorage(() => {
-            // Обновляем статус
-            storageStatus.value.initialized = true
-            storageStatus.value.totalItems = 0
-            alert('Хранилище счетчиков времени успешно очищено и инициализировано заново!')
-            isProcessing.value = false
-          })
-          return
-        }
-
-        // Стандартная обработка для pr_tracking
+        // УНИФИЦИРОВАННЫЙ ПОДХОД ДЛЯ ВСЕХ ХРАНИЛИЩ
         checkStorageExists((exists) => {
           if (exists) {
             // Удаляем существующее хранилище
@@ -387,7 +330,6 @@ export default {
               if (deleteResult.error()) {
                 console.error('Ошибка при удалении хранилища:', deleteResult.error())
               }
-
               // Создаем новое хранилище
               createNewStorage()
             })
@@ -404,13 +346,13 @@ export default {
       }
     }
 
-    // Создание нового хранилища (для pr_tracking)
+    // Создание нового хранилища (для всех типов)
     const createNewStorage = () => {
       BX24.callMethod('entity.add', {
         ENTITY: props.entityId,
         NAME: props.storageName,
         ACCESS: {
-          AU: 'W'
+          AU: 'W'  // Все авторизованные пользователи имеют доступ на запись
         }
       }, (result) => {
         if (result.error()) {
@@ -418,19 +360,26 @@ export default {
           isProcessing.value = false
           alert('Ошибка при создании хранилища. Пожалуйста, попробуйте еще раз.')
         } else {
-          console.log('Хранилище успешно создано')
+          console.log(`Хранилище ${props.entityId} успешно создано`)
 
-          // Создаем свойства
-          createStorageProperties((success) => {
+          // Создаем свойства, если они есть
+          if (props.properties && props.properties.length > 0) {
+            createStorageProperties((success) => {
+              // Обновляем статус хранилища
+              storageStatus.value.initialized = true
+              storageStatus.value.totalItems = 0
+
+              alert(`Хранилище "${props.storageName}" успешно очищено и создано заново!`)
+              isProcessing.value = false
+            })
+          } else {
             // Обновляем статус хранилища
             storageStatus.value.initialized = true
             storageStatus.value.totalItems = 0
 
-            // Показываем уведомление об успехе
-            alert('Хранилище успешно очищено и создано заново!')
-
+            alert(`Хранилище "${props.storageName}" успешно очищено и создано заново!`)
             isProcessing.value = false
-          })
+          }
         }
       })
     }
@@ -439,36 +388,18 @@ export default {
     const init = () => {
       if (typeof BX24 !== 'undefined' && BX24.init) {
         BX24.init(() => {
-          // Для pr_saved_time_stats проверяем через appOption
-          if (props.entityId === 'pr_saved_time_stats') {
-            initializeSavedTimeStats((success) => {
-              // Получаем актуальное состояние после инициализации
-              BX24.appOption.get(props.entityId, (result) => {
-                try {
-                  const storage = result ? JSON.parse(result) : []
-                  storageStatus.value.initialized = true
-                  storageStatus.value.totalItems = storage.length
-                } catch (e) {
-                  console.error('Ошибка парсинга хранилища:', e)
-                  storageStatus.value.initialized = true // Даже при ошибке считаем инициализированным
-                  storageStatus.value.totalItems = 0
-                }
+          // УНИВЕРСАЛЬНАЯ ПРОВЕРКА ДЛЯ ВСЕХ ХРАНИЛИЩ
+          checkStorageExists((exists) => {
+            if (exists) {
+              storageStatus.value.initialized = true
+              getTotalItemsCount((count) => {
+                storageStatus.value.totalItems = count
               })
-            })
-          } else {
-            // Стандартная проверка для pr_tracking
-            checkStorageExists((exists) => {
-              if (exists) {
-                storageStatus.value.initialized = true
-                getTotalItemsCount((count) => {
-                  storageStatus.value.totalItems = count
-                })
-              } else {
-                storageStatus.value.initialized = false
-                storageStatus.value.totalItems = 0
-              }
-            })
-          }
+            } else {
+              storageStatus.value.initialized = false
+              storageStatus.value.totalItems = 0
+            }
+          })
         })
       }
     }

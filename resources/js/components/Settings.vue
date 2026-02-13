@@ -1212,7 +1212,12 @@ export default {
       {PROPERTY: 'ELAPSED_ITEM_ID', NAME: 'ID записи времени', TYPE: 'N'}
     ]
 
-    const savedTimeProperties = []
+    const savedTimeProperties = [
+      {PROPERTY: 'USER_ID', NAME: 'ID пользователя', TYPE: 'N'},
+      {PROPERTY: 'USER_NAME', NAME: 'Имя пользователя', TYPE: 'S'},
+      {PROPERTY: 'TOTAL_TIME', NAME: 'Общее сохраненное время (сек)', TYPE: 'N'},
+      {PROPERTY: 'UPDATED_AT', NAME: 'Дата последнего обновления', TYPE: 'S'}
+    ]
 
     onMounted(async () => {
       if (typeof BX24 !== 'undefined' && BX24.init) {
