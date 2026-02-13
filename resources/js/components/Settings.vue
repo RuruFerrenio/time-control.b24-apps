@@ -678,6 +678,17 @@
             class="mt-8"
         />
 
+        <!-- Хранилище сохраненного времени -->
+        <StorageManager
+            ref="savedTimeStorage"
+            title="Хранилище сохраненного времени сотрудников"
+            description="Хранит персональные счетчики сохраненного времени каждого пользователя. Сбрасывайте счетчики при необходимости."
+            entity-id="pr_saved_time_stats"
+            storage-name="Сохраненное время"
+            :properties="savedTimeProperties"
+            class="mt-8"
+        />
+
         <!-- Управление встройками -->
         <PlacementsManager
             class="mt-8"
@@ -1201,6 +1212,8 @@ export default {
       {PROPERTY: 'ELAPSED_ITEM_ID', NAME: 'ID записи времени', TYPE: 'N'}
     ]
 
+    const savedTimeProperties = []
+
     onMounted(async () => {
       if (typeof BX24 !== 'undefined' && BX24.init) {
         BX24.init(async () => {
@@ -1265,6 +1278,7 @@ export default {
       employeeReactionTimeError: settingsSystem.employeeReactionTimeError,
       categories,
       activityProperties,
+      savedTimeProperties,
       getNotificationMethodText: settingsSystem.getNotificationMethodText.bind(settingsSystem),
       getResponseMethodText: settingsSystem.getResponseMethodText.bind(settingsSystem),
       getDeliveryMethodText: settingsSystem.getDeliveryMethodText.bind(settingsSystem),
