@@ -159,7 +159,7 @@ export default {
       switch (props.entityId) {
         case 'pr_tracking':
           return 'Хранит данные о посещениях страниц сотрудниками'
-        case 'pr_saved_time_stats':
+        case 'pr_saved_time':
           return 'Хранит персональные счетчики сохраненного времени каждого пользователя'
         default:
           return 'Хранит данные приложения'
@@ -171,7 +171,7 @@ export default {
       switch (props.entityId) {
         case 'pr_tracking':
           return 'Очистка хранилища полностью удалит всю историю посещений всех сотрудников. Это действие нельзя отменить.'
-        case 'pr_saved_time_stats':
+        case 'pr_saved_time':
           return 'Очистка хранилища полностью сбросит счетчики сохраненного времени ВСЕХ пользователей. Это действие нельзя отменить.'
         default:
           return 'Очистка хранилища полностью удалит все существующие данные и создаст новое чистое хранилище. Это действие нельзя отменить.'
@@ -189,7 +189,7 @@ export default {
           case 3:
             return 'Настройка всех необходимых свойств для корректной работы системы отслеживания.'
         }
-      } else if (props.entityId === 'pr_saved_time_stats') {
+      } else if (props.entityId === 'pr_saved_time') {
         switch (step) {
           case 1:
             return 'Полное удаление существующего хранилища со всеми счетчиками пользователей.'
@@ -302,7 +302,7 @@ export default {
 
       if (props.entityId === 'pr_tracking') {
         confirmMessage = `Вы уверены, что хотите полностью очистить хранилище "${props.storageName}"? Вся история посещений всех сотрудников будет безвозвратно удалена.`
-      } else if (props.entityId === 'pr_saved_time_stats') {
+      } else if (props.entityId === 'pr_saved_time') {
         confirmMessage = `Вы уверены, что хотите полностью очистить хранилище "${props.storageName}"? Все счетчики сохраненного времени ВСЕХ пользователей будут сброшены. Это действие нельзя отменить.`
       } else {
         confirmMessage = `Вы уверены, что хотите полностью очистить хранилище "${props.storageName}"? Все данные будут безвозвратно удалены.`

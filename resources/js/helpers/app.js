@@ -13,7 +13,7 @@ class Bitrix24Helper {
     this.isAdmin = false
     this.userProfile = null
     this.isInitialized = false
-    this.storageName = 'pr_saved_time_stats' // Единственное хранилище для сохраненного времени
+    this.storageName = 'pr_saved_time' // Единственное хранилище для сохраненного времени
     this.currentUserId = null
 
     // Кэш для хранения данных хранилища

@@ -683,7 +683,7 @@
             ref="savedTimeStorage"
             title="Хранилище сохраненного времени сотрудников"
             description="Хранит персональные счетчики сохраненного времени каждого пользователя. Сбрасывайте счетчики при необходимости."
-            entity-id="pr_saved_time_stats"
+            entity-id="pr_saved_time"
             storage-name="Сохраненное время"
             :properties="savedTimeProperties"
             class="mt-8"

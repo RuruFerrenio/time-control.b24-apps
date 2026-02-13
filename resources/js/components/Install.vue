@@ -792,7 +792,7 @@
                         </div>
                         <div>
                           <p class="font-medium text-gray-900">Хранилище сохраненного времени</p>
-                          <p class="text-sm text-gray-500">pr_saved_time_stats - Персональные счетчики времени</p>
+                          <p class="text-sm text-gray-500">pr_saved_time - Персональные счетчики времени</p>
                         </div>
                       </div>
                       <div class="ml-4">
@@ -1473,7 +1473,7 @@ export default {
               resolve(false)
             } else {
               const entities = result.data()
-              const exists = entities.some(entity => entity.ENTITY === 'pr_saved_time_stats')
+              const exists = entities.some(entity => entity.ENTITY === 'pr_saved_time')
               resolve(exists)
             }
           })
@@ -1494,7 +1494,7 @@ export default {
 
             const prop = SAVED_TIME_STORAGE_PROPERTIES[index]
             BX24.callMethod('entity.item.property.add', {
-              ENTITY: 'pr_saved_time_stats',
+              ENTITY: 'pr_saved_time',
               PROPERTY: prop.PROPERTY,
               NAME: prop.NAME,
               TYPE: prop.TYPE
@@ -1529,7 +1529,7 @@ export default {
             // Создаем новое хранилище
             await new Promise((resolve, reject) => {
               BX24.callMethod('entity.add', {
-                ENTITY: 'pr_saved_time_stats',
+                ENTITY: 'pr_saved_time',
                 NAME: 'Сохраненное время',
                 ACCESS: {
                   AU: 'W'
