@@ -322,9 +322,6 @@ export default {
           isStatisticsAvailable.value = bitrixHelper.isStatisticsAvailable()
           currentUserId.value = await bitrixHelper.getCurrentUserId()
           await loadSavedTime()
-
-          // Выполняем миграцию данных, если нужно
-          await bitrixHelper.migrateFromOldFormat()
         }
       } catch (error) {
         console.error('Ошибка инициализации Sidebar:', error)
