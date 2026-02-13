@@ -133,16 +133,6 @@
             </div>
           </div>
 
-          <!-- Общий счетчик -->
-          <div class="text-center py-4">
-            <div class="text-3xl font-bold text-green-600 mb-2">
-              {{ formatSavedTime(totalSavedTime) }}
-            </div>
-            <p class="text-sm text-gray-500">
-              Общее сохраненное время всех сотрудников
-            </p>
-          </div>
-
           <!-- Счетчик текущего пользователя -->
           <div class="rounded-lg p-4 mt-2">
             <div class="flex items-center justify-between">
@@ -167,6 +157,16 @@
                 ></div>
               </div>
             </div>
+          </div>
+
+          <!-- Общий счетчик -->
+          <div class="text-center py-4">
+            <div class="text-3xl font-bold text-green-600 mb-2">
+              {{ formatSavedTime(totalSavedTime) }}
+            </div>
+            <p class="text-sm text-gray-500">
+              Общее сохраненное время всех сотрудников
+            </p>
           </div>
 
           <!-- Кнопки действий -->
