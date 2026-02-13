@@ -343,23 +343,102 @@ class Bitrix24Helper {
     })
   }
 
-  // Добавить в начало методов, где используется bitrixHelper:
-  ensureBitrixHelper() {
-    if (!bitrixHelper) {
-      console.error('bitrixHelper не определен');
-      return false;
-    }
+  /**
+   * Получение имени пользователя по ID
+   * @param {number} userId - ID пользователя
+   * @returns {Promise<string>} Имя пользователя
+   */
+  async getUserNameById(userId) {
+    try {
+      // Сначала проверяем текущего пользователя
+      if (this.userProfile && parseInt(this.userProfile.ID) === parseInt(userId)) {
+        return this.userProfile.NAME && this.userProfile.LAST_NAME
+          ? `${this.userProfile.NAME} ${this.userProfile.LAST_NAME}`.trim()
+          : `Пользователь ${userId}`;
+      }
 
-    if (!bitrixHelper.isReady()) {
-      console.warn('bitrixHelper еще не инициализирован, пробуем инициализировать...');
-      // Можно попробовать инициализировать асинхронно
-      bitrixHelper.init().catch(err => {
-        console.error('Ошибка инициализации bitrixHelper:', err);
+      // Получаем из API
+      const users = await this.getAllUsers();
+      const user = users.find(u => parseInt(u.ID) === parseInt(userId));
+      if (user) {
+        return user.NAME && user.LAST_NAME
+          ? `${user.NAME} ${user.LAST_NAME}`.trim()
+          : `Пользователь ${userId}`;
+      }
+      return `Пользователь ${userId}`;
+    } catch {
+      return `Пользователь ${userId}`;
+    }
+  }
+
+  /**
+   * Обновление или создание элемента для пользователя
+   * @param {number} userId - ID пользователя
+   * @param {number} secondsToAdd - Количество секунд для добавления (может быть отрицательным)
+   * @returns {Promise<boolean>}
+   */
+  async ensureAndUpdateUserTime(userId, secondsToAdd) {
+    try {
+      if (!userId || !BX24) {
+        console.error('Не указан userId или BX24 не доступен');
+        return false;
+      }
+
+      const numericUserId = parseInt(userId);
+      if (isNaN(numericUserId)) return false;
+
+      // Получаем корневой раздел
+      const sectionId = await this.getRootSectionId();
+
+      // Получаем все элементы
+      const items = await this.getAllItems();
+
+      // Ищем существующую запись
+      const existingItem = items.find(item => {
+        const props = item.PROPERTY_VALUES || {};
+        return parseInt(props.USER_ID) === numericUserId;
       });
+
+      const now = new Date().toISOString();
+
+      if (existingItem) {
+        // Обновляем существующую запись
+        const currentTime = parseInt(existingItem.PROPERTY_VALUES?.TOTAL_TIME || 0);
+        const newTime = Math.max(0, currentTime + secondsToAdd);
+
+        await this.updateItem(existingItem.ID, {
+          TOTAL_TIME: newTime,
+          UPDATED_AT: now
+        });
+
+        console.log(`Обновлено время для пользователя ${userId}: ${currentTime} -> ${newTime} (изменение: ${secondsToAdd})`);
+      } else {
+        // Получаем имя пользователя
+        const userName = await this.getUserNameById(numericUserId);
+
+        // Создаем новую запись
+        const newTime = Math.max(0, secondsToAdd);
+        await this.createItem(sectionId, {
+          userId: numericUserId,
+          userName: userName,
+          totalTime: newTime,
+          updatedAt: now
+        });
+
+        console.log(`Создан новый элемент для пользователя ${userId} с временем ${newTime}`);
+      }
+
+      // Инвалидируем кэш
+      this.invalidateCache();
+
+      // Уведомляем об обновлении
+      this.notifyTimeUpdate(numericUserId, secondsToAdd);
+
+      return true;
+    } catch (error) {
+      console.error('Ошибка обновления/создания времени пользователя:', error);
       return false;
     }
-
-    return true;
   }
 
   /**
@@ -419,79 +498,18 @@ class Bitrix24Helper {
   }
 
   /**
-   * Обновление сохраненного времени пользователя
+   * Обновление сохраненного времени пользователя (с автоматическим созданием если не существует)
    * @param {number|string} userId - ID пользователя
    * @param {number} secondsToAdd - Количество секунд для добавления (может быть отрицательным)
    * @returns {Promise<boolean>}
    */
   async updateUserSavedTime(userId, secondsToAdd) {
-    try {
-      if (!userId || !BX24) {
-        console.error('Не указан userId или BX24 не доступен')
-        return false
-      }
-
-      const numericUserId = parseInt(userId)
-      if (isNaN(numericUserId)) return false
-
-      // Получаем корневой раздел
-      const sectionId = await this.getRootSectionId()
-
-      // Получаем все элементы
-      const items = await this.getAllItems()
-
-      // Ищем существующую запись
-      const existingItem = items.find(item => {
-        const props = item.PROPERTY_VALUES || {}
-        return parseInt(props.USER_ID) === numericUserId
-      })
-
-      const now = new Date().toISOString()
-
-      if (existingItem) {
-        // Обновляем существующую запись
-        const currentTime = parseInt(existingItem.PROPERTY_VALUES?.TOTAL_TIME || 0)
-        const newTime = Math.max(0, currentTime + secondsToAdd)
-
-        await this.updateItem(existingItem.ID, {
-          TOTAL_TIME: newTime,
-          UPDATED_AT: now
-        })
-      } else {
-        // Получаем имя пользователя
-        let userName = ''
-        try {
-          const users = await this.getAllUsers()
-          const user = users.find(u => parseInt(u.ID) === numericUserId)
-          userName = user?.NAME ? `${user.NAME} ${user.LAST_NAME || ''}`.trim() : `Пользователь ${numericUserId}`
-        } catch {
-          userName = `Пользователь ${numericUserId}`
-        }
-
-        // Создаем новую запись
-        await this.createItem(sectionId, {
-          userId: numericUserId,
-          userName: userName,
-          totalTime: Math.max(0, secondsToAdd),
-          updatedAt: now
-        })
-      }
-
-      // Инвалидируем кэш
-      this.invalidateCache()
-
-      // Уведомляем об обновлении
-      this.notifyTimeUpdate(numericUserId, secondsToAdd)
-
-      return true
-    } catch (error) {
-      console.error('Ошибка обновления времени пользователя:', error)
-      return false
-    }
+    // Используем новый метод с автоматическим созданием
+    return this.ensureAndUpdateUserTime(userId, secondsToAdd);
   }
 
   /**
-   * Установка точного значения времени для пользователя
+   * Установка точного значения времени для пользователя (с автоматическим созданием если не существует)
    * @param {number|string} userId - ID пользователя
    * @param {number} totalTime - Точное значение времени в секундах
    * @returns {Promise<boolean>}
@@ -525,14 +543,7 @@ class Bitrix24Helper {
         })
       } else {
         // Получаем имя пользователя
-        let userName = ''
-        try {
-          const users = await this.getAllUsers()
-          const user = users.find(u => parseInt(u.ID) === numericUserId)
-          userName = user?.NAME ? `${user.NAME} ${user.LAST_NAME || ''}`.trim() : `Пользователь ${numericUserId}`
-        } catch {
-          userName = `Пользователь ${numericUserId}`
-        }
+        const userName = await this.getUserNameById(numericUserId);
 
         // Создаем новую запись
         await this.createItem(sectionId, {
