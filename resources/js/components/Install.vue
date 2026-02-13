@@ -1558,7 +1558,7 @@ export default {
           savedTimeStorageStatus.value = 'error'
           return false
         }
-      }
+      },
 
       // Проверка существования хранилища
       checkStorageExists: () => {
