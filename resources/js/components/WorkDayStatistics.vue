@@ -1181,20 +1181,26 @@ class WorkDayStatisticsManager {
     try {
       this.isLoading.value = true;
 
-      await nextTick();
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Ждём появления элемента
+      let element = document.getElementById('work_day_statistic');
+      let attempts = 0;
 
-      // Находим элемент
-      const element = document.getElementById('work_day_statistic');
-      if (!element) {
-        throw new Error('Элемент статистики не найден');
+      while (!element && attempts < 10) {
+        console.log('Ждём элемент статистики... попытка', attempts + 1);
+        await new Promise(resolve => setTimeout(resolve, 500));
+        element = document.getElementById('work_day_statistic');
+        attempts++;
       }
 
-      console.log('Элемент найден:', element);
+      if (!element) {
+        throw new Error('Элемент статистики не найден после загрузки');
+      }
 
-      // Создаём простой контейнер
+      console.log('Элемент найден, начинаем экспорт');
+
+      // Создаём контейнер для экспорта
       const container = document.createElement('div');
-      container.id = 'pdf-container';
+      container.id = 'export-container';
       container.style.cssText = `
       position: absolute;
       top: 0;
@@ -1205,44 +1211,31 @@ class WorkDayStatisticsManager {
       z-index: 10000;
     `;
 
-      // Копируем содержимое
+      // Копируем содержимое элемента
       container.innerHTML = element.outerHTML;
       document.body.appendChild(container);
 
-      console.log('Контейнер добавлен в DOM');
-
-      // Простые настройки
-      const opt = {
-        margin: [0.5, 0.5, 0.5, 0.5],
-        filename: `bitrix24-${this.selectedDay.value}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          backgroundColor: '#ffffff',
-          logging: true,
-          allowTaint: false,
-          useCORS: true
-        },
-        jsPDF: {
-          unit: 'mm',
-          format: 'a4',
-          orientation: 'portrait'
-        }
-      };
-
-      // Ждём
+      // Даём время на рендеринг
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Экспортируем
+      const opt = {
+        margin: [0.5, 0.5, 0.5, 0.5],
+        filename: `bitrix24-статистика-${this.selectedDay.value}.pdf`,
+        image: { type: 'jpeg', quality: 0.95 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
       await html2pdf().from(container).set(opt).save();
 
-      // Удаляем контейнер
+      // Очищаем
       document.body.removeChild(container);
 
-      this.showNotification('success', 'PDF готов');
+      this.showNotification('success', 'PDF экспортирован');
 
     } catch (error) {
-      console.error('Ошибка экспорта PDF:', error);
+      console.error('Ошибка:', error);
       this.showNotification('error', 'Ошибка: ' + error.message);
     } finally {
       this.isLoading.value = false;
