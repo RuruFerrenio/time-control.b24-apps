@@ -440,7 +440,7 @@
                           >
                             <B24Button
                                 size="sm"
-                                color="air-primary-warning"
+                                color="air-selection"
                                 class="text-xs"
                                 title="Посмотреть статистику"
                             >
@@ -478,7 +478,7 @@
                             <B24Button
                                 @click="showRequestReportModal(userData)"
                                 size="md"
-                                color="air-primary-warning"
+                                color="air-selection"
                                 title="Запросить отчет"
                             >
                               <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -494,7 +494,7 @@
                           >
                             <B24Button
                                 size="xs"
-                                color="air-primary-warning"
+                                color="air-selection"
                                 class="text-xs"
                                 title="Посмотреть статистику"
                             >
