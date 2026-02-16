@@ -1184,6 +1184,9 @@ class WorkDayStatisticsManager {
       await nextTick();
       await new Promise(resolve => setTimeout(resolve, 500));
 
+      // Получаем данные для легенды
+      const legendData = this.bitrixTimeLegend; // Это уже computed, не .value
+
       // Создаём контейнер для отчёта
       const container = document.createElement('div');
       container.id = 'pdf-export';
@@ -1197,18 +1200,67 @@ class WorkDayStatisticsManager {
       z-index: 10000;
     `;
 
-      // Заголовок страницы (такой же как в шаблоне)
+      // Заголовок страницы
       const header = document.createElement('div');
       header.className = 'mb-8';
       header.innerHTML = `
       <h1 class="text-2xl font-bold text-gray-900">${this.pageTitle}</h1>
       <p class="text-sm text-gray-500 mt-1">Анализ времени в Bitrix24 относительно рабочего дня</p>
+      <p class="text-xs text-gray-400 mt-2">Экспорт: ${new Date().toLocaleString('ru-RU')}</p>
     `;
       container.appendChild(header);
 
       // Основная карточка со статистикой
       const mainCard = document.createElement('div');
       mainCard.className = 'bg-white rounded-lg border border-gray-200 p-6';
+
+      // Генерируем легенду вручную, без map
+      let legendHTML = '';
+      if (legendData && legendData.length > 0) {
+        for (let i = 0; i < legendData.length; i++) {
+          const item = legendData[i];
+          legendHTML += `
+          <div class="flex items-center justify-between p-3 border-b border-gray-100">
+            <div class="flex items-center gap-3">
+              <div class="w-4 h-4 rounded-full" style="background: ${item.color}"></div>
+              <div>
+                <div class="text-sm font-medium text-gray-900">${item.label}</div>
+                <div class="text-xs text-gray-500">${item.description}</div>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="text-sm font-bold" style="color: ${item.color}">${this.formatDuration(item.value)}</div>
+              <div class="text-xs text-gray-500">${item.percentage}</div>
+            </div>
+          </div>
+        `;
+        }
+      }
+
+      // Генерируем таблицу задач
+      let tasksHTML = '';
+      const tasks = this.taskTimeData.value.tasks || [];
+      for (let i = 0; i < Math.min(10, tasks.length); i++) {
+        const task = tasks[i];
+        tasksHTML += `
+        <tr>
+          <td class="px-4 py-3">
+            <div class="text-sm font-medium text-gray-900">${task.title || `Задача #${task.id}`}</div>
+            <div class="text-xs text-gray-500">ID: ${task.id}</div>
+          </td>
+          <td class="px-4 py-3">
+            <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
+              ${this.getTaskStatusText(task.status)}
+            </span>
+          </td>
+          <td class="px-4 py-3">
+            <div class="text-sm font-semibold text-green-600">${this.formatDuration(task.timeSpent)}</div>
+            <div class="text-xs text-gray-500">${task.elapsedItemsCount || 0} записей</div>
+          </td>
+        </tr>
+      `;
+      }
+
       mainCard.innerHTML = `
       <div class="space-y-6">
         <!-- Заголовок карточки -->
@@ -1217,7 +1269,7 @@ class WorkDayStatisticsManager {
             <h3 class="text-lg font-semibold text-gray-900">Статистика рабочего времени</h3>
             <p class="text-sm text-gray-500 mt-1">Анализ времени в Bitrix24 относительно рабочего дня</p>
           </div>
-          <div class="text-sm text-gray-400">Экспорт: ${new Date().toLocaleString('ru-RU')}</div>
+          <div class="text-sm text-gray-400">${this.formatDayDisplay(this.selectedDay.value)}</div>
         </div>
 
         <!-- График и легенда -->
@@ -1235,7 +1287,7 @@ class WorkDayStatisticsManager {
             <div class="relative w-full h-64">
               <canvas id="pdf-bitrix-chart"></canvas>
               <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <div class="text-3xl font-bold text-gray-900">${this.formatPercentage(this.workDayData.value.bitrixTimePercentage)}</div>
+                <div class="text-3xl font-bold text-gray-900">${this.formatPercentage(this.workDayData.value.bitrixTimePercentage || 0)}</div>
                 <div class="text-sm text-gray-500 mt-1">Времени не сохранено</div>
               </div>
             </div>
@@ -1244,21 +1296,7 @@ class WorkDayStatisticsManager {
           <!-- Легенда -->
           <div class="bg-white p-4">
             <div class="space-y-3">
-              ${this.bitrixTimeLegend.value.map(item => `
-                <div class="flex items-center justify-between p-3 border-b border-gray-100">
-                  <div class="flex items-center gap-3">
-                    <div class="w-4 h-4 rounded-full" style="background: ${item.color}"></div>
-                    <div>
-                      <div class="text-sm font-medium text-gray-900">${item.label}</div>
-                      <div class="text-xs text-gray-500">${item.description}</div>
-                    </div>
-                  </div>
-                  <div class="text-right">
-                    <div class="text-sm font-bold" style="color: ${item.color}">${this.formatDuration(item.value)}</div>
-                    <div class="text-xs text-gray-500">${item.percentage}</div>
-                  </div>
-                </div>
-              `).join('')}
+              ${legendHTML}
             </div>
 
             <!-- Общая статистика -->
@@ -1266,12 +1304,12 @@ class WorkDayStatisticsManager {
               <div class="grid grid-cols-2 gap-4">
                 <div class="bg-gray-50 rounded-lg p-4 text-center">
                   <div class="text-xs text-gray-500 uppercase mb-1">Рабочий день</div>
-                  <div class="text-xl font-bold text-gray-900">${this.formatDuration(this.workDayData.value.totalWorkDaySeconds)}</div>
+                  <div class="text-xl font-bold text-gray-900">${this.formatDuration(this.workDayData.value.totalWorkDaySeconds || 28800)}</div>
                 </div>
                 <div class="bg-gray-50 rounded-lg p-4 text-center">
                   <div class="text-xs text-gray-500 uppercase mb-1">Потери</div>
-                  <div class="text-xl font-bold" style="color: ${this.getEfficiencyColorValue(this.workDayData.value.bitrixTimePercentage)}">
-                    ${this.formatPercentage(this.workDayData.value.bitrixTimePercentage)}
+                  <div class="text-xl font-bold" style="color: ${this.getEfficiencyColorValue(this.workDayData.value.bitrixTimePercentage || 0)}">
+                    ${this.formatPercentage(this.workDayData.value.bitrixTimePercentage || 0)}
                   </div>
                 </div>
               </div>
@@ -1301,23 +1339,7 @@ class WorkDayStatisticsManager {
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-200">
-                ${this.taskTimeData.value.tasks.slice(0, 10).map(task => `
-                  <tr>
-                    <td class="px-4 py-3">
-                      <div class="text-sm font-medium text-gray-900">${task.title || `Задача #${task.id}`}</div>
-                      <div class="text-xs text-gray-500">ID: ${task.id}</div>
-                    </td>
-                    <td class="px-4 py-3">
-                      <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
-                        ${this.getTaskStatusText(task.status)}
-                      </span>
-                    </td>
-                    <td class="px-4 py-3">
-                      <div class="text-sm font-semibold text-green-600">${this.formatDuration(task.timeSpent)}</div>
-                      <div class="text-xs text-gray-500">${task.elapsedItemsCount} записей</div>
-                    </td>
-                  </tr>
-                `).join('')}
+                ${tasksHTML}
               </tbody>
             </table>
           </div>
@@ -1420,12 +1442,15 @@ class WorkDayStatisticsManager {
         html2canvas: {
           scale: 2,
           backgroundColor: '#ffffff',
-          logging: false
+          logging: false,
+          allowTaint: false,
+          useCORS: true
         },
         jsPDF: {
           unit: 'mm',
           format: 'a4',
-          orientation: 'portrait'
+          orientation: 'portrait',
+          compress: true
         }
       };
 
@@ -1445,7 +1470,7 @@ class WorkDayStatisticsManager {
         document.body.removeChild(container);
       }
     } finally {
-      this.isLoading.value = false
+      this.isLoading.value = false;
     }
   }
 
