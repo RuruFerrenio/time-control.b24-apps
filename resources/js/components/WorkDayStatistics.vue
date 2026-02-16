@@ -1181,265 +1181,148 @@ class WorkDayStatisticsManager {
     try {
       this.isLoading.value = true;
 
-      // Ждём обновления DOM и скрываем загрузчик
+      // Ждём обновления DOM
       this.isLoading.value = false;
       await nextTick();
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 300));
 
-      // Находим основной контейнер со статистикой
-      const originalElement = document.getElementById('work_day_statistic');
-      if (!originalElement) {
+      // Находим элемент со статистикой
+      const statsElement = document.getElementById('work_day_statistic');
+      if (!statsElement) {
         throw new Error('Элемент статистики не найден');
       }
 
-      console.log('Оригинальный элемент найден:', originalElement);
-
-      // Клонируем элемент
-      const clone = originalElement.cloneNode(true);
-
-      // Создаём временный контейнер
-      const tempContainer = document.createElement('div');
-      tempContainer.id = 'pdf-export-container';
-      tempContainer.style.cssText = `
+      // Создаём контейнер для экспорта
+      const exportContainer = document.createElement('div');
+      exportContainer.id = 'pdf-export';
+      exportContainer.style.cssText = `
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 1200px;
+      top: 50px;
+      left: 50px;
+      width: 1100px;
       background: white;
       padding: 30px;
       z-index: 10000;
-      visibility: visible;
-      opacity: 1;
-      pointer-events: none;
-      overflow: visible;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     `;
 
       // Добавляем заголовок
       const header = document.createElement('div');
-      header.style.cssText = `
-      margin-bottom: 25px;
-      padding-bottom: 15px;
-      border-bottom: 2px solid #e5e7eb;
-    `;
       header.innerHTML = `
-      <h1 style="font-size: 24px; font-weight: 600; color: #1f2937; margin-bottom: 5px;">
-        ${this.pageTitle}
-      </h1>
-      <p style="color: #6b7280; font-size: 14px;">
-        ${this.formatDayDisplay(this.selectedDay.value)} • Экспорт: ${new Date().toLocaleString('ru-RU')}
-      </p>
+      <div style="margin-bottom: 25px; padding-bottom: 20px; border-bottom: 2px solid #e5e7eb;">
+        <h1 style="font-size: 28px; font-weight: 600; color: #111827; margin: 0 0 8px 0;">
+          ${this.pageTitle}
+        </h1>
+        <div style="display: flex; align-items: center; gap: 12px; color: #6B7280; font-size: 15px;">
+          <span>${this.formatDayDisplay(this.selectedDay.value)}</span>
+          <span style="width: 4px; height: 4px; background: #D1D5DB; border-radius: 50%;"></span>
+          <span>Экспорт: ${new Date().toLocaleString('ru-RU')}</span>
+        </div>
+      </div>
     `;
+      exportContainer.appendChild(header);
 
-      tempContainer.appendChild(header);
-      tempContainer.appendChild(clone);
-      document.body.appendChild(tempContainer);
-
-      console.log('Временный контейнер добавлен');
+      // Клонируем содержимое статистики
+      const contentClone = statsElement.cloneNode(true);
+      exportContainer.appendChild(contentClone);
+      document.body.appendChild(exportContainer);
 
       // Конвертируем canvas в изображения
-      const canvases = tempContainer.querySelectorAll('canvas');
-      console.log('Найдено canvas элементов:', canvases.length);
-
+      const canvases = exportContainer.querySelectorAll('canvas');
       for (let i = 0; i < canvases.length; i++) {
         const canvas = canvases[i];
         try {
           const img = document.createElement('img');
 
-          // Сохраняем оригинальные размеры
-          const width = canvas.width;
-          const height = canvas.height;
+          // Получаем данные canvas
+          const dataUrl = canvas.toDataURL('image/png', 1.0);
+          img.src = dataUrl;
 
-          if (width > 0 && height > 0) {
-            // Создаём canvas с высоким разрешением
-            const tempCanvas = document.createElement('canvas');
-            const scale = 3;
-            tempCanvas.width = width * scale;
-            tempCanvas.height = height * scale;
+          // Копируем стили
+          img.style.cssText = canvas.style.cssText;
+          img.style.width = canvas.style.width || '100%';
+          img.style.height = 'auto';
+          img.style.maxWidth = '100%';
 
-            const ctx = tempCanvas.getContext('2d');
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = 'high';
-
-            // Рисуем с масштабированием
-            ctx.drawImage(canvas, 0, 0, width, height, 0, 0, tempCanvas.width, tempCanvas.height);
-
-            img.src = tempCanvas.toDataURL('image/png', 1.0);
-
-            // Копируем все стили и классы с canvas
-            img.className = canvas.className;
-
-            // Копируем стили
-            const canvasStyles = window.getComputedStyle(canvas);
-            img.style.cssText = canvas.style.cssText;
-
-            // Устанавливаем размеры
-            img.style.width = canvas.style.width || '100%';
-            img.style.height = 'auto';
-            img.style.maxWidth = '100%';
-
-            // Заменяем canvas
-            canvas.parentNode.replaceChild(img, canvas);
-
-            console.log(`Canvas ${i} сконвертирован (${width}x${height} -> ${tempCanvas.width}x${tempCanvas.height})`);
-          }
+          // Заменяем canvas на изображение
+          canvas.parentNode.replaceChild(img, canvas);
         } catch (e) {
-          console.error(`Ошибка конвертации canvas ${i}:`, e);
+          console.warn('Ошибка конвертации canvas:', e);
         }
-
-        await new Promise(resolve => setTimeout(resolve, 50));
       }
 
-      // Безопасное удаление интерактивных элементов
-      // 1. Удаляем все кнопки
-      const buttons = tempContainer.querySelectorAll('button');
+      // Преобразуем кнопки в текст
+      const buttons = exportContainer.querySelectorAll('button');
       buttons.forEach(button => {
-        const span = document.createElement('span');
-        span.textContent = button.textContent || '';
-        span.className = button.className; // className здесь строка
-        span.style.cssText = button.style.cssText;
-        span.style.cursor = 'default';
-        button.parentNode.replaceChild(span, button);
+        const textSpan = document.createElement('span');
+        textSpan.textContent = button.textContent;
+        textSpan.style.cssText = `
+        display: inline-block;
+        padding: 8px 16px;
+        background: #F3F4F6;
+        color: #374151;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: default;
+      `;
+        button.parentNode.replaceChild(textSpan, button);
       });
 
-      // 2. Удаляем элементы с role="button"
-      const roleButtons = tempContainer.querySelectorAll('[role="button"]');
-      roleButtons.forEach(el => {
-        const span = document.createElement('span');
-        span.textContent = el.textContent || '';
-        if (typeof el.className === 'string') {
-          span.className = el.className;
-        }
-        span.style.cssText = el.style.cssText;
-        el.parentNode.replaceChild(span, el);
-      });
-
-      // 3. Удаляем курсор-поинтер безопасно
-      const pointerElements = tempContainer.querySelectorAll('.cursor-pointer');
-      pointerElements.forEach(el => {
-        if (typeof el.className === 'string') {
-          el.className = el.className.replace(/cursor-pointer/g, '').trim();
-        } else if (el.classList) {
-          el.classList.remove('cursor-pointer');
-        }
-        el.style.cursor = 'default';
-      });
-
-      // 4. Обрабатываем hover-классы безопасно
-      const allElements = tempContainer.querySelectorAll('*');
+      // Убираем все интерактивные классы
+      const allElements = exportContainer.querySelectorAll('*');
       allElements.forEach(el => {
-        // Работа с классами
-        if (typeof el.className === 'string') {
-          // Фильтруем hover-классы
-          const classes = el.className.split(' ').filter(cls => !cls.includes('hover:'));
-          el.className = classes.join(' ');
-        } else if (el.classList) {
-          // Для SVG и других элементов с classList
-          const classList = Array.from(el.classList);
-          classList.forEach(cls => {
-            if (cls.includes('hover:')) {
-              el.classList.remove(cls);
-            }
-          });
+        // Убираем hover-эффекты
+        if (el.className && typeof el.className === 'string') {
+          const classes = el.className.split(' ');
+          const cleanClasses = classes.filter(cls => !cls.includes('hover:'));
+          el.className = cleanClasses.join(' ');
         }
 
-        // Удаляем onclick
+        // Убираем курсор-pointer
+        el.style.cursor = 'default';
+
+        // Убираем события
         el.removeAttribute('onclick');
         el.removeAttribute('@click');
         el.removeAttribute('v-on:click');
-
-        // Удаляем Vue-специфичные атрибуты
-        const attrs = el.attributes;
-        if (attrs) {
-          for (let i = attrs.length - 1; i >= 0; i--) {
-            const attr = attrs[i];
-            if (attr && attr.name) {
-              if (attr.name.startsWith('@') ||
-                  attr.name.startsWith('v-') ||
-                  attr.name.startsWith('data-v-') ||
-                  attr.name.startsWith(':')) {
-                el.removeAttribute(attr.name);
-              }
-            }
-          }
-        }
       });
 
-      // Добавляем базовые стили
-      const style = document.createElement('style');
-      style.textContent = `
-      * {
-        box-sizing: border-box;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-      }
-      body {
-        margin: 0;
-        padding: 0;
-        background: white;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      }
-      .bg-white { background-color: #ffffff; }
-      .border { border: 1px solid #e5e7eb; }
-      .rounded-lg { border-radius: 8px; }
-      .shadow { box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-      img { max-width: 100%; height: auto; }
-      table { width: 100%; border-collapse: collapse; }
-      td, th { padding: 8px; text-align: left; border-bottom: 1px solid #e5e7eb; }
-      .grid { display: grid; gap: 24px; }
-      .flex { display: flex; }
-      .items-center { align-items: center; }
-      .justify-between { justify-content: space-between; }
-      .text-sm { font-size: 14px; }
-      .font-medium { font-weight: 500; }
-      .text-gray-900 { color: #1f2937; }
-      .text-gray-500 { color: #6b7280; }
-    `;
-
-      tempContainer.insertBefore(style, tempContainer.firstChild);
-
-      console.log('Начинаем генерацию PDF...');
-
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Ждём загрузки всех изображений
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       // Настройки PDF
       const opt = {
         margin: [0.5, 0.5, 0.5, 0.5],
         filename: `bitrix24-статистика-${this.selectedDay.value}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
+        image: { type: 'jpeg', quality: 0.95 },
         html2canvas: {
           scale: 2,
-          logging: true,
           backgroundColor: '#ffffff',
-          allowTaint: false,
-          useCORS: true,
-          letterRendering: true,
-          windowWidth: 1200,
-          onclone: (clonedDoc) => {
-            console.log('HTML2Canvas клон создан');
-            const clonedElement = clonedDoc.getElementById('pdf-export-container');
-            if (clonedElement) {
-              clonedElement.style.position = 'absolute';
-              clonedElement.style.top = '0';
-              clonedElement.style.left = '0';
-              clonedElement.style.pointerEvents = 'none';
+          logging: false,
+          windowWidth: 1100,
+          onclone: (doc) => {
+            const el = doc.getElementById('pdf-export');
+            if (el) {
+              el.style.position = 'absolute';
+              el.style.top = '0';
+              el.style.left = '0';
             }
           }
         },
         jsPDF: {
           unit: 'mm',
           format: 'a4',
-          orientation: 'portrait',
-          compress: true
+          orientation: 'portrait'
         }
       };
 
       // Генерируем PDF
-      await html2pdf().set(opt).from(tempContainer).save();
-
-      console.log('PDF сгенерирован');
+      await html2pdf().set(opt).from(exportContainer).save();
 
       // Очищаем DOM
-      document.body.removeChild(tempContainer);
+      document.body.removeChild(exportContainer);
 
       this.showNotification('success', 'PDF успешно экспортирован');
 
@@ -1447,13 +1330,13 @@ class WorkDayStatisticsManager {
       console.error('Ошибка экспорта PDF:', error);
       this.showNotification('error', 'Ошибка при экспорте PDF: ' + error.message);
 
-      const tempContainer = document.getElementById('pdf-export-container');
-      if (tempContainer) {
-        document.body.removeChild(tempContainer);
+      // Очищаем DOM при ошибке
+      const exportEl = document.getElementById('pdf-export');
+      if (exportEl) {
+        document.body.removeChild(exportEl);
       }
     } finally {
       this.isLoading.value = false;
-      await nextTick();
     }
   }
 
