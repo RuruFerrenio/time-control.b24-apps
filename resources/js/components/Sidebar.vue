@@ -179,10 +179,10 @@
                 size="md"
             >
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <!-- Внешний круг монеты -->
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
-                <!-- Буква Р (рубль) -->
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 8h4.5a2.5 2.5 0 0 1 0 5H9h3.5a2.5 2.5 0 0 1 0 5H9 M12 6v12" />
+                <!-- Жирный внешний круг -->
+                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" fill="none"/>
+                <!-- Жирная буква Р с перечеркиванием (рубль) -->
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 8.5h4.2a2.3 2.3 0 1 1 0 4.6H9 M9 13.1h2.8a2.3 2.3 0 1 1 0 4.6H9 M12 6v12" />
               </svg>
               Поддержать проект
             </B24Button>
