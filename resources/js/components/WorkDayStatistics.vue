@@ -2573,8 +2573,8 @@ class WorkDayStatisticsManager {
           'FILTER': {
             '>=DATE_MODIFY': startDateStr,
             '<=DATE_MODIFY': endDateStr,
+            '!DATE_MODIFY': startDateStr,
             'MODIFIED_BY_ID': this.currentUserId.value,
-            '!CREATED_BY_ID': this.currentUserId.value
           },
           'SELECT': ['ID', 'STAGE_ID', 'CLOSED', 'DATE_MODIFY'],
           'NAV_PARAMS': { 'nPageSize': 50 }
@@ -2598,8 +2598,8 @@ class WorkDayStatisticsManager {
           'FILTER': {
             '>=DATE_MODIFY': startDateStr,
             '<=DATE_MODIFY': endDateStr,
+            '!DATE_MODIFY': startDateStr,
             'MODIFIED_BY_ID': this.currentUserId.value,
-            '!CREATED_BY_ID': this.currentUserId.value
           },
           'SELECT': ['ID', 'STATUS_ID', 'DATE_MODIFY'],
           'NAV_PARAMS': { 'nPageSize': 50 }
@@ -2623,8 +2623,8 @@ class WorkDayStatisticsManager {
           'FILTER': {
             '>=DATE_MODIFY': startDateStr,
             '<=DATE_MODIFY': endDateStr,
+            '!DATE_MODIFY': startDateStr,
             'MODIFIED_BY_ID': this.currentUserId.value,
-            '!CREATED_BY_ID': this.currentUserId.value
           },
           'SELECT': ['ID', 'DATE_MODIFY'],
           'NAV_PARAMS': { 'nPageSize': 50 }
@@ -2648,8 +2648,8 @@ class WorkDayStatisticsManager {
           'FILTER': {
             '>=DATE_MODIFY': startDateStr,
             '<=DATE_MODIFY': endDateStr,
+            '!DATE_MODIFY': startDateStr,
             'MODIFIED_BY_ID': this.currentUserId.value,
-            '!CREATED_BY_ID': this.currentUserId.value
           },
           'SELECT': ['ID', 'DATE_MODIFY'],
           'NAV_PARAMS': { 'nPageSize': 50 }
