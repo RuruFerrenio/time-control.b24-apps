@@ -2555,89 +2555,104 @@ class WorkDayStatisticsManager {
       const endDateStr = formatDateForAPI(endOfDay)
 
       const calls = [
+        // СДЕЛКИ - созданные пользователем
         ['crm.deal.list', {
           'ORDER': {'DATE_CREATE': 'DESC'},
           'FILTER': {
             '>=DATE_CREATE': startDateStr,
             '<=DATE_CREATE': endDateStr,
-            'ASSIGNED_BY_ID': this.currentUserId.value
+            'CREATED_BY_ID': this.currentUserId.value
           },
           'SELECT': ['ID', 'STAGE_ID', 'CLOSED', 'DATE_MODIFY', 'DATE_CREATE'],
-          NAV_PARAMS: { nPageSize: 50 }
+          'NAV_PARAMS': { 'nPageSize': 50 }
         }],
+
+        // СДЕЛКИ - измененные пользователем (исключая созданные сегодня)
         ['crm.deal.list', {
           'ORDER': {'DATE_MODIFY': 'DESC'},
           'FILTER': {
             '>=DATE_MODIFY': startDateStr,
             '<=DATE_MODIFY': endDateStr,
-            'ASSIGNED_BY_ID': this.currentUserId.value,
-            '!DATE_CREATE': startDateStr
+            'MODIFIED_BY_ID': this.currentUserId.value,
+            '!CREATED_BY_ID': this.currentUserId.value
           },
           'SELECT': ['ID', 'STAGE_ID', 'CLOSED', 'DATE_MODIFY'],
-          NAV_PARAMS: { nPageSize: 50 }
+          'NAV_PARAMS': { 'nPageSize': 50 }
         }],
+
+        // ЛИДЫ - созданные пользователем
         ['crm.lead.list', {
           'ORDER': {'DATE_CREATE': 'DESC'},
           'FILTER': {
             '>=DATE_CREATE': startDateStr,
             '<=DATE_CREATE': endDateStr,
-            'ASSIGNED_BY_ID': this.currentUserId.value
+            'CREATED_BY_ID': this.currentUserId.value
           },
           'SELECT': ['ID', 'STATUS_ID', 'DATE_MODIFY', 'DATE_CREATE'],
-          NAV_PARAMS: { nPageSize: 50 }
+          'NAV_PARAMS': { 'nPageSize': 50 }
         }],
+
+        // ЛИДЫ - измененные пользователем (исключая созданные сегодня)
         ['crm.lead.list', {
           'ORDER': {'DATE_MODIFY': 'DESC'},
           'FILTER': {
             '>=DATE_MODIFY': startDateStr,
             '<=DATE_MODIFY': endDateStr,
-            'ASSIGNED_BY_ID': this.currentUserId.value,
-            '!DATE_CREATE': startDateStr
+            'MODIFIED_BY_ID': this.currentUserId.value,
+            '!CREATED_BY_ID': this.currentUserId.value
           },
           'SELECT': ['ID', 'STATUS_ID', 'DATE_MODIFY'],
-          NAV_PARAMS: { nPageSize: 50 }
+          'NAV_PARAMS': { 'nPageSize': 50 }
         }],
+
+        // КОНТАКТЫ - созданные пользователем
         ['crm.contact.list', {
           'ORDER': {'DATE_CREATE': 'DESC'},
           'FILTER': {
             '>=DATE_CREATE': startDateStr,
             '<=DATE_CREATE': endDateStr,
-            'ASSIGNED_BY_ID': this.currentUserId.value
+            'CREATED_BY_ID': this.currentUserId.value
           },
           'SELECT': ['ID', 'DATE_MODIFY', 'DATE_CREATE'],
-          NAV_PARAMS: { nPageSize: 50 }
+          'NAV_PARAMS': { 'nPageSize': 50 }
         }],
+
+        // КОНТАКТЫ - измененные пользователем (исключая созданные сегодня)
         ['crm.contact.list', {
           'ORDER': {'DATE_MODIFY': 'DESC'},
           'FILTER': {
             '>=DATE_MODIFY': startDateStr,
             '<=DATE_MODIFY': endDateStr,
-            'ASSIGNED_BY_ID': this.currentUserId.value,
-            '!DATE_CREATE': startDateStr
+            'MODIFIED_BY_ID': this.currentUserId.value,
+            '!CREATED_BY_ID': this.currentUserId.value
           },
           'SELECT': ['ID', 'DATE_MODIFY'],
-          NAV_PARAMS: { nPageSize: 50 }
+          'NAV_PARAMS': { 'nPageSize': 50 }
         }],
+
+        // КОМПАНИИ - созданные пользователем
         ['crm.company.list', {
           'ORDER': {'DATE_CREATE': 'DESC'},
           'FILTER': {
             '>=DATE_CREATE': startDateStr,
             '<=DATE_CREATE': endDateStr,
-            'ASSIGNED_BY_ID': this.currentUserId.value
+            'CREATED_BY_ID': this.currentUserId.value
           },
           'SELECT': ['ID', 'DATE_MODIFY', 'DATE_CREATE'],
-          NAV_PARAMS: { nPageSize: 50 }
+          'NAV_PARAMS': { 'nPageSize': 50 }
         }],
+
+        // КОМПАНИИ - измененные пользователем (исключая созданные сегодня)
         ['crm.company.list', {
           'ORDER': {'DATE_MODIFY': 'DESC'},
           'FILTER': {
             '>=DATE_MODIFY': startDateStr,
             '<=DATE_MODIFY': endDateStr,
-            'ASSIGNED_BY_ID': this.currentUserId.value,
-            '!DATE_CREATE': startDateStr
+            'MODIFIED_BY_ID': this.currentUserId.value,
+            '!CREATED_BY_ID': this.currentUserId.value
           },
           'SELECT': ['ID', 'DATE_MODIFY'],
-          NAV_PARAMS: { nPageSize: 50 }
+          'NAV_PARAMS': { 'nPageSize': 50 }
         }]
       ]
 
@@ -2652,8 +2667,10 @@ class WorkDayStatisticsManager {
       const companiesCreated = results[6] || []
       const companiesUpdated = results[7] || []
 
+      // Формируем события для временной шкалы
       const timelineEvents = []
 
+      // Добавляем созданные сделки
       dealsCreated.forEach(deal => {
         timelineEvents.push({
           timestamp: deal.DATE_CREATE,
@@ -2663,6 +2680,7 @@ class WorkDayStatisticsManager {
         })
       })
 
+      // Добавляем измененные сделки
       dealsUpdated.forEach(deal => {
         timelineEvents.push({
           timestamp: deal.DATE_MODIFY,
@@ -2672,6 +2690,7 @@ class WorkDayStatisticsManager {
         })
       })
 
+      // Добавляем созданные лиды
       leadsCreated.forEach(lead => {
         timelineEvents.push({
           timestamp: lead.DATE_CREATE,
@@ -2681,6 +2700,7 @@ class WorkDayStatisticsManager {
         })
       })
 
+      // Добавляем измененные лиды
       leadsUpdated.forEach(lead => {
         timelineEvents.push({
           timestamp: lead.DATE_MODIFY,
@@ -2690,6 +2710,7 @@ class WorkDayStatisticsManager {
         })
       })
 
+      // Добавляем созданные контакты
       contactsCreated.forEach(contact => {
         timelineEvents.push({
           timestamp: contact.DATE_CREATE,
@@ -2699,6 +2720,7 @@ class WorkDayStatisticsManager {
         })
       })
 
+      // Добавляем измененные контакты
       contactsUpdated.forEach(contact => {
         timelineEvents.push({
           timestamp: contact.DATE_MODIFY,
@@ -2708,6 +2730,7 @@ class WorkDayStatisticsManager {
         })
       })
 
+      // Добавляем созданные компании
       companiesCreated.forEach(company => {
         timelineEvents.push({
           timestamp: company.DATE_CREATE,
@@ -2717,6 +2740,7 @@ class WorkDayStatisticsManager {
         })
       })
 
+      // Добавляем измененные компании
       companiesUpdated.forEach(company => {
         timelineEvents.push({
           timestamp: company.DATE_MODIFY,
@@ -2726,13 +2750,16 @@ class WorkDayStatisticsManager {
         })
       })
 
+      // Сортируем события по времени
       timelineEvents.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
 
+      // Подсчет успешных/провальных сделок
       let successfulDeals = 0
       let failedDeals = 0
 
       dealsCreated.forEach(deal => {
         if (deal.CLOSED === 'Y') {
+          // Проверяем статус сделки (WON/SUCCESS для успешных)
           if (deal.STAGE_ID && (deal.STAGE_ID.includes('WON') || deal.STAGE_ID.includes('SUCCESS'))) {
             successfulDeals++
           } else {
@@ -2741,6 +2768,7 @@ class WorkDayStatisticsManager {
         }
       })
 
+      // Подсчет конвертированных/мусорных лидов
       let convertedLeads = 0
       let junkLeads = 0
 
@@ -2752,6 +2780,7 @@ class WorkDayStatisticsManager {
         }
       })
 
+      // Сохраняем данные
       this.crmData.value = {
         createdDealsCount: dealsCreated.length,
         createdLeadsCount: leadsCreated.length,
@@ -2772,14 +2801,43 @@ class WorkDayStatisticsManager {
         timelineEvents: timelineEvents
       }
 
-    } catch (error) {
-      this.showNotification('error', 'Ошибка загрузки данных CRM')
-      Object.keys(this.crmData.value).forEach(key => {
-        if (key !== 'timelineEvents') {
-          this.crmData.value[key] = 0
-        }
+      // Для отладки - выводим в консоль
+      console.log('CRM Data loaded:', {
+        created: {
+          deals: dealsCreated.length,
+          leads: leadsCreated.length,
+          contacts: contactsCreated.length,
+          companies: companiesCreated.length
+        },
+        updated: {
+          deals: dealsUpdated.length,
+          leads: leadsUpdated.length,
+          contacts: contactsUpdated.length,
+          companies: companiesUpdated.length
+        },
+        timelineEvents: timelineEvents.length
       })
-      this.crmData.value.timelineEvents = []
+
+    } catch (error) {
+      console.error('Ошибка загрузки данных CRM:', error)
+      this.showNotification('error', 'Ошибка загрузки данных CRM')
+
+      // Сбрасываем данные в случае ошибки
+      this.crmData.value = {
+        createdDealsCount: 0,
+        createdLeadsCount: 0,
+        createdContactsCount: 0,
+        createdCompaniesCount: 0,
+        updatedDealsCount: 0,
+        updatedLeadsCount: 0,
+        updatedContactsCount: 0,
+        updatedCompaniesCount: 0,
+        successfulDealsCount: 0,
+        failedDealsCount: 0,
+        convertedLeadsCount: 0,
+        junkLeadsCount: 0,
+        timelineEvents: []
+      }
     }
   }
 
