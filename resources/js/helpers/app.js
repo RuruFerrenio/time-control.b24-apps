@@ -190,9 +190,19 @@ class Bitrix24Helper {
 
       BX24.callBatch(batchCommands, (result) => {
         const results = []
+
         for (let i = 0; i < calls.length; i++) {
-          const cmdResult = result.getData()[`cmd_${i}`]
-          results.push(cmdResult)
+          const cmdName = `cmd_${i}`
+
+          // Правильный способ получения данных
+          if (result[cmdName] && typeof result[cmdName].getData === 'function') {
+            results.push(result[cmdName].getData())
+          } else if (result[cmdName] && result[cmdName].data !== undefined) {
+            // Альтернативный способ - прямой доступ к data
+            results.push(result[cmdName].data)
+          } else {
+            results.push(null)
+          }
         }
 
         resolve(results)
