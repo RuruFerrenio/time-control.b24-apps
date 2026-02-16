@@ -2573,7 +2573,7 @@ class WorkDayStatisticsManager {
           'FILTER': {
             '>=DATE_MODIFY': startDateStr,
             '<=DATE_MODIFY': endDateStr,
-            '!DATE_MODIFY': startDateStr,
+            '!DATE_CREATE': startDateStr,
             'MODIFIED_BY_ID': this.currentUserId.value,
           },
           'SELECT': ['ID', 'STAGE_ID', 'CLOSED', 'DATE_MODIFY'],
@@ -2598,10 +2598,10 @@ class WorkDayStatisticsManager {
           'FILTER': {
             '>=DATE_MODIFY': startDateStr,
             '<=DATE_MODIFY': endDateStr,
-            '!DATE_MODIFY': startDateStr,
+            '!DATE_CREATE': startDateStr,
             'MODIFIED_BY_ID': this.currentUserId.value,
           },
-          'SELECT': ['ID', 'STATUS_ID', 'DATE_MODIFY'],
+          'SELECT': ['ID', 'STATUS_ID', 'DATE_MODIFY', 'DATE_CREATE'],
           'NAV_PARAMS': { 'nPageSize': 50 }
         }],
 
@@ -2623,10 +2623,10 @@ class WorkDayStatisticsManager {
           'FILTER': {
             '>=DATE_MODIFY': startDateStr,
             '<=DATE_MODIFY': endDateStr,
-            '!DATE_MODIFY': startDateStr,
+            '!DATE_CREATE': startDateStr,
             'MODIFIED_BY_ID': this.currentUserId.value,
           },
-          'SELECT': ['ID', 'DATE_MODIFY'],
+          'SELECT': ['ID', 'DATE_MODIFY','DATE_CREATE'],
           'NAV_PARAMS': { 'nPageSize': 50 }
         }],
 
@@ -2648,10 +2648,10 @@ class WorkDayStatisticsManager {
           'FILTER': {
             '>=DATE_MODIFY': startDateStr,
             '<=DATE_MODIFY': endDateStr,
-            '!DATE_MODIFY': startDateStr,
+            '!DATE_CREATE': startDateStr,
             'MODIFIED_BY_ID': this.currentUserId.value,
           },
-          'SELECT': ['ID', 'DATE_MODIFY'],
+          'SELECT': ['ID', 'DATE_MODIFY','DATE_CREATE'],
           'NAV_PARAMS': { 'nPageSize': 50 }
         }]
       ]
