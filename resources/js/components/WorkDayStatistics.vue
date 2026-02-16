@@ -481,7 +481,7 @@
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                         <!-- Настройки рабочего времени -->
                         <div>
-                          <h5 class="text-sm font-medium text-blue-900 mb-4">
+                          <h5 class="text-sm font-medium mb-4">
                             <span class="flex items-center gap-2">
                               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -505,7 +505,7 @@
                                     {{ row.original.value }}
                                   </B24Badge>
                                 </span>
-                                <span v-else class="text-sm font-medium text-blue-900">
+                                <span v-else class="text-sm font-medium">
                                   {{ row.original.value }}
                                 </span>
                               </template>
@@ -515,7 +515,7 @@
 
                         <!-- Текущий рабочий день -->
                         <div>
-                          <h5 class="text-sm font-medium text-blue-900 mb-4">
+                          <h5 class="text-sm font-medium  mb-4">
                             <span class="flex items-center gap-2">
                               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
@@ -538,7 +538,7 @@
                                     {{ getWorkDayStatusText(row.original.value) }}
                                   </B24Badge>
                                 </span>
-                                <span v-else class="text-sm font-medium text-blue-900 truncate">
+                                <span v-else class="text-sm font-medium truncate">
                                   {{ row.original.value }}
                                 </span>
                               </template>
