@@ -422,7 +422,7 @@
                             <B24Button
                                 @click="showRequestReportModal(userData)"
                                 size="sm"
-                                color="air-primary-warning"
+                                color="air-tertiary-accent"
                                 title="Запросить отчет"
                             >
                               <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
