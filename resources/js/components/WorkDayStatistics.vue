@@ -1252,7 +1252,7 @@ class WorkDayStatisticsManager {
           if (width > 0 && height > 0) {
             // Создаём canvas с высоким разрешением
             const tempCanvas = document.createElement('canvas');
-            const scale = 3; // Увеличим масштаб для лучшего качества
+            const scale = 3;
             tempCanvas.width = width * scale;
             tempCanvas.height = height * scale;
 
@@ -1264,7 +1264,15 @@ class WorkDayStatisticsManager {
             ctx.drawImage(canvas, 0, 0, width, height, 0, 0, tempCanvas.width, tempCanvas.height);
 
             img.src = tempCanvas.toDataURL('image/png', 1.0);
+
+            // Копируем все стили и классы с canvas
+            img.className = canvas.className;
+
+            // Копируем стили
+            const canvasStyles = window.getComputedStyle(canvas);
             img.style.cssText = canvas.style.cssText;
+
+            // Устанавливаем размеры
             img.style.width = canvas.style.width || '100%';
             img.style.height = 'auto';
             img.style.maxWidth = '100%';
@@ -1276,10 +1284,8 @@ class WorkDayStatisticsManager {
           }
         } catch (e) {
           console.error(`Ошибка конвертации canvas ${i}:`, e);
-          // В случае ошибки оставляем canvas как есть
         }
 
-        // Небольшая задержка
         await new Promise(resolve => setTimeout(resolve, 50));
       }
 
@@ -1289,17 +1295,9 @@ class WorkDayStatisticsManager {
       buttons.forEach(button => {
         const span = document.createElement('span');
         span.textContent = button.textContent || '';
-        span.className = button.className;
-        // Копируем основные стили
-        span.style.cssText = `
-        display: inline-block;
-        padding: ${button.style.padding || '8px 16px'};
-        background: ${button.style.background || '#f3f4f6'};
-        color: ${button.style.color || '#374151'};
-        border-radius: ${button.style.borderRadius || '6px'};
-        font-size: ${button.style.fontSize || '14px'};
-        cursor: default;
-      `;
+        span.className = button.className; // className здесь строка
+        span.style.cssText = button.style.cssText;
+        span.style.cursor = 'default';
         button.parentNode.replaceChild(span, button);
       });
 
@@ -1308,37 +1306,60 @@ class WorkDayStatisticsManager {
       roleButtons.forEach(el => {
         const span = document.createElement('span');
         span.textContent = el.textContent || '';
-        span.className = el.className;
+        if (typeof el.className === 'string') {
+          span.className = el.className;
+        }
+        span.style.cssText = el.style.cssText;
         el.parentNode.replaceChild(span, el);
       });
 
-      // 3. Удаляем курсор-поинтер
+      // 3. Удаляем курсор-поинтер безопасно
       const pointerElements = tempContainer.querySelectorAll('.cursor-pointer');
       pointerElements.forEach(el => {
-        el.classList.remove('cursor-pointer');
+        if (typeof el.className === 'string') {
+          el.className = el.className.replace(/cursor-pointer/g, '').trim();
+        } else if (el.classList) {
+          el.classList.remove('cursor-pointer');
+        }
         el.style.cursor = 'default';
       });
 
-      // 4. Удаляем hover-классы
+      // 4. Обрабатываем hover-классы безопасно
       const allElements = tempContainer.querySelectorAll('*');
       allElements.forEach(el => {
-        // Убираем hover-классы
-        const classes = el.className.split(' ');
-        const filteredClasses = classes.filter(cls => !cls.includes('hover:'));
-        el.className = filteredClasses.join(' ');
+        // Работа с классами
+        if (typeof el.className === 'string') {
+          // Фильтруем hover-классы
+          const classes = el.className.split(' ').filter(cls => !cls.includes('hover:'));
+          el.className = classes.join(' ');
+        } else if (el.classList) {
+          // Для SVG и других элементов с classList
+          const classList = Array.from(el.classList);
+          classList.forEach(cls => {
+            if (cls.includes('hover:')) {
+              el.classList.remove(cls);
+            }
+          });
+        }
 
-        // Убираем onclick атрибуты
+        // Удаляем onclick
         el.removeAttribute('onclick');
+        el.removeAttribute('@click');
+        el.removeAttribute('v-on:click');
 
-        // Убираем Vue-специфичные атрибуты
+        // Удаляем Vue-специфичные атрибуты
         const attrs = el.attributes;
-        for (let i = attrs.length - 1; i >= 0; i--) {
-          const attrName = attrs[i].name;
-          if (attrName.startsWith('@') ||
-              attrName.startsWith('v-') ||
-              attrName.startsWith('data-v-') ||
-              attrName.startsWith(':')) {
-            el.removeAttribute(attrName);
+        if (attrs) {
+          for (let i = attrs.length - 1; i >= 0; i--) {
+            const attr = attrs[i];
+            if (attr && attr.name) {
+              if (attr.name.startsWith('@') ||
+                  attr.name.startsWith('v-') ||
+                  attr.name.startsWith('data-v-') ||
+                  attr.name.startsWith(':')) {
+                el.removeAttribute(attr.name);
+              }
+            }
           }
         }
       });
@@ -1378,7 +1399,6 @@ class WorkDayStatisticsManager {
 
       console.log('Начинаем генерацию PDF...');
 
-      // Даем время на применение стилей
       await new Promise(resolve => setTimeout(resolve, 300));
 
       // Настройки PDF
@@ -1427,7 +1447,6 @@ class WorkDayStatisticsManager {
       console.error('Ошибка экспорта PDF:', error);
       this.showNotification('error', 'Ошибка при экспорте PDF: ' + error.message);
 
-      // Пытаемся очистить DOM в случае ошибки
       const tempContainer = document.getElementById('pdf-export-container');
       if (tempContainer) {
         document.body.removeChild(tempContainer);
