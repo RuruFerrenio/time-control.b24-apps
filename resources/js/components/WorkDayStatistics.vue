@@ -325,7 +325,7 @@
                           </template>
 
                           <template #status-cell="{ row }">
-                            <B24Badge :color="getTaskStatusColor(row.original.status)" class="whitespace-nowrap overflow-scroll inline-block">
+                            <B24Badge :color="getTaskStatusColor(row.original.status)" class="whitespace-nowrap md:overflow-auto inline-block">
                               {{ getTaskStatusText(row.original.status) }}
                             </B24Badge>
                           </template>
