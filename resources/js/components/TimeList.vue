@@ -435,7 +435,7 @@
                           <router-link
                               v-if="userData.userId !== currentUserId && bitrixHelper && bitrixHelper.isStatisticsAvailable()"
                               :to="{ path: '/workday-statistics', query: { userId: userData.userId } }"
-                              class="ml-2 hidden sm:block"
+                              class="hidden sm:block"
                               size="sm"
                           >
                             <B24Button
