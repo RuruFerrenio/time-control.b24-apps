@@ -189,21 +189,10 @@ class Bitrix24Helper {
       })
 
       BX24.callBatch(batchCommands, (result) => {
-        if (result.error()) {
-          console.error('Ошибка batch-запроса:', result.error())
-          reject(result.error())
-          return
-        }
-
         const results = []
         for (let i = 0; i < calls.length; i++) {
           const cmdResult = result.getData()[`cmd_${i}`]
-          if (cmdResult && cmdResult.error) {
-            console.error(`Ошибка в запросе ${i}:`, cmdResult.error)
-            results.push(null)
-          } else {
-            results.push(cmdResult)
-          }
+          results.push(cmdResult)
         }
 
         resolve(results)
