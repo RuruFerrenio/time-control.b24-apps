@@ -32,12 +32,22 @@ class Bitrix24Helper {
         BX24.init(async () => {
           try {
             await this.checkAdminStatus()
-            await this.getAppInfo()
-            await this.getUserProfile()
 
-            // Сохраняем ID текущего пользователя
-            if (this.userProfile && this.userProfile.ID) {
+            // Выполняем запросы в одном batch
+            const results = await this.executeBatch([
+              ['app.info', {}],
+              ['profile', {}]
+            ])
+
+            if (results[0]) {
+              this.appInfo = results[0]
+              console.log("Информация о приложении:", this.appInfo)
+            }
+
+            if (results[1]) {
+              this.userProfile = results[1]
               this.currentUserId = parseInt(this.userProfile.ID)
+              console.log("Профиль пользователя:", this.userProfile)
             }
 
             this.isInitialized = true
@@ -78,27 +88,24 @@ class Bitrix24Helper {
    * @returns {Promise<Object>}
    */
   async getAppInfo() {
-    return new Promise((resolve, reject) => {
-      if (typeof BX24 !== 'undefined' && BX24.callMethod) {
-        BX24.callMethod(
-          "app.info",
-          {},
-          (result) => {
-            if (result.error()) {
-              console.error("Ошибка при получении информации о приложении:", result.error())
-              toast.error("Не удалось получить информацию о тарифе")
-              reject(result.error())
-            } else {
-              this.appInfo = result.data()
-              console.log("Информация о приложении:", this.appInfo)
-              resolve(this.appInfo)
-            }
-          }
-        )
-      } else {
-        reject(new Error('Bitrix24 API не доступен'))
+    if (this.appInfo) return this.appInfo
+
+    try {
+      const results = await this.executeBatch([
+        ['app.info', {}]
+      ])
+
+      if (results[0]) {
+        this.appInfo = results[0]
+        return this.appInfo
       }
-    })
+
+      throw new Error('Не удалось получить информацию о приложении')
+    } catch (error) {
+      console.error("Ошибка при получении информации о приложении:", error)
+      toast.error("Не удалось получить информацию о тарифе")
+      throw error
+    }
   }
 
   /**
@@ -106,27 +113,24 @@ class Bitrix24Helper {
    * @returns {Promise<Object>}
    */
   async getUserProfile() {
-    return new Promise((resolve, reject) => {
-      if (typeof BX24 !== 'undefined' && BX24.callMethod) {
-        BX24.callMethod(
-          "profile",
-          {},
-          (result) => {
-            if (result.error()) {
-              console.error("Ошибка при получении профиля пользователя:", result.error())
-              reject(result.error())
-            } else {
-              this.userProfile = result.data()
-              this.currentUserId = parseInt(this.userProfile.ID)
-              console.log("Профиль пользователя:", this.userProfile)
-              resolve(this.userProfile)
-            }
-          }
-        )
-      } else {
-        reject(new Error('Bitrix24 API не доступен'))
+    if (this.userProfile) return this.userProfile
+
+    try {
+      const results = await this.executeBatch([
+        ['profile', {}]
+      ])
+
+      if (results[0]) {
+        this.userProfile = results[0]
+        this.currentUserId = parseInt(this.userProfile.ID)
+        return this.userProfile
       }
-    })
+
+      throw new Error('Не удалось получить профиль пользователя')
+    } catch (error) {
+      console.error("Ошибка при получении профиля пользователя:", error)
+      throw error
+    }
   }
 
   // ============== МЕТОДЫ ДЛЯ РАБОТЫ С ENTITY ХРАНИЛИЩЕМ ==============
@@ -149,46 +153,101 @@ class Bitrix24Helper {
   }
 
   /**
+   * Выполнение batch-запроса
+   * @param {Array} calls - Массив вызовов в формате [method, params]
+   * @returns {Promise<Array>}
+   */
+  async executeBatch(calls) {
+    if (!BX24) {
+      throw new Error('Bitrix24 не доступен')
+    }
+
+    const batchSize = 50
+    const allResults = []
+
+    for (let i = 0; i < calls.length; i += batchSize) {
+      const batchCalls = calls.slice(i, i + batchSize)
+      const batchResults = await this.executeSingleBatch(batchCalls)
+      allResults.push(...batchResults)
+    }
+
+    return allResults
+  }
+
+  /**
+   * Выполнение одного batch-запроса
+   * @param {Array} calls - Массив вызовов в формате [method, params]
+   * @returns {Promise<Array>}
+   */
+  executeSingleBatch(calls) {
+    return new Promise((resolve, reject) => {
+      const batchCommands = {}
+
+      calls.forEach((call, index) => {
+        const [method, params] = call
+        batchCommands[`cmd_${index}`] = [method, params]
+      })
+
+      BX24.callBatch(batchCommands, (result) => {
+        if (result.error()) {
+          console.error('Ошибка batch-запроса:', result.error())
+          reject(result.error())
+          return
+        }
+
+        const results = []
+        for (let i = 0; i < calls.length; i++) {
+          const cmdResult = result.getData()[`cmd_${i}`]
+          if (cmdResult && cmdResult.error) {
+            console.error(`Ошибка в запросе ${i}:`, cmdResult.error)
+            results.push(null)
+          } else {
+            results.push(cmdResult)
+          }
+        }
+
+        resolve(results)
+      })
+    })
+  }
+
+  /**
    * Получение корневого раздела хранилища
    * @returns {Promise<number|null>} ID раздела
    */
   async getRootSectionId() {
-    return new Promise((resolve, reject) => {
-      if (!BX24) {
-        reject(new Error('Bitrix24 не доступен'));
-        return;
+    try {
+      // Сначала пытаемся получить существующие разделы
+      const results = await this.executeBatch([
+        ['entity.section.get', {
+          ENTITY: this.storageName
+        }]
+      ])
+
+      const sections = results[0] || []
+
+      if (sections.length > 0) {
+        // Берем первый раздел как корневой
+        return parseInt(sections[0].ID)
       }
 
-      BX24.callMethod('entity.section.get', {
-        ENTITY: this.storageName
-      }, (result) => {
-        if (result.error()) {
-          console.error('Ошибка при получении разделов:', result.error());
-          reject(result.error());
-          return;
-        }
+      // Если разделов нет, создаем корневой раздел
+      const createResults = await this.executeBatch([
+        ['entity.section.add', {
+          ENTITY: this.storageName,
+          NAME: 'Статистика пользователей'
+        }]
+      ])
 
-        const sections = result.data();
+      if (createResults[0]) {
+        return parseInt(createResults[0])
+      }
 
-        if (sections.length > 0) {
-          // Берем первый раздел как корневой
-          resolve(parseInt(sections[0].ID));
-        } else {
-          // Если разделов нет, создаем корневой раздел
-          BX24.callMethod('entity.section.add', {
-            ENTITY: this.storageName,
-            NAME: 'Статистика пользователей'
-          }, (addResult) => {
-            if (addResult.error()) {
-              console.error('Ошибка при создании раздела:', addResult.error());
-              reject(addResult.error());
-            } else {
-              resolve(parseInt(addResult.data()));
-            }
-          });
-        }
-      });
-    });
+      throw new Error('Не удалось создать корневой раздел')
+    } catch (error) {
+      console.error('Ошибка при получении/создании раздела:', error)
+      throw error
+    }
   }
 
   /**
@@ -231,35 +290,48 @@ class Bitrix24Helper {
   }
 
   /**
-   * Получение всех элементов хранилища
+   * Получение всех элементов хранилища с пагинацией через batch
    * @returns {Promise<Array>}
    */
   async getAllItems() {
-    return new Promise(async (resolve, reject) => {
-      try {
-        // Получаем корневой раздел
-        const sectionId = await this.getRootSectionId();
+    try {
+      // Получаем корневой раздел
+      const sectionId = await this.getRootSectionId()
 
-        // Получаем все элементы раздела
-        BX24.callMethod('entity.item.get', {
-          ENTITY: this.storageName,
-          FILTER: { SECTION_ID: sectionId } // Здесь FILTER с SECTION_ID - это правильно для получения
-        }, (result) => {
-          if (result.error()) {
-            console.error('Ошибка при получении элементов:', result.error());
-            reject(result.error());
-          } else {
-            resolve(result.data() || []);
-          }
-        });
-      } catch (error) {
-        reject(error);
+      let allItems = []
+      let page = 1
+      const pageSize = 50
+
+      while (true) {
+        const results = await this.executeBatch([
+          ['entity.item.get', {
+            ENTITY: this.storageName,
+            FILTER: { SECTION_ID: sectionId },
+            NAV_PARAMS: {
+              nPageSize: pageSize,
+              iNumPage: page
+            }
+          }]
+        ])
+
+        const items = results[0] || []
+        if (items.length === 0) break
+
+        allItems = allItems.concat(items)
+        if (items.length < pageSize) break
+
+        page++
       }
-    });
+
+      return allItems
+    } catch (error) {
+      console.error('Ошибка при получении элементов:', error)
+      return []
+    }
   }
 
   /**
-   * Сохранение всего хранилища (замена всех элементов)
+   * Сохранение всего хранилища (замена всех элементов) с использованием batch
    * @param {Array} storage - Массив объектов статистики
    * @returns {Promise<boolean>}
    */
@@ -273,14 +345,38 @@ class Bitrix24Helper {
       // Получаем все текущие элементы
       const currentItems = await this.getAllItems()
 
-      // Удаляем все существующие элементы
-      for (const item of currentItems) {
-        await this.deleteItem(item.ID)
+      // Формируем batch для удаления всех элементов
+      const deleteCalls = currentItems.map(item =>
+        ['entity.item.delete', {
+          ENTITY: this.storageName,
+          ID: item.ID
+        }]
+      )
+
+      if (deleteCalls.length > 0) {
+        await this.executeBatch(deleteCalls)
       }
 
-      // Создаем новые элементы
-      for (const stat of storage) {
-        await this.createItem(sectionId, stat)
+      // Формируем batch для создания новых элементов
+      const createCalls = storage.map(stat => {
+        const userName = stat.userName || `Пользователь ${stat.userId}`
+
+        return ['entity.item.add', {
+          ENTITY: this.storageName,
+          NAME: `${userName} - Статистика времени`,
+          SECTION: sectionId,
+          PROPERTY_VALUES: {
+            USER_ID: stat.userId,
+            USER_NAME: userName,
+            TOTAL_TIME: stat.totalTime || 0,
+            UPDATED_AT: stat.updatedAt || new Date().toISOString()
+          }
+        }]
+      })
+
+      // Выполняем создание элементов пачками по 50
+      if (createCalls.length > 0) {
+        await this.executeBatch(createCalls)
       }
 
       // Инвалидируем кэш
@@ -299,52 +395,55 @@ class Bitrix24Helper {
    * @returns {Promise<boolean>}
    */
   async deleteItem(itemId) {
-    return new Promise((resolve, reject) => {
-      BX24.callMethod('entity.item.delete', {
-        ENTITY: this.storageName,
-        ID: itemId
-      }, (result) => {
-        if (result.error()) {
-          console.error('Ошибка при удалении элемента:', result.error())
-          reject(result.error())
-        } else {
-          resolve(true)
-        }
-      })
-    })
+    try {
+      const results = await this.executeBatch([
+        ['entity.item.delete', {
+          ENTITY: this.storageName,
+          ID: itemId
+        }]
+      ])
+
+      return results[0] !== null
+    } catch (error) {
+      console.error('Ошибка при удалении элемента:', error)
+      return false
+    }
   }
 
   /**
    * Создание элемента
    * @param {number} sectionId - ID раздела
    * @param {Object} data - Данные элемента
-   * @returns {Promise<number>} ID созданного элемента
+   * @returns {Promise<number|null>} ID созданного элемента
    */
   async createItem(sectionId, data) {
-    return new Promise((resolve, reject) => {
-      // Формируем имя пользователя
-      const userName = data.userName || `Пользователь ${data.userId}`;
+    try {
+      const userName = data.userName || `Пользователь ${data.userId}`
 
-      BX24.callMethod('entity.item.add', {
-        ENTITY: this.storageName,
-        NAME: `${userName} - Статистика времени`,
-        SECTION: sectionId, // ВАЖНО: используем SECTION, а не SECTION_ID
-        PROPERTY_VALUES: {
-          USER_ID: data.userId,
-          USER_NAME: userName,
-          TOTAL_TIME: data.totalTime || 0,
-          UPDATED_AT: data.updatedAt || new Date().toISOString()
-        }
-      }, (result) => {
-        if (result.error()) {
-          console.error('Ошибка при создании элемента:', result.error());
-          reject(result.error());
-        } else {
-          console.log(`Создан элемент с ID: ${result.data()} для пользователя ${data.userId}`);
-          resolve(parseInt(result.data()));
-        }
-      });
-    });
+      const results = await this.executeBatch([
+        ['entity.item.add', {
+          ENTITY: this.storageName,
+          NAME: `${userName} - Статистика времени`,
+          SECTION: sectionId,
+          PROPERTY_VALUES: {
+            USER_ID: data.userId,
+            USER_NAME: userName,
+            TOTAL_TIME: data.totalTime || 0,
+            UPDATED_AT: data.updatedAt || new Date().toISOString()
+          }
+        }]
+      ])
+
+      if (results[0]) {
+        console.log(`Создан элемент с ID: ${results[0]} для пользователя ${data.userId}`)
+        return parseInt(results[0])
+      }
+
+      return null
+    } catch (error) {
+      console.error('Ошибка при создании элемента:', error)
+      return null
+    }
   }
 
   /**
@@ -358,20 +457,22 @@ class Bitrix24Helper {
       if (this.userProfile && parseInt(this.userProfile.ID) === parseInt(userId)) {
         return this.userProfile.NAME && this.userProfile.LAST_NAME
           ? `${this.userProfile.NAME} ${this.userProfile.LAST_NAME}`.trim()
-          : `Пользователь ${userId}`;
+          : `Пользователь ${userId}`
       }
 
       // Получаем из API
-      const users = await this.getAllUsers();
-      const user = users.find(u => parseInt(u.ID) === parseInt(userId));
+      const users = await this.getAllUsers()
+      const user = users.find(u => parseInt(u.ID) === parseInt(userId))
+
       if (user) {
         return user.NAME && user.LAST_NAME
           ? `${user.NAME} ${user.LAST_NAME}`.trim()
-          : `Пользователь ${userId}`;
+          : `Пользователь ${userId}`
       }
-      return `Пользователь ${userId}`;
+
+      return `Пользователь ${userId}`
     } catch {
-      return `Пользователь ${userId}`;
+      return `Пользователь ${userId}`
     }
   }
 
@@ -384,77 +485,82 @@ class Bitrix24Helper {
   async ensureAndUpdateUserTime(userId, secondsToAdd) {
     try {
       if (!userId || !BX24) {
-        console.error('Не указан userId или BX24 не доступен');
-        return false;
+        console.error('Не указан userId или BX24 не доступен')
+        return false
       }
 
-      const numericUserId = parseInt(userId);
-      if (isNaN(numericUserId)) return false;
+      const numericUserId = parseInt(userId)
+      if (isNaN(numericUserId)) return false
 
       // Получаем корневой раздел
-      const sectionId = await this.getRootSectionId();
+      const sectionId = await this.getRootSectionId()
 
       // Получаем все элементы
-      const items = await this.getAllItems();
+      const items = await this.getAllItems()
 
       // Ищем существующую запись
       const existingItem = items.find(item => {
-        const props = item.PROPERTY_VALUES || {};
-        return parseInt(props.USER_ID) === numericUserId;
-      });
+        const props = item.PROPERTY_VALUES || {}
+        return parseInt(props.USER_ID) === numericUserId
+      })
 
-      const now = new Date().toISOString();
+      const now = new Date().toISOString()
 
       if (existingItem) {
         // Обновляем существующую запись
-        const currentTime = parseInt(existingItem.PROPERTY_VALUES?.TOTAL_TIME || 0);
-        const newTime = Math.max(0, currentTime + secondsToAdd);
+        const currentTime = parseInt(existingItem.PROPERTY_VALUES?.TOTAL_TIME || 0)
+        const newTime = Math.max(0, currentTime + secondsToAdd)
 
-        await this.updateItem(existingItem.ID, {
-          TOTAL_TIME: newTime,
-          UPDATED_AT: now
-        });
+        const results = await this.executeBatch([
+          ['entity.item.update', {
+            ENTITY: this.storageName,
+            ID: existingItem.ID,
+            PROPERTY_VALUES: {
+              TOTAL_TIME: newTime,
+              UPDATED_AT: now
+            }
+          }]
+        ])
 
-        console.log(`Обновлено время для пользователя ${userId}: ${currentTime} -> ${newTime} (изменение: ${secondsToAdd})`);
+        if (results[0]) {
+          console.log(`Обновлено время для пользователя ${userId}: ${currentTime} -> ${newTime} (изменение: ${secondsToAdd})`)
+        }
       } else {
         // Получаем имя пользователя
-        const userName = await this.getUserNameById(numericUserId);
+        const userName = await this.getUserNameById(numericUserId)
 
-        // Создаем новую запись (используем SECTION, а не SECTION_ID)
-        const newTime = Math.max(0, secondsToAdd);
-        await new Promise((resolve, reject) => {
-          BX24.callMethod('entity.item.add', {
+        // Создаем новую запись
+        const newTime = Math.max(0, secondsToAdd)
+
+        const results = await this.executeBatch([
+          ['entity.item.add', {
             ENTITY: this.storageName,
             NAME: `${userName} - Статистика времени`,
-            SECTION: sectionId, // ВАЖНО: используем SECTION
+            SECTION: sectionId,
             PROPERTY_VALUES: {
               USER_ID: numericUserId,
               USER_NAME: userName,
               TOTAL_TIME: newTime,
               UPDATED_AT: now
             }
-          }, (result) => {
-            if (result.error()) {
-              console.error('Ошибка при создании элемента:', result.error());
-              reject(result.error());
-            } else {
-              console.log(`Создан новый элемент с ID: ${result.data()} для пользователя ${userId} с временем ${newTime}`);
-              resolve();
-            }
-          });
-        });
+          }]
+        ])
+
+        if (results[0]) {
+          console.log(`Создан новый элемент с ID: ${results[0]} для пользователя ${userId} с временем ${newTime}`)
+        }
       }
 
       // Инвалидируем кэш
-      this.invalidateCache();
+      this.invalidateCache()
 
       // Уведомляем об обновлении
-      this.notifyTimeUpdate(numericUserId, secondsToAdd);
+      this.notifyTimeUpdate(numericUserId, secondsToAdd)
 
-      return true;
+      return true
     } catch (error) {
-      console.error('Ошибка обновления/создания времени пользователя:', error);
-      return false;
+      console.error('Ошибка обновления/создания времени пользователя:', error)
+      return false
     }
   }
 
@@ -465,20 +571,20 @@ class Bitrix24Helper {
    * @returns {Promise<boolean>}
    */
   async updateItem(itemId, data) {
-    return new Promise((resolve, reject) => {
-      BX24.callMethod('entity.item.update', {
-        ENTITY: this.storageName,
-        ID: itemId,
-        PROPERTY_VALUES: data
-      }, (result) => {
-        if (result.error()) {
-          console.error('Ошибка при обновлении элемента:', result.error())
-          reject(result.error())
-        } else {
-          resolve(true)
-        }
-      })
-    })
+    try {
+      const results = await this.executeBatch([
+        ['entity.item.update', {
+          ENTITY: this.storageName,
+          ID: itemId,
+          PROPERTY_VALUES: data
+        }]
+      ])
+
+      return results[0] !== null
+    } catch (error) {
+      console.error('Ошибка при обновлении элемента:', error)
+      return false
+    }
   }
 
   /**
@@ -521,11 +627,8 @@ class Bitrix24Helper {
    * @returns {Promise<boolean>}
    */
   async updateUserSavedTime(userId, secondsToAdd) {
-    console.log('updateUserSavedTime')
-    console.log(userId)
-    console.log(secondsToAdd)
-    // Используем новый метод с автоматическим созданием
-    return this.ensureAndUpdateUserTime(userId, secondsToAdd);
+    console.log('updateUserSavedTime', userId, secondsToAdd)
+    return this.ensureAndUpdateUserTime(userId, secondsToAdd)
   }
 
   /**
@@ -563,7 +666,7 @@ class Bitrix24Helper {
         })
       } else {
         // Получаем имя пользователя
-        const userName = await this.getUserNameById(numericUserId);
+        const userName = await this.getUserNameById(numericUserId)
 
         // Создаем новую запись
         await this.createItem(sectionId, {
@@ -703,12 +806,20 @@ class Bitrix24Helper {
       // Получаем все элементы
       const items = await this.getAllItems()
 
-      // Обновляем время у всех элементов на 0
-      for (const item of items) {
-        await this.updateItem(item.ID, {
-          TOTAL_TIME: 0,
-          UPDATED_AT: new Date().toISOString()
-        })
+      // Формируем batch для обновления времени у всех элементов на 0
+      const updateCalls = items.map(item =>
+        ['entity.item.update', {
+          ENTITY: this.storageName,
+          ID: item.ID,
+          PROPERTY_VALUES: {
+            TOTAL_TIME: 0,
+            UPDATED_AT: new Date().toISOString()
+          }
+        }]
+      )
+
+      if (updateCalls.length > 0) {
+        await this.executeBatch(updateCalls)
       }
 
       // Инвалидируем кэш
@@ -736,36 +847,22 @@ class Bitrix24Helper {
       if (!BX24) return false
 
       // Удаляем хранилище
-      await new Promise((resolve, reject) => {
-        BX24.callMethod('entity.delete', {
+      await this.executeBatch([
+        ['entity.delete', {
           ENTITY: this.storageName
-        }, (result) => {
-          if (result.error()) {
-            console.error('Ошибка при удалении хранилища:', result.error())
-            reject(result.error())
-          } else {
-            resolve(true)
-          }
-        })
-      })
+        }]
+      ])
 
       // Создаем новое хранилище
-      await new Promise((resolve, reject) => {
-        BX24.callMethod('entity.add', {
+      await this.executeBatch([
+        ['entity.add', {
           ENTITY: this.storageName,
           NAME: 'Сохраненное время',
           ACCESS: {
             AU: 'W'
           }
-        }, (result) => {
-          if (result.error()) {
-            console.error('Ошибка при создании хранилища:', result.error())
-            reject(result.error())
-          } else {
-            resolve(true)
-          }
-        })
-      })
+        }]
+      ])
 
       // Создаем свойства
       const properties = [
@@ -775,16 +872,16 @@ class Bitrix24Helper {
         {PROPERTY: 'UPDATED_AT', NAME: 'Дата последнего обновления', TYPE: 'S'}
       ]
 
-      for (const prop of properties) {
-        await new Promise((resolve) => {
-          BX24.callMethod('entity.item.property.add', {
-            ENTITY: this.storageName,
-            PROPERTY: prop.PROPERTY,
-            NAME: prop.NAME,
-            TYPE: prop.TYPE
-          }, () => resolve(true))
-        })
-      }
+      const propertyCalls = properties.map(prop =>
+        ['entity.item.property.add', {
+          ENTITY: this.storageName,
+          PROPERTY: prop.PROPERTY,
+          NAME: prop.NAME,
+          TYPE: prop.TYPE
+        }]
+      )
+
+      await this.executeBatch(propertyCalls)
 
       // Инвалидируем кэш
       this.invalidateCache()
@@ -947,24 +1044,36 @@ class Bitrix24Helper {
    * @returns {Promise<Array>}
    */
   async getAllUsers() {
-    return new Promise((resolve, reject) => {
-      if (typeof BX24 !== 'undefined' && BX24.callMethod) {
-        BX24.callMethod(
-          "user.get",
-          {},
-          (result) => {
-            if (result.error()) {
-              console.error("Ошибка при получении списка пользователей:", result.error())
-              reject(result.error())
-            } else {
-              resolve(result.data())
-            }
-          }
-        )
-      } else {
-        reject(new Error('Bitrix24 API не доступен'))
+    try {
+      let allUsers = []
+      let page = 1
+      const pageSize = 50
+
+      while (true) {
+        const results = await this.executeBatch([
+          ['user.get', {
+            NAV_PARAMS: {
+              nPageSize: pageSize,
+              iNumPage: page
+            },
+            SELECT: ['ID', 'NAME', 'LAST_NAME', 'SECOND_NAME', 'EMAIL']
+          }]
+        ])
+
+        const users = results[0] || []
+        if (users.length === 0) break
+
+        allUsers = allUsers.concat(users)
+        if (users.length < pageSize) break
+
+        page++
       }
-    })
+
+      return allUsers
+    } catch (error) {
+      console.error("Ошибка при получении списка пользователей:", error)
+      return []
+    }
   }
 }
 
