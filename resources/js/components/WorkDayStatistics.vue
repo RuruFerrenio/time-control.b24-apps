@@ -1197,7 +1197,7 @@ class WorkDayStatisticsManager {
       // Клонируем элемент
       const clone = originalElement.cloneNode(true);
 
-      // Создаём временный контейнер в visible области
+      // Создаём временный контейнер
       const tempContainer = document.createElement('div');
       tempContainer.id = 'pdf-export-container';
       tempContainer.style.cssText = `
@@ -1212,7 +1212,6 @@ class WorkDayStatisticsManager {
       opacity: 1;
       pointer-events: none;
       overflow: visible;
-      box-shadow: 0 0 20px rgba(0,0,0,0.1);
     `;
 
       // Добавляем заголовок
@@ -1246,50 +1245,92 @@ class WorkDayStatisticsManager {
         try {
           const img = document.createElement('img');
 
-          // Создаём canvas с высоким разрешением
-          const tempCanvas = document.createElement('canvas');
-          const scale = 2;
-          tempCanvas.width = canvas.width * scale;
-          tempCanvas.height = canvas.height * scale;
+          // Сохраняем оригинальные размеры
+          const width = canvas.width;
+          const height = canvas.height;
 
-          const ctx = tempCanvas.getContext('2d');
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'high';
+          if (width > 0 && height > 0) {
+            // Создаём canvas с высоким разрешением
+            const tempCanvas = document.createElement('canvas');
+            const scale = 3; // Увеличим масштаб для лучшего качества
+            tempCanvas.width = width * scale;
+            tempCanvas.height = height * scale;
 
-          // Рисуем оригинальный canvas
-          ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, tempCanvas.width, tempCanvas.height);
+            const ctx = tempCanvas.getContext('2d');
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
 
-          img.src = tempCanvas.toDataURL('image/png', 1.0);
-          img.style.cssText = canvas.style.cssText;
-          img.style.width = '100%';
-          img.style.height = 'auto';
-          img.style.maxWidth = '100%';
+            // Рисуем с масштабированием
+            ctx.drawImage(canvas, 0, 0, width, height, 0, 0, tempCanvas.width, tempCanvas.height);
 
-          // Заменяем canvas
-          canvas.parentNode.replaceChild(img, canvas);
+            img.src = tempCanvas.toDataURL('image/png', 1.0);
+            img.style.cssText = canvas.style.cssText;
+            img.style.width = canvas.style.width || '100%';
+            img.style.height = 'auto';
+            img.style.maxWidth = '100%';
 
-          console.log(`Canvas ${i} сконвертирован`);
+            // Заменяем canvas
+            canvas.parentNode.replaceChild(img, canvas);
 
-          // Небольшая задержка для загрузки изображения
-          await new Promise(resolve => setTimeout(resolve, 100));
+            console.log(`Canvas ${i} сконвертирован (${width}x${height} -> ${tempCanvas.width}x${tempCanvas.height})`);
+          }
         } catch (e) {
           console.error(`Ошибка конвертации canvas ${i}:`, e);
+          // В случае ошибки оставляем canvas как есть
         }
+
+        // Небольшая задержка
+        await new Promise(resolve => setTimeout(resolve, 50));
       }
 
-      // Удаляем все интерактивные элементы и атрибуты
-      const interactiveElements = tempContainer.querySelectorAll('button, [role="button"], .cursor-pointer, [onclick], [@click]');
-      interactiveElements.forEach(el => {
+      // Безопасное удаление интерактивных элементов
+      // 1. Удаляем все кнопки
+      const buttons = tempContainer.querySelectorAll('button');
+      buttons.forEach(button => {
         const span = document.createElement('span');
-        span.textContent = el.textContent;
-        span.style.cssText = window.getComputedStyle(el).cssText;
+        span.textContent = button.textContent || '';
+        span.className = button.className;
+        // Копируем основные стили
+        span.style.cssText = `
+        display: inline-block;
+        padding: ${button.style.padding || '8px 16px'};
+        background: ${button.style.background || '#f3f4f6'};
+        color: ${button.style.color || '#374151'};
+        border-radius: ${button.style.borderRadius || '6px'};
+        font-size: ${button.style.fontSize || '14px'};
+        cursor: default;
+      `;
+        button.parentNode.replaceChild(span, button);
+      });
+
+      // 2. Удаляем элементы с role="button"
+      const roleButtons = tempContainer.querySelectorAll('[role="button"]');
+      roleButtons.forEach(el => {
+        const span = document.createElement('span');
+        span.textContent = el.textContent || '';
         span.className = el.className;
         el.parentNode.replaceChild(span, el);
       });
 
-      // Удаляем Vue-атрибуты
+      // 3. Удаляем курсор-поинтер
+      const pointerElements = tempContainer.querySelectorAll('.cursor-pointer');
+      pointerElements.forEach(el => {
+        el.classList.remove('cursor-pointer');
+        el.style.cursor = 'default';
+      });
+
+      // 4. Удаляем hover-классы
       const allElements = tempContainer.querySelectorAll('*');
       allElements.forEach(el => {
+        // Убираем hover-классы
+        const classes = el.className.split(' ');
+        const filteredClasses = classes.filter(cls => !cls.includes('hover:'));
+        el.className = filteredClasses.join(' ');
+
+        // Убираем onclick атрибуты
+        el.removeAttribute('onclick');
+
+        // Убираем Vue-специфичные атрибуты
         const attrs = el.attributes;
         for (let i = attrs.length - 1; i >= 0; i--) {
           const attrName = attrs[i].name;
@@ -1302,7 +1343,7 @@ class WorkDayStatisticsManager {
         }
       });
 
-      // Добавляем стили для печати
+      // Добавляем базовые стили
       const style = document.createElement('style');
       style.textContent = `
       * {
@@ -1320,19 +1361,31 @@ class WorkDayStatisticsManager {
       .border { border: 1px solid #e5e7eb; }
       .rounded-lg { border-radius: 8px; }
       .shadow { box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-      img, canvas { max-width: 100%; height: auto; }
+      img { max-width: 100%; height: auto; }
       table { width: 100%; border-collapse: collapse; }
-      td, th { padding: 8px; text-align: left; }
+      td, th { padding: 8px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+      .grid { display: grid; gap: 24px; }
+      .flex { display: flex; }
+      .items-center { align-items: center; }
+      .justify-between { justify-content: space-between; }
+      .text-sm { font-size: 14px; }
+      .font-medium { font-weight: 500; }
+      .text-gray-900 { color: #1f2937; }
+      .text-gray-500 { color: #6b7280; }
     `;
+
       tempContainer.insertBefore(style, tempContainer.firstChild);
 
       console.log('Начинаем генерацию PDF...');
+
+      // Даем время на применение стилей
+      await new Promise(resolve => setTimeout(resolve, 300));
 
       // Настройки PDF
       const opt = {
         margin: [0.5, 0.5, 0.5, 0.5],
         filename: `bitrix24-статистика-${this.selectedDay.value}.pdf`,
-        image: { type: 'jpeg', quality: 0.95 },
+        image: { type: 'jpeg', quality: 0.98 },
         html2canvas: {
           scale: 2,
           logging: true,
@@ -1348,6 +1401,7 @@ class WorkDayStatisticsManager {
               clonedElement.style.position = 'absolute';
               clonedElement.style.top = '0';
               clonedElement.style.left = '0';
+              clonedElement.style.pointerEvents = 'none';
             }
           }
         },
