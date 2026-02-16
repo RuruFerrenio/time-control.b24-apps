@@ -1184,7 +1184,7 @@ class WorkDayStatisticsManager {
       // Ждём обновления DOM и скрываем загрузчик
       this.isLoading.value = false;
       await nextTick();
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       // Находим основной контейнер со статистикой
       const originalElement = document.getElementById('work_day_statistic');
@@ -1192,181 +1192,119 @@ class WorkDayStatisticsManager {
         throw new Error('Элемент статистики не найден');
       }
 
-      // Клонируем элемент со всем содержимым
+      console.log('Оригинальный элемент найден:', originalElement);
+
+      // Клонируем элемент
       const clone = originalElement.cloneNode(true);
 
-      // Временно добавляем в DOM для корректного рендеринга canvas
-      clone.style.position = 'fixed';
-      clone.style.top = '-9999px';
-      clone.style.left = '-9999px';
-      clone.style.width = '1200px';
-      clone.style.background = 'white';
-      clone.style.zIndex = '9999';
-      document.body.appendChild(clone);
+      // Создаём временный контейнер в visible области
+      const tempContainer = document.createElement('div');
+      tempContainer.id = 'pdf-export-container';
+      tempContainer.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 1200px;
+      background: white;
+      padding: 30px;
+      z-index: 10000;
+      visibility: visible;
+      opacity: 1;
+      pointer-events: none;
+      overflow: visible;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    `;
 
-      // Конвертируем canvas в изображения с высоким качеством
-      const canvases = clone.querySelectorAll('canvas');
-      const canvasPromises = Array.from(canvases).map(async (canvas, index) => {
+      // Добавляем заголовок
+      const header = document.createElement('div');
+      header.style.cssText = `
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #e5e7eb;
+    `;
+      header.innerHTML = `
+      <h1 style="font-size: 24px; font-weight: 600; color: #1f2937; margin-bottom: 5px;">
+        ${this.pageTitle}
+      </h1>
+      <p style="color: #6b7280; font-size: 14px;">
+        ${this.formatDayDisplay(this.selectedDay.value)} • Экспорт: ${new Date().toLocaleString('ru-RU')}
+      </p>
+    `;
+
+      tempContainer.appendChild(header);
+      tempContainer.appendChild(clone);
+      document.body.appendChild(tempContainer);
+
+      console.log('Временный контейнер добавлен');
+
+      // Конвертируем canvas в изображения
+      const canvases = tempContainer.querySelectorAll('canvas');
+      console.log('Найдено canvas элементов:', canvases.length);
+
+      for (let i = 0; i < canvases.length; i++) {
+        const canvas = canvases[i];
         try {
-          // Создаём изображение с высоким разрешением
           const img = document.createElement('img');
 
-          // Увеличиваем качество для PDF
-          const scale = 2;
-          const width = canvas.width;
-          const height = canvas.height;
-
-          // Создаём временный canvas для масштабирования
+          // Создаём canvas с высоким разрешением
           const tempCanvas = document.createElement('canvas');
-          tempCanvas.width = width * scale;
-          tempCanvas.height = height * scale;
-          const ctx = tempCanvas.getContext('2d');
+          const scale = 2;
+          tempCanvas.width = canvas.width * scale;
+          tempCanvas.height = canvas.height * scale;
 
-          // Включаем сглаживание для лучшего качества
+          const ctx = tempCanvas.getContext('2d');
           ctx.imageSmoothingEnabled = true;
           ctx.imageSmoothingQuality = 'high';
 
-          // Рисуем оригинальный canvas на временном с масштабированием
-          ctx.drawImage(canvas, 0, 0, width, height, 0, 0, tempCanvas.width, tempCanvas.height);
+          // Рисуем оригинальный canvas
+          ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, tempCanvas.width, tempCanvas.height);
 
-          // Получаем изображение высокого качества
           img.src = tempCanvas.toDataURL('image/png', 1.0);
-
-          // Копируем все стили с оригинального canvas
           img.style.cssText = canvas.style.cssText;
-          img.style.maxWidth = '100%';
+          img.style.width = '100%';
           img.style.height = 'auto';
-          img.style.display = 'block';
+          img.style.maxWidth = '100%';
 
-          // Заменяем canvas на изображение
+          // Заменяем canvas
           canvas.parentNode.replaceChild(img, canvas);
 
-          // Ждём загрузки изображения
-          return new Promise((resolve) => {
-            img.onload = resolve;
-            img.onerror = resolve; // Продолжаем даже при ошибке
-          });
+          console.log(`Canvas ${i} сконвертирован`);
+
+          // Небольшая задержка для загрузки изображения
+          await new Promise(resolve => setTimeout(resolve, 100));
         } catch (e) {
-          console.warn(`Ошибка конвертации canvas ${index}:`, e);
+          console.error(`Ошибка конвертации canvas ${i}:`, e);
+        }
+      }
+
+      // Удаляем все интерактивные элементы и атрибуты
+      const interactiveElements = tempContainer.querySelectorAll('button, [role="button"], .cursor-pointer, [onclick], [@click]');
+      interactiveElements.forEach(el => {
+        const span = document.createElement('span');
+        span.textContent = el.textContent;
+        span.style.cssText = window.getComputedStyle(el).cssText;
+        span.className = el.className;
+        el.parentNode.replaceChild(span, el);
+      });
+
+      // Удаляем Vue-атрибуты
+      const allElements = tempContainer.querySelectorAll('*');
+      allElements.forEach(el => {
+        const attrs = el.attributes;
+        for (let i = attrs.length - 1; i >= 0; i--) {
+          const attrName = attrs[i].name;
+          if (attrName.startsWith('@') ||
+              attrName.startsWith('v-') ||
+              attrName.startsWith('data-v-') ||
+              attrName.startsWith(':')) {
+            el.removeAttribute(attrName);
+          }
         }
       });
 
-      // Ждём загрузки всех изображений
-      await Promise.all(canvasPromises);
-
-      // Преобразуем интерактивные элементы в статичные
-      const interactiveSelectors = [
-        'button',
-        '[role="button"]',
-        '.cursor-pointer',
-        '.hover\\:bg-gray-50',
-        '.hover\\:shadow-md',
-        '.group'
-      ];
-
-      interactiveSelectors.forEach(selector => {
-        const elements = clone.querySelectorAll(selector);
-        elements.forEach(el => {
-          // Удаляем все hover-эффекты
-          const classes = el.className.split(' ');
-          const filteredClasses = classes.filter(cls => !cls.includes('hover:'));
-          el.className = filteredClasses.join(' ');
-
-          // Убираем интерактивные атрибуты
-          el.removeAttribute('onclick');
-          el.removeAttribute('@click');
-          el.removeAttribute('v-on:click');
-          el.removeAttribute('tabindex');
-          el.style.cursor = 'default';
-          el.style.pointerEvents = 'none';
-        });
-      });
-
-      // Удаляем все Vue-специфичные атрибуты
-      const allElements = clone.querySelectorAll('*');
-      allElements.forEach(el => {
-        const attrsToRemove = [];
-        Array.from(el.attributes).forEach(attr => {
-          if (attr.name.startsWith('@') ||
-              attr.name.startsWith('v-') ||
-              attr.name.startsWith('data-v-') ||
-              attr.name === ':class' ||
-              attr.name === ':style') {
-            attrsToRemove.push(attr.name);
-          }
-        });
-        attrsToRemove.forEach(attr => el.removeAttribute(attr));
-      });
-
-      // Фиксируем все значения в легенде и графиках
-      const legendItems = clone.querySelectorAll('[class*="legend"]');
-      legendItems.forEach(item => {
-        // Убираем анимации и переходы
-        item.style.transition = 'none';
-        item.style.animation = 'none';
-      });
-
-      // Добавляем заголовок с датой
-      const headerDiv = document.createElement('div');
-      headerDiv.className = 'pdf-header';
-      headerDiv.style.cssText = `
-      margin-bottom: 30px;
-      padding: 20px;
-      background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
-      border-radius: 12px;
-      border: 1px solid #e5e7eb;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-    `;
-
-      const title = document.createElement('h1');
-      title.style.cssText = `
-      font-size: 28px;
-      font-weight: 600;
-      color: #0a2540;
-      margin-bottom: 8px;
-      letter-spacing: -0.01em;
-    `;
-      title.textContent = this.pageTitle;
-
-      const dateSubtitle = document.createElement('p');
-      dateSubtitle.style.cssText = `
-      color: #4b5563;
-      font-size: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    `;
-      dateSubtitle.innerHTML = `
-      <span style="background: #e5e7eb; width: 4px; height: 4px; border-radius: 50%; display: inline-block;"></span>
-      ${this.formatDayDisplay(this.selectedDay.value)}
-      <span style="background: #e5e7eb; width: 4px; height: 4px; border-radius: 50%; display: inline-block;"></span>
-      Экспорт: ${new Date().toLocaleString('ru-RU')}
-    `;
-
-      headerDiv.appendChild(title);
-      headerDiv.appendChild(dateSubtitle);
-
-      // Вставляем заголовок в начало клона
-      clone.insertBefore(headerDiv, clone.firstChild);
-
-      // Добавляем "водяной знак" с датой экспорта
-      const watermark = document.createElement('div');
-      watermark.style.cssText = `
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      font-size: 10px;
-      color: #d1d5db;
-      opacity: 0.5;
-      z-index: 1000;
-    `;
-      watermark.textContent = `Сгенерировано ${new Date().toLocaleString('ru-RU')}`;
-      clone.style.position = 'relative';
-      clone.appendChild(watermark);
-
-      // Добавляем базовые стили для PDF
-      const styleEl = document.createElement('style');
-      styleEl.textContent = `
+      // Добавляем стили для печати
+      const style = document.createElement('style');
+      style.textContent = `
       * {
         box-sizing: border-box;
         -webkit-print-color-adjust: exact !important;
@@ -1376,60 +1314,40 @@ class WorkDayStatisticsManager {
         margin: 0;
         padding: 0;
         background: white;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        line-height: 1.5;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       }
-      .b24-card, .bg-white {
-        background: white;
-        border-radius: 12px;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        page-break-inside: avoid;
-      }
-      canvas, img {
-        max-width: 100%;
-        height: auto;
-        page-break-inside: avoid;
-      }
-      table {
-        page-break-inside: avoid;
-      }
-      .grid {
-        display: grid;
-        gap: 24px;
-      }
-      @media print {
-        .no-print { display: none; }
-        .page-break { page-break-before: always; }
-      }
+      .bg-white { background-color: #ffffff; }
+      .border { border: 1px solid #e5e7eb; }
+      .rounded-lg { border-radius: 8px; }
+      .shadow { box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+      img, canvas { max-width: 100%; height: auto; }
+      table { width: 100%; border-collapse: collapse; }
+      td, th { padding: 8px; text-align: left; }
     `;
-      clone.prepend(styleEl);
+      tempContainer.insertBefore(style, tempContainer.firstChild);
 
-      // Настройки PDF для максимального качества
+      console.log('Начинаем генерацию PDF...');
+
+      // Настройки PDF
       const opt = {
-        margin: [0.3, 0.3, 0.3, 0.3],
+        margin: [0.5, 0.5, 0.5, 0.5],
         filename: `bitrix24-статистика-${this.selectedDay.value}.pdf`,
-        image: {
-          type: 'jpeg',
-          quality: 0.98
-        },
+        image: { type: 'jpeg', quality: 0.95 },
         html2canvas: {
-          scale: 2.5,
-          logging: false,
+          scale: 2,
+          logging: true,
           backgroundColor: '#ffffff',
           allowTaint: false,
           useCORS: true,
           letterRendering: true,
-          scrollX: 0,
-          scrollY: 0,
           windowWidth: 1200,
-          windowHeight: 1600,
           onclone: (clonedDoc) => {
-            // Дополнительные правки внутри клонированного документа
-            const clonedElement = clonedDoc.querySelector('[style*="position: fixed"]');
+            console.log('HTML2Canvas клон создан');
+            const clonedElement = clonedDoc.getElementById('pdf-export-container');
             if (clonedElement) {
-              clonedElement.style.visibility = 'visible';
               clonedElement.style.position = 'absolute';
+              clonedElement.style.top = '0';
+              clonedElement.style.left = '0';
             }
           }
         },
@@ -1437,63 +1355,29 @@ class WorkDayStatisticsManager {
           unit: 'mm',
           format: 'a4',
           orientation: 'portrait',
-          compress: true,
-          precision: 16
-        },
-        pagebreak: {
-          mode: ['css', 'legacy'],
-          before: '.page-break',
-          after: '.page-after',
-          avoid: 'img, canvas, table, .b24-card'
+          compress: true
         }
       };
 
-      // Создаём временный контейнер для экспорта
-      const exportContainer = document.createElement('div');
-      exportContainer.style.cssText = `
-      position: fixed;
-      top: -10000px;
-      left: -10000px;
-      width: 1200px;
-      background: white;
-      padding: 40px;
-      z-index: 10000;
-      visibility: visible;
-      opacity: 1;
-    `;
-
-      // Переносим клон в контейнер
-      document.body.removeChild(clone);
-      exportContainer.appendChild(clone);
-      document.body.appendChild(exportContainer);
-
       // Генерируем PDF
-      await html2pdf()
-          .from(exportContainer)
-          .set(opt)
-          .toPdf()
-          .get('pdf')
-          .then((pdf) => {
-            // Добавляем метаданные в PDF
-            pdf.setProperties({
-              title: `Bitrix24 статистика - ${this.formatDayDisplay(this.selectedDay.value)}`,
-              subject: 'Анализ рабочего времени',
-              author: 'Bitrix24 Work Statistics',
-              keywords: 'bitrix24, статистика, рабочий день, анализ',
-              creator: 'Bitrix24 Work Day Statistics App'
-            });
-          })
-          .save();
+      await html2pdf().set(opt).from(tempContainer).save();
+
+      console.log('PDF сгенерирован');
 
       // Очищаем DOM
-      document.body.removeChild(exportContainer);
+      document.body.removeChild(tempContainer);
 
-      // Показываем уведомление об успехе
       this.showNotification('success', 'PDF успешно экспортирован');
 
     } catch (error) {
       console.error('Ошибка экспорта PDF:', error);
       this.showNotification('error', 'Ошибка при экспорте PDF: ' + error.message);
+
+      // Пытаемся очистить DOM в случае ошибки
+      const tempContainer = document.getElementById('pdf-export-container');
+      if (tempContainer) {
+        document.body.removeChild(tempContainer);
+      }
     } finally {
       this.isLoading.value = false;
       await nextTick();
