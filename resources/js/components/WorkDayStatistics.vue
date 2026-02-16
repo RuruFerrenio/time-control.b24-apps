@@ -20,7 +20,7 @@
                   </h3>
                   <p class="text-sm text-gray-500 mt-1 flex items-center gap-1">
                     Анализ времени в Bitrix24 относительно рабочего дня
-                    <span v-if="viewedUserId && viewedUserId !== currentUserId" class="font-medium">
+                    <span v-if="viewedUserId && viewedUserId !== currentUserId" class="font-medium text-blue-600">
                       (Пользователь #{{ viewedUserId }})
                     </span>
                   </p>
@@ -442,7 +442,7 @@
                                 <span class="text-xs text-gray-700 truncate">{{ row.original.entity }}</span>
                               </template>
                               <template #count-cell="{ row }">
-                                <span class="text-sm font-semibold ml-2">{{ row.original.count }}</span>
+                                <span class="text-sm font-semibold text-blue-600 ml-2">{{ row.original.count }}</span>
                               </template>
                             </B24Table>
                           </div>
@@ -515,7 +515,7 @@
 
                         <!-- Текущий рабочий день -->
                         <div>
-                          <h5 class="text-sm font-medium  mb-4">
+                          <h5 class="text-sm font-medium mb-4">
                             <span class="flex items-center gap-2">
                               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
@@ -740,8 +740,8 @@ class WorkDayStatisticsManager {
         header: 'Настройка',
         meta: {
           class: {
-            th: 'text-xs text-gray-700',
-            td: 'text-xs text-gray-700'
+            th: 'text-xs text-gray-600',
+            td: 'text-xs text-gray-600'
           }
         }
       },
@@ -764,8 +764,8 @@ class WorkDayStatisticsManager {
         header: 'Параметр',
         meta: {
           class: {
-            th: 'text-xs text-gray-700',
-            td: 'text-xs text-gray-700'
+            th: 'text-xs text-gray-600',
+            td: 'text-xs text-gray-600'
           }
         }
       },
