@@ -1179,7 +1179,7 @@ class WorkDayStatisticsManager {
   // Метод для экспорта в PDF
   async exportToPDF() {
     try {
-      isLoading.value = true
+      this.isLoading.value = true
 
       // Создаем элемент для экспорта
       const element = document.createElement('div')
@@ -1666,7 +1666,7 @@ class WorkDayStatisticsManager {
         variant: 'error'
       })
     } finally {
-      isLoading.value = false
+      this.isLoading.value = false
     }
   }
 
