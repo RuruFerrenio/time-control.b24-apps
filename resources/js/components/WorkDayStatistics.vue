@@ -740,8 +740,8 @@ class WorkDayStatisticsManager {
         header: 'Настройка',
         meta: {
           class: {
-            th: 'text-sm',
-            td: 'text-sm'
+            th: 'text-xs text-gray-700',
+            td: 'text-xs text-gray-700'
           }
         }
       },
@@ -764,8 +764,8 @@ class WorkDayStatisticsManager {
         header: 'Параметр',
         meta: {
           class: {
-            th: 'text-sm',
-            td: 'text-sm'
+            th: 'text-xs text-gray-700',
+            td: 'text-xs text-gray-700'
           }
         }
       },
