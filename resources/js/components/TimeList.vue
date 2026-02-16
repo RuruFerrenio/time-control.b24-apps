@@ -491,9 +491,10 @@
                               v-if="userData.userId !== currentUserId && bitrixHelper && bitrixHelper.isStatisticsAvailable()"
                               :to="{ path: '/workday-statistics', query: { userId: userData.userId } }"
                               class="inline-block"
+                              size="md"
                           >
                             <B24Button
-                                size="xs"
+                                size="md"
                                 color="air-selection"
                                 class="text-xs"
                                 title="Посмотреть статистику"
