@@ -1659,7 +1659,7 @@ class WorkDayStatisticsManager {
         variant: 'success'
       })
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('Ошибка экспорта PDF:', error)
       toast.add({
         description: 'Ошибка при экспорте PDF: ' + error.message,
