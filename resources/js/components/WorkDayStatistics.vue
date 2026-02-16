@@ -498,6 +498,7 @@
                                 :columns="workDaySettingsColumns"
                                 :loading="isLoading"
                                 class="w-full"
+                                color="black"
                             >
                               <template #value-cell="{ row }">
                                 <span v-if="row.original.badge">
