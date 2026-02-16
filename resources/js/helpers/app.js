@@ -189,17 +189,27 @@ class Bitrix24Helper {
       })
 
       BX24.callBatch(batchCommands, (result) => {
+        if (result.error()) {
+          console.error('Ошибка batch-запроса:', result.error())
+          reject(result.error())
+          return
+        }
+
         const results = []
 
+        // Проходим по всем командам в порядке их вызова
         for (let i = 0; i < calls.length; i++) {
           const cmdName = `cmd_${i}`
+          const cmdResult = result[cmdName]
 
-          // Правильный способ получения данных
-          if (result[cmdName] && typeof result[cmdName].getData === 'function') {
-            results.push(result[cmdName].getData())
-          } else if (result[cmdName] && result[cmdName].data !== undefined) {
-            // Альтернативный способ - прямой доступ к data
-            results.push(result[cmdName].data)
+          if (cmdResult) {
+            if (cmdResult.error()) {
+              console.error(`Ошибка в запросе ${i}:`, cmdResult.error())
+              results.push(null)
+            } else {
+              // Получаем данные правильным способом
+              results.push(cmdResult.data())
+            }
           } else {
             results.push(null)
           }
@@ -225,7 +235,7 @@ class Bitrix24Helper {
 
       const sections = results[0] || []
 
-      if (sections.length > 0) {
+      if (sections && sections.length > 0) {
         // Берем первый раздел как корневой
         return parseInt(sections[0].ID)
       }
