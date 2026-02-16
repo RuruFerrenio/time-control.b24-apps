@@ -20,7 +20,7 @@
                   </h3>
                   <p class="text-sm text-gray-500 mt-1 flex items-center gap-1">
                     Анализ времени в Bitrix24 относительно рабочего дня
-                    <span v-if="viewedUserId && viewedUserId !== currentUserId" class="font-medium text-blue-600">
+                    <span v-if="viewedUserId && viewedUserId !== currentUserId" class="font-medium">
                       (Пользователь #{{ viewedUserId }})
                     </span>
                   </p>
@@ -442,7 +442,7 @@
                                 <span class="text-xs text-gray-700 truncate">{{ row.original.entity }}</span>
                               </template>
                               <template #count-cell="{ row }">
-                                <span class="text-sm font-semibold text-blue-600 ml-2">{{ row.original.count }}</span>
+                                <span class="text-sm font-semibold ml-2">{{ row.original.count }}</span>
                               </template>
                             </B24Table>
                           </div>
@@ -498,7 +498,6 @@
                                 :columns="workDaySettingsColumns"
                                 :loading="isLoading"
                                 class="w-full"
-                                color="black"
                             >
                               <template #value-cell="{ row }">
                                 <span v-if="row.original.badge">
@@ -741,8 +740,8 @@ class WorkDayStatisticsManager {
         header: 'Настройка',
         meta: {
           class: {
-            th: 'text-sm text-blue-700',
-            td: 'text-sm text-blue-700'
+            th: 'text-sm',
+            td: 'text-sm'
           }
         }
       },
@@ -765,8 +764,8 @@ class WorkDayStatisticsManager {
         header: 'Параметр',
         meta: {
           class: {
-            th: 'text-sm text-blue-700',
-            td: 'text-sm text-blue-700'
+            th: 'text-sm',
+            td: 'text-sm'
           }
         }
       },
