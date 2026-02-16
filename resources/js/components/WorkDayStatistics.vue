@@ -1181,135 +1181,47 @@ class WorkDayStatisticsManager {
     try {
       this.isLoading.value = true;
 
-      // Ждём обновления DOM
-      this.isLoading.value = false;
       await nextTick();
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Находим элемент со статистикой
-      const statsElement = document.getElementById('work_day_statistic');
-      if (!statsElement) {
+      // Находим элемент
+      const element = document.getElementById('work_day_statistic');
+      if (!element) {
         throw new Error('Элемент статистики не найден');
       }
 
-      // Создаём контейнер для экспорта
-      const exportContainer = document.createElement('div');
-      exportContainer.id = 'pdf-export';
-      exportContainer.style.cssText = `
-      position: fixed;
-      top: 50px;
-      left: 50px;
-      width: 1100px;
+      console.log('Элемент найден:', element);
+
+      // Создаём простой контейнер
+      const container = document.createElement('div');
+      container.id = 'pdf-container';
+      container.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1200px;
       background: white;
       padding: 30px;
       z-index: 10000;
-      border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     `;
 
-      // Добавляем заголовок
-      const header = document.createElement('div');
-      header.innerHTML = `
-      <div style="margin-bottom: 25px; padding-bottom: 20px; border-bottom: 2px solid #e5e7eb;">
-        <h1 style="font-size: 28px; font-weight: 600; color: #111827; margin: 0 0 8px 0;">
-          ${this.pageTitle}
-        </h1>
-        <div style="display: flex; align-items: center; gap: 12px; color: #6B7280; font-size: 15px;">
-          <span>${this.formatDayDisplay(this.selectedDay.value)}</span>
-          <span style="width: 4px; height: 4px; background: #D1D5DB; border-radius: 50%;"></span>
-          <span>Экспорт: ${new Date().toLocaleString('ru-RU')}</span>
-        </div>
-      </div>
-    `;
-      exportContainer.appendChild(header);
+      // Копируем содержимое
+      container.innerHTML = element.outerHTML;
+      document.body.appendChild(container);
 
-      // Клонируем содержимое статистики
-      const contentClone = statsElement.cloneNode(true);
-      exportContainer.appendChild(contentClone);
-      document.body.appendChild(exportContainer);
+      console.log('Контейнер добавлен в DOM');
 
-      // Конвертируем canvas в изображения
-      const canvases = exportContainer.querySelectorAll('canvas');
-      for (let i = 0; i < canvases.length; i++) {
-        const canvas = canvases[i];
-        try {
-          const img = document.createElement('img');
-
-          // Получаем данные canvas
-          const dataUrl = canvas.toDataURL('image/png', 1.0);
-          img.src = dataUrl;
-
-          // Копируем стили
-          img.style.cssText = canvas.style.cssText;
-          img.style.width = canvas.style.width || '100%';
-          img.style.height = 'auto';
-          img.style.maxWidth = '100%';
-
-          // Заменяем canvas на изображение
-          canvas.parentNode.replaceChild(img, canvas);
-        } catch (e) {
-          console.warn('Ошибка конвертации canvas:', e);
-        }
-      }
-
-      // Преобразуем кнопки в текст
-      const buttons = exportContainer.querySelectorAll('button');
-      buttons.forEach(button => {
-        const textSpan = document.createElement('span');
-        textSpan.textContent = button.textContent;
-        textSpan.style.cssText = `
-        display: inline-block;
-        padding: 8px 16px;
-        background: #F3F4F6;
-        color: #374151;
-        border-radius: 6px;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: default;
-      `;
-        button.parentNode.replaceChild(textSpan, button);
-      });
-
-      // Убираем все интерактивные классы
-      const allElements = exportContainer.querySelectorAll('*');
-      allElements.forEach(el => {
-        // Убираем hover-эффекты
-        if (el.className && typeof el.className === 'string') {
-          const classes = el.className.split(' ');
-          const cleanClasses = classes.filter(cls => !cls.includes('hover:'));
-          el.className = cleanClasses.join(' ');
-        }
-
-        // Убираем курсор-pointer
-        el.style.cursor = 'default';
-
-        // Убираем события
-        el.removeAttribute('onclick');
-        el.removeAttribute('@click');
-        el.removeAttribute('v-on:click');
-      });
-
-      // Ждём загрузки всех изображений
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Настройки PDF
+      // Простые настройки
       const opt = {
         margin: [0.5, 0.5, 0.5, 0.5],
-        filename: `bitrix24-статистика-${this.selectedDay.value}.pdf`,
-        image: { type: 'jpeg', quality: 0.95 },
+        filename: `bitrix24-${this.selectedDay.value}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
         html2canvas: {
           scale: 2,
           backgroundColor: '#ffffff',
-          logging: false,
-          windowWidth: 1100,
-          onclone: (doc) => {
-            const el = doc.getElementById('pdf-export');
-            if (el) {
-              el.style.position = 'absolute';
-              el.style.top = '0';
-              el.style.left = '0';
-            }
-          }
+          logging: true,
+          allowTaint: false,
+          useCORS: true
         },
         jsPDF: {
           unit: 'mm',
@@ -1318,23 +1230,20 @@ class WorkDayStatisticsManager {
         }
       };
 
-      // Генерируем PDF
-      await html2pdf().set(opt).from(exportContainer).save();
+      // Ждём
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Очищаем DOM
-      document.body.removeChild(exportContainer);
+      // Экспортируем
+      await html2pdf().from(container).set(opt).save();
 
-      this.showNotification('success', 'PDF успешно экспортирован');
+      // Удаляем контейнер
+      document.body.removeChild(container);
+
+      this.showNotification('success', 'PDF готов');
 
     } catch (error) {
       console.error('Ошибка экспорта PDF:', error);
-      this.showNotification('error', 'Ошибка при экспорте PDF: ' + error.message);
-
-      // Очищаем DOM при ошибке
-      const exportEl = document.getElementById('pdf-export');
-      if (exportEl) {
-        document.body.removeChild(exportEl);
-      }
+      this.showNotification('error', 'Ошибка: ' + error.message);
     } finally {
       this.isLoading.value = false;
     }
