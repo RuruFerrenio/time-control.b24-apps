@@ -1177,7 +1177,7 @@ class WorkDayStatisticsManager {
   }
 
   // Метод для экспорта в PDF
-  async function exportToPDF() {
+  async exportToPDF() {
     try {
       isLoading.value = true
 
