@@ -312,7 +312,7 @@
                           <template #task-cell="{ row }">
                             <div class="flex flex-col min-w-0">
                               <a
-                                  :href="`/company/personal/user/${currentUserId}/tasks/task/view/${row.original.id}/`"
+                                  :href="getTaskUrl(row.original.id)"
                                   target="_blank"
                                   class="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline truncate block"
                               >
@@ -343,7 +343,7 @@
 
                           <template #responsible-cell="{ row }">
                             <a
-                                :href="`/company/personal/user/${row.original.responsibleId || currentUserId}/`"
+                                :href="getUserUrl(row.original.responsibleId || currentUserId)"
                                 target="_blank"
                                 class="text-sm text-gray-900 hover:text-blue-600 hover:underline flex items-center gap-2"
                             >
@@ -831,6 +831,32 @@ class WorkDayStatisticsManager {
         }
       }
     ]
+  }
+
+  getTaskUrl(taskId) {
+    if (!taskId || !this.currentUserId.value) return '#';
+
+    let domain = '';
+    if (typeof BX24 !== 'undefined' && BX24.getDomain) {
+      domain = BX24.getDomain();
+    } else {
+      domain = window.location.hostname;
+    }
+
+    return `https://${domain}/company/personal/user/${this.currentUserId.value}/tasks/task/view/${taskId}/`;
+  }
+
+  getUserUrl(userId) {
+    if (!userId) return '#';
+
+    let domain = '';
+    if (typeof BX24 !== 'undefined' && BX24.getDomain) {
+      domain = BX24.getDomain();
+    } else {
+      domain = window.location.hostname;
+    }
+
+    return `https://${domain}/company/personal/user/${userId}/`;
   }
 
   // Вычисляемые свойства для таблиц
@@ -2992,7 +3018,10 @@ export default {
       isDateDisabled: manager.isDateDisabled.bind(manager),
       isDateUnavailable: manager.isDateUnavailable.bind(manager),
       hoverLegend: manager.hoverLegend.bind(manager),
-      getEfficiencyColorValue: manager.getEfficiencyColorValue.bind(manager)
+      getEfficiencyColorValue: manager.getEfficiencyColorValue.bind(manager),
+      getTaskUrl: manager.getTaskUrl.bind(manager),
+      getUserUrl: manager.getUserUrl.bind(manager),
+
     }
   }
 }
