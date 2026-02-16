@@ -1181,28 +1181,14 @@ class WorkDayStatisticsManager {
     try {
       this.isLoading.value = true;
 
-      // Ждём появления элемента
-      let element = document.getElementById('work_day_statistic');
-      let attempts = 0;
+      await nextTick();
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-      while (!element && attempts < 10) {
-        console.log('Ждём элемент статистики... попытка', attempts + 1);
-        await new Promise(resolve => setTimeout(resolve, 500));
-        element = document.getElementById('work_day_statistic');
-        attempts++;
-      }
-
-      if (!element) {
-        throw new Error('Элемент статистики не найден после загрузки');
-      }
-
-      console.log('Элемент найден, начинаем экспорт');
-
-      // Создаём контейнер для экспорта
+      // Создаём контейнер для отчёта
       const container = document.createElement('div');
-      container.id = 'export-container';
+      container.id = 'pdf-export';
       container.style.cssText = `
-      position: absolute;
+      position: fixed;
       top: 0;
       left: 0;
       width: 1200px;
@@ -1211,35 +1197,341 @@ class WorkDayStatisticsManager {
       z-index: 10000;
     `;
 
-      // Копируем содержимое элемента
-      container.innerHTML = element.outerHTML;
+      // Заголовок страницы (такой же как в шаблоне)
+      const header = document.createElement('div');
+      header.className = 'mb-8';
+      header.innerHTML = `
+      <h1 class="text-2xl font-bold text-gray-900">${this.pageTitle}</h1>
+      <p class="text-sm text-gray-500 mt-1">Анализ времени в Bitrix24 относительно рабочего дня</p>
+    `;
+      container.appendChild(header);
+
+      // Основная карточка со статистикой
+      const mainCard = document.createElement('div');
+      mainCard.className = 'bg-white rounded-lg border border-gray-200 p-6';
+      mainCard.innerHTML = `
+      <div class="space-y-6">
+        <!-- Заголовок карточки -->
+        <div class="flex items-start justify-between">
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900">Статистика рабочего времени</h3>
+            <p class="text-sm text-gray-500 mt-1">Анализ времени в Bitrix24 относительно рабочего дня</p>
+          </div>
+          <div class="text-sm text-gray-400">Экспорт: ${new Date().toLocaleString('ru-RU')}</div>
+        </div>
+
+        <!-- График и легенда -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 border border-gray-200 rounded-lg p-4">
+          <!-- График -->
+          <div class="bg-white p-4">
+            <h4 class="text-sm font-medium text-gray-900 mb-3">
+              <span class="flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                Распределение времени
+              </span>
+            </h4>
+            <div class="relative w-full h-64">
+              <canvas id="pdf-bitrix-chart"></canvas>
+              <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <div class="text-3xl font-bold text-gray-900">${this.formatPercentage(this.workDayData.value.bitrixTimePercentage)}</div>
+                <div class="text-sm text-gray-500 mt-1">Времени не сохранено</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Легенда -->
+          <div class="bg-white p-4">
+            <div class="space-y-3">
+              ${this.bitrixTimeLegend.value.map(item => `
+                <div class="flex items-center justify-between p-3 border-b border-gray-100">
+                  <div class="flex items-center gap-3">
+                    <div class="w-4 h-4 rounded-full" style="background: ${item.color}"></div>
+                    <div>
+                      <div class="text-sm font-medium text-gray-900">${item.label}</div>
+                      <div class="text-xs text-gray-500">${item.description}</div>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <div class="text-sm font-bold" style="color: ${item.color}">${this.formatDuration(item.value)}</div>
+                    <div class="text-xs text-gray-500">${item.percentage}</div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+
+            <!-- Общая статистика -->
+            <div class="mt-6 pt-5 border-t border-gray-200">
+              <div class="grid grid-cols-2 gap-4">
+                <div class="bg-gray-50 rounded-lg p-4 text-center">
+                  <div class="text-xs text-gray-500 uppercase mb-1">Рабочий день</div>
+                  <div class="text-xl font-bold text-gray-900">${this.formatDuration(this.workDayData.value.totalWorkDaySeconds)}</div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 text-center">
+                  <div class="text-xs text-gray-500 uppercase mb-1">Потери</div>
+                  <div class="text-xl font-bold" style="color: ${this.getEfficiencyColorValue(this.workDayData.value.bitrixTimePercentage)}">
+                    ${this.formatPercentage(this.workDayData.value.bitrixTimePercentage)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Таблица задач -->
+        <div class="bg-white border border-gray-200 rounded-lg overflow-hidden mt-6">
+          <div class="p-4 border-b border-gray-200">
+            <h4 class="text-sm font-medium text-gray-900">
+              <span class="flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                Задачи за день (${this.taskTimeData.value.tasks.length})
+              </span>
+            </h4>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Задача</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Статус</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Время</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                ${this.taskTimeData.value.tasks.slice(0, 10).map(task => `
+                  <tr>
+                    <td class="px-4 py-3">
+                      <div class="text-sm font-medium text-gray-900">${task.title || `Задача #${task.id}`}</div>
+                      <div class="text-xs text-gray-500">ID: ${task.id}</div>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
+                        ${this.getTaskStatusText(task.status)}
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <div class="text-sm font-semibold text-green-600">${this.formatDuration(task.timeSpent)}</div>
+                      <div class="text-xs text-gray-500">${task.elapsedItemsCount} записей</div>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- CRM активность -->
+        <div class="bg-white border border-gray-200 rounded-lg p-4 mt-6">
+          <h4 class="text-sm font-medium text-gray-900 mb-3 flex items-center justify-between">
+            <span class="flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Активность CRM
+            </span>
+            <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+              ${this.crmData.value.timelineEvents.length} событий
+            </span>
+          </h4>
+          <div class="h-64">
+            <canvas id="pdf-timeline-chart"></canvas>
+          </div>
+        </div>
+
+        <!-- Информация о рабочем дне -->
+        <div class="bg-white border border-gray-200 rounded-lg p-4 mt-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Настройки -->
+            <div>
+              <h5 class="text-sm font-medium text-gray-900 mb-4">Настройки рабочего времени</h5>
+              <table class="w-full">
+                <tr class="border-b border-gray-100">
+                  <td class="py-2 text-sm text-gray-600">Учет времени</td>
+                  <td class="py-2 text-right">
+                    <span class="px-2 py-1 text-xs rounded-full ${this.workDaySettings.value.UF_TIMEMAN ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                      ${this.workDaySettings.value.UF_TIMEMAN ? 'Включен' : 'Выключен'}
+                    </span>
+                  </td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                  <td class="py-2 text-sm text-gray-600">Свободный график</td>
+                  <td class="py-2 text-right">
+                    <span class="px-2 py-1 text-xs rounded-full ${this.workDaySettings.value.UF_TM_FREE ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                      ${this.workDaySettings.value.UF_TM_FREE ? 'Да' : 'Нет'}
+                    </span>
+                  </td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                  <td class="py-2 text-sm text-gray-600">Начало дня до</td>
+                  <td class="py-2 text-right text-sm font-medium text-gray-900">${this.workDaySettings.value.UF_TM_MAX_START || 'Не задано'}</td>
+                </tr>
+                <tr>
+                  <td class="py-2 text-sm text-gray-600">Конец дня после</td>
+                  <td class="py-2 text-right text-sm font-medium text-gray-900">${this.workDaySettings.value.UF_TM_MIN_FINISH || 'Не задано'}</td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- Статус -->
+            <div>
+              <h5 class="text-sm font-medium text-gray-900 mb-4">Текущий рабочий день</h5>
+              <table class="w-full">
+                <tr class="border-b border-gray-100">
+                  <td class="py-2 text-sm text-gray-600">Статус</td>
+                  <td class="py-2 text-right">
+                    <span class="px-2 py-1 text-xs rounded-full ${this.getWorkDayStatusClass(this.workDayStatus.value.STATUS)}">
+                      ${this.getWorkDayStatusText(this.workDayStatus.value.STATUS)}
+                    </span>
+                  </td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                  <td class="py-2 text-sm text-gray-600">Начало</td>
+                  <td class="py-2 text-right text-sm font-medium text-gray-900">${this.formatDateTime(this.workDayStatus.value.TIME_START) || 'Не начат'}</td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                  <td class="py-2 text-sm text-gray-600">Длительность</td>
+                  <td class="py-2 text-right text-sm font-medium text-gray-900">${this.workDayStatus.value.DURATION || '00:00:00'}</td>
+                </tr>
+                <tr>
+                  <td class="py-2 text-sm text-gray-600">Перерывы</td>
+                  <td class="py-2 text-right text-sm font-medium text-gray-900">${this.workDayStatus.value.TIME_LEAKS || '00:00:00'}</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+      container.appendChild(mainCard);
       document.body.appendChild(container);
 
-      // Даём время на рендеринг
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Создаём графики
+      await this.createPDFCharts(container);
 
-      // Экспортируем
+      // Настройки PDF
       const opt = {
         margin: [0.5, 0.5, 0.5, 0.5],
         filename: `bitrix24-статистика-${this.selectedDay.value}.pdf`,
         image: { type: 'jpeg', quality: 0.95 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        html2canvas: {
+          scale: 2,
+          backgroundColor: '#ffffff',
+          logging: false
+        },
+        jsPDF: {
+          unit: 'mm',
+          format: 'a4',
+          orientation: 'portrait'
+        }
       };
 
       await html2pdf().from(container).set(opt).save();
 
-      // Очищаем
+      // Очищаем DOM
       document.body.removeChild(container);
 
-      this.showNotification('success', 'PDF экспортирован');
+      this.showNotification('success', 'PDF успешно экспортирован');
 
     } catch (error) {
-      console.error('Ошибка:', error);
+      console.error('Ошибка экспорта PDF:', error);
       this.showNotification('error', 'Ошибка: ' + error.message);
+
+      const container = document.getElementById('pdf-export');
+      if (container) {
+        document.body.removeChild(container);
+      }
     } finally {
       this.isLoading.value = false;
     }
+  },
+
+// Метод для создания графиков в PDF
+  async createPDFCharts(container) {
+    const bitrixCanvas = container.querySelector('#pdf-bitrix-chart');
+    if (bitrixCanvas && this.bitrixTimeLegend.value) {
+      const ctx = bitrixCanvas.getContext('2d');
+      bitrixCanvas.width = 400;
+      bitrixCanvas.height = 400;
+
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: this.bitrixTimeLegend.value.map(item => item.label),
+          datasets: [{
+            data: this.bitrixTimeLegend.value.map(item => item.value),
+            backgroundColor: this.bitrixTimeLegend.value.map(item => item.color),
+            borderWidth: 2,
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          cutout: '70%',
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: false }
+          }
+        }
+      });
+    }
+
+    const timelineCanvas = container.querySelector('#pdf-timeline-chart');
+    if (timelineCanvas) {
+      const ctx = timelineCanvas.getContext('2d');
+      timelineCanvas.width = 800;
+      timelineCanvas.height = 300;
+
+      // Подготавливаем данные для временной шкалы
+      const hourlyData = new Array(24).fill(0);
+      this.crmData.value.timelineEvents.forEach(event => {
+        const hour = new Date(event.timestamp).getHours();
+        hourlyData[hour]++;
+      });
+
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: Array.from({ length: 24 }, (_, i) => `${i}:00`),
+          datasets: [{
+            label: 'Активность CRM',
+            data: hourlyData,
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.3,
+            pointBackgroundColor: '#3b82f6',
+            pointBorderColor: 'white',
+            pointBorderWidth: 2,
+            pointRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: '#e5e7eb' }
+            },
+            x: {
+              grid: { display: false }
+            }
+          }
+        }
+      });
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 300));
   }
 
   // Методы для работы с Chart.js
