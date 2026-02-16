@@ -451,7 +451,6 @@
 
                       <!-- Статусы сделок и лидов -->
                       <div class="mt-4 pt-4 border-t border-gray-200">
-                        <h5 class="text-xs font-medium text-gray-700 mb-2">Статусы сделок и лидов</h5>
                         <div class="overflow-x-auto">
                           <B24Table
                               :data="crmStatusTableData"
