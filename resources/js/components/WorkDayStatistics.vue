@@ -1819,7 +1819,7 @@ class WorkDayStatisticsManager {
     // Инициализируем массив для 24 часов
     const hourlyEvents = {}
     for (let i = 0; i < 24; i++) {
-      hourlyEvents[i] = 0 // Просто счетчик, без разделения на создано/обновлено
+      hourlyEvents[i] = 0
     }
 
     // Заполняем данные по часам
@@ -1837,27 +1837,37 @@ class WorkDayStatisticsManager {
       })
     }
 
-    // Определяем сколько часов показывать
-    const today = new Date().toISOString().split('T')[0]
-    const isToday = this.selectedDay.value === today
-    const currentHour = new Date().getHours()
-    const hoursToShow = isToday ? currentHour + 1 : 24
+    // ВСЕГДА показываем все 24 часа, независимо от текущего времени
+    // Так график будет корректен для любого выбранного дня
+    const hoursToShow = 24
 
     // Создаем подписи для часов
     const labels = Array.from({ length: hoursToShow }, (_, i) => {
       if (window.innerWidth < 640) {
-        // Для мобильных - только часы
         return `${i.toString().padStart(2, '0')}`
       } else {
-        // Для десктопа - полный интервал
         const startHour = i.toString().padStart(2, '0')
         const endHour = ((i + 1) % 24).toString().padStart(2, '0')
         return `${startHour}:00-${endHour}:00`
       }
     })
 
-    // Данные для графика
+    // Данные для графика - ВСЕ 24 часа
     const eventsData = Array.from({ length: hoursToShow }, (_, i) => hourlyEvents[i] || 0)
+
+    // Для отладки - выводим события за последние несколько часов
+    const now = new Date()
+    const lastHours = []
+    for (let i = 0; i < 3; i++) {
+      const hour = (now.getHours() - i + 24) % 24
+      lastHours.push({
+        hour: hour,
+        events: hourlyEvents[hour] || 0,
+        label: `${hour}:00-${(hour+1)%24}:00`
+      })
+    }
+    console.log('События за последние часы:', lastHours)
+    console.log('Все события по часам:', hourlyEvents)
 
     // Максимальное значение для оси Y
     const maxValue = Math.max(...eventsData, 1)
@@ -1883,8 +1893,6 @@ class WorkDayStatisticsManager {
             return gradient
           },
           borderWidth: isMobile ? 2 : 2.5,
-          borderDash: [],
-          borderDashOffset: 0.0,
           pointBorderColor: 'transparent',
           pointBackgroundColor: (context) => {
             const index = context.dataIndex
@@ -1894,23 +1902,19 @@ class WorkDayStatisticsManager {
             }
             return 'transparent'
           },
-          pointBorderWidth: 0,
           pointHoverRadius: isMobile ? 8 : 10,
           pointHoverBackgroundColor: '#1e40af',
           pointHoverBorderColor: 'white',
           pointHoverBorderWidth: 2,
           pointRadius: (context) => {
-            const index = context.dataIndex
             const value = context.raw
             if (isMobile) {
               return value > 0 ? 3 : 0
             }
             return value > 0 ? 4 : 0
           },
-          pointStyle: 'circle',
           tension: 0.3,
-          fill: true,
-          spanGaps: true
+          fill: true
         }
       ]
     }
@@ -1926,176 +1930,65 @@ class WorkDayStatisticsManager {
           right: isMobile ? 0 : 5
         }
       },
-      interaction: {
-        mode: 'nearest',
-        intersect: false,
-        axis: 'x'
-      },
       scales: {
         x: {
-          grid: {
-            display: false,
-            drawBorder: true,
-            drawOnChartArea: false
-          },
+          grid: { display: false },
           ticks: {
             maxRotation: isMobile ? 45 : 0,
             minRotation: isMobile ? 45 : 0,
-            font: {
-              size: labelFontSize,
-              weight: 'normal'
-            },
+            font: { size: labelFontSize },
             color: '#6b7280',
             maxTicksLimit: isMobile ? 8 : 12,
             autoSkip: true,
-            autoSkipPadding: isMobile ? 10 : 15
-          },
-          title: {
-            display: !isMobile,
-            text: 'Часовые интервалы',
-            color: '#9ca3af',
-            font: {
-              size: titleFontSize,
-              weight: 'normal'
-            },
-            padding: { top: 10, bottom: 5 }
+            callback: function(val, index) {
+              // Для мобильных показываем каждый второй час
+              if (isMobile && index % 2 !== 0) return ''
+              return this.getLabelForValue(val)
+            }
           }
         },
         y: {
           beginAtZero: true,
-          grid: {
-            color: 'rgba(229, 231, 235, 0.5)',
-            drawBorder: false,
-            lineWidth: 1
-          },
+          grid: { color: 'rgba(229, 231, 235, 0.5)' },
           ticks: {
             stepSize: Math.max(1, Math.ceil(maxValue / 5)),
             precision: 0,
-            font: {
-              size: labelFontSize
-            },
-            color: '#6b7280',
-            padding: isMobile ? 5 : 8,
-            callback: function(value) {
-              if (Number.isInteger(value)) {
-                return value
-              }
-              return ''
-            }
-          },
-          title: {
-            display: !isMobile,
-            text: 'Количество событий',
-            color: '#9ca3af',
-            font: {
-              size: titleFontSize,
-              weight: 'normal'
-            },
-            padding: { top: 5, bottom: 10 }
+            font: { size: labelFontSize },
+            color: '#6b7280'
           },
           min: 0,
           max: maxValue + (maxValue === 0 ? 1 : Math.ceil(maxValue * 0.1))
         }
       },
       plugins: {
-        legend: {
-          display: false // Легенда не нужна, так как одна линия
-        },
+        legend: { display: false },
         tooltip: {
           enabled: true,
-          mode: 'index',
-          intersect: false,
           backgroundColor: 'rgba(17, 24, 39, 0.9)',
           titleColor: '#f9fafb',
-          titleFont: {
-            size: isMobile ? 12 : 14,
-            weight: 'bold'
-          },
           bodyColor: '#e5e7eb',
-          bodyFont: {
-            size: isMobile ? 11 : 13
-          },
           padding: isMobile ? 10 : 12,
-          cornerRadius: 8,
-          displayColors: false,
-          borderColor: 'rgba(255, 255, 255, 0.1)',
-          borderWidth: 1,
           callbacks: {
             title: (items) => {
               if (!items.length) return ''
-              const hour = items[0].label
-              if (window.innerWidth < 640) {
-                return `${hour}:00`
-              }
-              return hour
+              const index = items[0].dataIndex
+              return `${index.toString().padStart(2, '0')}:00-${(index + 1) % 24}:00`
             },
             label: (context) => {
               const value = context.raw
               const total = this.crmData.value.timelineEvents?.length || 0
               const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0
-
-              let label = `Событий: ${value}`
-              if (percentage > 0 && total > 0) {
-                label += ` (${percentage}%)`
-              }
-              return label
-            },
-            footer: (items) => {
-              if (!items.length) return ''
-              const index = items[0].dataIndex
-              const hour = index.toString().padStart(2, '0')
-              return `Часовой интервал ${hour}:00-${(index + 1) % 24}:00`
+              return `Событий: ${value}${percentage > 0 ? ` (${percentage}%)` : ''}`
             }
           }
-        },
-        // Добавляем анимацию для плавного появления
-        animation: {
-          duration: isMobile ? 500 : 800,
-          easing: 'easeOutQuart',
-          animateScale: true,
-          animateRotate: false
-        },
-        // Добавляем подписи значений над точками (только для десктопа)
-        datalabels: {
-          display: false // Отключаем, чтобы не перегружать
         }
-      },
-      // Оптимизация для мобильных устройств
-      hover: {
-        mode: 'nearest',
-        intersect: true,
-        animationDuration: 200
-      },
-      onResize: (chart, size) => {
-        // Обновляем настройки при изменении размера окна
-        const newIsMobile = size.width < 640
-        chart.options.scales.x.ticks.maxRotation = newIsMobile ? 45 : 0
-        chart.options.scales.x.ticks.minRotation = newIsMobile ? 45 : 0
-        chart.options.scales.x.ticks.font.size = newIsMobile ? 10 : 12
-        chart.options.scales.y.ticks.font.size = newIsMobile ? 10 : 12
-        chart.options.plugins.tooltip.titleFont.size = newIsMobile ? 12 : 14
-        chart.options.plugins.tooltip.bodyFont.size = newIsMobile ? 11 : 13
-        chart.update()
       }
     }
 
-    // Создаем новый экземпляр графика
     this.timelineChartInstance = new Chart(this.timelineChart.value, {
       type: 'line',
       data: chartData,
       options: options
-    })
-
-    // Добавляем обработчик ресайза окна
-    window.addEventListener('resize', () => {
-      if (this.timelineChartInstance) {
-        const isMobileNow = window.innerWidth < 640
-        this.timelineChartInstance.options.scales.x.ticks.maxRotation = isMobileNow ? 45 : 0
-        this.timelineChartInstance.options.scales.x.ticks.minRotation = isMobileNow ? 45 : 0
-        this.timelineChartInstance.options.scales.x.ticks.font.size = isMobileNow ? 10 : 12
-        this.timelineChartInstance.options.scales.y.ticks.font.size = isMobileNow ? 10 : 12
-        this.timelineChartInstance.update()
-      }
     })
   }
 
