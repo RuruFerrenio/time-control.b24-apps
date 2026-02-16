@@ -1723,20 +1723,22 @@ class WorkDayStatisticsManager {
   }
 
   lightenColor(color, percent) {
-    const num = parseInt(color.replace("#", ""), 16)
-    const amt = Math.round(2.55 * percent)
-    const R = (num >> 16) + amt
-    const G = (num >> 8 & 0x00FF) + amt
-    const B = (num & 0x0000FF) + amt
+    if (!color || !color.startsWith('#')) {
+      return color;
+    }
 
-    return `#${(
-        0x1000000 +
-        (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
-        (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 +
-        (B < 255 ? (B < 1 ? 0 : B) : 255)
-    )
-        .toString(16)
-        .slice(1)}`
+    const num = parseInt(color.slice(1), 16);
+    const amt = Math.round(2.55 * percent);
+
+    let R = (num >> 16) & 0xFF;
+    let G = (num >> 8) & 0xFF;
+    let B = num & 0xFF;
+
+    R = Math.min(255, R + amt);
+    G = Math.min(255, G + amt);
+    B = Math.min(255, B + amt);
+
+    return `#${((1 << 24) + (R << 16) + (G << 8) + B).toString(16).slice(1)}`;
   }
 
   createBitrixTimeChart() {
@@ -2845,7 +2847,7 @@ class WorkDayStatisticsManager {
     const data = this.workDayData.value
     const totalBitrixTime = data.bitrixTimeSeconds
     const taskTime = data.elapsedTaskTimeSeconds
-    const pureBitrixTime = totalBitrixTime - taskTime
+    const pureBitrixTime = totalBitrixTime - taskTime  // Время в Bitrix24 без задач
 
     const today = new Date().toISOString().split('T')[0]
     const workDayStart = this.workDayStatus.value.TIME_START
@@ -2853,18 +2855,37 @@ class WorkDayStatisticsManager {
 
     const actualBreakTime = isTodayWorkDay ? data.breakTimeSeconds : 0
 
+    // База для расчета - общее рабочее время (фактическое или плановое)
     const baseTime = isTodayWorkDay ?
         (data.workDurationSeconds || data.totalWorkDaySeconds) :
         data.totalWorkDaySeconds
 
-    data.nonBitrixTimeSeconds = Math.max(0,
-        baseTime - pureBitrixTime - taskTime - actualBreakTime
-    )
+    // ВАЖНО: totalBitrixTime уже включает taskTime, поэтому не нужно их складывать!
+    // Просто вычисляем "прочее время" как разницу между базой и всем учтенным временем
+    const accountedTime = totalBitrixTime + actualBreakTime
+    data.nonBitrixTimeSeconds = Math.max(0, baseTime - accountedTime)
 
-    data.bitrixTimePercentage = baseTime > 0
-        ? (pureBitrixTime / baseTime) * 100
-        : 0
+    // Проценты от общего рабочего времени
+    if (baseTime > 0) {
+      // Процент чистого времени в Bitrix24 (без задач)
+      data.bitrixTimePercentage = (pureBitrixTime / baseTime) * 100
 
+      // Процент времени в задачах
+      data.taskTimePercentage = (taskTime / baseTime) * 100
+
+      // Процент перерывов
+      data.breakTimePercentage = (actualBreakTime / baseTime) * 100
+
+      // Процент прочего времени
+      data.nonBitrixTimePercentage = (data.nonBitrixTimeSeconds / baseTime) * 100
+    } else {
+      data.bitrixTimePercentage = 0
+      data.taskTimePercentage = 0
+      data.breakTimePercentage = 0
+      data.nonBitrixTimePercentage = 0
+    }
+
+    // Остальные вычисления...
     data.workDurationPercentage = data.totalWorkDaySeconds > 0
         ? (data.workDurationSeconds / data.totalWorkDaySeconds) * 100
         : 0
@@ -2873,14 +2894,12 @@ class WorkDayStatisticsManager {
         ? (pureBitrixTime / data.workDurationSeconds) * 100
         : 0
 
-    data.taskTimeOfBitrixPercentage = pureBitrixTime > 0
-        ? (taskTime / pureBitrixTime) * 100
+    // Процент времени в задачах от времени в Bitrix24
+    data.taskTimeOfBitrixPercentage = totalBitrixTime > 0
+        ? (taskTime / totalBitrixTime) * 100
         : 0
 
-    data.nonBitrixTimePercentage = baseTime > 0
-        ? (data.nonBitrixTimeSeconds / baseTime) * 100
-        : 0
-
+    // Оставшееся рабочее время
     if (isTodayWorkDay) {
       data.remainingWorkDaySeconds = Math.max(0, data.totalWorkDaySeconds - data.workDurationSeconds)
     } else {
@@ -2891,11 +2910,13 @@ class WorkDayStatisticsManager {
         ? (data.remainingWorkDaySeconds / data.totalWorkDaySeconds) * 100
         : 0
 
+    // Средняя активность в час
     const workDurationHours = data.workDurationSeconds / 3600
     data.averageActivityPerHour = workDurationHours > 0
         ? pureBitrixTime / 3600 / workDurationHours
         : 0
 
+    // Прогноз на день
     const workDayProgress = isTodayWorkDay && data.totalWorkDaySeconds > 0
         ? data.workDurationSeconds / data.totalWorkDaySeconds
         : 1
@@ -2908,13 +2929,17 @@ class WorkDayStatisticsManager {
         ? (data.projectedBitrixTime / data.totalWorkDaySeconds) * 100
         : 0
 
+    // Ограничиваем проценты до 100
     data.bitrixTimePercentage = Math.min(data.bitrixTimePercentage, 100)
+    data.taskTimePercentage = Math.min(data.taskTimePercentage, 100)
+    data.breakTimePercentage = Math.min(data.breakTimePercentage, 100)
+    data.nonBitrixTimePercentage = Math.min(data.nonBitrixTimePercentage, 100)
     data.workDurationPercentage = Math.min(data.workDurationPercentage, 100)
     data.bitrixTimeOfWorkedPercentage = Math.min(data.bitrixTimeOfWorkedPercentage, 100)
     data.taskTimeOfBitrixPercentage = Math.min(data.taskTimeOfBitrixPercentage, 100)
-    data.nonBitrixTimePercentage = Math.min(data.nonBitrixTimePercentage, 100)
     data.projectedPercentage = Math.min(data.projectedPercentage, 100)
 
+    // Для не-текущего дня корректируем
     if (!isTodayWorkDay) {
       data.workDurationPercentage = 100
       data.remainingPercentage = 0
