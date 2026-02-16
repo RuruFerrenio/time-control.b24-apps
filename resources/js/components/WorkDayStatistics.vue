@@ -1181,149 +1181,322 @@ class WorkDayStatisticsManager {
     try {
       this.isLoading.value = true;
 
-      // 1. Отключаем лоадер и ждем рендеринга контента
+      // Ждём обновления DOM и скрываем загрузчик
       this.isLoading.value = false;
       await nextTick();
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 300));
 
-      // 2. Получаем элемент статистики
+      // Находим основной контейнер со статистикой
       const originalElement = document.getElementById('work_day_statistic');
       if (!originalElement) {
         throw new Error('Элемент статистики не найден');
       }
 
-      // 3. Клонируем элемент
+      // Клонируем элемент со всем содержимым
       const clone = originalElement.cloneNode(true);
 
-      // 4. Заменяем canvas на изображения
+      // Временно добавляем в DOM для корректного рендеринга canvas
+      clone.style.position = 'fixed';
+      clone.style.top = '-9999px';
+      clone.style.left = '-9999px';
+      clone.style.width = '1200px';
+      clone.style.background = 'white';
+      clone.style.zIndex = '9999';
+      document.body.appendChild(clone);
+
+      // Конвертируем canvas в изображения с высоким качеством
       const canvases = clone.querySelectorAll('canvas');
-      for (let canvas of canvases) {
+      const canvasPromises = Array.from(canvases).map(async (canvas, index) => {
         try {
+          // Создаём изображение с высоким разрешением
           const img = document.createElement('img');
-          img.src = canvas.toDataURL('image/png');
+
+          // Увеличиваем качество для PDF
+          const scale = 2;
+          const width = canvas.width;
+          const height = canvas.height;
+
+          // Создаём временный canvas для масштабирования
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = width * scale;
+          tempCanvas.height = height * scale;
+          const ctx = tempCanvas.getContext('2d');
+
+          // Включаем сглаживание для лучшего качества
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+
+          // Рисуем оригинальный canvas на временном с масштабированием
+          ctx.drawImage(canvas, 0, 0, width, height, 0, 0, tempCanvas.width, tempCanvas.height);
+
+          // Получаем изображение высокого качества
+          img.src = tempCanvas.toDataURL('image/png', 1.0);
+
+          // Копируем все стили с оригинального canvas
           img.style.cssText = canvas.style.cssText;
           img.style.maxWidth = '100%';
           img.style.height = 'auto';
           img.style.display = 'block';
-          canvas.parentNode.replaceChild(img, canvas);
-        } catch (e) {
-          console.warn('Ошибка конвертации canvas:', e);
-        }
-      }
 
-      // 5. Удаляем интерактивные элементы
-      // Кнопки → текст
-      const buttons = clone.querySelectorAll('button');
-      buttons.forEach(button => {
-        const span = document.createElement('span');
-        span.textContent = button.textContent;
-        span.className = button.className;
-        span.style.cssText = button.style.cssText;
-        button.parentNode.replaceChild(span, button);
+          // Заменяем canvas на изображение
+          canvas.parentNode.replaceChild(img, canvas);
+
+          // Ждём загрузки изображения
+          return new Promise((resolve) => {
+            img.onload = resolve;
+            img.onerror = resolve; // Продолжаем даже при ошибке
+          });
+        } catch (e) {
+          console.warn(`Ошибка конвертации canvas ${index}:`, e);
+        }
       });
 
-      // Удаляем Vue-атрибуты
-      const allElements = clone.querySelectorAll('*');
-      allElements.forEach(el => {
-        Array.from(el.attributes).forEach(attr => {
-          if (attr.name.startsWith('@') ||
-              attr.name.startsWith('v-') ||
-              attr.name.startsWith('data-v-')) {
-            el.removeAttribute(attr.name);
-          }
+      // Ждём загрузки всех изображений
+      await Promise.all(canvasPromises);
+
+      // Преобразуем интерактивные элементы в статичные
+      const interactiveSelectors = [
+        'button',
+        '[role="button"]',
+        '.cursor-pointer',
+        '.hover\\:bg-gray-50',
+        '.hover\\:shadow-md',
+        '.group'
+      ];
+
+      interactiveSelectors.forEach(selector => {
+        const elements = clone.querySelectorAll(selector);
+        elements.forEach(el => {
+          // Удаляем все hover-эффекты
+          const classes = el.className.split(' ');
+          const filteredClasses = classes.filter(cls => !cls.includes('hover:'));
+          el.className = filteredClasses.join(' ');
+
+          // Убираем интерактивные атрибуты
+          el.removeAttribute('onclick');
+          el.removeAttribute('@click');
+          el.removeAttribute('v-on:click');
+          el.removeAttribute('tabindex');
+          el.style.cursor = 'default';
+          el.style.pointerEvents = 'none';
         });
       });
 
-      // Удаляем hover-классы
-      clone.querySelectorAll('[class*="hover:"]').forEach(el => {
-        const classes = el.className.split(' ');
-        const filteredClasses = classes.filter(cls => !cls.includes('hover:'));
-        el.className = filteredClasses.join(' ');
+      // Удаляем все Vue-специфичные атрибуты
+      const allElements = clone.querySelectorAll('*');
+      allElements.forEach(el => {
+        const attrsToRemove = [];
+        Array.from(el.attributes).forEach(attr => {
+          if (attr.name.startsWith('@') ||
+              attr.name.startsWith('v-') ||
+              attr.name.startsWith('data-v-') ||
+              attr.name === ':class' ||
+              attr.name === ':style') {
+            attrsToRemove.push(attr.name);
+          }
+        });
+        attrsToRemove.forEach(attr => el.removeAttribute(attr));
       });
 
-      // 6. Добавляем заголовок
-      const header = document.createElement('div');
-      header.className = 'pdf-header';
-      header.style.cssText = `
-      margin-bottom: 30px;
-      padding-bottom: 20px;
-      border-bottom: 2px solid #e5e7eb;
-    `;
-      header.innerHTML = `
-      <h1 style="font-size: 24px; font-weight: bold; color: #1f2937; margin-bottom: 8px;">
-        ${this.pageTitle}
-      </h1>
-      <p style="color: #6b7280; font-size: 16px;">
-        ${this.formatDayDisplay(this.selectedDay.value)}
-      </p>
-    `;
-      clone.prepend(header);
+      // Фиксируем все значения в легенде и графиках
+      const legendItems = clone.querySelectorAll('[class*="legend"]');
+      legendItems.forEach(item => {
+        // Убираем анимации и переходы
+        item.style.transition = 'none';
+        item.style.animation = 'none';
+      });
 
-      // 7. Добавляем базовые стили
+      // Добавляем заголовок с датой
+      const headerDiv = document.createElement('div');
+      headerDiv.className = 'pdf-header';
+      headerDiv.style.cssText = `
+      margin-bottom: 30px;
+      padding: 20px;
+      background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    `;
+
+      const title = document.createElement('h1');
+      title.style.cssText = `
+      font-size: 28px;
+      font-weight: 600;
+      color: #0a2540;
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+    `;
+      title.textContent = this.pageTitle;
+
+      const dateSubtitle = document.createElement('p');
+      dateSubtitle.style.cssText = `
+      color: #4b5563;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    `;
+      dateSubtitle.innerHTML = `
+      <span style="background: #e5e7eb; width: 4px; height: 4px; border-radius: 50%; display: inline-block;"></span>
+      ${this.formatDayDisplay(this.selectedDay.value)}
+      <span style="background: #e5e7eb; width: 4px; height: 4px; border-radius: 50%; display: inline-block;"></span>
+      Экспорт: ${new Date().toLocaleString('ru-RU')}
+    `;
+
+      headerDiv.appendChild(title);
+      headerDiv.appendChild(dateSubtitle);
+
+      // Вставляем заголовок в начало клона
+      clone.insertBefore(headerDiv, clone.firstChild);
+
+      // Добавляем "водяной знак" с датой экспорта
+      const watermark = document.createElement('div');
+      watermark.style.cssText = `
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      font-size: 10px;
+      color: #d1d5db;
+      opacity: 0.5;
+      z-index: 1000;
+    `;
+      watermark.textContent = `Сгенерировано ${new Date().toLocaleString('ru-RU')}`;
+      clone.style.position = 'relative';
+      clone.appendChild(watermark);
+
+      // Добавляем базовые стили для PDF
       const styleEl = document.createElement('style');
       styleEl.textContent = `
-      * { box-sizing: border-box; }
-      body { margin: 0; padding: 0; background: white; font-family: system-ui, -apple-system, sans-serif; }
-      .b24-card, .bg-white { background: white; border-radius: 8px; border: 1px solid #e5e7eb; }
-      .pdf-header { margin-bottom: 30px; }
-      canvas, img { max-width: 100%; height: auto; }
+      * {
+        box-sizing: border-box;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        background: white;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        line-height: 1.5;
+      }
+      .b24-card, .bg-white {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        page-break-inside: avoid;
+      }
+      canvas, img {
+        max-width: 100%;
+        height: auto;
+        page-break-inside: avoid;
+      }
+      table {
+        page-break-inside: avoid;
+      }
+      .grid {
+        display: grid;
+        gap: 24px;
+      }
+      @media print {
+        .no-print { display: none; }
+        .page-break { page-break-before: always; }
+      }
     `;
       clone.prepend(styleEl);
 
-      // 8. Создаем контейнер для экспорта
-      const container = document.createElement('div');
-      container.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 1200px;
-      background: white;
-      padding: 40px;
-      z-index: 999999;
-      visibility: visible;
-      opacity: 1;
-      pointer-events: none;
-    `;
-      container.appendChild(clone);
-      document.body.appendChild(container);
-
-      // 9. Настройки PDF
+      // Настройки PDF для максимального качества
       const opt = {
-        margin: [0.5, 0.5, 0.5, 0.5],
+        margin: [0.3, 0.3, 0.3, 0.3],
         filename: `bitrix24-статистика-${this.selectedDay.value}.pdf`,
-        image: { type: 'jpeg', quality: 0.95 },
+        image: {
+          type: 'jpeg',
+          quality: 0.98
+        },
         html2canvas: {
-          scale: 2,
-          logging: true,
+          scale: 2.5,
+          logging: false,
           backgroundColor: '#ffffff',
           allowTaint: false,
           useCORS: true,
-          letterRendering: true
+          letterRendering: true,
+          scrollX: 0,
+          scrollY: 0,
+          windowWidth: 1200,
+          windowHeight: 1600,
+          onclone: (clonedDoc) => {
+            // Дополнительные правки внутри клонированного документа
+            const clonedElement = clonedDoc.querySelector('[style*="position: fixed"]');
+            if (clonedElement) {
+              clonedElement.style.visibility = 'visible';
+              clonedElement.style.position = 'absolute';
+            }
+          }
         },
         jsPDF: {
-          unit: 'in',
+          unit: 'mm',
           format: 'a4',
-          orientation: 'portrait'
+          orientation: 'portrait',
+          compress: true,
+          precision: 16
+        },
+        pagebreak: {
+          mode: ['css', 'legacy'],
+          before: '.page-break',
+          after: '.page-after',
+          avoid: 'img, canvas, table, .b24-card'
         }
       };
 
-      // 10. Экспорт
-      await html2pdf().from(container).set(opt).save();
+      // Создаём временный контейнер для экспорта
+      const exportContainer = document.createElement('div');
+      exportContainer.style.cssText = `
+      position: fixed;
+      top: -10000px;
+      left: -10000px;
+      width: 1200px;
+      background: white;
+      padding: 40px;
+      z-index: 10000;
+      visibility: visible;
+      opacity: 1;
+    `;
 
-      // 11. Очистка
-      document.body.removeChild(container);
+      // Переносим клон в контейнер
+      document.body.removeChild(clone);
+      exportContainer.appendChild(clone);
+      document.body.appendChild(exportContainer);
 
-      // 12. Включаем лоадер обратно
-      this.isLoading.value = true;
-      await nextTick();
-      this.isLoading.value = false;
+      // Генерируем PDF
+      await html2pdf()
+          .from(exportContainer)
+          .set(opt)
+          .toPdf()
+          .get('pdf')
+          .then((pdf) => {
+            // Добавляем метаданные в PDF
+            pdf.setProperties({
+              title: `Bitrix24 статистика - ${this.formatDayDisplay(this.selectedDay.value)}`,
+              subject: 'Анализ рабочего времени',
+              author: 'Bitrix24 Work Statistics',
+              keywords: 'bitrix24, статистика, рабочий день, анализ',
+              creator: 'Bitrix24 Work Day Statistics App'
+            });
+          })
+          .save();
 
+      // Очищаем DOM
+      document.body.removeChild(exportContainer);
+
+      // Показываем уведомление об успехе
       this.showNotification('success', 'PDF успешно экспортирован');
 
     } catch (error) {
       console.error('Ошибка экспорта PDF:', error);
       this.showNotification('error', 'Ошибка при экспорте PDF: ' + error.message);
+    } finally {
       this.isLoading.value = false;
+      await nextTick();
     }
   }
 
