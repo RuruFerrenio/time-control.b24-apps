@@ -2857,13 +2857,6 @@ class WorkDayStatisticsManager {
       this.calculateDerivedData()
 
       this.updateCharts()
-
-      if (typeof toast !== 'undefined') {
-        toast.add({
-          description: 'Данные успешно загружены',
-          variant: 'success'
-        })
-      }
     } catch (error) {
       console.error('Ошибка загрузки данных:', error)
 
