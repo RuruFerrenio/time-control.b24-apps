@@ -1445,11 +1445,11 @@ class WorkDayStatisticsManager {
         document.body.removeChild(container);
       }
     } finally {
-      this.isLoading.value = false;
+      this.isLoading.value = false
     }
-  },
+  }
 
-// Метод для создания графиков в PDF
+  // Метод для создания графиков в PDF
   async createPDFCharts(container) {
     const bitrixCanvas = container.querySelector('#pdf-bitrix-chart');
     if (bitrixCanvas && this.bitrixTimeLegend.value) {
