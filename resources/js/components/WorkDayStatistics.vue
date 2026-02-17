@@ -105,9 +105,9 @@
 
               <!-- Основной контент -->
               <div v-else>
-                <div id="work_day_statistic">
+                <div>
                   <!-- Первая строка: График и легенда -->
-                  <div class="grid grid-cols-1 border border-gray-200 rounded-lg gap-6 md:gap-8">
+                  <div class="grid grid-cols-1 border border-gray-200 rounded-lg gap-6 md:gap-8 overflow-hidden">
                     <!-- График времени -->
                     <div>
                       <div class="bg-white p-4">
