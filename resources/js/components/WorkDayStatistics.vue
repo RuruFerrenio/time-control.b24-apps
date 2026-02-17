@@ -1039,9 +1039,6 @@ class WorkDayStatisticsManager {
         percentage: `${breakPercentage.toFixed(1)}%`,
         color: this.CHART_COLORS.BREAK_TIME,
         icon: '',
-        ...(breakTime > 0 && {
-          details: `Общая длительность перерывов: ${this.formatDuration(breakTime)}`
-        })
       },
       {
         label: isTodayWorkDay ? 'Прочее рабочее время' : 'Рабочее время',
