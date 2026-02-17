@@ -2541,21 +2541,39 @@ class WorkDayStatisticsManager {
 
   async loadCrmData() {
     try {
-      const startOfDay = new Date(this.selectedDay.value + 'T00:00:00')
-      const endOfDay = this.selectedDay.value === new Date().toISOString().split('T')[0]
-          ? new Date()
-          : new Date(this.selectedDay.value + 'T23:59:59')
+      const createLocalDate = (dateStr, timeStr = '00:00:00') => {
+        const [year, month, day] = dateStr.split('-').map(Number);
+        const [hours, minutes, seconds] = timeStr.split(':').map(Number);
+        return new Date(year, month - 1, day, hours, minutes, seconds);
+      };
 
-      const formatDateForAPI = (date) => {
-        return date.toISOString().replace('T', ' ').split('.')[0]
+      const formatLocalForAPI = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+      };
+
+      const selectedDate = this.selectedDay.value;
+      const startOfDay = createLocalDate(selectedDate, '00:00:00');
+
+      let endOfDay;
+      if (selectedDate === new Date().toISOString().split('T')[0]) {
+        endOfDay = new Date();
+      } else {
+        endOfDay = createLocalDate(selectedDate, '23:59:59');
       }
 
-      const startDateStr = formatDateForAPI(startOfDay)
-      const endDateStr = formatDateForAPI(endOfDay)
+      const startDateStr = formatLocalForAPI(startOfDay);
+      const endDateStr = formatLocalForAPI(endOfDay);
 
-      console.log('loadCrmData')
-      console.log(startDateStr)
-      console.log(endDateStr)
+      console.log('loadCrmData');
+      console.log('Start:', startDateStr);
+      console.log('End:', endDateStr);
 
       const calls = [
         // СДЕЛКИ - созданные пользователем
