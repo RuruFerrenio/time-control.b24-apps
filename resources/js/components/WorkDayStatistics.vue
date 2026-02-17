@@ -559,6 +559,10 @@ import html2pdf from 'html2pdf.js'
 
 const toast = useToast()
 
+const isLightColor = (color) => {
+  return color === '#9CA3AF' || color === '#f3f4f6' || color === '#ffffff';
+}
+
 class WorkDayStatisticsManager {
   constructor() {
     this.route = useRoute()
