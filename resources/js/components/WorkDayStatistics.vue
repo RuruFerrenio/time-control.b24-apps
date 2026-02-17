@@ -145,12 +145,10 @@
                             <div v-for="(item, index) in bitrixTimeLegend" :key="index"
                                  class="group relative p-3 rounded-xl transition-all duration-200"
                                  :class="[
-                                    hoveredLegendIndex === index
-                                      ? isLightColor(item.color)
-                                        ? 'bg-gray-100 shadow-md border-gray-200 scale-[1.02]'
-                                        : 'bg-gradient-to-br from-gray-50 to-white shadow-md border-gray-200 scale-[1.02]'
-                                      : 'bg-white hover:bg-gray-50 border border-transparent hover:border-gray-100'
-                                  ]"
+                                   hoveredLegendIndex === index
+                                     ? 'bg-gradient-to-br from-gray-50 to-white shadow-md border-gray-200 scale-[1.02]'
+                                     : 'bg-white hover:bg-gray-50 border border-transparent hover:border-gray-100'
+                                 ]"
                                  @mouseenter="hoverLegend(index)"
                                  @mouseleave="hoverLegend(null)">
 
@@ -664,11 +662,11 @@ class WorkDayStatisticsManager {
 
     // Цветовая схема - улучшенные цвета
     this.CHART_COLORS = {
-      WORK_DAY: '#d1d5db',
-      BITRIX_TIME: '#3b82f6',
-      BREAK_TIME: '#f97316',
-      TASK_TIME: '#10b981',
-      OTHER_TIME: '#8b5cf6'
+      WORK_DAY: '#3b82f6',      // синий (рабочее время)
+      BITRIX_TIME: '#ef4444',   // красный (время в Bitrix24 без задач)
+      BREAK_TIME: '#f97316',    // оранжевый
+      TASK_TIME: '#10b981',     // зеленый
+      OTHER_TIME: '#8b5cf6'     // фиолетовый
     }
 
     // Кэш профилей пользователей
@@ -831,10 +829,6 @@ class WorkDayStatisticsManager {
     }
 
     return `https://${domain}/company/personal/user/${userId}/`;
-  }
-
-  isLightColor(color) {
-    return color === '#9CA3AF' || color === '#f3f4f6' || color === '#ffffff';
   }
 
   // Вычисляемые свойства для таблиц
@@ -3084,7 +3078,7 @@ export default {
       getEfficiencyColorValue: manager.getEfficiencyColorValue.bind(manager),
       getTaskUrl: manager.getTaskUrl.bind(manager),
       getUserUrl: manager.getUserUrl.bind(manager),
-      isLightColor: manager.isLightColor.bind(manager),
+
     }
   }
 }
