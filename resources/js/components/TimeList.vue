@@ -1843,8 +1843,8 @@ class HierarchicalDataManager {
     }
     this.selectedUser.value = { id: userData.userId, name: userData.userName }
     this.taskFormData.value = {
-      title: `Время на странице: ${pageData.pageUrl.substring(0, 50)}${pageData.pageUrl.length > 50 ? '...' : ''}`,
-      description: `Пользователь провел ${this.formatDuration(pageData.pageTime)} на странице: ${pageData.pageUrl}`,
+      title: ``,
+      description: ``,
       responsibleId: userData.userId,
       auditors: [],
       deadline: this.getDateIn7Days(),
@@ -1908,7 +1908,7 @@ class HierarchicalDataManager {
     this.selectedUser.value = { id: userData.userId, name: userData.userName }
     this.updateTimeData.value = {
       newTime: pageData.pageTime,
-      comment: `Обновлено время на странице: ${pageData.pageUrl}`
+      comment: ``
     }
     this.isShowUpdateTimeModal.value = true
   }
