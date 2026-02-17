@@ -1023,7 +1023,7 @@ class WorkDayStatisticsManager {
         value: pureBitrixTime,
         percentage: `${pureBitrixPercentage.toFixed(1)}%`,
         color: this.CHART_COLORS.BITRIX_TIME,
-        icon: '⏱️'
+        icon: ''
       },
       {
         label: 'Время в задачах',
@@ -1031,7 +1031,7 @@ class WorkDayStatisticsManager {
         value: taskTime,
         percentage: `${taskPercentage.toFixed(1)}%`,
         color: this.CHART_COLORS.TASK_TIME,
-        icon: '📋'
+        icon: ''
       },
       {
         label: 'Перерывы',
@@ -1039,8 +1039,7 @@ class WorkDayStatisticsManager {
         value: breakTime,
         percentage: `${breakPercentage.toFixed(1)}%`,
         color: this.CHART_COLORS.BREAK_TIME,
-        icon: '☕',
-        // Добавляем детали только если есть перерывы
+        icon: '',
         ...(breakTime > 0 && {
           details: `Общая длительность перерывов: ${this.formatDuration(breakTime)}`
         })
@@ -1053,10 +1052,9 @@ class WorkDayStatisticsManager {
         value: otherTime,
         percentage: `${otherPercentage.toFixed(1)}%`,
         color: this.CHART_COLORS.WORK_DAY,
-        icon: '📊',
+        icon: '',
         // Добавляем бейдж с дополнительной информацией
         badge: isTodayWorkDay ? 'остаток' : 'план',
-        // Детали в зависимости от ситуации
         details: isTodayWorkDay ?
             `Оставшееся время: ${this.formatDuration(data.remainingWorkDaySeconds)}` :
             `Плановое время: ${this.formatDuration(baseTime)}`
