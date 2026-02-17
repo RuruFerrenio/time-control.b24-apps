@@ -145,10 +145,12 @@
                             <div v-for="(item, index) in bitrixTimeLegend" :key="index"
                                  class="group relative p-3 rounded-xl transition-all duration-200"
                                  :class="[
-                                   hoveredLegendIndex === index
-                                     ? 'bg-gradient-to-br from-gray-50 to-white shadow-md border-gray-200 scale-[1.02]'
-                                     : 'bg-white hover:bg-gray-50 border border-transparent hover:border-gray-100'
-                                 ]"
+                                    hoveredLegendIndex === index
+                                      ? isLightColor(item.color)
+                                        ? 'bg-gray-100 shadow-md border-gray-200 scale-[1.02]'
+                                        : 'bg-gradient-to-br from-gray-50 to-white shadow-md border-gray-200 scale-[1.02]'
+                                      : 'bg-white hover:bg-gray-50 border border-transparent hover:border-gray-100'
+                                  ]"
                                  @mouseenter="hoverLegend(index)"
                                  @mouseleave="hoverLegend(null)">
 
