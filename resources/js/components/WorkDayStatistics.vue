@@ -988,42 +988,78 @@ class WorkDayStatisticsManager {
     const workDayStart = workDayStatusValue.TIME_START
     const isTodayWorkDay = workDayStart && workDayStart.includes(today)
 
+    // Базовое время для расчета процентов
     let baseTime = isTodayWorkDay ?
         (data.workDurationSeconds || data.totalWorkDaySeconds) :
         data.totalWorkDaySeconds
 
-    let otherTime = Math.max(0, baseTime - data.bitrixTimeSeconds - data.elapsedTaskTimeSeconds -
-        (isTodayWorkDay ? data.breakTimeSeconds : 0))
+    // Чистое время в Bitrix24 (без задач)
+    // Важно: bitrixTimeSeconds уже включает время в задачах, поэтому вычитаем
+    const pureBitrixTime = Math.max(0, data.bitrixTimeSeconds - data.elapsedTaskTimeSeconds)
+
+    // Время в задачах (уже есть в данных)
+    const taskTime = data.elapsedTaskTimeSeconds
+
+    // Время перерывов (только для сегодняшнего дня)
+    const breakTime = isTodayWorkDay ? data.breakTimeSeconds : 0
+
+    // Оставшееся время = базовое время минус все остальные категории
+    const otherTime = Math.max(0, baseTime - pureBitrixTime - taskTime - breakTime)
+
+    // Расчет процентов для каждого элемента
+    const pureBitrixPercentage = baseTime > 0 ? (pureBitrixTime / baseTime) * 100 : 0
+    const taskPercentage = baseTime > 0 ? (taskTime / baseTime) * 100 : 0
+    const breakPercentage = baseTime > 0 ? (breakTime / baseTime) * 100 : 0
+    const otherPercentage = baseTime > 0 ? (otherTime / baseTime) * 100 : 0
+
+    // Для отладки - проверим сумму процентов
+    const totalPercentage = pureBitrixPercentage + taskPercentage + breakPercentage + otherPercentage
+    console.log('Сумма процентов:', totalPercentage.toFixed(2) + '%') // Должно быть 100%
 
     return [
       {
         label: 'Bitrix24 (без задач)',
         description: 'Время в системе без учета задач',
-        value: data.bitrixTimeSeconds - data.elapsedTaskTimeSeconds,
-        percentage: baseTime > 0 ? `${(((data.bitrixTimeSeconds - data.elapsedTaskTimeSeconds) / baseTime) * 100).toFixed(1)}%` : '0%',
-        color: this.CHART_COLORS.BITRIX_TIME
+        value: pureBitrixTime,
+        percentage: `${pureBitrixPercentage.toFixed(1)}%`,
+        color: this.CHART_COLORS.BITRIX_TIME,
+        icon: '⏱️'
       },
       {
         label: 'Время в задачах',
         description: 'Затраченное время на выполнение задач',
-        value: data.elapsedTaskTimeSeconds,
-        percentage: baseTime > 0 ? `${((data.elapsedTaskTimeSeconds / baseTime) * 100).toFixed(1)}%` : '0%',
-        color: this.CHART_COLORS.TASK_TIME
+        value: taskTime,
+        percentage: `${taskPercentage.toFixed(1)}%`,
+        color: this.CHART_COLORS.TASK_TIME,
+        icon: '📋'
       },
       {
         label: 'Перерывы',
         description: 'Время перерывов',
-        value: isTodayWorkDay ? data.breakTimeSeconds : 0,
-        percentage: isTodayWorkDay && baseTime > 0 ?
-            `${((data.breakTimeSeconds / baseTime) * 100).toFixed(1)}%` : '0%',
+        value: breakTime,
+        percentage: `${breakPercentage.toFixed(1)}%`,
         color: this.CHART_COLORS.BREAK_TIME,
+        icon: '☕',
+        // Добавляем детали только если есть перерывы
+        ...(breakTime > 0 && {
+          details: `Общая длительность перерывов: ${this.formatDuration(breakTime)}`
+        })
       },
       {
-        label: isTodayWorkDay ? 'Прочее время' : 'Рабочее время',
-        description: isTodayWorkDay ? 'Другое рабочее время' : 'Запланированное рабочее время',
+        label: isTodayWorkDay ? 'Прочее рабочее время' : 'Рабочее время',
+        description: isTodayWorkDay ?
+            'Другая активность в рабочее время' :
+            'Запланированное неиспользованное время',
         value: otherTime,
-        percentage: baseTime > 0 ? `${((otherTime / baseTime) * 100).toFixed(1)}%` : '0%',
-        color: this.CHART_COLORS.WORK_DAY
+        percentage: `${otherPercentage.toFixed(1)}%`,
+        color: this.CHART_COLORS.WORK_DAY,
+        icon: '📊',
+        // Добавляем бейдж с дополнительной информацией
+        badge: isTodayWorkDay ? 'остаток' : 'план',
+        // Детали в зависимости от ситуации
+        details: isTodayWorkDay ?
+            `Оставшееся время: ${this.formatDuration(data.remainingWorkDaySeconds)}` :
+            `Плановое время: ${this.formatDuration(baseTime)}`
       }
     ]
   }
