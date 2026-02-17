@@ -660,7 +660,7 @@ class WorkDayStatisticsManager {
     this.minCalendarDate = new CalendarDate(2020, 1, 1)
     this.maxCalendarDate = new CalendarDate(2030, 12, 31)
 
-    // Цветовая схема - улучшенные цвета
+    // Цветовая схема
     this.CHART_COLORS = {
       WORK_DAY: '#3b82f6',      // синий (рабочее время)
       BITRIX_TIME: '#ef4444',   // красный (время в Bitrix24 без задач)
