@@ -215,14 +215,6 @@
                                   </div>
                                 </div>
                               </div>
-
-                              <!-- Детали (если есть) -->
-                              <div v-if="item.details"
-                                   class="mt-2 ml-8 md:ml-8 text-xs text-gray-600 bg-gray-50/80 backdrop-blur-sm px-3 py-2 rounded-lg border border-gray-100">
-                                <div class="flex items-start gap-2">
-                                  <span>{{ item.details }}</span>
-                                </div>
-                              </div>
                             </div>
                           </div>
 
@@ -1050,9 +1042,6 @@ class WorkDayStatisticsManager {
         color: this.CHART_COLORS.WORK_DAY,
         icon: '',
         badge: isTodayWorkDay ? 'остаток' : 'план',
-        details: isTodayWorkDay ?
-            `Оставшееся время: ${this.formatDuration(data.remainingWorkDaySeconds)}` :
-            `Плановое время: ${this.formatDuration(baseTime)}`
       }
     ]
   }
