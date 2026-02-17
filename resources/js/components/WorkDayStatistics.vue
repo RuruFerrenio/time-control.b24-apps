@@ -662,7 +662,7 @@ class WorkDayStatisticsManager {
 
     // Цветовая схема
     this.CHART_COLORS = {
-      WORK_DAY: '#3b82f6',      // синий (рабочее время)
+      WORK_DAY: '#d1d5db',      // серый (рабочее время)
       BITRIX_TIME: '#ef4444',   // красный (время в Bitrix24 без задач)
       BREAK_TIME: '#f97316',    // оранжевый
       TASK_TIME: '#10b981',     // зеленый
