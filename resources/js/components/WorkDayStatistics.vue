@@ -2553,6 +2553,10 @@ class WorkDayStatisticsManager {
       const startDateStr = formatDateForAPI(startOfDay)
       const endDateStr = formatDateForAPI(endOfDay)
 
+      console.log('loadCrmData')
+      console.log(startDateStr)
+      console.log(endDateStr)
+
       const calls = [
         // СДЕЛКИ - созданные пользователем
         ['crm.deal.list', {
