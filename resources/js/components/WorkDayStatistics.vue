@@ -220,7 +220,6 @@
                               <div v-if="item.details"
                                    class="mt-2 ml-8 md:ml-8 text-xs text-gray-600 bg-gray-50/80 backdrop-blur-sm px-3 py-2 rounded-lg border border-gray-100">
                                 <div class="flex items-start gap-2">
-                                  <span class="text-gray-400">ⓘ</span>
                                   <span>{{ item.details }}</span>
                                 </div>
                               </div>
@@ -1053,7 +1052,6 @@ class WorkDayStatisticsManager {
         percentage: `${otherPercentage.toFixed(1)}%`,
         color: this.CHART_COLORS.WORK_DAY,
         icon: '',
-        // Добавляем бейдж с дополнительной информацией
         badge: isTodayWorkDay ? 'остаток' : 'план',
         details: isTodayWorkDay ?
             `Оставшееся время: ${this.formatDuration(data.remainingWorkDaySeconds)}` :
