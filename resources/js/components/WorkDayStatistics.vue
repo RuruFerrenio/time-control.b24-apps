@@ -1783,7 +1783,7 @@ class WorkDayStatisticsManager {
           borderWidth: 1,
           padding: 12,
           boxPadding: 6,
-          zIndex: 100
+          display: false
         }
       },
       interaction: {
