@@ -1768,6 +1768,12 @@ class WorkDayStatisticsManager {
         tooltip: {
           callbacks: {
             label: (context) => {
+              const item = this.bitrixTimeLegend[context.dataIndex]
+              return [
+                item.label,
+                `${this.formatDuration(context.raw)} (${item.percentage})`,
+                item.description
+              ]
             }
           },
           backgroundColor: 'rgba(255, 255, 255, 0.95)',
@@ -1776,7 +1782,8 @@ class WorkDayStatisticsManager {
           borderColor: '#e5e7eb',
           borderWidth: 1,
           padding: 12,
-          boxPadding: 6
+          boxPadding: 6,
+          zIndex: 100
         }
       },
       interaction: {
