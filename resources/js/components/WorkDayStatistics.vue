@@ -118,6 +118,15 @@
                         </h4>
                         <div class="relative w-full h-64">
                           <canvas ref="bitrixTimeChart"></canvas>
+                          <!-- Центральный текст -->
+                          <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                            <div class="text-2xl md:text-3xl font-bold text-gray-900">
+                              {{ formatPercentage(workDayData.bitrixTimePercentage) }}
+                            </div>
+                            <div class="text-xs md:text-sm text-gray-500 mt-1">
+                              Времени не сохранено
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1767,6 +1776,7 @@ class WorkDayStatisticsManager {
               ]
             }
           },
+          enabled: false,
           backgroundColor: 'rgba(255, 255, 255, 0.95)',
           titleColor: '#1f2937',
           bodyColor: '#4b5563',
