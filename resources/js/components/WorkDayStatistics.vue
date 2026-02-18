@@ -117,15 +117,6 @@
                           </span>
                         </h4>
                         <div class="relative w-full h-64">
-                          <!-- Центральный текст -->
-                          <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                            <div class="text-2xl md:text-3xl font-bold text-gray-900">
-                              {{ formatPercentage(workDayData.bitrixTimePercentage) }}
-                            </div>
-                            <div class="text-xs md:text-sm text-gray-500 mt-1">
-                              Времени не сохранено
-                            </div>
-                          </div>
                           <canvas ref="bitrixTimeChart"></canvas>
                         </div>
                       </div>
