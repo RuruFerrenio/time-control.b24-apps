@@ -971,25 +971,28 @@ class WorkDayStatisticsManager {
         (data.workDurationSeconds || data.totalWorkDaySeconds) :
         data.totalWorkDaySeconds
 
-    baseTime = Math.max(0, baseTime)
-
     // Чистое время в Bitrix24 (без задач)
+    // Важно: bitrixTimeSeconds уже включает время в задачах, поэтому вычитаем
     const pureBitrixTime = Math.max(0, data.bitrixTimeSeconds - data.elapsedTaskTimeSeconds)
 
-    // Время в задачах
+    // Время в задачах (уже есть в данных)
     const taskTime = data.elapsedTaskTimeSeconds
 
-    // Время перерывов
+    // Время перерывов (только для сегодняшнего дня)
     const breakTime = isTodayWorkDay ? data.breakTimeSeconds : 0
 
-    // "Несохраненное" время (рабочее время минус все зафиксированное)
+    // Оставшееся время = базовое время минус все остальные категории
     const otherTime = Math.max(0, baseTime - pureBitrixTime - taskTime - breakTime)
 
-    // Расчет процентов
+    // Расчет процентов для каждого элемента
     const pureBitrixPercentage = baseTime > 0 ? (pureBitrixTime / baseTime) * 100 : 0
     const taskPercentage = baseTime > 0 ? (taskTime / baseTime) * 100 : 0
     const breakPercentage = baseTime > 0 ? (breakTime / baseTime) * 100 : 0
     const otherPercentage = baseTime > 0 ? (otherTime / baseTime) * 100 : 0
+
+    // Для отладки - проверим сумму процентов
+    const totalPercentage = pureBitrixPercentage + taskPercentage + breakPercentage + otherPercentage
+    console.log('Сумма процентов:', totalPercentage.toFixed(2) + '%') // Должно быть 100%
 
     return [
       {
@@ -1017,15 +1020,15 @@ class WorkDayStatisticsManager {
         icon: '',
       },
       {
-        label: isTodayWorkDay ? 'Несохраненное время' : 'Неиспользованное время',
+        label: isTodayWorkDay ? 'Прочее рабочее время' : 'Рабочее время',
         description: isTodayWorkDay ?
-            'Время не зафиксированное в системе' :
+            'Другая активность в рабочее время' :
             'Запланированное неиспользованное время',
         value: otherTime,
         percentage: `${otherPercentage.toFixed(1)}%`,
         color: this.CHART_COLORS.WORK_DAY,
         icon: '',
-        badge: isTodayWorkDay ? 'потери' : 'план',
+        badge: isTodayWorkDay ? 'остаток' : 'план',
       }
     ]
   }
@@ -2878,9 +2881,7 @@ class WorkDayStatisticsManager {
     const data = this.workDayData.value
     const totalBitrixTime = data.bitrixTimeSeconds
     const taskTime = data.elapsedTaskTimeSeconds
-
-    // Важно: pureBitrixTime не может быть отрицательным
-    const pureBitrixTime = Math.max(0, totalBitrixTime - taskTime)
+    const pureBitrixTime = totalBitrixTime - taskTime
 
     const today = new Date().toISOString().split('T')[0]
     const workDayStart = this.workDayStatus.value.TIME_START
@@ -2888,24 +2889,18 @@ class WorkDayStatisticsManager {
 
     const actualBreakTime = isTodayWorkDay ? data.breakTimeSeconds : 0
 
-    // Базовое время для расчета
-    let baseTime = isTodayWorkDay ?
+    const baseTime = isTodayWorkDay ?
         (data.workDurationSeconds || data.totalWorkDaySeconds) :
         data.totalWorkDaySeconds
 
-    // Гарантируем, что baseTime не меньше 0
-    baseTime = Math.max(0, baseTime)
+    data.nonBitrixTimeSeconds = Math.max(0,
+        baseTime - pureBitrixTime - taskTime - actualBreakTime
+    )
 
-    // Расчет "несохраненного времени" (рабочее время минус все зафиксированное время)
-    const recordedTime = pureBitrixTime + taskTime + actualBreakTime
-    data.nonBitrixTimeSeconds = Math.max(0, baseTime - recordedTime)
-
-    // Процент несохраненного времени
     data.bitrixTimePercentage = baseTime > 0
-        ? (data.nonBitrixTimeSeconds / baseTime) * 100
+        ? (pureBitrixTime / baseTime) * 100
         : 0
 
-    // Остальные расчеты...
     data.workDurationPercentage = data.totalWorkDaySeconds > 0
         ? (data.workDurationSeconds / data.totalWorkDaySeconds) * 100
         : 0
@@ -2916,6 +2911,10 @@ class WorkDayStatisticsManager {
 
     data.taskTimeOfBitrixPercentage = pureBitrixTime > 0
         ? (taskTime / pureBitrixTime) * 100
+        : 0
+
+    data.nonBitrixTimePercentage = baseTime > 0
+        ? (data.nonBitrixTimeSeconds / baseTime) * 100
         : 0
 
     if (isTodayWorkDay) {
@@ -2945,12 +2944,12 @@ class WorkDayStatisticsManager {
         ? (data.projectedBitrixTime / data.totalWorkDaySeconds) * 100
         : 0
 
-    // Ограничиваем проценты
-    data.bitrixTimePercentage = Math.min(100, Math.max(0, data.bitrixTimePercentage))
-    data.workDurationPercentage = Math.min(100, Math.max(0, data.workDurationPercentage))
-    data.bitrixTimeOfWorkedPercentage = Math.min(100, Math.max(0, data.bitrixTimeOfWorkedPercentage))
-    data.taskTimeOfBitrixPercentage = Math.min(100, Math.max(0, data.taskTimeOfBitrixPercentage))
-    data.projectedPercentage = Math.min(100, Math.max(0, data.projectedPercentage))
+    data.bitrixTimePercentage = Math.min(data.bitrixTimePercentage, 100)
+    data.workDurationPercentage = Math.min(data.workDurationPercentage, 100)
+    data.bitrixTimeOfWorkedPercentage = Math.min(data.bitrixTimeOfWorkedPercentage, 100)
+    data.taskTimeOfBitrixPercentage = Math.min(data.taskTimeOfBitrixPercentage, 100)
+    data.nonBitrixTimePercentage = Math.min(data.nonBitrixTimePercentage, 100)
+    data.projectedPercentage = Math.min(data.projectedPercentage, 100)
 
     if (!isTodayWorkDay) {
       data.workDurationPercentage = 100
