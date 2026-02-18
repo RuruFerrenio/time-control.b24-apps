@@ -117,7 +117,7 @@
                           </span>
                         </h4>
                         <div class="relative w-full h-64">
-                          <canvas ref="bitrixTimeChart" class="p-20"></canvas>
+                          <canvas ref="bitrixTimeChart"></canvas>
                           <!-- Центральный текст -->
                           <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                             <div class="text-2xl md:text-3xl font-bold text-gray-900">
@@ -1761,6 +1761,14 @@ class WorkDayStatisticsManager {
       responsive: true,
       maintainAspectRatio: false,
       cutout: '70%',
+      layout: {
+        padding: {
+          top: 20,
+          bottom: 20,
+          left: 20,
+          right: 20
+        }
+      },
       plugins: {
         legend: {
           display: false
