@@ -1754,7 +1754,6 @@ class WorkDayStatisticsManager {
         borderColor: '#ffffff',
         hoverOffset: 15,
         hoverBorderWidth: 3,
-        zIndex: 20,
       }]
     }
 
@@ -1769,12 +1768,6 @@ class WorkDayStatisticsManager {
         tooltip: {
           callbacks: {
             label: (context) => {
-              const item = this.bitrixTimeLegend[context.dataIndex]
-              return [
-                item.label,
-                `${this.formatDuration(context.raw)} (${item.percentage})`,
-                item.description
-              ]
             }
           },
           backgroundColor: 'rgba(255, 255, 255, 0.95)',
