@@ -1161,7 +1161,7 @@
         :ui="{ footer: 'justify-end' }"
     >
       <template #body>
-        <div class="space-y-4">
+        <div v-if="modalPageData" class="space-y-4">
           <div class="bg-yellow-50 rounded-lg p-4">
             <div class="flex items-start">
               <svg class="w-5 h-5 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
