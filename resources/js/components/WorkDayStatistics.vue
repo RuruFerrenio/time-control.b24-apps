@@ -116,8 +116,8 @@
                             Распределение времени
                           </span>
                         </h4>
-                        <div class="relative w-full h-64 p-20">
-                          <canvas ref="bitrixTimeChart"></canvas>
+                        <div class="relative w-full h-64">
+                          <canvas ref="bitrixTimeChart" class="p-20"></canvas>
                           <!-- Центральный текст -->
                           <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                             <div class="text-2xl md:text-3xl font-bold text-gray-900">
