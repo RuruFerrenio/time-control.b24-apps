@@ -119,7 +119,7 @@
                         <div class="relative w-full h-64">
                           <canvas ref="bitrixTimeChart"></canvas>
                           <!-- Центральный текст -->
-                          <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-20">
+                          <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                             <div class="text-2xl md:text-3xl font-bold text-gray-900">
                               {{ formatPercentage(workDayData.bitrixTimePercentage) }}
                             </div>
@@ -1753,7 +1753,8 @@ class WorkDayStatisticsManager {
         borderWidth: 2,
         borderColor: '#ffffff',
         hoverOffset: 15,
-        hoverBorderWidth: 3
+        hoverBorderWidth: 3,
+        zIndex: 20,
       }]
     }
 
