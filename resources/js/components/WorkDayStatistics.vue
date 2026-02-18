@@ -1765,7 +1765,7 @@ class WorkDayStatisticsManager {
         legend: {
           display: false
         },
-        tooltip: {
+        /*tooltip: {
           callbacks: {
             label: (context) => {
               const item = this.bitrixTimeLegend[context.dataIndex]
@@ -1782,9 +1782,8 @@ class WorkDayStatisticsManager {
           borderColor: '#e5e7eb',
           borderWidth: 1,
           padding: 12,
-          boxPadding: 6,
-          display: false
-        }
+          boxPadding: 6
+        }*/
       },
       interaction: {
         intersect: false,
