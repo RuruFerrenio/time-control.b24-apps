@@ -1752,7 +1752,7 @@ class WorkDayStatisticsManager {
         backgroundColor: this.bitrixTimeLegend.map(item => item.color),
         borderWidth: 2,
         borderColor: '#ffffff',
-        hoverOffset: 15,
+        hoverOffset: 5,
         hoverBorderWidth: 3,
       }]
     }
