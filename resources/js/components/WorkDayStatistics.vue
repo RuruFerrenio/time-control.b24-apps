@@ -262,11 +262,17 @@
                             </div>
 
                             <!-- Дополнительная информация -->
-                            <div class="mt-4 text-center">
-                              <button class="text-xs text-gray-400 hover:text-gray-600 transition-colors inline-flex items-center gap-1">
-                                <span>Подробная статистика</span>
-                                <span class="text-lg leading-none">→</span>
-                              </button>
+                            <div class="mt-3">
+                              <div class="flex items-start p-3 bg-blue-50 rounded-lg">
+                                <svg class="w-5 h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
+                                     viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <div class="text-sm text-blue-700">
+                                  <span class="font-medium">Важно:</span> Стремитесь к тому, чтобы показатель "Времени не сохранено", стремился к 0%
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
