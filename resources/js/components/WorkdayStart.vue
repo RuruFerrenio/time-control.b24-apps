@@ -63,27 +63,6 @@
         {{ statusMessage }}
       </div>
 
-      <!-- Информация о рабочем дне (после успешного старта) -->
-      <div v-if="workdayInfo && isStarted" class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-        <h3 class="text-sm font-medium text-blue-800 mb-3">
-          Информация о рабочем дне
-        </h3>
-        <div class="space-y-2 text-sm">
-          <div class="flex justify-between">
-            <span class="text-blue-600">Статус:</span>
-            <span class="font-medium text-blue-800">{{ getStatusText(workdayInfo.STATUS) }}</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-blue-600">Время начала:</span>
-            <span class="font-medium text-blue-800">{{ formatDateTime(workdayInfo.TIME_START) }}</span>
-          </div>
-          <div v-if="workdayInfo.TIME_FINISH" class="flex justify-between">
-            <span class="text-blue-600">Время завершения:</span>
-            <span class="font-medium text-blue-800">{{ formatDateTime(workdayInfo.TIME_FINISH) }}</span>
-          </div>
-        </div>
-      </div>
-
       <!-- Сообщение об ошибке -->
       <div v-if="error" class="mt-4 p-3 rounded-lg bg-red-50 text-red-700 border border-red-200">
         <div class="flex items-center justify-center">
