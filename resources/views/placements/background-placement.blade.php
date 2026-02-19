@@ -993,7 +993,7 @@
           this.applicationOpened = true;
 
           const alertaParameters = {
-            mode: 'alerta',
+            mode: 'workdaystart',
             source: 'workday_start',
             tracking_data: {
               user_id: this.userManager.getUserId(),
