@@ -169,6 +169,28 @@ export default {
       }
     }
 
+    // Функция форматирования даты в формат ATOM (ISO-8601)
+    const formatDateToATOM = (date) => {
+      // Получаем компоненты даты
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+
+      // Получаем смещение часового пояса в минутах
+      const timezoneOffset = date.getTimezoneOffset();
+      const absOffset = Math.abs(timezoneOffset);
+      const offsetHours = String(Math.floor(absOffset / 60)).padStart(2, '0');
+      const offsetMinutes = String(absOffset % 60).padStart(2, '0');
+      // Если местное время впереди UTC, offset отрицательный, значит знак +
+      const offsetSign = timezoneOffset <= 0 ? '+' : '-';
+
+      // Формат ATOM: YYYY-MM-DDTHH:MM:SS±HH:MM
+      return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offsetSign}${offsetHours}:${offsetMinutes}`;
+    }
+
     // Получение данных текущего пользователя
     const loadCurrentUser = async () => {
       if (!BX24) {
@@ -209,7 +231,7 @@ export default {
         }
 
         return {
-          id: userData.ID || 0,
+          id: parseInt(userData.ID) || 0,
           name: displayName,
           lastName: lastName,
           email: userData.EMAIL || ''
@@ -223,7 +245,7 @@ export default {
           const authData = BX24.getAuth()
           if (authData && authData.user_id) {
             return {
-              id: authData.user_id,
+              id: parseInt(authData.user_id),
               name: authData.user_name || `Сотрудник ${authData.user_id}`,
               lastName: '',
               email: authData.user_email || ''
@@ -288,16 +310,16 @@ export default {
         isStarting.value = true
         statusMessage.value = 'Начинаем рабочий день...'
 
-        // Получаем текущее время в формате ATOM с учетом часового пояса пользователя
+        // Получаем текущее время и форматируем в ATOM
         const now = new Date()
-        const timeAtom = now.toISOString() // ISO 8601 формат
+        const atomTime = formatDateToATOM(now)
 
         // Подготавливаем параметры
         const params = {
-          TIME: timeAtom
+          TIME: atomTime
         }
 
-        // Добавляем ID пользователя если он известен
+        // Добавляем ID пользователя если он известен и больше 0
         if (currentUser.value.id && currentUser.value.id > 0) {
           params.USER_ID = currentUser.value.id
         }
@@ -344,6 +366,8 @@ export default {
         // Парсим код ошибки если есть
         if (err.error === 'WRONG_DATETIME') {
           errorMessage = 'Дата открытия рабочего дня должна совпадать с текущей календарной датой'
+        } else if (err.error === 'WRONG_DATETIME_FORMAT') {
+          errorMessage = 'Неверный формат даты. Используйте формат ATOM (ISO-8601)'
         } else if (err.error === 'TIME') {
           errorMessage = 'Нельзя установить время для приостановленного рабочего дня'
         } else if (err.error === 'ACCESS_DENIED' || err.error === 'insufficient_scope') {
