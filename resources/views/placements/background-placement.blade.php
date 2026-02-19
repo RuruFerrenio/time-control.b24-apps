@@ -826,12 +826,6 @@
           this.initialized = false;
           this.lastUpdateTime = 0;
           this.STORAGE_UPDATE_INTERVAL = 10; // секунд
-
-          // Новые свойства для помощи в старте рабочего дня
-          this.workdayStarted = false;
-          this.workdayStartChecked = false;
-          this.workdayStartMethod = 'modal'; // По умолчанию модальное окно
-          this.workdayStartEnabled = false;
         }
 
         async initialize() {
@@ -841,9 +835,6 @@
             this.currentUrl = <?php echo json_encode($clientUrl ?? null, 15, 512) ?> || window.location.href;
 
             await this.settingsManager.load();
-
-            // Загружаем настройки помощи в старте рабочего дня
-            await this.loadWorkdayStartSettings();
 
             if (!this.settingsManager.isPageTrackingEnabled()) {
               console.log('Отслеживание страниц отключено в настройках');
@@ -872,136 +863,6 @@
           }
         }
 
-        // Новый метод для загрузки настроек помощи в старте рабочего дня
-        async loadWorkdayStartSettings() {
-          return new Promise((resolve) => {
-            BX24.appOption.get('workday_start_enabled', (enabled) => {
-              this.workdayStartEnabled = enabled === 'Y' || enabled === true || enabled === 1;
-
-              BX24.appOption.get('workday_start_method', (method) => {
-                if (method && ['auto', 'modal'].includes(method)) {
-                  this.workdayStartMethod = method;
-                }
-
-                // Проверяем, не начинал ли уже пользователь рабочий день сегодня
-                this.checkWorkdayStartedToday();
-                resolve();
-              });
-            });
-          });
-        }
-
-        // Новый метод для проверки, начат ли уже рабочий день сегодня
-        async checkWorkdayStartedToday() {
-          const today = new Date().toISOString().split('T')[0];
-          const userId = this.userManager.getUserId();
-
-          if (!userId) return;
-
-          return new Promise((resolve) => {
-            BX24.callMethod('entity.item.get', {
-              ENTITY: 'pr_workday_start',
-              FILTER: {
-                PROPERTY_USER_ID: userId,
-                PROPERTY_DATE: today
-              }
-            }, (result) => {
-              if (result.error()) {
-                console.error('Ошибка при проверке старта рабочего дня:', result.error());
-                resolve(false);
-              } else {
-                const items = result.data();
-                this.workdayStarted = items.length > 0;
-                this.workdayStartChecked = true;
-                resolve(this.workdayStarted);
-              }
-            });
-          });
-        }
-
-        // Новый метод для отметки начала рабочего дня
-        async markWorkdayStarted() {
-          const today = new Date().toISOString().split('T')[0];
-          const userId = this.userManager.getUserId();
-          const userName = this.userManager.getFullName();
-
-          if (!userId || this.workdayStarted) return;
-
-          return new Promise((resolve, reject) => {
-            BX24.callMethod('entity.item.add', {
-              ENTITY: 'pr_workday_start',
-              NAME: `${userName} - ${today}`,
-              PROPERTY_VALUES: {
-                USER_ID: userId,
-                USER_NAME: userName,
-                DATE: today,
-                START_TIME: new Date().toISOString()
-              }
-            }, (result) => {
-              if (result.error()) {
-                console.error('Ошибка при отметке начала рабочего дня:', result.error());
-                reject(result.error());
-              } else {
-                this.workdayStarted = true;
-                console.log('✅ Рабочий день отмечен');
-                resolve(result.data());
-              }
-            });
-          });
-        }
-
-        // Новый метод для показа модального окна старта рабочего дня
-        showWorkdayStartModal() {
-          if (this.applicationOpened || this.workdayStarted || !this.workdayStartChecked) return;
-
-          this.applicationOpened = true;
-          const userName = this.userManager.getFullName();
-
-          const workdayParameters = {
-            mode: 'workday_start',
-            source: 'page_tracking',
-            workday_data: {
-              user_id: this.userManager.getUserId(),
-              user_name: userName,
-              page_url: this.currentUrl,
-              page_title: document.title,
-              opened_at: new Date().toISOString()
-            }
-          };
-
-          const openAppParams = {
-            'opened': true,
-            'bx24_title': 'Начало рабочего дня',
-            'bx24_label': {
-              'bgColor': 'green',
-              'text': 'Старт дня',
-              'color': '#ffffff',
-            },
-            'bx24_width': 450,
-            'parameters': JSON.stringify(workdayParameters)
-          };
-
-          BX24.openApplication(openAppParams, () => {
-            this.onWorkdayModalClosed();
-          });
-
-          this.sessionTimer.stopTimer();
-        }
-
-        // Новый метод для обработки закрытия модального окна старта дня
-        onWorkdayModalClosed() {
-          this.applicationOpened = false;
-
-          // После закрытия модального окна отмечаем, что рабочий день начат
-          // (предполагаем, что пользователь нажал кнопку "Начать рабочий день")
-          this.markWorkdayStarted().then(() => {
-            this.sessionTimer.resetSession();
-            this.lastUpdateTime = 0;
-            this.startMainTimer();
-            console.log('Модальное окно старта дня закрыто, таймер возобновлен');
-          });
-        }
-
         async initializeStorage() {
           try {
             await this.storageManager.getOrCreateTodaySection();
@@ -1015,17 +876,6 @@
             } else {
               const userProfile = this.userManager.profile;
               await this.storageManager.createNewItem(userProfile, this.currentUrl, document.title);
-
-              // === НОВАЯ ЛОГИКА: При первой попытке записи в хранилище проверяем помощь в старте дня ===
-              if (this.workdayStartEnabled && !this.workdayStarted && this.workdayStartChecked) {
-                if (this.workdayStartMethod === 'modal') {
-                  // Вариант "Модальное окно с предупреждением"
-                  this.showWorkdayStartModal();
-                } else if (this.workdayStartMethod === 'auto') {
-                  // Вариант "Автоматический старт"
-                  this.markWorkdayStarted();
-                }
-              }
             }
 
             this.sessionTimer.startSession();
@@ -1056,11 +906,6 @@
           const seconds = currentTime % 60;
 
           console.log(`⏱️ Таймер: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} (${currentTime} сек)`);
-
-          // Для отладки можно выводить статус старта рабочего дня
-          if (this.workdayStartEnabled) {
-            console.log(`📅 Рабочий день: ${this.workdayStarted ? 'начат' : 'не начат'} (метод: ${this.workdayStartMethod})`);
-          }
         }
 
         checkAndOpenApplication(currentTime) {
