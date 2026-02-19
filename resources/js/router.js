@@ -6,6 +6,7 @@ const routes = [
     redirect: () => {
       const modeMap = {
         'alerta': '/presence-check',
+        'workdaystart': '/workday-start',
         'activity-report': '/activity-report',
         'default': '/time-list'
       }
@@ -39,6 +40,11 @@ const routes = [
     path: '/presence-check',
     name: 'presence-check',
     component: () => import('./components/PresenceCheck.vue'),
+  },
+  {
+    path: '/workday-start',
+    name: 'workday-start',
+    component: () => import('./components/WorkdayStart.vue'),
   },
   {
     path: '/install',
