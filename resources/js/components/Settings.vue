@@ -665,6 +665,129 @@
           </div>
         </B24Card>
 
+        <!-- Блок 4: Помощь в старте рабочего дня -->
+        <B24Card class="mb-8">
+          <div class="p-0 md:p-6">
+            <div class="space-y-6">
+              <div class="flex items-center justify-between">
+                <div class="flex-1">
+                  <h3 class="text-lg font-semibold text-gray-900">
+                    Помощь в старте рабочего дня
+                  </h3>
+                  <p class="text-sm text-gray-500 mt-1">
+                    Автоматическая помощь сотрудникам в начале рабочего дня
+                  </p>
+                </div>
+                <div class="ml-4 flex items-center space-x-4">
+                  <div class="w-2 h-2 rounded-full"
+                       :class="formData.workdayStart.enabled ? 'bg-green-500' : 'bg-red-500'"></div>
+                  <B24Switch
+                      v-model="formData.workdayStart.enabled"
+                      @update:modelValue="toggleWorkdayStart"
+                      :disabled="isProcessing"
+                  />
+                </div>
+              </div>
+
+              <!-- Настройки помощи -->
+              <div v-if="formData.workdayStart.enabled" class="space-y-4 pt-4 border-t">
+                <B24Form
+                    :state="formData"
+                    class="space-y-4"
+                    @submit="saveWorkdayStartSettings"
+                >
+                  <!-- Способ старта рабочего дня -->
+                  <B24FormField
+                      label="Способ старта рабочего дня"
+                      name="workdayStartMethod"
+                      :help-text="`Текущий способ: ${getWorkdayStartMethodText()}`"
+                  >
+                    <B24RadioGroup
+                        v-model="formData.workdayStart.method"
+                        :disabled="isProcessing"
+                        :items="[
+                    {
+                        label: 'Автоматический старт',
+                        value: 'auto',
+                        description: 'Рабочий день начинается автоматически при открытии Битрикс24'
+                    },
+                    {
+                        label: 'Модальное окно с предупреждением',
+                        value: 'modal',
+                        description: 'Показывать окно с предложением начать рабочий день'
+                    }
+                ]"
+                        orientation="horizontal"
+                        variant="card"
+                        size="sm"
+                        default-value="modal"
+                        indicator="end"
+                        class="overflow-scroll"
+                    />
+                  </B24FormField>
+                </B24Form>
+
+                <!-- Информация о системе помощи -->
+                <div class="space-y-4 mt-6">
+                  <h4 class="text-sm font-medium text-gray-900">
+                    Как работает помощь в старте рабочего дня
+                  </h4>
+                  <div class="space-y-3">
+                    <div class="flex items-start">
+                      <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                        <span class="text-xs font-medium text-blue-600">1</span>
+                      </div>
+                      <div>
+                        <p class="text-sm text-gray-700">
+                          При первом открытии Битрикс24 в течение дня сотруднику предлагается отметить начало рабочего дня
+                        </p>
+                      </div>
+                    </div>
+                    <div class="flex items-start">
+                      <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                        <span class="text-xs font-medium text-blue-600">2</span>
+                      </div>
+                      <div>
+                        <p class="text-sm text-gray-700">
+                          <span class="font-medium">Автоматический старт:</span> рабочий день фиксируется автоматически без участия сотрудника
+                        </p>
+                      </div>
+                    </div>
+                    <div class="flex items-start">
+                      <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                        <span class="text-xs font-medium text-blue-600">3</span>
+                      </div>
+                      <div>
+                        <p class="text-sm text-gray-700">
+                          <span class="font-medium">Модальное окно:</span> показывается окно с кнопкой "Начать рабочий день", сотрудник должен подтвердить начало
+                        </p>
+                      </div>
+                    </div>
+                    <div class="flex items-start">
+                      <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                        <span class="text-xs font-medium text-blue-600">4</span>
+                      </div>
+                      <div>
+                        <p class="text-sm text-gray-700">
+                          Данные о начале рабочего дня сохраняются и используются в статистике рабочего дня
+                        </p>
+                      </div>
+                    </div>
+                    <div class="flex items-start mt-2 p-3 bg-yellow-50 rounded-lg">
+                      <svg class="w-5 h-5 text-yellow-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                      </svg>
+                      <div class="text-sm text-yellow-700">
+                        <span class="font-medium">Доступно только на тарифах:</span> Функция доступна на тарифах "Профессиональный", "Энтерпрайз" и выше
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </B24Card>
+
         <!-- Хранилище активности сотрудников -->
         <StorageManager
             ref="activityStorage"
@@ -742,8 +865,66 @@ class SettingsSystem {
         employeeReactionTime: 300, // Время на реакцию сотрудника (в секундах) - 5 минут по умолчанию
         responseMethod: 'chat', // Способ получения ответа: chat, push, all
         deliveryMethod: 'chat' // Способ доставки запроса: chat, push, all
+      },
+      workdayStart: {
+        enabled: false,
+        method: 'modal' // 'auto' или 'modal'
       }
     })
+  }
+
+  getWorkdayStartMethodText() {
+    const methods = {
+      'auto': 'Автоматический старт',
+      'modal': 'Модальное окно с предупреждением'
+    }
+    return methods[this.formData.value.workdayStart.method] || 'модальное окно'
+  }
+
+  // Добавить в SettingsSystem класс
+  async toggleWorkdayStart(newValue) {
+    try {
+      this.isProcessing.value = true
+      if (this.isBitrixLoaded.value) {
+        await BX24.appOption.set('workday_start_enabled', newValue ? 'Y' : 'N')
+      }
+      this.formData.value.workdayStart.enabled = newValue
+      this.showNotification('success', newValue ? 'Помощь в старте рабочего дня включена' : 'Помощь в старте рабочего дня выключена')
+    } catch {
+      this.showNotification('error', 'Ошибка сохранения настройки')
+    } finally {
+      this.isProcessing.value = false
+    }
+  }
+
+  async updateWorkdayStartMethod() {
+    try {
+      this.isProcessing.value = true
+      if (this.isBitrixLoaded.value) {
+        await BX24.appOption.set('workday_start_method', this.formData.value.workdayStart.method)
+      }
+      const methodText = this.getWorkdayStartMethodText()
+      this.showNotification('success', `Способ старта рабочего дня: ${methodText}`)
+    } catch {
+      this.showNotification('error', 'Ошибка сохранения способа старта')
+    } finally {
+      this.isProcessing.value = false
+    }
+  }
+
+  async saveWorkdayStartSettings() {
+    try {
+      this.isProcessing.value = true
+      if (this.isBitrixLoaded.value) {
+        await BX24.appOption.set('workday_start_enabled', this.formData.value.workdayStart.enabled ? 'Y' : 'N')
+        await BX24.appOption.set('workday_start_method', this.formData.value.workdayStart.method)
+      }
+      this.showNotification('success', 'Настройки помощи в старте рабочего дня сохранены')
+    } catch {
+      this.showNotification('error', 'Ошибка сохранения настроек')
+    } finally {
+      this.isProcessing.value = false
+    }
   }
 
   // Единая функция для уведомлений
@@ -1115,7 +1296,9 @@ class SettingsSystem {
           subordinateReportsEnabled,
           employeeReactionTime,
           responseMethod,
-          deliveryMethod
+          deliveryMethod,
+          workdayStartEnabled,
+          workdayStartMethod
         ] = await Promise.all([
           BX24.appOption.get('page_tracking_enabled'),
           BX24.appOption.get('page_tracking_history_days'),
@@ -1127,14 +1310,19 @@ class SettingsSystem {
           BX24.appOption.get('subordinate_reports_enabled'),
           BX24.appOption.get('employee_reaction_time'),
           BX24.appOption.get('response_method'),
-          BX24.appOption.get('delivery_method')
+          BX24.appOption.get('delivery_method'),
+          BX24.appOption.get('workday_start_enabled'),
+          BX24.appOption.get('workday_start_method')
         ])
 
+        // Загрузка основных настроек
         this.formData.value.pageTracking.enabled = pageTrackingEnabled === 'Y' || pageTrackingEnabled === true || pageTrackingEnabled === 1
         this.formData.value.presenceControl.enabled = presenceEnabled === 'Y' || presenceEnabled === true || presenceEnabled === 1
         this.formData.value.presenceControl.notifyManager.enabled = notifyManagerEnabled === 'Y' || notifyManagerEnabled === true || notifyManagerEnabled === 1
         this.formData.value.subordinateReports.enabled = subordinateReportsEnabled === 'Y' || subordinateReportsEnabled === true || subordinateReportsEnabled === 1
+        this.formData.value.workdayStart.enabled = workdayStartEnabled === 'Y' || workdayStartEnabled === true || workdayStartEnabled === 1
 
+        // Загрузка дней хранения истории посещений
         if (pageTrackingHistoryDays) {
           try {
             const days = parseInt(pageTrackingHistoryDays)
@@ -1142,9 +1330,11 @@ class SettingsSystem {
               this.formData.value.pageTracking.historyDays = days
             }
           } catch {
+            // Игнорируем ошибку парсинга
           }
         }
 
+        // Загрузка времени на странице до проверки присутствия
         if (pageTimeThreshold) {
           try {
             const minutes = parseInt(pageTimeThreshold)
@@ -1152,9 +1342,11 @@ class SettingsSystem {
               this.formData.value.presenceControl.pageTimeThreshold = minutes
             }
           } catch {
+            // Игнорируем ошибку парсинга
           }
         }
 
+        // Загрузка времени отсутствия до уведомления
         if (absenceTimeThreshold) {
           try {
             const seconds = parseInt(absenceTimeThreshold)
@@ -1162,9 +1354,11 @@ class SettingsSystem {
               this.formData.value.presenceControl.notifyManager.absenceTimeThreshold = seconds
             }
           } catch {
+            // Игнорируем ошибку парсинга
           }
         }
 
+        // Загрузка времени на реакцию сотрудника
         if (employeeReactionTime) {
           try {
             const seconds = parseInt(employeeReactionTime)
@@ -1172,21 +1366,31 @@ class SettingsSystem {
               this.formData.value.subordinateReports.employeeReactionTime = seconds
             }
           } catch {
+            // Игнорируем ошибку парсинга
           }
         }
 
+        // Загрузка способа уведомления для контроля присутствия
         if (notificationMethod && ['chat', 'push', 'all'].includes(notificationMethod)) {
           this.formData.value.presenceControl.notifyManager.method = notificationMethod
         }
 
+        // Загрузка способа получения ответа для отчетов
         if (responseMethod && ['chat', 'push', 'all'].includes(responseMethod)) {
           this.formData.value.subordinateReports.responseMethod = responseMethod
         }
 
+        // Загрузка способа доставки запроса для отчетов
         if (deliveryMethod && ['chat', 'push', 'all'].includes(deliveryMethod)) {
           this.formData.value.subordinateReports.deliveryMethod = deliveryMethod
         }
-      } catch {
+
+        // Загрузка способа старта рабочего дня
+        if (workdayStartMethod && ['auto', 'modal'].includes(workdayStartMethod)) {
+          this.formData.value.workdayStart.method = workdayStartMethod
+        }
+      } catch (error) {
+        console.error('Ошибка загрузки настроек:', error)
       }
     }
   }
@@ -1274,6 +1478,11 @@ export default {
       settingsSystem.updateDeliveryMethod()
     })
 
+    watch(() => settingsSystem.formData.value.workdayStart.method, () => {
+      if (settingsSystem.isProcessing.value) return
+      settingsSystem.updateWorkdayStartMethod()
+    })
+
     return {
       formData: settingsSystem.formData,
       isProcessing: settingsSystem.isProcessing,
@@ -1304,7 +1513,11 @@ export default {
       updateDeliveryMethod: settingsSystem.updateDeliveryMethod.bind(settingsSystem),
       savePageTrackingSettings: settingsSystem.savePageTrackingSettings.bind(settingsSystem),
       savePresenceControlSettings: settingsSystem.savePresenceControlSettings.bind(settingsSystem),
-      saveSubordinateReportsSettings: settingsSystem.saveSubordinateReportsSettings.bind(settingsSystem)
+      saveSubordinateReportsSettings: settingsSystem.saveSubordinateReportsSettings.bind(settingsSystem),
+      getWorkdayStartMethodText: settingsSystem.getWorkdayStartMethodText.bind(settingsSystem),
+      toggleWorkdayStart: settingsSystem.toggleWorkdayStart.bind(settingsSystem),
+      updateWorkdayStartMethod: settingsSystem.updateWorkdayStartMethod.bind(settingsSystem),
+      saveWorkdayStartSettings: settingsSystem.saveWorkdayStartSettings.bind(settingsSystem)
     }
   }
 }
