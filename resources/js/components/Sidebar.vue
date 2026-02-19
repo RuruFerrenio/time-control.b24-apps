@@ -12,7 +12,7 @@
               </svg>
             </div>
             <div>
-              <h3 class="text-lg font-semibold text-gray-900">Чистое время в Битрикс24</h3>
+              <h3 class="text-lg font-semibold text-gray-900">TLaunder: Чистое время</h3>
               <p class="text-sm text-gray-500">Версия 1.0.0</p>
             </div>
           </div>
