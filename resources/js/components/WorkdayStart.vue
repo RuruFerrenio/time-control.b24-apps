@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen flex flex-col items-center justify-center bg-white p-4">
     <!-- Основной контент -->
-    <div class="text-center w-full max-w-md">
+    <div class="text-center w-full">
       <!-- Иконка -->
       <div class="mb-8 flex justify-center">
         <div class="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center">
