@@ -323,7 +323,7 @@ export default {
           const atomTime = formatDateToATOM(now)
 
           const params = {
-            TIME: atomTime
+            //TIME: atomTime
           }
 
           if (currentUser.value.id && currentUser.value.id > 0) {
