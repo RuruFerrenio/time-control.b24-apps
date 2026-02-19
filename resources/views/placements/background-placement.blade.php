@@ -451,7 +451,9 @@
             PAGE_TRACKING_ENABLED: 'page_tracking_enabled',
             PAGE_TRACKING_HISTORY_DAYS: 'page_tracking_history_days',
             PRESENCE_CONTROL_ENABLED: 'presence_control_enabled',
-            PRESENCE_PAGE_TIME_THRESHOLD: 'presence_page_time_threshold'
+            PRESENCE_PAGE_TIME_THRESHOLD: 'presence_page_time_threshold',
+            WORKDAY_START_ENABLED: 'workday_start_enabled',
+            WORKDAY_START_METHOD: 'workday_start_method'
           };
           this.settings = {
             pageTracking: {
@@ -461,21 +463,32 @@
             presenceControl: {
               enabled: false,
               pageTimeThreshold: 5 // в минутах
+            },
+            workdayStart: {
+              enabled: false,
+              method: 'modal' // 'modal' или 'auto'
             }
           };
         }
 
         async load() {
           try {
-            const [pageTrackingEnabled, historyDays, presenceEnabled, pageTimeThreshold] = await Promise.all([
+            const [pageTrackingEnabled, historyDays, presenceEnabled, pageTimeThreshold, workdayStartEnabled, workdayStartMethod] = await Promise.all([
               BX24.appOption.get(this.keys.PAGE_TRACKING_ENABLED),
               BX24.appOption.get(this.keys.PAGE_TRACKING_HISTORY_DAYS),
               BX24.appOption.get(this.keys.PRESENCE_CONTROL_ENABLED),
-              BX24.appOption.get(this.keys.PRESENCE_PAGE_TIME_THRESHOLD)
+              BX24.appOption.get(this.keys.PRESENCE_PAGE_TIME_THRESHOLD),
+              BX24.appOption.get(this.keys.WORKDAY_START_ENABLED),
+              BX24.appOption.get(this.keys.WORKDAY_START_METHOD)
             ]);
 
             this.settings.pageTracking.enabled = pageTrackingEnabled === 'Y' || pageTrackingEnabled === true || pageTrackingEnabled === 1;
             this.settings.presenceControl.enabled = presenceEnabled === 'Y' || presenceEnabled === true || presenceEnabled === 1;
+            this.settings.workdayStart.enabled = workdayStartEnabled === 'Y' || workdayStartEnabled === true || workdayStartEnabled === 1;
+
+            if (workdayStartMethod && ['modal', 'auto'].includes(workdayStartMethod)) {
+              this.settings.workdayStart.method = workdayStartMethod;
+            }
 
             if (historyDays) {
               try {
@@ -508,6 +521,18 @@
 
         isPresenceControlEnabled() {
           return this.settings.presenceControl.enabled;
+        }
+
+        isWorkdayStartEnabled() {
+          return this.settings.workdayStart.enabled;
+        }
+
+        isWorkdayStartAuto() {
+          return this.settings.workdayStart.enabled && this.settings.workdayStart.method === 'auto';
+        }
+
+        isWorkdayStartModal() {
+          return this.settings.workdayStart.enabled && this.settings.workdayStart.method === 'modal';
         }
 
         getPageTimeThresholdSeconds() {
@@ -810,6 +835,75 @@
         }
       }
 
+      // ==================== КЛАСС ДЛЯ РАБОТЫ С РАБОЧИМ ДНЕМ ====================
+      class WorkdayManager {
+        constructor(userManager) {
+          this.userManager = userManager;
+          this.workdayStarted = false;
+          this.workdayInfo = null;
+        }
+
+        async checkWorkdayStatus() {
+          return new Promise((resolve, reject) => {
+            BX24.callMethod('timeman.status', {}, (result) => {
+              if (result.error()) {
+                console.error('Ошибка при проверке статуса рабочего дня:', result.error());
+                reject(result.error());
+              } else {
+                const status = result.data();
+                this.workdayStarted = status && status.STATUS === 'OPENED';
+                this.workdayInfo = status;
+                resolve(status);
+              }
+            });
+          });
+        }
+
+        async startWorkday() {
+          return new Promise((resolve, reject) => {
+            const now = new Date();
+            const timeAtom = now.toISOString();
+
+            const params = {
+              TIME: timeAtom
+            };
+
+            if (this.userManager.getUserId()) {
+              params.USER_ID = this.userManager.getUserId();
+            }
+
+            BX24.callMethod('timeman.open', params, (result) => {
+              if (result.error()) {
+                console.error('Ошибка при начале рабочего дня:', result.error());
+                reject(result.error());
+              } else {
+                this.workdayStarted = true;
+                this.workdayInfo = result.data();
+                resolve(result.data());
+              }
+            });
+          });
+        }
+
+        async ensureWorkdayStarted() {
+          try {
+            const status = await this.checkWorkdayStatus();
+
+            if (!this.workdayStarted) {
+              await this.startWorkday();
+              console.log('✅ Рабочий день автоматически стартован');
+              return true;
+            }
+
+            console.log('ℹ️ Рабочий день уже начат');
+            return false;
+          } catch (error) {
+            console.error('Ошибка при автоматическом старте рабочего дня:', error);
+            return false;
+          }
+        }
+      }
+
       // ==================== КЛАСС ПРИЛОЖЕНИЯ ====================
       class PageTrackerApp {
         constructor() {
@@ -819,6 +913,7 @@
           this.settingsManager = new SettingsManager();
           this.storageManager = new StorageManager();
           this.sessionTimer = new SessionTimer();
+          this.workdayManager = new WorkdayManager(this.userManager);
 
           this.currentUrl = null;
           this.applicationOpened = false;
@@ -826,6 +921,7 @@
           this.initialized = false;
           this.lastUpdateTime = 0;
           this.STORAGE_UPDATE_INTERVAL = 10; // секунд
+          this.workdayCheckDone = false;
         }
 
         async initialize() {
@@ -842,6 +938,12 @@
             }
 
             await this.userManager.fetchProfile();
+
+            // Проверяем и запускаем рабочий день если нужно
+            if (this.settingsManager.isWorkdayStartEnabled() && !this.workdayCheckDone) {
+              await this.handleWorkdayStart();
+              this.workdayCheckDone = true;
+            }
 
             const storageExists = await this.storageManager.checkExists();
             if (!storageExists) {
@@ -861,6 +963,83 @@
           } catch (error) {
             console.error('Ошибка инициализации:', error);
           }
+        }
+
+        async handleWorkdayStart() {
+          try {
+            const status = await this.workdayManager.checkWorkdayStatus();
+
+            // Если рабочий день уже начат, ничего не делаем
+            if (this.workdayManager.workdayStarted) {
+              console.log('Рабочий день уже начат');
+              return;
+            }
+
+            if (this.settingsManager.isWorkdayStartAuto()) {
+              // Автоматический старт
+              await this.workdayManager.ensureWorkdayStarted();
+            } else if (this.settingsManager.isWorkdayStartModal()) {
+              // Модальное окно с предложением начать рабочий день
+              this.openWorkdayModal();
+            }
+          } catch (error) {
+            console.error('Ошибка при обработке старта рабочего дня:', error);
+          }
+        }
+
+        openWorkdayModal() {
+          if (this.applicationOpened) return;
+
+          this.applicationOpened = true;
+
+          const alertaParameters = {
+            mode: 'alerta',
+            source: 'workday_start',
+            tracking_data: {
+              user_id: this.userManager.getUserId(),
+              user_name: this.userManager.getFullName(),
+              page_url: this.currentUrl,
+              page_title: document.title,
+              opened_at: new Date().toISOString()
+            }
+          };
+
+          const openAppParams = {
+            'opened': true,
+            'bx24_title': 'Начало рабочего дня',
+            'bx24_label': {
+              'bgColor': 'green',
+              'text': 'Старт дня',
+              'color': '#ffffff',
+            },
+            'bx24_width': 500,
+            'parameters': JSON.stringify(alertaParameters)
+          };
+
+          BX24.openApplication(openAppParams, () => {
+            this.onWorkdayModalClosed();
+          });
+
+          // Останавливаем таймер на время открытия модалки
+          this.sessionTimer.stopTimer();
+        }
+
+        async onWorkdayModalClosed() {
+          this.applicationOpened = false;
+
+          // После закрытия модалки проверяем статус рабочего дня
+          try {
+            await this.workdayManager.checkWorkdayStatus();
+          } catch (error) {
+            console.error('Ошибка при проверке статуса после закрытия модалки:', error);
+          }
+
+          // Возобновляем таймер
+          this.sessionTimer.resetSession();
+          this.lastUpdateTime = 0;
+          this.startMainTimer();
+
+          console.log('Модальное окно старта рабочего дня закрыто');
         }
 
         async initializeStorage() {
@@ -918,11 +1097,11 @@
           const thresholdSeconds = this.settingsManager.getPageTimeThresholdSeconds();
 
           if (currentTime >= thresholdSeconds) {
-            this.openApplication();
+            this.openPresenceApplication();
           }
         }
 
-        openApplication() {
+        openPresenceApplication() {
           this.applicationOpened = true;
           const currentTime = this.sessionTimer.getSessionTime();
           const totalTime = this.storedTime + currentTime;
@@ -958,13 +1137,13 @@
           };
 
           BX24.openApplication(openAppParams, () => {
-            this.onApplicationClosed();
+            this.onPresenceApplicationClosed();
           });
 
           this.sessionTimer.stopTimer();
         }
 
-        onApplicationClosed() {
+        onPresenceApplicationClosed() {
           this.applicationOpened = false;
 
           const sessionTime = this.sessionTimer.getSessionTime();
@@ -976,7 +1155,7 @@
           this.lastUpdateTime = 0;
           this.startMainTimer();
 
-          console.log('Приложение закрыто, таймер сброшен');
+          console.log('Приложение активности закрыто, таймер сброшен');
         }
 
         async updateStorage(sessionTime) {
