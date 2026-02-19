@@ -859,46 +859,106 @@
           });
         }
 
+        // Форматирование даты в формат ATOM (ISO-8601)
+        formatDateToATOM(date) {
+          // Получаем компоненты даты
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          const hours = String(date.getHours()).padStart(2, '0');
+          const minutes = String(date.getMinutes()).padStart(2, '0');
+          const seconds = String(date.getSeconds()).padStart(2, '0');
+
+          // Получаем смещение часового пояса в минутах
+          const timezoneOffset = date.getTimezoneOffset();
+          const absOffset = Math.abs(timezoneOffset);
+          const offsetHours = String(Math.floor(absOffset / 60)).padStart(2, '0');
+          const offsetMinutes = String(absOffset % 60).padStart(2, '0');
+          const offsetSign = timezoneOffset <= 0 ? '+' : '-'; // Обратите внимание: getTimezoneOffset возвращает минуты, на которые местное время отличается от UTC. Если местное время впереди UTC, offset отрицательный.
+
+          // Формат ATOM: YYYY-MM-DDTHH:MM:SS±HH:MM
+          return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offsetSign}${offsetHours}:${offsetMinutes}`;
+        }
+
         async startWorkday() {
           return new Promise((resolve, reject) => {
-            const now = new Date();
-            const timeAtom = now.toISOString();
+            try {
+              const now = new Date();
 
-            const params = {
-              TIME: timeAtom
-            };
+              // Форматируем дату в формат ATOM
+              const atomTime = this.formatDateToATOM(now);
 
-            if (this.userManager.getUserId()) {
-              params.USER_ID = this.userManager.getUserId();
-            }
+              // Базовые параметры
+              const params = {
+                TIME: atomTime
+              };
 
-            BX24.callMethod('timeman.open', params, (result) => {
-              if (result.error()) {
-                console.error('Ошибка при начале рабочего дня:', result.error());
-                reject(result.error());
-              } else {
-                this.workdayStarted = true;
-                this.workdayInfo = result.data();
-                resolve(result.data());
+              // Добавляем ID пользователя если он известен и не равен 0
+              const userId = this.userManager.getUserId();
+              if (userId && parseInt(userId) > 0) {
+                params.USER_ID = parseInt(userId);
               }
-            });
+
+              console.log('Отправка запроса timeman.open с параметрами:', params);
+
+              BX24.callMethod('timeman.open', params, (result) => {
+                if (result.error()) {
+                  console.error('Ошибка при начале рабочего дня:', result.error());
+
+                  // Детальный вывод ошибки для отладки
+                  console.error('Детали ошибки:', {
+                    error: result.error(),
+                    errorCode: result.error().ex?.error,
+                    errorDescription: result.error().ex?.error_description,
+                    status: result.status ? result.status() : 'unknown'
+                  });
+
+                  reject(result.error());
+                } else {
+                  this.workdayStarted = true;
+                  this.workdayInfo = result.data();
+                  console.log('✅ Рабочий день успешно начат:', result.data());
+                  resolve(result.data());
+                }
+              });
+            } catch (error) {
+              console.error('❌ Исключение при начале рабочего дня:', error);
+              reject(error);
+            }
           });
         }
 
         async ensureWorkdayStarted() {
           try {
+            // Сначала проверяем статус
             const status = await this.checkWorkdayStatus();
+            console.log('Текущий статус рабочего дня:', status);
 
-            if (!this.workdayStarted) {
-              await this.startWorkday();
-              console.log('✅ Рабочий день автоматически стартован');
-              return true;
+            // Если рабочий день уже начат, ничего не делаем
+            if (this.workdayStarted) {
+              console.log('ℹ️ Рабочий день уже начат');
+              return false;
             }
 
-            console.log('ℹ️ Рабочий день уже начат');
-            return false;
+            // Пробуем начать рабочий день
+            console.log('🚀 Попытка автоматического старта рабочего дня...');
+
+            await this.startWorkday();
+            console.log('✅ Рабочий день автоматически стартован');
+            return true;
+
           } catch (error) {
-            console.error('Ошибка при автоматическом старте рабочего дня:', error);
+            console.error('❌ Ошибка при автоматическом старте рабочего дня:', error);
+
+            // Детальный вывод ошибки
+            if (error.ex) {
+              console.error('Детали ошибки:', {
+                error: error.ex.error,
+                description: error.ex.error_description,
+                status: error.ex.status
+              });
+            }
+
             return false;
           }
         }
