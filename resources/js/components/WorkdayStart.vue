@@ -310,34 +310,86 @@ export default {
         isStarting.value = true
         statusMessage.value = 'Начинаем рабочий день...'
 
-        // Получаем текущее время и форматируем в ATOM
-        const now = new Date()
-        const atomTime = formatDateToATOM(now)
+        // Получаем текущий статус рабочего дня
+        const status = await getCurrentWorkdayStatus()
+        console.log('Текущий статус рабочего дня:', status)
 
-        // Подготавливаем параметры
-        const params = {
-          TIME: atomTime
-        }
+        let result
 
-        // Добавляем ID пользователя если он известен и больше 0
-        if (currentUser.value.id && currentUser.value.id > 0) {
-          params.USER_ID = currentUser.value.id
-        }
+        // В зависимости от статуса используем разные методы
+        if (!status || status.STATUS === 'CLOSED') {
+          // Если рабочий день закрыт или его нет - используем timeman.open с TIME
+          const now = new Date()
+          const atomTime = formatDateToATOM(now)
 
-        console.log('Отправка запроса timeman.open с параметрами:', params)
+          const params = {
+            TIME: atomTime
+          }
 
-        // Вызываем метод timeman.open
-        const result = await new Promise((resolve, reject) => {
-          BX24.callMethod('timeman.open', params, (result) => {
-            if (result.error()) {
-              reject(result.error())
-            } else {
-              resolve(result.data())
-            }
+          if (currentUser.value.id && currentUser.value.id > 0) {
+            params.USER_ID = currentUser.value.id
+          }
+
+          console.log('Открываем новый рабочий день с параметрами:', params)
+
+          result = await new Promise((resolve, reject) => {
+            BX24.callMethod('timeman.open', params, (result) => {
+              if (result.error()) {
+                reject(result.error())
+              } else {
+                resolve(result.data())
+              }
+            })
           })
-        })
 
-        console.log('Результат timeman.open:', result)
+        } else if (status.STATUS === 'PAUSED') {
+          // Если рабочий день приостановлен - используем timeman.resume без TIME
+          console.log('Возобновляем приостановленный рабочий день')
+
+          const params = {}
+
+          if (currentUser.value.id && currentUser.value.id > 0) {
+            params.USER_ID = currentUser.value.id
+          }
+
+          result = await new Promise((resolve, reject) => {
+            BX24.callMethod('timeman.resume', params, (result) => {
+              if (result.error()) {
+                reject(result.error())
+              } else {
+                resolve(result.data())
+              }
+            })
+          })
+
+        } else if (status.STATUS === 'OPENED') {
+          // Если уже открыт - просто показываем информацию
+          console.log('Рабочий день уже открыт')
+          result = status
+          isStarted.value = true
+          statusMessage.value = 'Рабочий день уже начат'
+        } else {
+          // Для других статусов используем timeman.open без TIME?
+          console.log('Неизвестный статус, пробуем открыть без времени')
+
+          const params = {}
+
+          if (currentUser.value.id && currentUser.value.id > 0) {
+            params.USER_ID = currentUser.value.id
+          }
+
+          result = await new Promise((resolve, reject) => {
+            BX24.callMethod('timeman.open', params, (result) => {
+              if (result.error()) {
+                reject(result.error())
+              } else {
+                resolve(result.data())
+              }
+            })
+          })
+        }
+
+        console.log('Результат операции:', result)
 
         // Сохраняем информацию о рабочем дне
         workdayInfo.value = result
@@ -369,7 +421,48 @@ export default {
         } else if (err.error === 'WRONG_DATETIME_FORMAT') {
           errorMessage = 'Неверный формат даты. Используйте формат ATOM (ISO-8601)'
         } else if (err.error === 'TIME') {
-          errorMessage = 'Нельзя установить время для приостановленного рабочего дня'
+          errorMessage = 'Нельзя установить время для приостановленного рабочего дня. Рабочий день возобновлен автоматически.'
+
+          // Пробуем возобновить без TIME
+          try {
+            console.log('Пробуем возобновить рабочий день без параметра TIME...')
+
+            const params = {}
+            if (currentUser.value.id && currentUser.value.id > 0) {
+              params.USER_ID = currentUser.value.id
+            }
+
+            const result = await new Promise((resolve, reject) => {
+              BX24.callMethod('timeman.resume', params, (result) => {
+                if (result.error()) {
+                  reject(result.error())
+                } else {
+                  resolve(result.data())
+                }
+              })
+            })
+
+            console.log('Рабочий день успешно возобновлен:', result)
+
+            workdayInfo.value = result
+            isStarted.value = true
+            statusMessage.value = 'Рабочий день возобновлен'
+
+            toast.add({
+              description: 'Рабочий день успешно возобновлен',
+              variant: 'success'
+            })
+
+            setTimeout(() => {
+              closeApplication()
+            }, 2000)
+
+            return // Выходим, чтобы не показывать ошибку
+
+          } catch (resumeError) {
+            console.error('Ошибка при возобновлении:', resumeError)
+            errorMessage = 'Не удалось возобновить рабочий день'
+          }
         } else if (err.error === 'ACCESS_DENIED' || err.error === 'insufficient_scope') {
           errorMessage = 'Недостаточно прав для выполнения операции'
         } else if (err.error === 'USER_NOT_FOUND' || err.message?.includes('User not found')) {
