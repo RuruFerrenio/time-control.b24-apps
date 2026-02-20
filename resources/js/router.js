@@ -7,6 +7,7 @@ const routes = [
       const modeMap = {
         'alerta': '/presence-check',
         'workdaystart': '/workday-start',
+        'workdayend': '/workday-end',
         'activity-report': '/activity-report',
         'default': '/time-list'
       }
@@ -45,6 +46,11 @@ const routes = [
     path: '/workday-start',
     name: 'workday-start',
     component: () => import('./components/WorkdayStart.vue'),
+  },
+  {
+    path: '/workday-end',
+    name: 'workday-end',
+    component: () => import('./components/WorkdayEnd.vue'),
   },
   {
     path: '/install',

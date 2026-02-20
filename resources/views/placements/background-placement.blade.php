@@ -453,7 +453,9 @@
             PRESENCE_CONTROL_ENABLED: 'presence_control_enabled',
             PRESENCE_PAGE_TIME_THRESHOLD: 'presence_page_time_threshold',
             WORKDAY_START_ENABLED: 'workday_start_enabled',
-            WORKDAY_START_METHOD: 'workday_start_method'
+            WORKDAY_START_METHOD: 'workday_start_method',
+            WORKDAY_END_ENABLED: 'workday_end_enabled',
+            WORKDAY_END_METHOD: 'workday_end_method'
           };
           this.settings = {
             pageTracking: {
@@ -467,27 +469,39 @@
             workdayStart: {
               enabled: false,
               method: 'modal' // 'modal' или 'auto'
+            },
+            workdayEnd: {
+              enabled: false,
+              method: 'modal' // 'modal' или 'auto'
             }
           };
         }
 
         async load() {
           try {
-            const [pageTrackingEnabled, historyDays, presenceEnabled, pageTimeThreshold, workdayStartEnabled, workdayStartMethod] = await Promise.all([
+            const [pageTrackingEnabled, historyDays, presenceEnabled, pageTimeThreshold,
+              workdayStartEnabled, workdayStartMethod, workdayEndEnabled, workdayEndMethod] = await Promise.all([
               BX24.appOption.get(this.keys.PAGE_TRACKING_ENABLED),
               BX24.appOption.get(this.keys.PAGE_TRACKING_HISTORY_DAYS),
               BX24.appOption.get(this.keys.PRESENCE_CONTROL_ENABLED),
               BX24.appOption.get(this.keys.PRESENCE_PAGE_TIME_THRESHOLD),
               BX24.appOption.get(this.keys.WORKDAY_START_ENABLED),
-              BX24.appOption.get(this.keys.WORKDAY_START_METHOD)
+              BX24.appOption.get(this.keys.WORKDAY_START_METHOD),
+              BX24.appOption.get(this.keys.WORKDAY_END_ENABLED),
+              BX24.appOption.get(this.keys.WORKDAY_END_METHOD)
             ]);
 
             this.settings.pageTracking.enabled = pageTrackingEnabled === 'Y' || pageTrackingEnabled === true || pageTrackingEnabled === 1;
             this.settings.presenceControl.enabled = presenceEnabled === 'Y' || presenceEnabled === true || presenceEnabled === 1;
             this.settings.workdayStart.enabled = workdayStartEnabled === 'Y' || workdayStartEnabled === true || workdayStartEnabled === 1;
+            this.settings.workdayEnd.enabled = workdayEndEnabled === 'Y' || workdayEndEnabled === true || workdayEndEnabled === 1;
 
             if (workdayStartMethod && ['modal', 'auto'].includes(workdayStartMethod)) {
               this.settings.workdayStart.method = workdayStartMethod;
+            }
+
+            if (workdayEndMethod && ['modal', 'auto'].includes(workdayEndMethod)) {
+              this.settings.workdayEnd.method = workdayEndMethod;
             }
 
             if (historyDays) {
@@ -533,6 +547,18 @@
 
         isWorkdayStartModal() {
           return this.settings.workdayStart.enabled && this.settings.workdayStart.method === 'modal';
+        }
+
+        isWorkdayEndEnabled() {
+          return this.settings.workdayEnd.enabled;
+        }
+
+        isWorkdayEndAuto() {
+          return this.settings.workdayEnd.enabled && this.settings.workdayEnd.method === 'auto';
+        }
+
+        isWorkdayEndModal() {
+          return this.settings.workdayEnd.enabled && this.settings.workdayEnd.method === 'modal';
         }
 
         getPageTimeThresholdSeconds() {
@@ -841,6 +867,7 @@
           this.userManager = userManager;
           this.workdayStarted = false;
           this.workdayInfo = null;
+          this.workdaySettings = null;
         }
 
         async checkWorkdayStatus() {
@@ -859,9 +886,80 @@
           });
         }
 
+        async getWorkdaySettings() {
+          const userId = this.userManager.getUserId();
+
+          return new Promise((resolve, reject) => {
+            BX24.callMethod('timeman.settings', {
+              USER_ID: userId
+            }, (result) => {
+              if (result.error()) {
+                console.error('Ошибка при получении настроек рабочего времени:', result.error());
+                reject(result.error());
+              } else {
+                this.workdaySettings = result.data();
+                resolve(result.data());
+              }
+            });
+          });
+        }
+
+        async isWithinWorkHours() {
+          try {
+            // Получаем настройки рабочего времени пользователя
+            const settings = await this.getWorkdaySettings();
+
+            if (!settings || !settings.UF_TIMEMAN) {
+              // Если учет времени не включен для пользователя, считаем что всегда рабочее время
+              console.log('Учет рабочего времени не включен для пользователя');
+              return true;
+            }
+
+            if (settings.UF_TM_FREE) {
+              // Если свободный график, считаем что всегда рабочее время
+              console.log('У пользователя свободный график');
+              return true;
+            }
+
+            const now = new Date();
+            const currentTime = now.getHours() * 60 + now.getMinutes(); // текущее время в минутах от начала дня
+
+            // Парсим время из строк вида "09:00:00"
+            const parseTimeToMinutes = (timeStr) => {
+              if (!timeStr) return null;
+              const [hours, minutes] = timeStr.split(':').map(Number);
+              return hours * 60 + minutes;
+            };
+
+            const maxStartMinutes = parseTimeToMinutes(settings.UF_TM_MAX_START);
+            const minFinishMinutes = parseTimeToMinutes(settings.UF_TM_MIN_FINISH);
+
+            if (!maxStartMinutes || !minFinishMinutes) {
+              console.log('Не удалось распарсить время начала/окончания');
+              return true;
+            }
+
+            // Проверяем, находится ли текущее время в рабочем интервале
+            // Рабочий интервал: от UF_TM_MAX_START до UF_TM_MIN_FINISH
+            const isWorkTime = currentTime >= maxStartMinutes && currentTime <= minFinishMinutes;
+
+            console.log(`Проверка рабочего времени:`, {
+              currentTime: `${Math.floor(currentTime / 60)}:${currentTime % 60}`,
+              maxStart: settings.UF_TM_MAX_START,
+              minFinish: settings.UF_TM_MIN_FINISH,
+              isWorkTime
+            });
+
+            return isWorkTime;
+
+          } catch (error) {
+            console.error('Ошибка при проверке рабочего времени:', error);
+            return true; // В случае ошибки считаем что рабочее время
+          }
+        }
+
         // Форматирование даты в формат ATOM (ISO-8601)
         formatDateToATOM(date) {
-          // Получаем компоненты даты
           const year = date.getFullYear();
           const month = String(date.getMonth() + 1).padStart(2, '0');
           const day = String(date.getDate()).padStart(2, '0');
@@ -869,14 +967,12 @@
           const minutes = String(date.getMinutes()).padStart(2, '0');
           const seconds = String(date.getSeconds()).padStart(2, '0');
 
-          // Получаем смещение часового пояса в минутах
           const timezoneOffset = date.getTimezoneOffset();
           const absOffset = Math.abs(timezoneOffset);
           const offsetHours = String(Math.floor(absOffset / 60)).padStart(2, '0');
           const offsetMinutes = String(absOffset % 60).padStart(2, '0');
-          const offsetSign = timezoneOffset <= 0 ? '+' : '-'; // Обратите внимание: getTimezoneOffset возвращает минуты, на которые местное время отличается от UTC. Если местное время впереди UTC, offset отрицательный.
+          const offsetSign = timezoneOffset <= 0 ? '+' : '-';
 
-          // Формат ATOM: YYYY-MM-DDTHH:MM:SS±HH:MM
           return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offsetSign}${offsetHours}:${offsetMinutes}`;
         }
 
@@ -884,16 +980,9 @@
           return new Promise((resolve, reject) => {
             try {
               const now = new Date();
-
-              // Форматируем дату в формат ATOM
               const atomTime = this.formatDateToATOM(now);
 
-              // Базовые параметры
-              const params = {
-                //TIME: atomTime
-              };
-
-              // Добавляем ID пользователя если он известен и не равен 0
+              const params = {};
               const userId = this.userManager.getUserId();
               if (userId && parseInt(userId) > 0) {
                 params.USER_ID = parseInt(userId);
@@ -904,15 +993,6 @@
               BX24.callMethod('timeman.open', params, (result) => {
                 if (result.error()) {
                   console.error('Ошибка при начале рабочего дня:', result.error());
-
-                  // Детальный вывод ошибки для отладки
-                  console.error('Детали ошибки:', {
-                    error: result.error(),
-                    errorCode: result.error().ex?.error,
-                    errorDescription: result.error().ex?.error_description,
-                    status: result.status ? result.status() : 'unknown'
-                  });
-
                   reject(result.error());
                 } else {
                   this.workdayStarted = true;
@@ -928,37 +1008,76 @@
           });
         }
 
+        async endWorkday() {
+          return new Promise((resolve, reject) => {
+            try {
+              const now = new Date();
+              const atomTime = this.formatDateToATOM(now);
+
+              const params = {};
+              const userId = this.userManager.getUserId();
+              if (userId && parseInt(userId) > 0) {
+                params.USER_ID = parseInt(userId);
+              }
+
+              console.log('Отправка запроса timeman.close с параметрами:', params);
+
+              BX24.callMethod('timeman.close', params, (result) => {
+                if (result.error()) {
+                  console.error('Ошибка при завершении рабочего дня:', result.error());
+                  reject(result.error());
+                } else {
+                  this.workdayStarted = false;
+                  this.workdayInfo = result.data();
+                  console.log('✅ Рабочий день успешно завершен:', result.data());
+                  resolve(result.data());
+                }
+              });
+            } catch (error) {
+              console.error('❌ Исключение при завершении рабочего дня:', error);
+              reject(error);
+            }
+          });
+        }
+
         async ensureWorkdayStarted() {
           try {
-            // Сначала проверяем статус
             const status = await this.checkWorkdayStatus();
             console.log('Текущий статус рабочего дня:', status);
 
-            // Если рабочий день уже начат, ничего не делаем
             if (this.workdayStarted) {
               console.log('ℹ️ Рабочий день уже начат');
               return false;
             }
 
-            // Пробуем начать рабочий день
             console.log('🚀 Попытка автоматического старта рабочего дня...');
-
             await this.startWorkday();
             console.log('✅ Рабочий день автоматически стартован');
             return true;
 
           } catch (error) {
             console.error('❌ Ошибка при автоматическом старте рабочего дня:', error);
+            return false;
+          }
+        }
 
-            // Детальный вывод ошибки
-            if (error.ex) {
-              console.error('Детали ошибки:', {
-                error: error.ex.error,
-                description: error.ex.error_description,
-                status: error.ex.status
-              });
+        async ensureWorkdayEnded() {
+          try {
+            const status = await this.checkWorkdayStatus();
+            console.log('Текущий статус рабочего дня:', status);
+
+            if (!this.workdayStarted) {
+              console.log('ℹ️ Рабочий день уже завершен');
+              return false;
             }
 
+            console.log('🚀 Попытка автоматического завершения рабочего дня...');
+            await this.endWorkday();
+            console.log('✅ Рабочий день автоматически завершен');
+            return true;
+
+          } catch (error) {
+            console.error('❌ Ошибка при автоматическом завершении рабочего дня:', error);
             return false;
           }
         }
@@ -982,6 +1101,7 @@
           this.lastUpdateTime = 0;
           this.STORAGE_UPDATE_INTERVAL = 10; // секунд
           this.workdayCheckDone = false;
+          this.isWithinWorkHours = true; // По умолчанию считаем что рабочее время
         }
 
         async initialize() {
@@ -999,9 +1119,19 @@
 
             await this.userManager.fetchProfile();
 
-            // Проверяем и запускаем рабочий день если нужно
-            if (this.settingsManager.isWorkdayStartEnabled() && !this.workdayCheckDone) {
-              await this.handleWorkdayStart();
+            // Проверяем, рабочее ли сейчас время
+            this.isWithinWorkHours = await this.workdayManager.isWithinWorkHours();
+            console.log('Текущее время:', this.isWithinWorkHours ? 'РАБОЧЕЕ' : 'НЕРАБОЧЕЕ');
+
+            // Проверяем и запускаем/завершаем рабочий день если нужно
+            if (!this.workdayCheckDone) {
+              if (this.isWithinWorkHours && this.settingsManager.isWorkdayStartEnabled()) {
+                // Рабочее время - запускаем начало рабочего дня
+                await this.handleWorkdayStart();
+              } else if (!this.isWithinWorkHours && this.settingsManager.isWorkdayEndEnabled()) {
+                // Нерабочее время - запускаем завершение рабочего дня
+                await this.handleWorkdayEnd();
+              }
               this.workdayCheckDone = true;
             }
 
@@ -1040,14 +1170,36 @@
               await this.workdayManager.ensureWorkdayStarted();
             } else if (this.settingsManager.isWorkdayStartModal()) {
               // Модальное окно с предложением начать рабочий день
-              this.openWorkdayModal();
+              this.openWorkdayStartModal();
             }
           } catch (error) {
             console.error('Ошибка при обработке старта рабочего дня:', error);
           }
         }
 
-        openWorkdayModal() {
+        async handleWorkdayEnd() {
+          try {
+            const status = await this.workdayManager.checkWorkdayStatus();
+
+            // Если рабочий день уже завершен, ничего не делаем
+            if (!this.workdayManager.workdayStarted) {
+              console.log('Рабочий день уже завершен');
+              return;
+            }
+
+            if (this.settingsManager.isWorkdayEndAuto()) {
+              // Автоматическое завершение
+              await this.workdayManager.ensureWorkdayEnded();
+            } else if (this.settingsManager.isWorkdayEndModal()) {
+              // Модальное окно с предложением завершить рабочий день
+              this.openWorkdayEndModal();
+            }
+          } catch (error) {
+            console.error('Ошибка при обработке завершения рабочего дня:', error);
+          }
+        }
+
+        openWorkdayStartModal() {
           if (this.applicationOpened) return;
 
           this.applicationOpened = true;
@@ -1084,6 +1236,43 @@
           this.sessionTimer.stopTimer();
         }
 
+        openWorkdayEndModal() {
+          if (this.applicationOpened) return;
+
+          this.applicationOpened = true;
+
+          const alertaParameters = {
+            mode: 'workdayend',
+            source: 'workday_end',
+            tracking_data: {
+              user_id: this.userManager.getUserId(),
+              user_name: this.userManager.getFullName(),
+              page_url: this.currentUrl,
+              page_title: document.title,
+              opened_at: new Date().toISOString()
+            }
+          };
+
+          const openAppParams = {
+            'opened': true,
+            'bx24_title': 'Завершение рабочего дня',
+            'bx24_label': {
+              'bgColor': 'red',
+              'text': 'Завершение дня',
+              'color': '#ffffff',
+            },
+            'bx24_width': 500,
+            'parameters': JSON.stringify(alertaParameters)
+          };
+
+          BX24.openApplication(openAppParams, () => {
+            this.onWorkdayModalClosed();
+          });
+
+          // Останавливаем таймер на время открытия модалки
+          this.sessionTimer.stopTimer();
+        }
+
         async onWorkdayModalClosed() {
           this.applicationOpened = false;
 
@@ -1099,7 +1288,7 @@
           this.lastUpdateTime = 0;
           this.startMainTimer();
 
-          console.log('Модальное окно старта рабочего дня закрыто');
+          console.log('Модальное окно рабочего дня закрыто');
         }
 
         async initializeStorage() {
