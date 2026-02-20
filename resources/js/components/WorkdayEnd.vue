@@ -377,15 +377,6 @@ export default {
           params.USER_ID = currentUser.value.id
         }
 
-        // Добавляем текущее время в формате ATOM
-        const now = new Date()
-        params.TIME = formatDateToATOM(now)
-
-        // Если есть рекомендованное время завершения, используем его
-        if (status && status.TIME_FINISH_DEFAULT) {
-          params.TIME = status.TIME_FINISH_DEFAULT
-        }
-
         // Добавляем причину (можно добавить поле для ввода в будущем)
         if (status && status.STATUS === 'EXPIRED') {
           params.REPORT = 'Завершение истекшего рабочего дня'
