@@ -25,29 +25,6 @@
         Рабочий день успешно завершен
       </p>
 
-      <!-- Информация о текущем рабочем дне (если есть) -->
-      <div v-if="workdayInfo && !isEnded" class="mb-6 p-4 bg-gray-50 rounded-lg text-left">
-        <h3 class="font-semibold text-gray-700 mb-2">Текущий рабочий день:</h3>
-        <div class="space-y-1 text-sm">
-          <div class="flex justify-between">
-            <span class="text-gray-600">Начало:</span>
-            <span class="font-medium">{{ formatDateTime(workdayInfo.TIME_START) }}</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-gray-600">Длительность:</span>
-            <span class="font-medium">{{ workdayInfo.DURATION || '00:00:00' }}</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-gray-600">Перерывы:</span>
-            <span class="font-medium">{{ workdayInfo.TIME_LEAKS || '00:00:00' }}</span>
-          </div>
-          <div v-if="workdayInfo.TIME_FINISH_DEFAULT" class="flex justify-between text-blue-600">
-            <span>Рекомендуемое завершение:</span>
-            <span class="font-medium">{{ formatDateTime(workdayInfo.TIME_FINISH_DEFAULT) }}</span>
-          </div>
-        </div>
-      </div>
-
       <!-- Кнопка завершения рабочего дня -->
       <div class="mb-8" v-if="!isEnded">
         <B24Button
@@ -80,24 +57,6 @@
               </svg>
               Рабочий день завершен
             </span>
-          </div>
-        </B24Button>
-      </div>
-
-      <!-- Кнопка закрытия после успешного завершения -->
-      <div class="mb-8" v-else>
-        <B24Button
-            @click="closeApplication"
-            variant="primary"
-            size="lg"
-            class="w-full h-20 rounded-full text-lg font-semibold bg-green-600 hover:bg-green-700 text-white transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-md hover:shadow-lg"
-        >
-          <div class="flex items-center justify-center">
-            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M6 18L18 6M6 6l12 12" />
-            </svg>
-            Закрыть
           </div>
         </B24Button>
       </div>
@@ -410,6 +369,10 @@ export default {
           variant: 'success'
         })
 
+        setTimeout(() => {
+          closeApplication()
+        }, 2000)
+
       } catch (err) {
         console.error('Ошибка при завершении рабочего дня:', err)
 
@@ -436,6 +399,12 @@ export default {
           description: errorMessage,
           variant: 'error'
         })
+
+        setTimeout(() => {
+          closeApplication()
+        }, 2000)
+
+        return
 
       } finally {
         isEnding.value = false
