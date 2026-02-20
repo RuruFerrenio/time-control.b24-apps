@@ -322,50 +322,21 @@ export default {
           })
 
         } else if (status.STATUS === 'PAUSED') {
-          // Если рабочий день приостановлен - используем timeman.resume без TIME
-          console.log('Возобновляем приостановленный рабочий день')
-
-          const params = {}
-
-          if (currentUser.value.id && currentUser.value.id > 0) {
-            params.USER_ID = currentUser.value.id
-          }
-
-          result = await new Promise((resolve, reject) => {
-            BX24.callMethod('timeman.resume', params, (result) => {
-              if (result.error()) {
-                reject(result.error())
-              } else {
-                resolve(result.data())
-              }
-            })
-          })
+          console.log('Рабочий день уже открыт')
+          result = status
+          isStarted.value = true
+          statusMessage.value = 'Рабочий день уже начат'
 
         } else if (status.STATUS === 'OPENED') {
-          // Если уже открыт - просто показываем информацию
           console.log('Рабочий день уже открыт')
           result = status
           isStarted.value = true
           statusMessage.value = 'Рабочий день уже начат'
         } else {
-          // Для других статусов используем timeman.open без TIME?
-          console.log('Неизвестный статус, пробуем открыть без времени')
-
-          const params = {}
-
-          if (currentUser.value.id && currentUser.value.id > 0) {
-            params.USER_ID = currentUser.value.id
-          }
-
-          result = await new Promise((resolve, reject) => {
-            BX24.callMethod('timeman.open', params, (result) => {
-              if (result.error()) {
-                reject(result.error())
-              } else {
-                resolve(result.data())
-              }
-            })
-          })
+          console.log('Рабочий день уже открыт')
+          result = status
+          isStarted.value = true
+          statusMessage.value = 'Рабочий день уже начат'
         }
 
         console.log('Результат операции:', result)

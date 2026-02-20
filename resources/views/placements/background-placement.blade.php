@@ -851,7 +851,7 @@
                 reject(result.error());
               } else {
                 const status = result.data();
-                this.workdayStarted = status && status.STATUS === 'OPENED';
+                this.workdayStarted = status && status.STATUS !== 'CLOSED';
                 this.workdayInfo = status;
                 resolve(status);
               }
