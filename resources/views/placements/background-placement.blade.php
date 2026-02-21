@@ -1157,7 +1157,7 @@
       }
 
       // ==========================================================================
-      // КЛАСС: WorkdayManager - Управление рабочим днем
+      // КЛАСС: WorkdayManager - Управление рабочим днем (исправленная версия)
       // ==========================================================================
 
       /**
@@ -1166,13 +1166,18 @@
       class WorkdayManager {
         constructor(userManager) {
           this.userManager = userManager;
-          this.workdayStarted = false;
+          this.workdayStatus = null;
           this.workdayInfo = null;
           this.workdaySettings = null;
         }
 
         /**
          * Проверяет статус рабочего дня
+         * Возможные статусы:
+         * - OPENED - рабочий день открыт
+         * - CLOSED - рабочий день закрыт
+         * - PAUSED - рабочий день на паузе
+         * - EXPIRED - рабочий день просрочен (не закрыт вовремя)
          * @returns {Promise<Object>} Статус рабочего дня
          */
         async checkWorkdayStatus() {
@@ -1183,12 +1188,60 @@
                 reject(result.error());
               } else {
                 const status = result.data();
-                this.workdayStarted = status && status.STATUS !== 'CLOSED';
+                this.workdayStatus = status ? status.STATUS : null;
                 this.workdayInfo = status;
                 resolve(status);
               }
             });
           });
+        }
+
+        /**
+         * Проверяет, открыт ли рабочий день (статус OPENED)
+         * @returns {boolean}
+         */
+        isWorkdayOpened() {
+          return this.workdayStatus === 'OPENED';
+        }
+
+        /**
+         * Проверяет, закрыт ли рабочий день (статус CLOSED)
+         * @returns {boolean}
+         */
+        isWorkdayClosed() {
+          return this.workdayStatus === 'CLOSED';
+        }
+
+        /**
+         * Проверяет, находится ли рабочий день на паузе
+         * @returns {boolean}
+         */
+        isWorkdayPaused() {
+          return this.workdayStatus === 'PAUSED';
+        }
+
+        /**
+         * Проверяет, просрочен ли рабочий день
+         * @returns {boolean}
+         */
+        isWorkdayExpired() {
+          return this.workdayStatus === 'EXPIRED';
+        }
+
+        /**
+         * Проверяет, можно ли начать рабочий день (статус CLOSED)
+         * @returns {boolean}
+         */
+        canStartWorkday() {
+          return this.isWorkdayClosed();
+        }
+
+        /**
+         * Проверяет, можно ли завершить рабочий день (статус OPENED или EXPIRED)
+         * @returns {boolean}
+         */
+        canEndWorkday() {
+          return this.isWorkdayOpened() || this.isWorkdayExpired();
         }
 
         /**
@@ -1322,7 +1375,7 @@
                   console.error('Ошибка при начале рабочего дня:', result.error());
                   reject(result.error());
                 } else {
-                  this.workdayStarted = true;
+                  this.workdayStatus = 'OPENED';
                   this.workdayInfo = result.data();
                   console.log('✅ Рабочий день успешно начат:', result.data());
                   resolve(result.data());
@@ -1351,7 +1404,7 @@
                   console.error('Ошибка при завершении рабочего дня:', result.error());
                   reject(result.error());
                 } else {
-                  this.workdayStarted = false;
+                  this.workdayStatus = 'CLOSED';
                   this.workdayInfo = result.data();
                   console.log('✅ Рабочий день успешно завершен:', result.data());
                   resolve(result.data());
@@ -1380,16 +1433,16 @@
         }
 
         /**
-         * Проверяет и запускает рабочий день если нужно
+         * Проверяет и запускает рабочий день если нужно (только если статус CLOSED)
          * @returns {Promise<boolean>} true если день был запущен
          */
         async ensureWorkdayStarted() {
           try {
-            const status = await this.checkWorkdayStatus();
-            console.log('Текущий статус рабочего дня:', status);
+            await this.checkWorkdayStatus();
+            console.log('Текущий статус рабочего дня:', this.workdayStatus);
 
-            if (this.workdayStarted) {
-              console.log('ℹ️ Рабочий день уже начат');
+            if (!this.canStartWorkday()) {
+              console.log(`ℹ️ Рабочий день нельзя начать: текущий статус ${this.workdayStatus}`);
               return false;
             }
 
@@ -1405,16 +1458,16 @@
         }
 
         /**
-         * Проверяет и завершает рабочий день если нужно
+         * Проверяет и завершает рабочий день если нужно (только если статус OPENED)
          * @returns {Promise<boolean>} true если день был завершен
          */
         async ensureWorkdayEnded() {
           try {
-            const status = await this.checkWorkdayStatus();
-            console.log('Текущий статус рабочего дня:', status);
+            await this.checkWorkdayStatus();
+            console.log('Текущий статус рабочего дня:', this.workdayStatus);
 
-            if (!this.workdayStarted) {
-              console.log('ℹ️ Рабочий день уже завершен');
+            if (!this.isWorkdayOpened()) {
+              console.log(`ℹ️ Рабочий день нельзя завершить: текущий статус ${this.workdayStatus} (нужен OPENED)`);
               return false;
             }
 
@@ -1431,7 +1484,7 @@
       }
 
       // ==========================================================================
-      // КЛАСС: PageTrackerApp - Главный класс приложения
+      // КЛАСС: PageTrackerApp - Главный класс приложения (исправленная версия)
       // ==========================================================================
 
       /**
@@ -1503,25 +1556,37 @@
 
           if (this.workdayCheckDone) return;
 
-          await this._handleWorkdayBasedOnTime();
+          // Получаем актуальный статус рабочего дня
+          await this.workdayManager.checkWorkdayStatus();
+
+          await this._handleWorkdayBasedOnStatus();
           this.workdayCheckDone = true;
         }
 
         /**
-         * Обрабатывает начало/завершение рабочего дня на основе времени
+         * Обрабатывает начало/завершение рабочего дня на основе статуса
          * @private
          */
-        async _handleWorkdayBasedOnTime() {
-          const status = await this.workdayManager.checkWorkdayStatus();
+        async _handleWorkdayBasedOnStatus() {
+          const status = this.workdayManager.workdayStatus;
+          console.log('Обработка рабочего дня на основе статуса:', status);
 
-          if (this.isWithinWorkHours && this.settingsManager.isWorkdayStartEnabled()) {
-            // Рабочее время и рабочий день еще не начат
-            if (!this.workdayManager.workdayStarted) {
+          // Начало рабочего дня - только если статус CLOSED
+          if (this.settingsManager.isWorkdayStartEnabled() &&
+            this.workdayManager.canStartWorkday()) {
+
+            if (this.isWithinWorkHours) {
+              // В рабочее время - предлагаем начать день
               await this._handleWorkdayStart();
             }
-          } else if (!this.isWithinWorkHours && this.settingsManager.isWorkdayEndEnabled()) {
-            // Нерабочее время и рабочий день еще не завершен
-            if (this.workdayManager.workdayStarted) {
+          }
+
+          // Завершение рабочего дня - только если статус OPENED
+          if (this.settingsManager.isWorkdayEndEnabled() &&
+            this.workdayManager.isWorkdayOpened()) {
+
+            if (!this.isWithinWorkHours) {
+              // В нерабочее время - предлагаем завершить день
               await this._handleWorkdayEnd();
             }
           }
@@ -1601,6 +1666,12 @@
         openWorkdayStartModal() {
           if (this.applicationOpened) return;
 
+          // Дополнительная проверка перед открытием
+          if (!this.workdayManager.canStartWorkday()) {
+            console.log('Нельзя открыть модалку начала дня: статус не CLOSED');
+            return;
+          }
+
           this.applicationOpened = true;
 
           const alertaParameters = this._buildWorkdayModalParams('workdaystart', 'workday_start');
@@ -1613,6 +1684,12 @@
          */
         openWorkdayEndModal() {
           if (this.applicationOpened) return;
+
+          // Дополнительная проверка перед открытием - только OPENED
+          if (!this.workdayManager.isWorkdayOpened()) {
+            console.log('Нельзя открыть модалку завершения дня: статус не OPENED');
+            return;
+          }
 
           this.applicationOpened = true;
 
@@ -1653,6 +1730,7 @@
               user_name: this.userManager.getFullName(),
               page_url: this.currentUrl,
               page_title: document.title,
+              workday_status: this.workdayManager.workdayStatus,
               opened_at: new Date().toISOString()
             }
           };
