@@ -2609,7 +2609,7 @@ class WorkDayStatisticsManager {
           'FILTER': {
             '>=DATE_MODIFY': startDateStr,
             '<=DATE_MODIFY': endDateStr,
-            '!DATE_CREATE': startDateStr,
+            '<=DATE_CREATE': startDateStr,
             'MODIFIED_BY_ID': this.currentUserId.value,
           },
           'SELECT': ['ID', 'STAGE_ID', 'CLOSED', 'DATE_MODIFY'],
@@ -2634,7 +2634,7 @@ class WorkDayStatisticsManager {
           'FILTER': {
             '>=DATE_MODIFY': startDateStr,
             '<=DATE_MODIFY': endDateStr,
-            '!DATE_CREATE': startDateStr,
+            '<=DATE_CREATE': startDateStr,
             'MODIFIED_BY_ID': this.currentUserId.value,
           },
           'SELECT': ['ID', 'STATUS_ID', 'DATE_MODIFY', 'DATE_CREATE'],
@@ -2659,7 +2659,7 @@ class WorkDayStatisticsManager {
           'FILTER': {
             '>=DATE_MODIFY': startDateStr,
             '<=DATE_MODIFY': endDateStr,
-            '!DATE_CREATE': startDateStr,
+            '<=DATE_CREATE': startDateStr,
             'MODIFIED_BY_ID': this.currentUserId.value,
           },
           'SELECT': ['ID', 'DATE_MODIFY','DATE_CREATE'],
@@ -2684,7 +2684,7 @@ class WorkDayStatisticsManager {
           'FILTER': {
             '>=DATE_MODIFY': startDateStr,
             '<=DATE_MODIFY': endDateStr,
-            '!DATE_CREATE': startDateStr,
+            '<=DATE_CREATE': startDateStr,
             'MODIFIED_BY_ID': this.currentUserId.value,
           },
           'SELECT': ['ID', 'DATE_MODIFY','DATE_CREATE'],
