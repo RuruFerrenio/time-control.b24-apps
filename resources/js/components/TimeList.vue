@@ -2397,7 +2397,7 @@ class HierarchicalDataManager {
       };
 
       // Загружаем задачи по всем ролям
-      const roles = ['responsible', 'creator', 'auditor'];
+      const roles = ['responsible', 'creator'];
       let allTasks = [];
 
       for (const role of roles) {
