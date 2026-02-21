@@ -2369,8 +2369,6 @@ class HierarchicalDataManager {
             filter = { 'RESPONSIBLE_ID': this.selectedUser.value.id };
           } else if (role === 'creator') {
             filter = { 'CREATED_BY': this.selectedUser.value.id };
-          } else if (role === 'auditor') {
-            filter = { 'AUDITORS': this.selectedUser.value.id };
           }
 
           BX24.callBatch({
