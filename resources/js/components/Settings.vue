@@ -1166,7 +1166,7 @@ class SettingsSystem {
       return false
     }
 
-    if (days > 7) {
+    if (days > 30) {
       this.formData.value.pageTracking.historyDays = 30
       this.pageTrackingHistoryDaysError.value = 'Максимальное значение: 30 дней'
       return false

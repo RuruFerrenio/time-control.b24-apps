@@ -5,12 +5,38 @@
     <script src="//api.bitrix24.com/api/v1/"></script>
     <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
     <script>
-      // ==================== КЛАСС ДЛЯ РАБОТЫ С URL ====================
+      // ==========================================================================
+      // КОНСТАНТЫ И КОНФИГУРАЦИЯ
+      // ==========================================================================
+
+      const APP_CONFIG = {
+        STORAGE_UPDATE_INTERVAL: 10, // секунд
+        TIMER_UPDATE_INTERVAL: 1000, // миллисекунд
+        DEFAULT_HISTORY_DAYS: 30,
+        MIN_HISTORY_DAYS: 1,
+        MAX_HISTORY_DAYS: 7,
+        MIN_PAGE_TIME_THRESHOLD: 1, // минут
+        MAX_PAGE_TIME_THRESHOLD: 60, // минут
+        MODAL_WIDTH: 500
+      };
+
+      // ==========================================================================
+      // КЛАСС: URLProcessor - Обработка URL адресов
+      // ==========================================================================
+
+      /**
+       * Класс для нормализации и парсинга URL адресов Битрикс24
+       */
       class URLProcessor {
         constructor() {
           this.domain = BX24.getDomain();
         }
 
+        /**
+         * Нормализует URL: удаляет query параметры и приводит к единому формату
+         * @param {string} url - Исходный URL
+         * @returns {string|null} Нормализованный URL или null
+         */
         normalizeUrl(url) {
           if (!url) return null;
 
@@ -27,21 +53,29 @@
             const fullUrl = `https://${this.domain}/${url}`;
             return this._removeQueryParams(fullUrl);
 
-          } catch (e) {
-            console.warn('Ошибка нормализации URL:', url);
+          } catch (error) {
+            console.warn('Ошибка нормализации URL:', url, error);
             return this._fallbackNormalization(url);
           }
         }
 
+        /**
+         * Удаляет query параметры из URL
+         * @private
+         */
         _removeQueryParams(url) {
           try {
             const urlObj = new URL(url);
             return `${urlObj.protocol}//${urlObj.host}${urlObj.pathname}`;
-          } catch (e) {
+          } catch (error) {
             return url.split('?')[0];
           }
         }
 
+        /**
+         * Запасной метод нормализации при ошибках
+         * @private
+         */
         _fallbackNormalization(url) {
           const queryIndex = url.indexOf('?');
           let cleanUrl = queryIndex !== -1 ? url.substring(0, queryIndex) : url;
@@ -53,9 +87,17 @@
           return `https://${this.domain}${cleanUrl}`;
         }
 
+        /**
+         * Парсит URL на составные части
+         * @param {string} url - URL для парсинга
+         * @returns {Object} Объект с частями URL
+         */
         parseUrl(url) {
           const normalized = this.normalizeUrl(url);
-          if (!normalized) return { path: '', search: '', host: '', fullUrl: '' };
+
+          if (!normalized) {
+            return { path: '', search: '', host: '', fullUrl: '' };
+          }
 
           try {
             const urlObj = new URL(normalized);
@@ -65,7 +107,7 @@
               host: urlObj.host,
               fullUrl: normalized
             };
-          } catch (e) {
+          } catch (error) {
             return {
               path: normalized.replace(`https://${this.domain}`, ''),
               search: '',
@@ -76,10 +118,24 @@
         }
       }
 
-      // ==================== КЛАСС ДЛЯ ОПРЕДЕЛЕНИЯ КАТЕГОРИЙ ====================
+      // ==========================================================================
+      // КЛАСС: CategoryDetector - Определение категорий страниц
+      // ==========================================================================
+
+      /**
+       * Класс для определения категории страницы на основе URL
+       */
       class CategoryDetector {
         constructor() {
-          this.categories = {
+          this.categories = this._initializeCategories();
+        }
+
+        /**
+         * Инициализирует структуру категорий
+         * @private
+         */
+        _initializeCategories() {
+          return {
             'collaboration': {
               name: 'Совместная работа',
               paths: [
@@ -349,45 +405,69 @@
           };
         }
 
+        /**
+         * Определяет категорию страницы по URL
+         * @param {string} url - URL страницы
+         * @returns {string|null} Название категории или null
+         */
         getCategory(url) {
           if (!url) return null;
 
           const urlProcessor = new URLProcessor();
           const { path } = urlProcessor.parseUrl(url);
 
+          const matchedCategory = this._findMatchingCategory(path);
+
+          if (matchedCategory) {
+            return matchedCategory;
+          }
+
+          return this._handleSpecialCases(url, path);
+        }
+
+        /**
+         * Ищет категорию по пути
+         * @private
+         */
+        _findMatchingCategory(path) {
           for (const [categoryKey, category] of Object.entries(this.categories)) {
             for (const categoryPath of category.paths) {
               const pattern = categoryPath.replace('[0-9]+', '\\d+');
               const regex = new RegExp(`^${pattern}`);
 
               if (regex.test(path)) {
-                for (const [subcategoryName, subcategoryPaths] of Object.entries(category.subcategories)) {
-                  for (const subcategoryPath of subcategoryPaths) {
-                    const subPattern = subcategoryPath.replace('[0-9]+', '\\d+');
-                    const subRegex = new RegExp(`^${subPattern}`);
-
-                    if (subRegex.test(path)) {
-                      return `${category.name} › ${subcategoryName}`;
-                    }
-                  }
-                }
-                return category.name;
+                return this._findSubcategory(path, category) || category.name;
               }
             }
           }
+          return null;
+        }
 
-          if (path.includes('/bi/dashboard/detail/')) {
-            const categoryMatch = url.match(/scope=([^&]+)/);
-            if (categoryMatch) {
-              const scope = categoryMatch[1];
-              switch(scope) {
-                case 'crm': return 'CRM › Аналитика';
-                case 'tasks': return 'Задачи и Проекты › Аналитика';
-                case 'shop': return 'Сайты и Магазины › Аналитика';
-                case 'bizproc': return 'Автоматизация › Аналитика';
+        /**
+         * Ищет подкатегорию
+         * @private
+         */
+        _findSubcategory(path, category) {
+          for (const [subcategoryName, subcategoryPaths] of Object.entries(category.subcategories)) {
+            for (const subcategoryPath of subcategoryPaths) {
+              const subPattern = subcategoryPath.replace('[0-9]+', '\\d+');
+              const subRegex = new RegExp(`^${subPattern}`);
+
+              if (subRegex.test(path)) {
+                return `${category.name} › ${subcategoryName}`;
               }
             }
-            return 'BI Конструктор';
+          }
+          return null;
+        }
+
+        /**
+         * Обрабатывает специальные случаи URL
+         * @private
+         */
+        _handleSpecialCases(url, path) {
+          if (path.includes('/bi/dashboard/detail/')) {
+            return this._handleBiDashboardCategory(url);
           }
 
           if (path.includes('/market/collection/')) {
@@ -404,14 +484,47 @@
 
           return null;
         }
+
+        /**
+         * Определяет категорию для BI дашборда
+         * @private
+         */
+        _handleBiDashboardCategory(url) {
+          const categoryMatch = url.match(/scope=([^&]+)/);
+
+          if (categoryMatch) {
+            const scope = categoryMatch[1];
+
+            const scopeToCategory = {
+              'crm': 'CRM › Аналитика',
+              'tasks': 'Задачи и Проекты › Аналитика',
+              'shop': 'Сайты и Магазины › Аналитика',
+              'bizproc': 'Автоматизация › Аналитика'
+            };
+
+            return scopeToCategory[scope] || 'BI Конструктор';
+          }
+
+          return 'BI Конструктор';
+        }
       }
 
-      // ==================== КЛАСС ДЛЯ РАБОТЫ С ПОЛЬЗОВАТЕЛЕМ ====================
+      // ==========================================================================
+      // КЛАСС: UserManager - Управление пользователем
+      // ==========================================================================
+
+      /**
+       * Класс для работы с профилем пользователя
+       */
       class UserManager {
         constructor() {
           this.profile = null;
         }
 
+        /**
+         * Получает профиль текущего пользователя
+         * @returns {Promise<Object>} Профиль пользователя
+         */
         async fetchProfile() {
           return new Promise((resolve, reject) => {
             BX24.callMethod("profile", {}, (result) => {
@@ -428,8 +541,14 @@
           });
         }
 
+        /**
+         * Возвращает полное имя пользователя
+         * @param {Object} profile - Профиль пользователя
+         * @returns {string} Полное имя
+         */
         getFullName(profile = null) {
           const user = profile || this.profile;
+
           if (!user) return 'Неизвестный';
 
           const firstName = user.NAME || '';
@@ -439,15 +558,34 @@
           return fullName || user.EMAIL || 'Пользователь';
         }
 
+        /**
+         * Возвращает ID текущего пользователя
+         * @returns {string|null} ID пользователя
+         */
         getUserId() {
           return this.profile ? this.profile.ID : null;
         }
       }
 
-      // ==================== КЛАСС ДЛЯ РАБОТЫ С НАСТРОЙКАМИ ====================
+      // ==========================================================================
+      // КЛАСС: SettingsManager - Управление настройками
+      // ==========================================================================
+
+      /**
+       * Класс для работы с настройками приложения
+       */
       class SettingsManager {
         constructor() {
-          this.keys = {
+          this.keys = this._initializeSettingsKeys();
+          this.settings = this._initializeDefaultSettings();
+        }
+
+        /**
+         * Инициализирует ключи настроек
+         * @private
+         */
+        _initializeSettingsKeys() {
+          return {
             PAGE_TRACKING_ENABLED: 'page_tracking_enabled',
             PAGE_TRACKING_HISTORY_DAYS: 'page_tracking_history_days',
             PRESENCE_CONTROL_ENABLED: 'presence_control_enabled',
@@ -457,10 +595,17 @@
             WORKDAY_END_ENABLED: 'workday_end_enabled',
             WORKDAY_END_METHOD: 'workday_end_method'
           };
-          this.settings = {
+        }
+
+        /**
+         * Инициализирует настройки по умолчанию
+         * @private
+         */
+        _initializeDefaultSettings() {
+          return {
             pageTracking: {
               enabled: false,
-              historyDays: 30
+              historyDays: APP_CONFIG.DEFAULT_HISTORY_DAYS
             },
             presenceControl: {
               enabled: false,
@@ -477,10 +622,13 @@
           };
         }
 
+        /**
+         * Загружает настройки из хранилища приложения
+         * @returns {Promise<boolean>} Успешность загрузки
+         */
         async load() {
           try {
-            const [pageTrackingEnabled, historyDays, presenceEnabled, pageTimeThreshold,
-              workdayStartEnabled, workdayStartMethod, workdayEndEnabled, workdayEndMethod] = await Promise.all([
+            const settingsPromises = [
               BX24.appOption.get(this.keys.PAGE_TRACKING_ENABLED),
               BX24.appOption.get(this.keys.PAGE_TRACKING_HISTORY_DAYS),
               BX24.appOption.get(this.keys.PRESENCE_CONTROL_ENABLED),
@@ -489,38 +637,29 @@
               BX24.appOption.get(this.keys.WORKDAY_START_METHOD),
               BX24.appOption.get(this.keys.WORKDAY_END_ENABLED),
               BX24.appOption.get(this.keys.WORKDAY_END_METHOD)
-            ]);
+            ];
 
-            this.settings.pageTracking.enabled = pageTrackingEnabled === 'Y' || pageTrackingEnabled === true || pageTrackingEnabled === 1;
-            this.settings.presenceControl.enabled = presenceEnabled === 'Y' || presenceEnabled === true || presenceEnabled === 1;
-            this.settings.workdayStart.enabled = workdayStartEnabled === 'Y' || workdayStartEnabled === true || workdayStartEnabled === 1;
-            this.settings.workdayEnd.enabled = workdayEndEnabled === 'Y' || workdayEndEnabled === true || workdayEndEnabled === 1;
+            const [
+              pageTrackingEnabled,
+              historyDays,
+              presenceEnabled,
+              pageTimeThreshold,
+              workdayStartEnabled,
+              workdayStartMethod,
+              workdayEndEnabled,
+              workdayEndMethod
+            ] = await Promise.all(settingsPromises);
 
-            if (workdayStartMethod && ['modal', 'auto'].includes(workdayStartMethod)) {
-              this.settings.workdayStart.method = workdayStartMethod;
-            }
+            this._parseBooleanSettings({
+              pageTrackingEnabled,
+              presenceEnabled,
+              workdayStartEnabled,
+              workdayEndEnabled
+            });
 
-            if (workdayEndMethod && ['modal', 'auto'].includes(workdayEndMethod)) {
-              this.settings.workdayEnd.method = workdayEndMethod;
-            }
-
-            if (historyDays) {
-              try {
-                const days = parseInt(historyDays);
-                if (!isNaN(days) && days >= 1 && days <= 7) {
-                  this.settings.pageTracking.historyDays = days;
-                }
-              } catch (e) {}
-            }
-
-            if (pageTimeThreshold) {
-              try {
-                const minutes = parseInt(pageTimeThreshold);
-                if (!isNaN(minutes) && minutes >= 1 && minutes <= 60) {
-                  this.settings.presenceControl.pageTimeThreshold = minutes;
-                }
-              } catch (e) {}
-            }
+            this._parseWorkdayMethods(workdayStartMethod, workdayEndMethod);
+            this._parseHistoryDays(historyDays);
+            this._parsePageTimeThreshold(pageTimeThreshold);
 
             return true;
           } catch (error) {
@@ -528,6 +667,77 @@
             return false;
           }
         }
+
+        /**
+         * Парсит булевы настройки
+         * @private
+         */
+        _parseBooleanSettings({ pageTrackingEnabled, presenceEnabled, workdayStartEnabled, workdayEndEnabled }) {
+          this.settings.pageTracking.enabled = this._parseBooleanValue(pageTrackingEnabled);
+          this.settings.presenceControl.enabled = this._parseBooleanValue(presenceEnabled);
+          this.settings.workdayStart.enabled = this._parseBooleanValue(workdayStartEnabled);
+          this.settings.workdayEnd.enabled = this._parseBooleanValue(workdayEndEnabled);
+        }
+
+        /**
+         * Преобразует значение в булево
+         * @private
+         */
+        _parseBooleanValue(value) {
+          return value === 'Y' || value === true || value === 1;
+        }
+
+        /**
+         * Парсит методы начала/окончания рабочего дня
+         * @private
+         */
+        _parseWorkdayMethods(startMethod, endMethod) {
+          const validMethods = ['modal', 'auto'];
+
+          if (startMethod && validMethods.includes(startMethod)) {
+            this.settings.workdayStart.method = startMethod;
+          }
+
+          if (endMethod && validMethods.includes(endMethod)) {
+            this.settings.workdayEnd.method = endMethod;
+          }
+        }
+
+        /**
+         * Парсит количество дней истории
+         * @private
+         */
+        _parseHistoryDays(historyDays) {
+          if (!historyDays) return;
+
+          try {
+            const days = parseInt(historyDays);
+            if (!isNaN(days) && days >= APP_CONFIG.MIN_HISTORY_DAYS && days <= APP_CONFIG.MAX_HISTORY_DAYS) {
+              this.settings.pageTracking.historyDays = days;
+            }
+          } catch (error) {
+            console.warn('Ошибка парсинга historyDays:', error);
+          }
+        }
+
+        /**
+         * Парсит порог времени на странице
+         * @private
+         */
+        _parsePageTimeThreshold(pageTimeThreshold) {
+          if (!pageTimeThreshold) return;
+
+          try {
+            const minutes = parseInt(pageTimeThreshold);
+            if (!isNaN(minutes) && minutes >= APP_CONFIG.MIN_PAGE_TIME_THRESHOLD && minutes <= APP_CONFIG.MAX_PAGE_TIME_THRESHOLD) {
+              this.settings.presenceControl.pageTimeThreshold = minutes;
+            }
+          } catch (error) {
+            console.warn('Ошибка парсинга pageTimeThreshold:', error);
+          }
+        }
+
+        // ===== Геттеры настроек =====
 
         isPageTrackingEnabled() {
           return this.settings.pageTracking.enabled;
@@ -570,7 +780,13 @@
         }
       }
 
-      // ==================== КЛАСС ДЛЯ РАБОТЫ С ХРАНИЛИЩЕМ ====================
+      // ==========================================================================
+      // КЛАСС: StorageManager - Управление хранилищем
+      // ==========================================================================
+
+      /**
+       * Класс для работы с сущностями Bitrix24
+       */
       class StorageManager {
         constructor() {
           this.entityId = 'pr_tracking';
@@ -588,6 +804,10 @@
           this.categoryDetector = new CategoryDetector();
         }
 
+        /**
+         * Проверяет существование хранилища
+         * @returns {Promise<boolean>}
+         */
         async checkExists() {
           return new Promise((resolve, reject) => {
             BX24.callMethod('entity.get', {}, (result) => {
@@ -603,10 +823,13 @@
           });
         }
 
+        /**
+         * Очищает старые секции
+         * @param {number} historyDays - Количество дней для хранения
+         * @returns {Promise<number>} Количество удаленных секций
+         */
         async cleanupOldSections(historyDays) {
-          const today = new Date();
-          const cutoffDate = new Date(today);
-          cutoffDate.setDate(today.getDate() - historyDays);
+          const cutoffDate = this._calculateCutoffDate(historyDays);
           const cutoffDateStr = cutoffDate.toISOString().split('T')[0];
 
           try {
@@ -628,107 +851,113 @@
           }
         }
 
-        async getAllSections() {
-          return new Promise((resolve, reject) => {
-            BX24.callMethod('entity.section.get', {
-              ENTITY: this.entityId
-            }, (result) => {
-              if (result.error()) {
-                console.error('Ошибка при получении секций:', result.error());
-                reject(result.error());
-              } else {
-                resolve(result.data());
-              }
-            });
+        /**
+         * Вычисляет дату отсечки
+         * @private
+         */
+        _calculateCutoffDate(historyDays) {
+          const today = new Date();
+          const cutoffDate = new Date(today);
+          cutoffDate.setDate(today.getDate() - historyDays);
+          return cutoffDate;
+        }
+
+        /**
+         * Получает все секции
+         * @returns {Promise<Array>}
+         */
+        getAllSections() {
+          return this._callMethod('entity.section.get', { ENTITY: this.entityId });
+        }
+
+        /**
+         * Удаляет секцию
+         * @param {string} sectionId - ID секции
+         * @returns {Promise}
+         */
+        deleteSection(sectionId) {
+          return this._callMethod('entity.section.delete', {
+            ENTITY: this.entityId,
+            ID: sectionId
           });
         }
 
-        async deleteSection(sectionId) {
-          return new Promise((resolve, reject) => {
-            BX24.callMethod('entity.section.delete', {
-              ENTITY: this.entityId,
-              ID: sectionId
-            }, (result) => {
-              if (result.error()) {
-                console.error('Ошибка при удалении секции:', result.error());
-                reject(result.error());
-              } else {
-                resolve(result.data());
-              }
-            });
-          });
-        }
-
+        /**
+         * Получает или создает секцию для сегодняшнего дня
+         * @returns {Promise<string>} ID секции
+         */
         async getOrCreateTodaySection() {
           const today = new Date().toISOString().split('T')[0];
 
-          return new Promise((resolve, reject) => {
-            BX24.callMethod('entity.section.get', {
+          try {
+            const sections = await this._callMethod('entity.section.get', {
               ENTITY: this.entityId,
               FILTER: { NAME: today }
-            }, (result) => {
-              if (result.error()) {
-                console.error('Ошибка при поиске секции:', result.error());
-                reject(result.error());
-              } else {
-                const sections = result.data();
-                if (sections.length > 0) {
-                  this.currentSectionId = sections[0].ID;
-                  resolve(this.currentSectionId);
-                } else {
-                  BX24.callMethod('entity.section.add', {
-                    ENTITY: this.entityId,
-                    NAME: today
-                  }, (newSectionResult) => {
-                    if (newSectionResult.error()) {
-                      console.error('Ошибка при создании секции:', newSectionResult.error());
-                      reject(newSectionResult.error());
-                    } else {
-                      this.currentSectionId = newSectionResult.data();
-                      resolve(this.currentSectionId);
-                    }
-                  });
-                }
-              }
             });
-          });
+
+            if (sections.length > 0) {
+              this.currentSectionId = sections[0].ID;
+              return this.currentSectionId;
+            }
+
+            const newSectionId = await this._callMethod('entity.section.add', {
+              ENTITY: this.entityId,
+              NAME: today
+            });
+
+            this.currentSectionId = newSectionId;
+            return this.currentSectionId;
+          } catch (error) {
+            console.error('Ошибка при работе с секцией:', error);
+            throw error;
+          }
         }
 
+        /**
+         * Ищет элемент по пользователю и URL
+         * @param {string} userId - ID пользователя
+         * @param {string} pageUrl - URL страницы
+         * @returns {Promise<string|null>} ID элемента или null
+         */
         async findItemByUserAndUrl(userId, pageUrl) {
           const normalizedUrl = this.urlProcessor.normalizeUrl(pageUrl);
 
-          return new Promise((resolve, reject) => {
-            BX24.callMethod('entity.item.get', {
+          try {
+            const items = await this._callMethod('entity.item.get', {
               ENTITY: this.entityId,
               FILTER: {
                 SECTION_ID: this.currentSectionId,
                 PROPERTY_USER_ID: userId,
                 PROPERTY_PAGE_URL: normalizedUrl,
               }
-            }, (result) => {
-              if (result.error()) {
-                console.error('Ошибка при поиске элемента:', result.error());
-                reject(result.error());
-              } else {
-                const items = result.data();
-                if (items.length > 0) {
-                  this.currentItemId = items[0].ID;
-                  resolve(this.currentItemId);
-                } else {
-                  resolve(null);
-                }
-              }
             });
-          });
+
+            if (items.length > 0) {
+              this.currentItemId = items[0].ID;
+              return this.currentItemId;
+            }
+
+            return null;
+          } catch (error) {
+            console.error('Ошибка при поиске элемента:', error);
+            throw error;
+          }
         }
 
+        /**
+         * Создает новый элемент
+         * @param {Object} userProfile - Профиль пользователя
+         * @param {string} pageUrl - URL страницы
+         * @param {string} pageTitle - Заголовок страницы
+         * @returns {Promise<string>} ID созданного элемента
+         */
         async createNewItem(userProfile, pageUrl, pageTitle = '') {
           const normalizedUrl = this.urlProcessor.normalizeUrl(pageUrl);
           const category = this.categoryDetector.getCategory(pageUrl);
-          const userName = `${userProfile.NAME || ''} ${userProfile.LAST_NAME || ''}`.trim() || userProfile.EMAIL || 'Пользователь';
+          const userName = this._formatUserName(userProfile);
 
-          return new Promise((resolve, reject) => {
-            BX24.callMethod('entity.item.add', {
+          try {
+            const itemId = await this._callMethod('entity.item.add', {
               ENTITY: this.entityId,
               NAME: `${userName} - ${category || 'Неизвестная категория'}`,
               SECTION: this.currentSectionId,
@@ -740,50 +969,69 @@
                 PAGE_TIME: 0,
                 PAGE_CATEGORY: category
               }
-            }, (result) => {
-              if (result.error()) {
-                console.error('Ошибка при создании элемента:', result.error());
-                reject(result.error());
-              } else {
-                this.currentItemId = result.data();
-                resolve(this.currentItemId);
-              }
             });
-          });
+
+            this.currentItemId = itemId;
+            return this.currentItemId;
+          } catch (error) {
+            console.error('Ошибка при создании элемента:', error);
+            throw error;
+          }
         }
 
+        /**
+         * Форматирует имя пользователя
+         * @private
+         */
+        _formatUserName(userProfile) {
+          return `${userProfile.NAME || ''} ${userProfile.LAST_NAME || ''}`.trim() ||
+            userProfile.EMAIL ||
+            'Пользователь';
+        }
+
+        /**
+         * Загружает время элемента
+         * @param {string} itemId - ID элемента
+         * @returns {Promise<number>} Сохраненное время в секундах
+         */
         async loadItemTime(itemId) {
-          return new Promise((resolve, reject) => {
-            BX24.callMethod('entity.item.get', {
+          try {
+            const items = await this._callMethod('entity.item.get', {
               ENTITY: this.entityId,
               SELECT: ['PROPERTY_VALUES'],
               FILTER: { ID: itemId }
-            }, (result) => {
-              if (result.error()) {
-                console.error('Ошибка при загрузке элемента:', result.error());
-                reject(result.error());
-              } else {
-                const items = result.data();
-                const savedTime = parseInt(items[0].PROPERTY_VALUES?.PAGE_TIME || 0);
-                resolve(savedTime);
-              }
             });
-          });
+
+            const savedTime = parseInt(items[0].PROPERTY_VALUES?.PAGE_TIME || 0);
+            return savedTime;
+          } catch (error) {
+            console.error('Ошибка при загрузке элемента:', error);
+            throw error;
+          }
         }
 
+        /**
+         * Обновляет время элемента
+         * @param {Object} userProfile - Профиль пользователя
+         * @param {string} pageUrl - URL страницы
+         * @param {string} pageTitle - Заголовок страницы
+         * @param {number} storedTime - Ранее сохраненное время
+         * @param {number} sessionTime - Время текущей сессии
+         * @returns {Promise<number>} Новое общее время
+         */
         async updateItemTime(userProfile, pageUrl, pageTitle, storedTime, sessionTime) {
           if (!this.currentItemId) {
             console.error('Нет активного элемента для обновления');
-            return;
+            return storedTime;
           }
 
           const newTotalTime = storedTime + sessionTime;
           const normalizedUrl = this.urlProcessor.normalizeUrl(pageUrl);
           const category = this.categoryDetector.getCategory(pageUrl);
-          const userName = `${userProfile.NAME || ''} ${userProfile.LAST_NAME || ''}`.trim() || userProfile.EMAIL || 'Пользователь';
+          const userName = this._formatUserName(userProfile);
 
-          return new Promise((resolve, reject) => {
-            BX24.callMethod('entity.item.update', {
+          try {
+            await this._callMethod('entity.item.update', {
               ENTITY: this.entityId,
               ID: this.currentItemId,
               PROPERTY_VALUES: {
@@ -793,33 +1041,60 @@
                 PAGE_TIME: newTotalTime,
                 PAGE_CATEGORY: category
               }
-            }, (result) => {
+            });
+
+            return newTotalTime;
+          } catch (error) {
+            console.error('Ошибка при обновлении элемента:', error);
+            throw error;
+          }
+        }
+
+        /**
+         * Универсальный метод для вызовов BX24
+         * @private
+         */
+        _callMethod(method, params) {
+          return new Promise((resolve, reject) => {
+            BX24.callMethod(method, params, (result) => {
               if (result.error()) {
-                console.error('Ошибка при обновлении элемента:', result.error());
                 reject(result.error());
               } else {
-                resolve(newTotalTime);
+                resolve(result.data());
               }
             });
           });
         }
       }
 
-      // ==================== КЛАСС ТАЙМЕРА И СЕССИИ ====================
+      // ==========================================================================
+      // КЛАСС: SessionTimer - Таймер сессии
+      // ==========================================================================
+
+      /**
+       * Класс для управления таймером сессии на странице
+       */
       class SessionTimer {
         constructor() {
           this.sessionTime = 0;
           this.sessionStartTime = 0;
           this.isPageHidden = false;
           this.timer = null;
-          this.updateInterval = 1000; // 1 секунда
+          this.updateInterval = APP_CONFIG.TIMER_UPDATE_INTERVAL;
         }
 
+        /**
+         * Запускает сессию
+         */
         startSession() {
           this.sessionStartTime = Date.now();
           this.sessionTime = 0;
         }
 
+        /**
+         * Обновляет время сессии
+         * @returns {number} Текущее время сессии
+         */
         updateSessionTime() {
           if (!this.isPageHidden) {
             this.sessionTime = Math.floor((Date.now() - this.sessionStartTime) / 1000);
@@ -827,24 +1102,41 @@
           return this.sessionTime;
         }
 
+        /**
+         * Сбрасывает сессию
+         */
         resetSession() {
           this.sessionTime = 0;
           this.sessionStartTime = Date.now();
         }
 
+        /**
+         * Возвращает текущее время сессии
+         * @returns {number}
+         */
         getSessionTime() {
           return this.sessionTime;
         }
 
+        /**
+         * Отмечает страницу как скрытую
+         */
         markPageHidden() {
           this.isPageHidden = true;
         }
 
+        /**
+         * Отмечает страницу как видимую
+         */
         markPageVisible() {
           this.isPageHidden = false;
           this.resetSession();
         }
 
+        /**
+         * Запускает таймер
+         * @param {Function} callback - Функция обратного вызова
+         */
         startTimer(callback) {
           this.stopTimer();
           this.timer = setInterval(() => {
@@ -853,6 +1145,9 @@
           }, this.updateInterval);
         }
 
+        /**
+         * Останавливает таймер
+         */
         stopTimer() {
           if (this.timer) {
             clearInterval(this.timer);
@@ -861,7 +1156,13 @@
         }
       }
 
-      // ==================== КЛАСС ДЛЯ РАБОТЫ С РАБОЧИМ ДНЕМ ====================
+      // ==========================================================================
+      // КЛАСС: WorkdayManager - Управление рабочим днем
+      // ==========================================================================
+
+      /**
+       * Класс для работы с функциями рабочего дня
+       */
       class WorkdayManager {
         constructor(userManager) {
           this.userManager = userManager;
@@ -870,6 +1171,10 @@
           this.workdaySettings = null;
         }
 
+        /**
+         * Проверяет статус рабочего дня
+         * @returns {Promise<Object>} Статус рабочего дня
+         */
         async checkWorkdayStatus() {
           return new Promise((resolve, reject) => {
             BX24.callMethod('timeman.status', {}, (result) => {
@@ -886,6 +1191,10 @@
           });
         }
 
+        /**
+         * Получает настройки рабочего времени пользователя
+         * @returns {Promise<Object>} Настройки рабочего времени
+         */
         async getWorkdaySettings() {
           const userId = this.userManager.getUserId();
 
@@ -904,61 +1213,82 @@
           });
         }
 
-        async isWithinWorkHours() {
+        /**
+         * Проверяет, находится ли текущее время в рамках рабочего дня
+         * @returns {Promise<boolean>} true если рабочее время
+         */
+        async isCurrentTimeWithinWorkHours() {
           try {
-            // Получаем настройки рабочего времени пользователя
             const settings = await this.getWorkdaySettings();
 
-            if (!settings || !settings.UF_TIMEMAN) {
-              // Если учет времени не включен для пользователя, считаем что всегда рабочее время
+            if (!this._isWorkTimeTrackingEnabled(settings)) {
               console.log('Учет рабочего времени не включен для пользователя');
               return true;
             }
 
             if (settings.UF_TM_FREE) {
-              // Если свободный график, считаем что всегда рабочее время
               console.log('У пользователя свободный график');
               return true;
             }
 
-            const now = new Date();
-            const currentTime = now.getHours() * 60 + now.getMinutes(); // текущее время в минутах от начала дня
-
-            // Парсим время из строк вида "09:00:00"
-            const parseTimeToMinutes = (timeStr) => {
-              if (!timeStr) return null;
-              const [hours, minutes] = timeStr.split(':').map(Number);
-              return hours * 60 + minutes;
-            };
-
-            const maxStartMinutes = parseTimeToMinutes(settings.UF_TM_MAX_START);
-            const minFinishMinutes = parseTimeToMinutes(settings.UF_TM_MIN_FINISH);
-
-            if (!maxStartMinutes || !minFinishMinutes) {
-              console.log('Не удалось распарсить время начала/окончания');
-              return true;
-            }
-
-            // Проверяем, находится ли текущее время в рабочем интервале
-            // Рабочий интервал: от UF_TM_MAX_START до UF_TM_MIN_FINISH
-            const isWorkTime = currentTime >= maxStartMinutes && currentTime <= minFinishMinutes;
-
-            console.log(`Проверка рабочего времени:`, {
-              currentTime: `${Math.floor(currentTime / 60)}:${currentTime % 60}`,
-              maxStart: settings.UF_TM_MAX_START,
-              minFinish: settings.UF_TM_MIN_FINISH,
-              isWorkTime
-            });
-
-            return isWorkTime;
-
+            return this._isWithinWorkHours(settings);
           } catch (error) {
             console.error('Ошибка при проверке рабочего времени:', error);
             return true; // В случае ошибки считаем что рабочее время
           }
         }
 
-        // Форматирование даты в формат ATOM (ISO-8601)
+        /**
+         * Проверяет, включен ли учет рабочего времени
+         * @private
+         */
+        _isWorkTimeTrackingEnabled(settings) {
+          return settings && settings.UF_TIMEMAN;
+        }
+
+        /**
+         * Проверяет нахождение в рабочем интервале
+         * @private
+         */
+        _isWithinWorkHours(settings) {
+          const now = new Date();
+          const currentTime = now.getHours() * 60 + now.getMinutes();
+
+          const maxStartMinutes = this._parseTimeToMinutes(settings.UF_TM_MAX_START);
+          const minFinishMinutes = this._parseTimeToMinutes(settings.UF_TM_MIN_FINISH);
+
+          if (!maxStartMinutes || !minFinishMinutes) {
+            console.log('Не удалось распарсить время начала/окончания');
+            return true;
+          }
+
+          const isWorkTime = currentTime >= maxStartMinutes && currentTime <= minFinishMinutes;
+
+          console.log('Проверка рабочего времени:', {
+            currentTime: `${Math.floor(currentTime / 60)}:${currentTime % 60}`,
+            maxStart: settings.UF_TM_MAX_START,
+            minFinish: settings.UF_TM_MIN_FINISH,
+            isWorkTime
+          });
+
+          return isWorkTime;
+        }
+
+        /**
+         * Парсит время из строки в минуты
+         * @private
+         */
+        _parseTimeToMinutes(timeStr) {
+          if (!timeStr) return null;
+          const [hours, minutes] = timeStr.split(':').map(Number);
+          return hours * 60 + minutes;
+        }
+
+        /**
+         * Форматирует дату в формат ATOM
+         * @param {Date} date - Дата
+         * @returns {string} Дата в формате ATOM
+         */
         formatDateToATOM(date) {
           const year = date.getFullYear();
           const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -976,17 +1306,14 @@
           return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offsetSign}${offsetHours}:${offsetMinutes}`;
         }
 
+        /**
+         * Начинает рабочий день
+         * @returns {Promise<Object>} Результат начала рабочего дня
+         */
         async startWorkday() {
           return new Promise((resolve, reject) => {
             try {
-              const now = new Date();
-              const atomTime = this.formatDateToATOM(now);
-
-              const params = {};
-              const userId = this.userManager.getUserId();
-              if (userId && parseInt(userId) > 0) {
-                params.USER_ID = parseInt(userId);
-              }
+              const params = this._buildWorkdayParams();
 
               console.log('Отправка запроса timeman.open с параметрами:', params);
 
@@ -1008,17 +1335,14 @@
           });
         }
 
+        /**
+         * Завершает рабочий день
+         * @returns {Promise<Object>} Результат завершения рабочего дня
+         */
         async endWorkday() {
           return new Promise((resolve, reject) => {
             try {
-              const now = new Date();
-              const atomTime = this.formatDateToATOM(now);
-
-              const params = {};
-              const userId = this.userManager.getUserId();
-              if (userId && parseInt(userId) > 0) {
-                params.USER_ID = parseInt(userId);
-              }
+              const params = this._buildWorkdayParams();
 
               console.log('Отправка запроса timeman.close с параметрами:', params);
 
@@ -1040,6 +1364,25 @@
           });
         }
 
+        /**
+         * Формирует параметры для методов рабочего дня
+         * @private
+         */
+        _buildWorkdayParams() {
+          const params = {};
+          const userId = this.userManager.getUserId();
+
+          if (userId && parseInt(userId) > 0) {
+            params.USER_ID = parseInt(userId);
+          }
+
+          return params;
+        }
+
+        /**
+         * Проверяет и запускает рабочий день если нужно
+         * @returns {Promise<boolean>} true если день был запущен
+         */
         async ensureWorkdayStarted() {
           try {
             const status = await this.checkWorkdayStatus();
@@ -1061,6 +1404,10 @@
           }
         }
 
+        /**
+         * Проверяет и завершает рабочий день если нужно
+         * @returns {Promise<boolean>} true если день был завершен
+         */
         async ensureWorkdayEnded() {
           try {
             const status = await this.checkWorkdayStatus();
@@ -1083,7 +1430,13 @@
         }
       }
 
-      // ==================== КЛАСС ПРИЛОЖЕНИЯ ====================
+      // ==========================================================================
+      // КЛАСС: PageTrackerApp - Главный класс приложения
+      // ==========================================================================
+
+      /**
+       * Главный класс приложения для отслеживания страниц
+       */
       class PageTrackerApp {
         constructor() {
           this.urlProcessor = new URLProcessor();
@@ -1099,17 +1452,18 @@
           this.storedTime = 0;
           this.initialized = false;
           this.lastUpdateTime = 0;
-          this.STORAGE_UPDATE_INTERVAL = 10; // секунд
           this.workdayCheckDone = false;
-          this.isWithinWorkHours = true; // По умолчанию считаем что рабочее время
+          this.isWithinWorkHours = true;
         }
 
+        /**
+         * Инициализирует приложение
+         */
         async initialize() {
           if (this.initialized) return;
 
           try {
-            this.currentUrl = <?php echo json_encode($clientUrl ?? null, 15, 512) ?> || window.location.href;
-
+            this._setCurrentUrl();
             await this.settingsManager.load();
 
             if (!this.settingsManager.isPageTrackingEnabled()) {
@@ -1118,32 +1472,8 @@
             }
 
             await this.userManager.fetchProfile();
-
-            // Проверяем, рабочее ли сейчас время
-            this.isWithinWorkHours = await this.workdayManager.isWithinWorkHours();
-            console.log('Текущее время:', this.isWithinWorkHours ? 'РАБОЧЕЕ' : 'НЕРАБОЧЕЕ');
-
-            // Проверяем и запускаем/завершаем рабочий день если нужно
-            if (!this.workdayCheckDone) {
-              if (this.isWithinWorkHours && this.settingsManager.isWorkdayStartEnabled()) {
-                // Рабочее время - запускаем начало рабочего дня
-                await this.handleWorkdayStart();
-              } else if (!this.isWithinWorkHours && this.settingsManager.isWorkdayEndEnabled()) {
-                // Нерабочее время - запускаем завершение рабочего дня
-                await this.handleWorkdayEnd();
-              }
-              this.workdayCheckDone = true;
-            }
-
-            const storageExists = await this.storageManager.checkExists();
-            if (!storageExists) {
-              throw new Error('Хранилище не существует. Обратитесь к администратору.');
-            }
-
-            const historyDays = this.settingsManager.getHistoryDays();
-            await this.storageManager.cleanupOldSections(historyDays);
-
-            await this.initializeStorage();
+            await this._checkWorkHoursAndWorkday();
+            await this._initializeStorageWithCleanup();
 
             this.setupEventListeners();
             this.startMainTimer();
@@ -1155,143 +1485,93 @@
           }
         }
 
-        async handleWorkdayStart() {
-          try {
-            const status = await this.workdayManager.checkWorkdayStatus();
-
-            // Если рабочий день уже начат, ничего не делаем
-            if (this.workdayManager.workdayStarted) {
-              console.log('Рабочий день уже начат');
-              return;
-            }
-
-            if (this.settingsManager.isWorkdayStartAuto()) {
-              // Автоматический старт
-              await this.workdayManager.ensureWorkdayStarted();
-            } else if (this.settingsManager.isWorkdayStartModal()) {
-              // Модальное окно с предложением начать рабочий день
-              this.openWorkdayStartModal();
-            }
-          } catch (error) {
-            console.error('Ошибка при обработке старта рабочего дня:', error);
-          }
+        /**
+         * Устанавливает текущий URL
+         * @private
+         */
+        _setCurrentUrl() {
+          this.currentUrl = <?php echo json_encode($clientUrl ?? null, 15, 512) ?> || window.location.href;
         }
 
-        async handleWorkdayEnd() {
-          try {
-            const status = await this.workdayManager.checkWorkdayStatus();
+        /**
+         * Проверяет рабочее время и управляет рабочим днем
+         * @private
+         */
+        async _checkWorkHoursAndWorkday() {
+          this.isWithinWorkHours = await this.workdayManager.isCurrentTimeWithinWorkHours();
+          console.log('Текущее время:', this.isWithinWorkHours ? 'РАБОЧЕЕ' : 'НЕРАБОЧЕЕ');
 
-            // Если рабочий день уже завершен, ничего не делаем
+          if (this.workdayCheckDone) return;
+
+          await this._handleWorkdayBasedOnTime();
+          this.workdayCheckDone = true;
+        }
+
+        /**
+         * Обрабатывает начало/завершение рабочего дня на основе времени
+         * @private
+         */
+        async _handleWorkdayBasedOnTime() {
+          const status = await this.workdayManager.checkWorkdayStatus();
+
+          if (this.isWithinWorkHours && this.settingsManager.isWorkdayStartEnabled()) {
+            // Рабочее время и рабочий день еще не начат
             if (!this.workdayManager.workdayStarted) {
-              console.log('Рабочий день уже завершен');
-              return;
+              await this._handleWorkdayStart();
             }
-
-            if (this.settingsManager.isWorkdayEndAuto()) {
-              // Автоматическое завершение
-              await this.workdayManager.ensureWorkdayEnded();
-            } else if (this.settingsManager.isWorkdayEndModal()) {
-              // Модальное окно с предложением завершить рабочий день
-              this.openWorkdayEndModal();
+          } else if (!this.isWithinWorkHours && this.settingsManager.isWorkdayEndEnabled()) {
+            // Нерабочее время и рабочий день еще не завершен
+            if (this.workdayManager.workdayStarted) {
+              await this._handleWorkdayEnd();
             }
-          } catch (error) {
-            console.error('Ошибка при обработке завершения рабочего дня:', error);
           }
         }
 
-        openWorkdayStartModal() {
-          if (this.applicationOpened) return;
-
-          this.applicationOpened = true;
-
-          const alertaParameters = {
-            mode: 'workdaystart',
-            source: 'workday_start',
-            tracking_data: {
-              user_id: this.userManager.getUserId(),
-              user_name: this.userManager.getFullName(),
-              page_url: this.currentUrl,
-              page_title: document.title,
-              opened_at: new Date().toISOString()
-            }
-          };
-
-          const openAppParams = {
-            'opened': true,
-            'bx24_title': 'Начало рабочего дня',
-            'bx24_label': {
-              'bgColor': 'green',
-              'text': 'Старт дня',
-              'color': '#ffffff',
-            },
-            'bx24_width': 500,
-            'parameters': JSON.stringify(alertaParameters)
-          };
-
-          BX24.openApplication(openAppParams, () => {
-            this.onWorkdayModalClosed();
-          });
-
-          // Останавливаем таймер на время открытия модалки
-          this.sessionTimer.stopTimer();
+        /**
+         * Обрабатывает начало рабочего дня
+         * @private
+         */
+        async _handleWorkdayStart() {
+          if (this.settingsManager.isWorkdayStartAuto()) {
+            await this.workdayManager.ensureWorkdayStarted();
+          } else if (this.settingsManager.isWorkdayStartModal()) {
+            this.openWorkdayStartModal();
+          }
         }
 
-        openWorkdayEndModal() {
-          if (this.applicationOpened) return;
-
-          this.applicationOpened = true;
-
-          const alertaParameters = {
-            mode: 'workdayend',
-            source: 'workday_end',
-            tracking_data: {
-              user_id: this.userManager.getUserId(),
-              user_name: this.userManager.getFullName(),
-              page_url: this.currentUrl,
-              page_title: document.title,
-              opened_at: new Date().toISOString()
-            }
-          };
-
-          const openAppParams = {
-            'opened': true,
-            'bx24_title': 'Завершение рабочего дня',
-            'bx24_label': {
-              'bgColor': 'red',
-              'text': 'Завершение дня',
-              'color': '#ffffff',
-            },
-            'bx24_width': 500,
-            'parameters': JSON.stringify(alertaParameters)
-          };
-
-          BX24.openApplication(openAppParams, () => {
-            this.onWorkdayModalClosed();
-          });
-
-          // Останавливаем таймер на время открытия модалки
-          this.sessionTimer.stopTimer();
+        /**
+         * Обрабатывает завершение рабочего дня
+         * @private
+         */
+        async _handleWorkdayEnd() {
+          if (this.settingsManager.isWorkdayEndAuto()) {
+            await this.workdayManager.ensureWorkdayEnded();
+          } else if (this.settingsManager.isWorkdayEndModal()) {
+            this.openWorkdayEndModal();
+          }
         }
 
-        async onWorkdayModalClosed() {
-          this.applicationOpened = false;
-
-          // После закрытия модалки проверяем статус рабочего дня
-          try {
-            await this.workdayManager.checkWorkdayStatus();
-          } catch (error) {
-            console.error('Ошибка при проверке статуса после закрытия модалки:', error);
+        /**
+         * Инициализирует хранилище с очисткой
+         * @private
+         */
+        async _initializeStorageWithCleanup() {
+          const storageExists = await this.storageManager.checkExists();
+          if (!storageExists) {
+            throw new Error('Хранилище не существует. Обратитесь к администратору.');
           }
 
-          // Возобновляем таймер
-          this.sessionTimer.resetSession();
-          this.lastUpdateTime = 0;
-          this.startMainTimer();
+          const historyDays = this.settingsManager.getHistoryDays();
+          await this.storageManager.cleanupOldSections(historyDays);
 
-          console.log('Модальное окно рабочего дня закрыто');
+          await this._initializeStorage();
         }
 
-        async initializeStorage() {
+        /**
+         * Инициализирует хранилище для текущей страницы
+         * @private
+         */
+        async _initializeStorage() {
           try {
             await this.storageManager.getOrCreateTodaySection();
 
@@ -1313,51 +1593,82 @@
           }
         }
 
-        startMainTimer() {
-          this.sessionTimer.startTimer((currentTime) => {
-            this.displayTimerInfo(currentTime);
-            this.checkAndOpenApplication(currentTime);
+        // ===== Методы для работы с модальными окнами =====
 
-            // Обновляем хранилище каждые 10 секунд
-            if (currentTime - this.lastUpdateTime >= this.STORAGE_UPDATE_INTERVAL) {
-              this.lastUpdateTime = currentTime;
-              if (this.storageManager.currentItemId && currentTime > 0) {
-                this.updateStorage(currentTime);
-              }
-            }
-          });
+        /**
+         * Открывает модальное окно начала рабочего дня
+         */
+        openWorkdayStartModal() {
+          if (this.applicationOpened) return;
+
+          this.applicationOpened = true;
+
+          const alertaParameters = this._buildWorkdayModalParams('workdaystart', 'workday_start');
+
+          this._openApplication('Начало рабочего дня', 'green', 'Старт дня', alertaParameters);
         }
 
-        displayTimerInfo(currentTime) {
-          const totalTime = this.storedTime + currentTime;
-          const minutes = Math.floor(currentTime / 60);
-          const seconds = currentTime % 60;
+        /**
+         * Открывает модальное окно завершения рабочего дня
+         */
+        openWorkdayEndModal() {
+          if (this.applicationOpened) return;
 
-          console.log(`⏱️ Таймер: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} (${currentTime} сек)`);
+          this.applicationOpened = true;
+
+          const alertaParameters = this._buildWorkdayModalParams('workdayend', 'workday_end');
+
+          this._openApplication('Завершение рабочего дня', 'red', 'Завершение дня', alertaParameters);
         }
 
-        checkAndOpenApplication(currentTime) {
-          if (this.applicationOpened ||
-            !this.settingsManager.isPresenceControlEnabled() ||
-            this.sessionTimer.isPageHidden) {
-            return;
-          }
+        /**
+         * Открывает приложение активности
+         */
+        openPresenceApplication() {
+          if (this.applicationOpened || this.sessionTimer.isPageHidden) return;
 
           const thresholdSeconds = this.settingsManager.getPageTimeThresholdSeconds();
 
-          if (currentTime >= thresholdSeconds) {
-            this.openPresenceApplication();
-          }
+          if (this.sessionTimer.getSessionTime() < thresholdSeconds) return;
+
+          this.applicationOpened = true;
+
+          const alertaParameters = this._buildPresenceModalParams();
+
+          this._openApplication('Активность пользователя', 'blue', 'Таймер активности', alertaParameters);
+
+          this.sessionTimer.stopTimer();
         }
 
-        openPresenceApplication() {
-          this.applicationOpened = true;
+        /**
+         * Формирует параметры для модального окна рабочего дня
+         * @private
+         */
+        _buildWorkdayModalParams(mode, source) {
+          return {
+            mode,
+            source,
+            tracking_data: {
+              user_id: this.userManager.getUserId(),
+              user_name: this.userManager.getFullName(),
+              page_url: this.currentUrl,
+              page_title: document.title,
+              opened_at: new Date().toISOString()
+            }
+          };
+        }
+
+        /**
+         * Формирует параметры для модального окна активности
+         * @private
+         */
+        _buildPresenceModalParams() {
           const currentTime = this.sessionTimer.getSessionTime();
           const totalTime = this.storedTime + currentTime;
           const userName = this.userManager.getFullName();
           const category = this.categoryDetector.getCategory(this.currentUrl);
 
-          const alertaParameters = {
+          return {
             mode: 'alerta',
             source: 'page_tracking',
             tracking_data: {
@@ -1372,42 +1683,90 @@
               opened_at: new Date().toISOString()
             }
           };
+        }
 
+        /**
+         * Открывает приложение Bitrix24
+         * @private
+         */
+        _openApplication(title, bgColor, labelText, parameters) {
           const openAppParams = {
             'opened': true,
-            'bx24_title': 'Активность пользователя',
+            'bx24_title': title,
             'bx24_label': {
-              'bgColor': 'blue',
-              'text': 'Таймер активности',
+              'bgColor': bgColor,
+              'text': labelText,
               'color': '#ffffff',
             },
-            'bx24_width': 500,
-            'parameters': JSON.stringify(alertaParameters)
+            'bx24_width': APP_CONFIG.MODAL_WIDTH,
+            'parameters': JSON.stringify(parameters)
           };
 
           BX24.openApplication(openAppParams, () => {
-            this.onPresenceApplicationClosed();
+            this.onModalClosed();
           });
-
-          this.sessionTimer.stopTimer();
         }
 
-        onPresenceApplicationClosed() {
+        /**
+         * Обработчик закрытия модального окна
+         */
+        async onModalClosed() {
           this.applicationOpened = false;
+
+          try {
+            await this.workdayManager.checkWorkdayStatus();
+          } catch (error) {
+            console.error('Ошибка при проверке статуса после закрытия модалки:', error);
+          }
 
           const sessionTime = this.sessionTimer.getSessionTime();
           if (sessionTime > 0 && this.storageManager.currentItemId) {
-            this.updateStorage(sessionTime);
+            await this._updateStorage(sessionTime);
           }
 
           this.sessionTimer.resetSession();
           this.lastUpdateTime = 0;
           this.startMainTimer();
 
-          console.log('Приложение активности закрыто, таймер сброшен');
+          console.log('Модальное окно закрыто');
         }
 
-        async updateStorage(sessionTime) {
+        // ===== Методы для работы с таймером и хранилищем =====
+
+        /**
+         * Запускает основной таймер
+         */
+        startMainTimer() {
+          this.sessionTimer.startTimer((currentTime) => {
+            this._displayTimerInfo(currentTime);
+            this.openPresenceApplication();
+
+            if (currentTime - this.lastUpdateTime >= APP_CONFIG.STORAGE_UPDATE_INTERVAL) {
+              this.lastUpdateTime = currentTime;
+              if (this.storageManager.currentItemId && currentTime > 0) {
+                this._updateStorage(APP_CONFIG.STORAGE_UPDATE_INTERVAL);
+              }
+            }
+          });
+        }
+
+        /**
+         * Отображает информацию о таймере в консоли
+         * @private
+         */
+        _displayTimerInfo(currentTime) {
+          const totalTime = this.storedTime + currentTime;
+          const minutes = Math.floor(currentTime / 60);
+          const seconds = currentTime % 60;
+
+          console.log(`⏱️ Таймер: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} (${currentTime} сек)`);
+        }
+
+        /**
+         * Обновляет данные в хранилище
+         * @private
+         */
+        async _updateStorage(sessionTime) {
           try {
             const userProfile = this.userManager.profile;
             const newTotalTime = await this.storageManager.updateItemTime(
@@ -1415,7 +1774,7 @@
               this.currentUrl,
               document.title,
               this.storedTime,
-              this.STORAGE_UPDATE_INTERVAL
+              sessionTime
             );
 
             this.storedTime = newTotalTime;
@@ -1425,46 +1784,66 @@
           }
         }
 
+        // ===== Обработчики событий =====
+
+        /**
+         * Настраивает обработчики событий
+         */
         setupEventListeners() {
           document.addEventListener('visibilitychange', () => {
             if (document.hidden) {
-              this.handlePageHidden();
+              this._handlePageHidden();
             } else {
-              this.handlePageVisible();
+              this._handlePageVisible();
             }
           });
 
           window.addEventListener('beforeunload', () => {
-            this.handlePageUnload();
+            this._handlePageUnload();
           });
         }
 
-        handlePageHidden() {
+        /**
+         * Обрабатывает скрытие страницы
+         * @private
+         */
+        _handlePageHidden() {
           this.sessionTimer.markPageHidden();
           this.sessionTimer.stopTimer();
 
           const sessionTime = this.sessionTimer.getSessionTime();
           if (this.storageManager.currentItemId && sessionTime > 0) {
-            this.updateStorage(sessionTime);
+            this._updateStorage(sessionTime);
           }
         }
 
-        handlePageVisible() {
+        /**
+         * Обрабатывает появление страницы
+         * @private
+         */
+        _handlePageVisible() {
           this.sessionTimer.markPageVisible();
           this.startMainTimer();
         }
 
-        handlePageUnload() {
+        /**
+         * Обрабатывает выгрузку страницы
+         * @private
+         */
+        _handlePageUnload() {
           this.sessionTimer.stopTimer();
 
           const sessionTime = this.sessionTimer.getSessionTime();
           if (this.storageManager.currentItemId && sessionTime > 0) {
-            this.updateStorage(sessionTime);
+            this._updateStorage(sessionTime);
           }
         }
       }
 
-      // ==================== ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ ====================
+      // ==========================================================================
+      // ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ
+      // ==========================================================================
+
       let app;
 
       BX24.init(function () {
