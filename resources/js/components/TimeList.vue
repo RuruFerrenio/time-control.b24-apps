@@ -2359,77 +2359,103 @@ class HierarchicalDataManager {
       this.isLoadingTasks.value = true;
       this.allUserTasks.value = [];
 
-      const loadTasksBatch = (page) => {
+      // Загружаем задачи отдельными запросами
+      const loadTasksByRole = (role, page) => {
         return new Promise((resolve, reject) => {
+          let filter = {};
+
+          // Устанавливаем фильтр в зависимости от роли
+          if (role === 'responsible') {
+            filter = { 'RESPONSIBLE_ID': this.selectedUser.value.id };
+          } else if (role === 'creator') {
+            filter = { 'CREATED_BY': this.selectedUser.value.id };
+          } else if (role === 'auditor') {
+            filter = { 'AUDITORS': this.selectedUser.value.id };
+          }
+
           BX24.callBatch({
             tasks: [
               'task.item.list',
               [
                 { 'ID': 'desc' },
-                { 'RESPONSIBLE_ID': this.selectedUser.value.id },
+                filter,
                 {
                   'NAV_PARAMS': {
                     'nPageSize': 50,
                     'iNumPage': page
                   }
                 },
-                ['ID', 'TITLE', 'DESCRIPTION', 'REAL_STATUS', 'DEADLINE', 'CREATED_DATE', 'RESPONSIBLE_ID', 'ACCOMPLICES', 'AUDITORS', 'PRIORITY']
+                ['ID', 'TITLE', 'DESCRIPTION', 'REAL_STATUS', 'DEADLINE', 'CREATED_DATE', 'RESPONSIBLE_ID', 'CREATED_BY', 'ACCOMPLICES', 'AUDITORS', 'PRIORITY']
               ]
             ]
           }, (result) => {
             if (result.tasks.error()) {
-              this.showNotification('error', 'Ошибка загрузки задач')
               reject(result.tasks.error());
             } else {
-              resolve(result.tasks.data());
+              resolve(result.tasks.data() || []);
             }
           }, true);
         });
       };
 
+      // Загружаем задачи по всем ролям
+      const roles = ['responsible', 'creator', 'auditor'];
       let allTasks = [];
-      let page = 1;
-      let hasMore = true;
-      const MAX_TASKS = 200;
 
-      while (hasMore && allTasks.length < MAX_TASKS) {
-        const data = await loadTasksBatch(page);
+      for (const role of roles) {
+        let page = 1;
+        let hasMore = true;
 
-        if (!data || data.length === 0) {
-          hasMore = false;
-        } else {
-          data.forEach(task => {
-            allTasks.push({
-              id: task.ID,
-              title: task.TITLE,
-              description: task.DESCRIPTION,
-              status: task.REAL_STATUS,
-              deadline: task.DEADLINE,
-              createdDate: task.CREATED_DATE,
-              responsible: {
-                id: task.RESPONSIBLE_ID,
-                name: this.getUserNameById(task.RESPONSIBLE_ID)
-              },
-              accomplices: task.ACCOMPLICES || [],
-              auditors: task.AUDITORS || [],
-              priority: task.PRIORITY || '2'
-            });
-          });
+        while (hasMore && allTasks.length < 200) { // ограничение 200 задач
+          const data = await loadTasksByRole(role, page);
 
-          if (data.length < 50) {
+          if (!data || data.length === 0) {
             hasMore = false;
           } else {
-            page++;
+            data.forEach(task => {
+              // Проверяем, не добавили ли уже эту задачу
+              if (!allTasks.some(t => t.id === task.ID)) {
+                allTasks.push({
+                  id: task.ID,
+                  title: task.TITLE,
+                  description: task.DESCRIPTION,
+                  status: task.REAL_STATUS,
+                  deadline: task.DEADLINE,
+                  createdDate: task.CREATED_DATE,
+                  responsible: {
+                    id: task.RESPONSIBLE_ID,
+                    name: this.getUserNameById(task.RESPONSIBLE_ID)
+                  },
+                  creator: {
+                    id: task.CREATED_BY,
+                    name: this.getUserNameById(task.CREATED_BY)
+                  },
+                  accomplices: task.ACCOMPLICES || [],
+                  auditors: task.AUDITORS || [],
+                  priority: task.PRIORITY || '2'
+                });
+              }
+            });
+
+            if (data.length < 50) {
+              hasMore = false;
+            } else {
+              page++;
+            }
           }
         }
       }
+
+      // Сортируем задачи по ID (новые сверху)
+      allTasks.sort((a, b) => b.id - a.id);
 
       this.allUserTasks.value = allTasks;
       this.filterTasks();
       this.hasMoreTasks.value = false;
 
     } catch (error) {
-      this.showNotification('error', 'Ошибка при загрузке задач')
+      console.error('Ошибка при загрузке задач:', error);
+      this.showNotification('error', 'Ошибка при загрузке задач');
     } finally {
       this.isLoadingTasks.value = false;
     }
