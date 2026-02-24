@@ -781,7 +781,7 @@ export default {
 
       // Вычисляемые свойства
       formattedTime,
-      remainingFormattedTime
+      remainingFormattedTime,
       progressPercentage,
       isLastTenPercent,
 
