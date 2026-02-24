@@ -1513,7 +1513,7 @@ export default {
         })
       },
 
-// Настройка хранилища сохраненного времени
+      // Настройка хранилища сохраненного времени
       setupSavedTimeStorage: async () => {
         try {
           savedTimeStorageStatus.value = 'loading'

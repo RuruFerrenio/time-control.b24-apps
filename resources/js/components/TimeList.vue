@@ -2364,6 +2364,7 @@ class HierarchicalDataManager {
         return new Promise((resolve, reject) => {
           let filter = {};
 
+          //TODO::Доделать получение ответственных и сделать, чтобы имя исполнителя выводилось корректно
           // Устанавливаем фильтр в зависимости от роли
           if (role === 'responsible') {
             filter = { 'RESPONSIBLE_ID': this.selectedUser.value.id };

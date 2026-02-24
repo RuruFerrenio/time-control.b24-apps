@@ -83,7 +83,8 @@
               class="h-full transition-all duration-300 ease-linear"
               :class="{
               'bg-green-600': isConfirmed,
-              'bg-blue-600': !isConfirmed && timeRemaining > 0,
+              'bg-blue-600': !isConfirmed && timeRemaining > 0 && !isLastTenPercent,
+              'bg-red-600': !isConfirmed && timeRemaining > 0 && isLastTenPercent,
               'bg-red-600': !isConfirmed && timeRemaining <= 0
             }"
               :style="{ width: `${progressPercentage}%` }"
@@ -179,8 +180,14 @@ export default {
     const progressPercentage = computed(() => {
       if (isConfirmed.value) return 100
       if (initialTime.value === 0) return 0
-      if (timeRemaining.value <= 0) return 100
-      return ((initialTime.value - timeRemaining.value) / initialTime.value) * 100
+      // Инвертируем прогресс: от 100% до 0%
+      return (timeRemaining.value / initialTime.value) * 100
+    })
+
+    const isLastTenPercent = computed(() => {
+      if (initialTime.value === 0) return false
+      const percentage = (timeRemaining.value / initialTime.value) * 100
+      return percentage <= 10 && percentage > 0
     })
 
     // Методы
@@ -659,7 +666,7 @@ export default {
         if (timeRemaining.value > 0 && !isConfirmed.value) {
           timeRemaining.value--
           totalTimeOnPage.value++
-          console.log(`Осталось времени: ${timeRemaining.value}с`)
+          console.log(`Осталось времени: ${timeRemaining.value}с, прогресс: ${progressPercentage.value.toFixed(1)}%`)
 
           if (timeRemaining.value === 0) {
             handleTimeExpired()
@@ -768,6 +775,7 @@ export default {
       // Вычисляемые свойства
       formattedTime,
       progressPercentage,
+      isLastTenPercent,
 
       // Методы
       confirmPresence,
