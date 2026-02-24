@@ -1651,75 +1651,12 @@
               await this.storageManager.createNewItem(userProfile, this.currentUrl, document.title);
             }
 
-            // ===== НОВАЯ ЛОГИКА: Корректировка времени для последнего элемента =====
-            if (this.isWithinWorkHours) {
-              await this._correctLastItemTime();
-            }
-            // ===== КОНЕЦ НОВОЙ ЛОГИКИ =====
-
             this.sessionTimer.startSession();
 
           } catch (error) {
             console.error('Ошибка инициализации хранилища:', error);
           }
         }
-
-        /**
-         * Корректирует время последнего элемента на основе времени создания
-         * @private
-         */
-        async _correctLastItemTime() {
-          try {
-            // Получаем все элементы за сегодня
-            const items = await this.storageManager._callMethod('entity.item.get', {
-              ENTITY: this.storageManager.entityId,
-              FILTER: {
-                SECTION_ID: this.storageManager.currentSectionId,
-                PROPERTY_USER_ID: this.userManager.getUserId(),
-                PROPERTY_PAGE_CATEGORY: 'Время вне Битрикс24'
-              },
-              SORT: { ID: 'DESC' },
-              LIMIT: 1
-            });
-
-            console.log('отсутствия')
-            console.log(items)
-
-            if (items.length === 0) return;
-
-            const lastItem = items[0];
-
-            // Получаем время создания элемента
-            const createTime = new Date(lastItem.DATE_CREATE).getTime();
-            const currentTime = Date.now();
-            const timeDiffSeconds = Math.floor((currentTime - createTime) / 1000);
-
-            // Получаем текущее сохраненное время
-            const currentStoredTime = parseInt(lastItem.PROPERTY_VALUES?.PAGE_TIME || 0);
-
-            // Если разница больше сохраненного времени, обновляем
-            if (timeDiffSeconds > currentStoredTime) {
-              console.log(`Корректировка времени для элемента ${lastItem.ID}: было ${currentStoredTime}с, стало ${timeDiffSeconds}с`);
-
-              await this.storageManager._callMethod('entity.item.update', {
-                ENTITY: this.storageManager.entityId,
-                ID: lastItem.ID,
-                PROPERTY_VALUES: {
-                  PAGE_TIME: timeDiffSeconds
-                }
-              });
-
-              // Если это текущий элемент, обновляем storedTime
-              if (lastItem.ID === this.storageManager.currentItemId) {
-                this.storedTime = timeDiffSeconds;
-              }
-            }
-          } catch (error) {
-            console.error('Ошибка при корректировке времени последнего элемента:', error);
-          }
-        }
-
-
 
         // ===== Методы для работы с модальными окнами =====
 
