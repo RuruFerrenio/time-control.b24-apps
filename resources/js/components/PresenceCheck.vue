@@ -641,8 +641,18 @@ export default {
           timerInterval.value = null
         }
 
-        // СОЗДАЕМ ЗАПИСЬ ОБ ОТСУТСТВИИ
-        await createAbsenceRecord()
+
+        // ПРОВЕРЯЕМ РАБОЧЕЕ ВРЕМЯ
+        const isWorkTime = await isCurrentWorkTime()
+
+        if (isWorkTime) {
+          // Если рабочее время - создаем запись об отсутствии
+          await createAbsenceRecord()
+          console.log('✅ Запись создана (рабочее время)')
+        } else {
+          // Если нерабочее время - только логируем
+          console.log('Нерабочее время, запись не создана')
+        }
 
         // Показываем уведомление о том, что отсутствие зафиксировано
         toast.add({
@@ -661,6 +671,63 @@ export default {
 
         // ПРИЛОЖЕНИЕ НЕ ЗАКРЫВАЕТСЯ - просто остается на экране с информацией
         console.log('Время истекло, приложение остается открытым')
+      }
+    }
+
+    // Метод для проверки, является ли текущее время рабочим
+    const isCurrentWorkTime = async () => {
+      if (!BX24) {
+        console.warn('BX24 API недоступна для проверки рабочего времени')
+        return true // По умолчанию считаем рабочим
+      }
+
+      try {
+        // Получаем настройки рабочего времени текущего пользователя
+        const settings = await new Promise((resolve, reject) => {
+          BX24.callMethod('timeman.settings', {
+            USER_ID: currentUser.value.id
+          }, (result) => {
+            if (result.error()) reject(result.error())
+            else resolve(result.data())
+          })
+        })
+
+        // Если учет времени не включен или свободный график - всегда рабочее
+        if (!settings || !settings.UF_TIMEMAN || settings.UF_TM_FREE) {
+          return true
+        }
+
+        // Парсим текущее время
+        const now = new Date()
+        const currentMinutes = now.getHours() * 60 + now.getMinutes()
+
+        // Парсим время начала и окончания рабочего дня
+        const parseTimeToMinutes = (timeStr) => {
+          if (!timeStr) return null
+          const [hours, minutes] = timeStr.split(':').map(Number)
+          return hours * 60 + minutes
+        }
+
+        const startMinutes = parseTimeToMinutes(settings.UF_TM_MAX_START)
+        const endMinutes = parseTimeToMinutes(settings.UF_TM_MIN_FINISH)
+
+        if (!startMinutes || !endMinutes) return true
+
+        // Проверяем, находится ли текущее время в рабочем интервале
+        const isWorkTime = currentMinutes >= startMinutes && currentMinutes <= endMinutes
+
+        console.log('Проверка рабочего времени:', {
+          current: `${now.getHours()}:${now.getMinutes()}`,
+          start: settings.UF_TM_MAX_START,
+          end: settings.UF_TM_MIN_FINISH,
+          isWorkTime
+        })
+
+        return isWorkTime
+
+      } catch (error) {
+        console.error('Ошибка при проверке рабочего времени:', error)
+        return true // В случае ошибки считаем рабочим
       }
     }
 
@@ -854,7 +921,8 @@ export default {
       // Методы
       confirmPresence,
       formatTime,
-      createAbsenceRecord
+      createAbsenceRecord,
+      isCurrentWorkTime
     }
   }
 }
