@@ -1679,8 +1679,11 @@
                 PROPERTY_PAGE_CATEGORY: 'Время вне Битрикс24'
               },
               ORDER: { DATE_CREATE: 'DESC' },
-              LIMIT: 1
+              //LIMIT: 1
             });
+
+            console.log('отсутствия')
+            console.log(items)
 
             if (items.length === 0) return;
 
