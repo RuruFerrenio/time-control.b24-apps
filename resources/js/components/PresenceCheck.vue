@@ -92,7 +92,7 @@
         </div>
       </div>
 
-      <!-- Статус уведомления руководителю (только если есть руководители и отправка успешна) -->
+      <!-- Статус уведомления руководителю -->
       <div v-if="showManagerNotificationStatus && managerNotificationStatus === 'sent'"
            class="mt-4 p-3 rounded-lg bg-green-50 text-green-700 border border-green-200">
         <div class="flex items-center justify-center">
@@ -101,6 +101,18 @@
                   d="M5 13l4 4L19 7" />
           </svg>
           <span class="text-sm font-medium">Руководитель уведомлен об отсутствии</span>
+        </div>
+      </div>
+
+      <!-- Статус создания записи в хранилище -->
+      <div v-if="showStorageStatus && storageStatus === 'created'"
+           class="mt-2 p-2 rounded-lg bg-blue-50 text-blue-700 border border-blue-200">
+        <div class="flex items-center justify-center text-sm">
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+          </svg>
+          <span>Запись об отсутствии сохранена</span>
         </div>
       </div>
     </div>
@@ -119,7 +131,6 @@ export default {
   name: 'PresenceCheck',
 
   props: {
-    // Параметры из режима alerta
     alertaParameters: {
       type: Object,
       default: () => ({})
@@ -132,10 +143,11 @@ export default {
 
     // Константы
     const CHECK_INTERVAL = 1000 // 1 секунда
+    const ENTITY_ID = 'pr_tracking' // Должно совпадать с entityId из StorageManager
 
     // Состояние
-    const timeRemaining = ref(10) // Значение по умолчанию
-    const initialTime = ref(10) // Начальное время для расчета прогресса
+    const timeRemaining = ref(10)
+    const initialTime = ref(10)
     const isConfirmed = ref(false)
     const timerInterval = ref(null)
     const totalTimeOnPage = ref(0)
@@ -153,12 +165,14 @@ export default {
 
     // Состояние для настроек и данных руководителя
     const presenceSettings = ref(null)
-    const managersData = ref([]) // Может быть несколько руководителей
+    const managersData = ref([])
     const isLoadingSettings = ref(false)
 
-    // Статус уведомления руководителю
-    const managerNotificationStatus = ref(null) // 'sending', 'sent', 'error'
+    // Статусы
+    const managerNotificationStatus = ref(null)
     const showManagerNotificationStatus = ref(false)
+    const storageStatus = ref(null) // 'created', 'error'
+    const showStorageStatus = ref(false)
 
     // Данные отслеживания из параметров
     const trackingData = computed(() => {
@@ -177,7 +191,6 @@ export default {
       return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
     })
 
-    // Вычисляемые свойства
     const formattedTime = computed(() => {
       const minutes = Math.floor(totalTimeOnPage.value / 60)
       const seconds = totalTimeOnPage.value % 60
@@ -187,7 +200,6 @@ export default {
     const progressPercentage = computed(() => {
       if (isConfirmed.value) return 100
       if (initialTime.value === 0) return 0
-      // Инвертируем прогресс: от 100% до 0%
       return (timeRemaining.value / initialTime.value) * 100
     })
 
@@ -197,14 +209,94 @@ export default {
       return percentage <= 10 && percentage > 0
     })
 
-    // Методы
-    const formatTime = (seconds) => {
-      const mins = Math.floor(seconds / 60)
-      const secs = seconds % 60
-      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+    // ==========================================================================
+    // МЕТОД: Создание записи об отсутствии
+    // ==========================================================================
+    const createAbsenceRecord = async () => {
+      if (!BX24) {
+        console.warn('BX24 API недоступна для создания записи об отсутствии')
+        return false
+      }
+
+      try {
+        // Получаем сегодняшнюю дату для секции
+        const today = new Date().toISOString().split('T')[0]
+
+        // Получаем существующую секцию для сегодняшнего дня
+        const sections = await new Promise((resolve, reject) => {
+          BX24.callMethod('entity.section.get', {
+            ENTITY: ENTITY_ID,
+            FILTER: { NAME: today }
+          }, (result) => {
+            if (result.error()) reject(result.error())
+            else resolve(result.data())
+          })
+        })
+
+        // Если секция не найдена, это ошибка - секция должна существовать из основного скрипта
+        if (sections.length === 0) {
+          console.error('❌ Секция для сегодняшнего дня не найдена')
+          return false
+        }
+
+        const sectionId = sections[0].ID
+
+        // Создаем запись об отсутствии с уникальным именем
+        const timestamp = Date.now()
+        const absenceTime = new Date().toLocaleTimeString('ru-RU')
+        const elementName = `${currentUser.value.name} - Отсутствие ${absenceTime} (${timestamp})`
+
+        const itemId = await new Promise((resolve, reject) => {
+          BX24.callMethod('entity.item.add', {
+            ENTITY: ENTITY_ID,
+            NAME: elementName,
+            SECTION: sectionId,
+            PROPERTY_VALUES: {
+              USER_ID: currentUser.value.id || 0,
+              USER_NAME: currentUser.value.name || 'Неизвестный',
+              PAGE_URL: '', // Пустая ссылка как требуется в задании
+              PAGE_TITLE: document.title || 'Отсутствие на рабочем месте',
+              PAGE_TIME: totalTimeOnPage.value, // Время отсутствия в секундах
+              PAGE_CATEGORY: 'Время вне Битрикс24' // Специальная категория
+            }
+          }, (result) => {
+            if (result.error()) reject(result.error())
+            else resolve(result.data())
+          })
+        })
+
+        console.log('✅ Запись об отсутствии создана:', {
+          id: itemId,
+          section: sectionId,
+          section_date: today,
+          user: currentUser.value.name,
+          user_id: currentUser.value.id,
+          time: totalTimeOnPage.value,
+          category: 'Время вне Битрикс24',
+          timestamp: timestamp
+        })
+
+        // Обновляем статус для отображения в UI
+        storageStatus.value = 'created'
+        showStorageStatus.value = true
+
+        // Скрываем статус через 3 секунды
+        setTimeout(() => {
+          showStorageStatus.value = false
+        }, 3000)
+
+        return true
+
+      } catch (error) {
+        console.error('❌ Ошибка при создании записи об отсутствии:', error)
+        storageStatus.value = 'error'
+        return false
+      }
     }
 
-    // Получение данных текущего пользователя
+    // ==========================================================================
+    // МЕТОД: Получение данных текущего пользователя
+    // ==========================================================================
     const loadCurrentUser = async () => {
       if (!BX24) {
         console.warn('BX24 API недоступна для загрузки данных пользователя')
@@ -220,11 +312,9 @@ export default {
       }
 
       try {
-        // Способ 1: Используем метод user.current
         const userData = await new Promise((resolve, reject) => {
           BX24.callMethod('user.current', {}, (result) => {
             if (result.error()) {
-              // Если метод не работает, пробуем способ 2
               reject(result.error())
             } else {
               resolve(result.data())
@@ -234,7 +324,6 @@ export default {
 
         console.log('Данные пользователя из user.current:', userData)
 
-        // Формируем полное имя
         const fullName = userData.NAME || userData.FIRST_NAME || ''
         const lastName = userData.LAST_NAME || ''
         const secondName = userData.SECOND_NAME || ''
@@ -267,7 +356,6 @@ export default {
         console.warn('Ошибка при получении user.current:', error)
 
         try {
-          // Способ 2: Используем BX24.getAuth если user.current не работает
           const authData = BX24.getAuth()
           console.log('Данные из BX24.getAuth():', authData)
 
@@ -286,27 +374,6 @@ export default {
           console.warn('Ошибка при получении BX24.getAuth():', authError)
         }
 
-        // Способ 3: Пробуем получить через profile если доступно
-        if (typeof BX24.profile !== 'undefined') {
-          try {
-            const profile = BX24.profile()
-            console.log('Данные из BX24.profile():', profile)
-
-            return {
-              id: profile.id || 0,
-              name: profile.name || `Сотрудник ${profile.id || 0}`,
-              lastName: '',
-              secondName: '',
-              email: profile.email || '',
-              workPosition: '',
-              profileUrl: profile.id ? `/company/personal/user/${profile.id}/` : ''
-            }
-          } catch (profileError) {
-            console.warn('Ошибка при получении BX24.profile():', profileError)
-          }
-        }
-
-        // Если все методы не сработали, возвращаем значения по умолчанию
         return {
           id: 0,
           name: 'Сотрудник',
@@ -319,7 +386,9 @@ export default {
       }
     }
 
-    // Загрузка настроек контроля присутствия
+    // ==========================================================================
+    // МЕТОД: Загрузка настроек контроля присутствия
+    // ==========================================================================
     const loadPresenceSettings = async () => {
       if (!BX24 || !BX24.appOption) {
         console.warn('BX24 API недоступна для загрузки настроек')
@@ -329,7 +398,6 @@ export default {
       try {
         isLoadingSettings.value = true
 
-        // Загружаем все необходимые настройки
         const batchCalls = [
           'presence_control_enabled',
           'notify_manager_enabled',
@@ -339,7 +407,6 @@ export default {
 
         const results = {}
 
-        // Выполняем все запросы параллельно
         await Promise.all(batchCalls.map(async (key) => {
           try {
             const value = await BX24.appOption.get(key)
@@ -362,7 +429,6 @@ export default {
 
       } catch (error) {
         console.error('Ошибка загрузки настроек:', error)
-        // Возвращаем значения по умолчанию
         return {
           presenceControlEnabled: false,
           notifyManagerEnabled: false,
@@ -374,7 +440,9 @@ export default {
       }
     }
 
-    // Получение данных руководителя через отдел
+    // ==========================================================================
+    // МЕТОД: Получение данных руководителя
+    // ==========================================================================
     const loadManagersData = async () => {
       if (!BX24) {
         console.warn('BX24 API недоступна для загрузки данных руководителя')
@@ -382,7 +450,6 @@ export default {
       }
 
       try {
-        // Получаем данные текущего пользователя, включая отделы
         const userData = await new Promise((resolve, reject) => {
           BX24.callMethod('user.current', {}, (result) => {
             if (result.error()) {
@@ -400,7 +467,6 @@ export default {
           return []
         }
 
-        // Получаем информацию об отделах с данными руководителей
         const departments = await new Promise((resolve, reject) => {
           BX24.callMethod('im.department.get', {
             ID: userData.UF_DEPARTMENT,
@@ -416,7 +482,6 @@ export default {
 
         console.log('Данные отделов:', departments)
 
-        // Собираем всех руководителей отделов
         const managers = []
         const uniqueManagerIds = new Set()
 
@@ -424,7 +489,6 @@ export default {
           if (department.manager_user_id && !uniqueManagerIds.has(department.manager_user_id)) {
             uniqueManagerIds.add(department.manager_user_id)
 
-            // Используем данные из manager_user_data если они есть
             if (department.manager_user_data) {
               const manager = department.manager_user_data
               const fullName = manager.NAME || manager.FIRST_NAME || ''
@@ -469,34 +533,19 @@ export default {
       }
     }
 
-    // Отправка уведомления руководителям
+    // ==========================================================================
+    // МЕТОД: Отправка уведомления руководителям
+    // ==========================================================================
     const sendManagerNotifications = async () => {
       try {
         managerNotificationStatus.value = 'sending'
         showManagerNotificationStatus.value = false
 
-        // Формируем структурированное сообщение с BB-кодами
         const createStructuredMessage = () => {
-          const userProfileLink = `/company/personal/user/${currentUser.value.id}/`
-          const trackingTime = totalTimeOnPage.value
-          const trackingUrl = trackingData.value.page_url || 'неизвестная страница'
-
-          // Форматируем время
-          const formatDuration = (seconds) => {
-            if (!seconds) return '0 сек'
-            const hours = Math.floor(seconds / 3600)
-            const minutes = Math.floor((seconds % 3600) / 60)
-            const secs = seconds % 60
-            const parts = []
-            if (hours > 0) parts.push(`${hours} ч`)
-            if (minutes > 0) parts.push(`${minutes} мин`)
-            if (secs > 0 || parts.length === 0) parts.push(`${secs} сек`)
-            return parts.join(' ')
-          }
-
           const fullMessage = `[SIZE=16][B]🚨 Отсутствие сотрудника на рабочем месте[/B][/SIZE]\n\n`
               + `👤 [B]Сотрудник:[/B] [USER=${currentUser.value.id}]${currentUser.value.name}[/USER]\n`
               + `📅 [B]Дата/время:[/B] ${new Date().toLocaleString('ru-RU')}\n`
+              + `⏱️ [B]Время отсутствия:[/B] ${formatTime(totalTimeOnPage.value)}\n`
               + `────────────────────\n`
               + `[SIZE=12][COLOR=#666666]Уведомление сгенерировано автоматически[/COLOR][/SIZE]`
 
@@ -513,9 +562,7 @@ export default {
         const messageData = createStructuredMessage()
         const notificationPromises = []
 
-        // Отправляем уведомление каждому руководителю
         managersData.value.forEach(manager => {
-          // Отправляем push-уведомление если нужно
           if (presenceSettings.value.notificationMethod === 'push' ||
               presenceSettings.value.notificationMethod === 'all') {
 
@@ -547,7 +594,6 @@ export default {
             )
           }
 
-          // Отправляем сообщение в чат если нужно
           if (presenceSettings.value.notificationMethod === 'chat' ||
               presenceSettings.value.notificationMethod === 'all') {
 
@@ -572,7 +618,6 @@ export default {
           }
         })
 
-        // Ждем результаты отправки
         const results = await Promise.allSettled(notificationPromises)
         const successful = results.filter(r =>
             r.status === 'fulfilled' && r.value.success
@@ -584,7 +629,6 @@ export default {
           managerNotificationStatus.value = 'sent'
           showManagerNotificationStatus.value = true
 
-          // Скрываем статус через 3 секунды
           setTimeout(() => {
             showManagerNotificationStatus.value = false
           }, 3000)
@@ -599,81 +643,84 @@ export default {
       }
     }
 
+    // ==========================================================================
+    // МЕТОД: Подтверждение присутствия
+    // ==========================================================================
     const confirmPresence = () => {
       if (isConfirmed.value || timeRemaining.value <= 0) return
 
       isConfirmed.value = true
 
-      // Останавливаем таймер
       if (timerInterval.value) {
         clearInterval(timerInterval.value)
         timerInterval.value = null
       }
 
-      // Показываем уведомление об успехе
       toast.add({
         description: t('presenceCheck.successNotification'),
         variant: 'success'
       })
 
-      // Ждем 2 секунды и закрываем приложение
       setTimeout(() => {
         closeApplication()
       }, 2000)
     }
 
+    // ==========================================================================
+    // МЕТОД: Закрытие приложения
+    // ==========================================================================
     const closeApplication = () => {
       if (typeof BX24 !== 'undefined' && typeof BX24.closeApplication === 'function') {
         console.log('Закрытие приложения...')
         BX24.closeApplication()
       } else {
         console.error('Функция BX24.closeApplication недоступна')
-        // Альтернативный способ закрытия
         window.close()
       }
     }
 
+    // ==========================================================================
+    // МЕТОД: Обработка истечения времени
+    // ==========================================================================
     const handleTimeExpired = async () => {
       if (!isConfirmed.value) {
-        // Останавливаем таймер
         if (timerInterval.value) {
           clearInterval(timerInterval.value)
           timerInterval.value = null
         }
 
-        // Показываем уведомление о том, что отсутствие зафиксировано
+        // 1. СОЗДАЕМ ЗАПИСЬ ОБ ОТСУТСТВИИ В ХРАНИЛИЩЕ
+        const recordCreated = await createAbsenceRecord()
+
+        // 2. Показываем уведомление
         toast.add({
           description: t('presenceCheck.absenceNotification'),
           variant: 'error',
-          duration: 5000 // Показываем 5 секунд
+          duration: 5000
         })
 
-        // Проверяем настройки и отправляем уведомление руководителю если нужно
+        // 3. Отправляем уведомление руководителю если нужно
         if (presenceSettings.value?.notifyManagerEnabled && managersData.value.length > 0) {
           console.log(`Отправка уведомлений ${managersData.value.length} руководителям...`)
           await sendManagerNotifications()
-        } else {
-          console.log('Уведомления руководителю не отправлены: либо отключены, либо руководители не найдены')
         }
 
-        // ПРИЛОЖЕНИЕ НЕ ЗАКРЫВАЕТСЯ - просто остается на экране с информацией
         console.log('Время истекло, приложение остается открытым')
       }
     }
 
-    // Запуск таймера
+    // ==========================================================================
+    // МЕТОД: Запуск таймера
+    // ==========================================================================
     const startTimer = () => {
-      // Останавливаем предыдущий таймер если есть
       if (timerInterval.value) {
         clearInterval(timerInterval.value)
       }
 
-      // Запускаем новый таймер
       timerInterval.value = setInterval(() => {
         if (timeRemaining.value > 0 && !isConfirmed.value) {
           timeRemaining.value--
           totalTimeOnPage.value++
-          console.log(`Осталось времени: ${timeRemaining.value}с, прогресс: ${progressPercentage.value.toFixed(1)}%`)
 
           if (timeRemaining.value === 0) {
             handleTimeExpired()
@@ -684,43 +731,48 @@ export default {
       }, CHECK_INTERVAL)
     }
 
-    // Инициализация компонента
+    // ==========================================================================
+    // МЕТОД: Обработка закрытия страницы
+    // ==========================================================================
+    const setupBeforeUnload = () => {
+      window.addEventListener('beforeunload', async (event) => {
+        if (!isConfirmed.value && timeRemaining.value <= 0) {
+          // Создаем запись при закрытии страницы, если время истекло
+          await createAbsenceRecord()
+        }
+      })
+    }
+
+    // ==========================================================================
+    // МЕТОД: Инициализация компонента
+    // ==========================================================================
     const initializeComponent = async () => {
       console.log('Компонент PresenceCheck загружен с параметрами:', props.alertaParameters)
 
-      // Обновляем общее время на странице
       totalTimeOnPage.value = trackingData.value.time_on_page || 0
 
       try {
-        // Загружаем данные текущего пользователя
         const user = await loadCurrentUser()
         currentUser.value = user
         console.log('Данные текущего пользователя:', user)
 
-        // Загружаем настройки
         const settings = await loadPresenceSettings()
         presenceSettings.value = settings
 
-        // Устанавливаем время таймера из настроек
-        let timerDuration = 10 // По умолчанию
-        let timerSource = 'по умолчанию'
+        let timerDuration = 10
 
         if (settings && settings.absenceTimeThreshold) {
           timerDuration = settings.absenceTimeThreshold
-          timerSource = 'из настроек'
         }
 
-        // Если в параметрах alerta есть timerDuration, используем его (приоритет)
         if (props.alertaParameters?.timerDuration) {
           timerDuration = props.alertaParameters.timerDuration
-          timerSource = 'из параметров alerta'
         }
 
         timeRemaining.value = timerDuration
         initialTime.value = timerDuration
-        console.log(`Таймер установлен на ${timerDuration} секунд (${timerSource})`)
+        console.log(`Таймер установлен на ${timerDuration} секунд`)
 
-        // Загружаем данные руководителей только если включены уведомления
         if (settings?.notifyManagerEnabled) {
           const managers = await loadManagersData()
           managersData.value = managers
@@ -732,18 +784,21 @@ export default {
           }
         }
 
+        // Настраиваем обработчик закрытия страницы
+        setupBeforeUnload()
+
         // Запускаем таймер
         startTimer()
 
       } catch (error) {
         console.error('Ошибка инициализации компонента:', error)
-
-        // Запускаем таймер с дефолтными значениями
         startTimer()
       }
     }
 
+    // ==========================================================================
     // Хуки жизненного цикла
+    // ==========================================================================
     onMounted(() => {
       if (typeof BX24 !== 'undefined') {
         if (BX24.init) {
@@ -751,11 +806,9 @@ export default {
             await initializeComponent()
           })
         } else {
-          // BX24 уже инициализирован
           initializeComponent()
         }
       } else {
-        // Режим разработки без BX24
         console.log('Режим разработки: BX24 не обнаружен')
         initializeComponent()
       }
@@ -768,7 +821,6 @@ export default {
     })
 
     return {
-      // Состояние
       timeRemaining,
       isConfirmed,
       currentUser,
@@ -778,14 +830,12 @@ export default {
       isLoadingSettings,
       managerNotificationStatus,
       showManagerNotificationStatus,
-
-      // Вычисляемые свойства
+      storageStatus,
+      showStorageStatus,
       formattedTime,
       remainingFormattedTime,
       progressPercentage,
       isLastTenPercent,
-
-      // Методы
       confirmPresence,
       formatTime
     }
@@ -794,7 +844,6 @@ export default {
 </script>
 
 <style scoped>
-/* Анимация пульсации для кнопки */
 @keyframes pulse {
   0%, 100% {
     opacity: 1;
@@ -808,13 +857,11 @@ export default {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Анимация для индикатора прогресса */
 .transition-all {
   transition-property: all;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Анимация вращения для статуса отправки */
 @keyframes spin {
   from {
     transform: rotate(0deg);
@@ -826,10 +873,5 @@ export default {
 
 .animate-spin {
   animation: spin 1s linear infinite;
-}
-
-/* Стили для ссылки на профиль */
-a {
-  transition: color 0.2s ease;
 }
 </style>
