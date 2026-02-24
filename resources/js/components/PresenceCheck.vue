@@ -4,7 +4,7 @@
     <div class="absolute top-4 right-4">
       <div class="flex items-center space-x-2 text-gray-600">
         <B24Badge variant="outline" class="text-sm font-mono">
-          ⏱️ {{ formattedTime }}
+          ⏱️ {{ remainingFormattedTime }}
         </B24Badge>
       </div>
     </div>
@@ -168,6 +168,13 @@ export default {
         opened_at: new Date().toISOString(),
         user_id: currentUser.value.id || 0
       }
+    })
+
+    const remainingFormattedTime = computed(() => {
+      if (timeRemaining.value <= 0) return '00:00'
+      const minutes = Math.floor(timeRemaining.value / 60)
+      const seconds = timeRemaining.value % 60
+      return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
     })
 
     // Вычисляемые свойства
@@ -774,6 +781,7 @@ export default {
 
       // Вычисляемые свойства
       formattedTime,
+      remainingFormattedTime,
       progressPercentage,
       isLastTenPercent,
 
