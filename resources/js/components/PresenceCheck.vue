@@ -771,7 +771,7 @@ export default {
             PROPERTY_VALUES: {
               USER_ID: currentUser.value.id || 0,
               USER_NAME: currentUser.value.name || 'Неизвестный',
-              PAGE_URL: '',
+              PAGE_URL: elementName,
               PAGE_TITLE: document.title || 'Отсутствие на рабочем месте',
               PAGE_TIME: totalTimeOnPage.value,
               PAGE_CATEGORY: 'Время вне Битрикс24'
