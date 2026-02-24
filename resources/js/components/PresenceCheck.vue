@@ -641,6 +641,9 @@ export default {
           timerInterval.value = null
         }
 
+        // СОЗДАЕМ ЗАПИСЬ ОБ ОТСУТСТВИИ
+        await createAbsenceRecord()
+
         // Показываем уведомление о том, что отсутствие зафиксировано
         toast.add({
           description: t('presenceCheck.absenceNotification'),
@@ -658,6 +661,69 @@ export default {
 
         // ПРИЛОЖЕНИЕ НЕ ЗАКРЫВАЕТСЯ - просто остается на экране с информацией
         console.log('Время истекло, приложение остается открытым')
+      }
+    }
+
+    // Метод для создания записи об отсутствии
+    const createAbsenceRecord = async () => {
+      if (!BX24) {
+        console.warn('BX24 API недоступна для создания записи об отсутствии')
+        return
+      }
+
+      try {
+        const entityId = 'pr_tracking'
+        const today = new Date().toISOString().split('T')[0]
+
+        // Получаем секцию для сегодняшнего дня
+        const sections = await new Promise((resolve, reject) => {
+          BX24.callMethod('entity.section.get', {
+            ENTITY: entityId,
+            FILTER: { NAME: today }
+          }, (result) => {
+            if (result.error()) reject(result.error())
+            else resolve(result.data())
+          })
+        })
+
+        if (sections.length === 0) {
+          console.error('❌ Секция для сегодняшнего дня не найдена')
+          return
+        }
+
+        const sectionId = sections[0].ID
+        const timestamp = Date.now()
+        const absenceTime = new Date().toLocaleTimeString('ru-RU')
+        const elementName = `${currentUser.value.name} - Отсутствие ${absenceTime} (${timestamp})`
+
+        const itemId = await new Promise((resolve, reject) => {
+          BX24.callMethod('entity.item.add', {
+            ENTITY: entityId,
+            NAME: elementName,
+            SECTION: sectionId,
+            PROPERTY_VALUES: {
+              USER_ID: currentUser.value.id || 0,
+              USER_NAME: currentUser.value.name || 'Неизвестный',
+              PAGE_URL: '',
+              PAGE_TITLE: document.title || 'Отсутствие на рабочем месте',
+              PAGE_TIME: totalTimeOnPage.value,
+              PAGE_CATEGORY: 'Время вне Битрикс24'
+            }
+          }, (result) => {
+            if (result.error()) reject(result.error())
+            else resolve(result.data())
+          })
+        })
+
+        console.log('✅ Запись об отсутствии создана:', itemId)
+
+        toast.add({
+          description: 'Запись об отсутствии сохранена',
+          variant: 'info'
+        })
+
+      } catch (error) {
+        console.error('❌ Ошибка при создании записи об отсутствии:', error)
       }
     }
 
@@ -787,7 +853,8 @@ export default {
 
       // Методы
       confirmPresence,
-      formatTime
+      formatTime,
+      createAbsenceRecord
     }
   }
 }
