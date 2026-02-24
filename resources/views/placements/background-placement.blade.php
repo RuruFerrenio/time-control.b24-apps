@@ -1678,7 +1678,7 @@
                 PROPERTY_USER_ID: this.userManager.getUserId(),
                 PROPERTY_PAGE_CATEGORY: 'Время вне Битрикс24'
               },
-              ORDER: { ID: 'DESC' },
+              ORDER: { DATE_CREATE: 'DESC' },
               LIMIT: 1
             });
 
