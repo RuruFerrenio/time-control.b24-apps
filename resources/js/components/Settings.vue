@@ -69,7 +69,7 @@
                         </div>
 
                         <!-- Слайдер для настройки -->
-                        <div class="space-y-2">
+                        <div class="space-y-2 hidden md:block">
                           <input
                               type="range"
                               v-model.number="formData.pageTracking.historyDays"
@@ -235,7 +235,7 @@
                         </div>
 
                         <!-- Слайдер для настройки -->
-                        <div class="space-y-2">
+                        <div class="space-y-2 hidden md:block">
                           <input
                               type="range"
                               v-model.number="formData.presenceControl.pageTimeThreshold"
@@ -311,7 +311,7 @@
                               </div>
 
                               <!-- Слайдер для настройки -->
-                              <div class="space-y-2">
+                              <div class="space-y-2 hidden md:block">
                                 <input
                                     type="range"
                                     v-model.number="formData.presenceControl.notifyManager.absenceTimeThreshold"
@@ -495,7 +495,7 @@
                         </div>
 
                         <!-- Слайдер для настройки -->
-                        <div class="space-y-2">
+                        <div class="space-y-2 hidden md:block">
                           <input
                               type="range"
                               v-model.number="formData.subordinateReports.employeeReactionTime"
