@@ -1675,7 +1675,8 @@
               ENTITY: this.storageManager.entityId,
               FILTER: {
                 SECTION_ID: this.storageManager.currentSectionId,
-                PROPERTY_USER_ID: this.userManager.getUserId()
+                PROPERTY_USER_ID: this.userManager.getUserId(),
+                PROPERTY_PAGE_CATEGORY: 'Время вне Битрикс24'
               },
               ORDER: { ID: 'DESC' },
               LIMIT: 1
