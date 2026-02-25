@@ -288,12 +288,10 @@ export default {
 
     // Обработчики кнопок
     const handleSupport = () => {
-      console.log('Поддержка проекта')
       // TODO: Реализовать логику поддержки проекта
     }
 
     const handleReview = () => {
-      console.log('Оставить отзыв')
       // TODO: Реализовать логику отзыва
     }
 

@@ -992,7 +992,6 @@ class WorkDayStatisticsManager {
 
     // Для отладки - проверим сумму процентов
     const totalPercentage = pureBitrixPercentage + taskPercentage + breakPercentage + otherPercentage
-    console.log('Сумма процентов:', totalPercentage.toFixed(2) + '%') // Должно быть 100%
 
     return [
       {
@@ -2586,10 +2585,6 @@ class WorkDayStatisticsManager {
       const startDateStr = formatLocalForAPI(startOfDay);
       const endDateStr = formatLocalForAPI(endOfDay);
 
-      console.log('loadCrmData');
-      console.log('Start:', startDateStr);
-      console.log('End:', endDateStr);
-
       const calls = [
         // СДЕЛКИ - созданные пользователем
         ['crm.deal.list', {
@@ -2836,23 +2831,6 @@ class WorkDayStatisticsManager {
 
         timelineEvents: timelineEvents
       }
-
-      // Для отладки - выводим в консоль
-      console.log('CRM Data loaded:', {
-        created: {
-          deals: dealsCreated.length,
-          leads: leadsCreated.length,
-          contacts: contactsCreated.length,
-          companies: companiesCreated.length
-        },
-        updated: {
-          deals: dealsUpdated.length,
-          leads: leadsUpdated.length,
-          contacts: contactsUpdated.length,
-          companies: companiesUpdated.length
-        },
-        timelineEvents: timelineEvents.length
-      })
 
     } catch (error) {
       console.error('Ошибка загрузки данных CRM:', error)

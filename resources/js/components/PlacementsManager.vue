@@ -238,7 +238,6 @@ export default {
       getPlacements: async () => {
         try {
           const result = await bitrixAPI.call('placement.get', {})
-          console.log('Список встроек:', result)
           return result || []
         } catch (error) {
           console.error('Ошибка при получении списка встроек:', error)
@@ -297,7 +296,6 @@ export default {
               }
 
           const result = await bitrixAPI.call('placement.bind', placementConfig)
-          console.log(`Встройка ${placementType} зарегистрирована:`, result)
           return true
         } catch (error) {
           console.error(`Ошибка регистрации встройки ${placementType}:`, error)
@@ -311,7 +309,6 @@ export default {
             PLACEMENT: placementType,
             HANDLER: handler
           })
-          console.log(`Встройка ${placementType} удалена:`, result)
           return result
         } catch (error) {
           console.error(`Ошибка удаления встройки ${placementType}:`, error)
@@ -414,13 +411,11 @@ export default {
 
             // Если существует, удаляем
             if (exists) {
-              console.log(`Встройка ${placement.type} уже существует, удаляем...`)
               await placementManager.unbind(placement.type, placement.handler)
             }
 
             // Регистрируем новую встройку
             await placementManager.bind(placement.type, placement.handler)
-            console.log(`Встройка ${placement.type} успешно зарегистрирована`)
           } catch (error) {
             console.error(`Ошибка при обработке встройки ${placement.type}:`, error)
             // Продолжаем с другими встройками

@@ -23,11 +23,9 @@ function detectLanguageFromUrl() {
     const urlLang = urlParams.get('LANG') || urlParams.get('lang');
 
     if (urlLang) {
-      console.log('Язык из URL параметра:', urlLang);
       return urlLang.toLowerCase();
     }
 
-    console.log('Язык не определен в URL, используется английский по умолчанию');
     return 'en';
   } catch (error) {
     console.error('Ошибка определения языка:', error);
@@ -59,7 +57,6 @@ const normalizedLang = normalizeLanguageCode(detectedLang);
 
 // Сохраняем язык в localStorage для будущего использования
 localStorage.setItem('bitrix24_language', normalizedLang);
-console.log('Установлен язык:', normalizedLang);
 
 // Проверяем, есть ли сообщения для выбранного языка
 const availableLocales = Object.keys(messages);
@@ -80,10 +77,6 @@ const router = createRouter({
 
 // Инициализируем Bitrix24 перед созданием приложения
 bitrixHelper.init().then(() => {
-  console.log('Bitrix24 инициализирован');
-  console.log('Пользователь администратор:', bitrixHelper.isUserAdmin());
-  console.log('Тариф:', bitrixHelper.getTariffName());
-  console.log('Статистика доступна:', bitrixHelper.isStatisticsAvailable());
 }).catch(error => {
   console.error('Ошибка инициализации Bitrix24:', error);
 });

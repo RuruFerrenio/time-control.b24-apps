@@ -219,8 +219,6 @@ export default {
           })
         })
 
-        console.log('Данные пользователя из user.current:', userData)
-
         const fullName = userData.NAME || ''
         const lastName = userData.LAST_NAME || ''
 
@@ -280,8 +278,6 @@ export default {
             }
           })
         })
-
-        console.log('Текущий статус рабочего дня:', result)
         return result
       } catch (error) {
         console.error('Ошибка получения статуса рабочего дня:', error)
@@ -311,9 +307,7 @@ export default {
         isEnding.value = true
         statusMessage.value = 'Завершаем рабочий день...'
 
-        // Получаем текущий статус рабочего дня
         const status = await getCurrentWorkdayStatus()
-        console.log('Текущий статус рабочего дня перед завершением:', status)
 
         // Проверяем, можно ли завершить рабочий день
         if (!status || status.STATUS === 'CLOSED') {
@@ -341,8 +335,6 @@ export default {
           params.REPORT = 'Завершение истекшего рабочего дня'
         }
 
-        console.log('Завершаем рабочий день с параметрами:', params)
-
         // Вызываем метод timeman.close
         const result = await new Promise((resolve, reject) => {
           BX24.callMethod('timeman.close', params, (result) => {
@@ -353,8 +345,6 @@ export default {
             }
           })
         })
-
-        console.log('Результат завершения рабочего дня:', result)
 
         // Сохраняем информацию о рабочем дне
         workdayInfo.value = result
@@ -413,7 +403,6 @@ export default {
 
     const closeApplication = () => {
       if (typeof BX24 !== 'undefined' && typeof BX24.closeApplication === 'function') {
-        console.log('Закрытие приложения...')
         BX24.closeApplication()
       } else {
         console.error('Функция BX24.closeApplication недоступна')
@@ -423,19 +412,14 @@ export default {
 
     // Инициализация компонента
     const initializeComponent = async () => {
-      console.log('Компонент WorkdayEnd загружен с параметрами:', props.alertaParameters)
-
       try {
         // Загружаем данные текущего пользователя
         const user = await loadCurrentUser()
         currentUser.value = user
-        console.log('Данные текущего пользователя:', user)
-
         // Проверяем текущий статус рабочего дня
         const status = await getCurrentWorkdayStatus()
         if (status) {
           workdayInfo.value = status
-
           // Если рабочий день уже завершен
           if (status.STATUS === 'CLOSED') {
             isEnded.value = true
@@ -459,7 +443,6 @@ export default {
           initializeComponent()
         }
       } else {
-        console.log('Режим разработки: BX24 не обнаружен')
         initializeComponent()
       }
     })

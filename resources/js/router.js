@@ -58,42 +58,12 @@ const routes = [
     component: () => import('./components/Install.vue'),
   },
   {
-    path: '/placements/chat-sidebar',
-    name: 'chat-sidebar-calc',
-    component: () => import('./components/Calculator.vue'),
-  },
-  {
-    path: '/placements/chat-panel',
-    name: 'chat-panel-calc',
-    component: () => import('./components/Calculator.vue'),
-  },
-  {
-    path: '/placements/task-sidebar',
-    name: 'task-sidebar-calc',
-    component: () => import('./components/Calculator.vue'),
-  },
-  {
-    path: '/placements/task-tab',
-    name: 'task-tab-calc',
-    component: () => import('./components/Calculator.vue'),
-  },
-  {
-    path: '/placements/call-card',
-    name: 'call-card-calc',
-    component: () => import('./components/Calculator.vue'),
-  },
-  {
     path: '/activity-report',
     name: 'activity-report',
     component: () => import('./components/ActivityReport.vue'),
     props: (route) => ({
       parameters: window.bitrixData || null
     })
-  },
-  {
-    path: '/guide',
-    name: 'Guide',
-    component: () => import('./components/Guide.vue')
   }
 ];
 

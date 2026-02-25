@@ -231,8 +231,6 @@ export default {
           })
         })
 
-        console.log('Данные пользователя из user.current:', userData)
-
         // Формируем полное имя
         const fullName = userData.NAME || userData.FIRST_NAME || ''
         const lastName = userData.LAST_NAME || ''
@@ -268,7 +266,6 @@ export default {
         try {
           // Способ 2: Используем BX24.getAuth если user.current не работает
           const authData = BX24.getAuth()
-          console.log('Данные из BX24.getAuth():', authData)
 
           if (authData && authData.user_id) {
             return {
@@ -289,7 +286,6 @@ export default {
         if (typeof BX24.profile !== 'undefined') {
           try {
             const profile = BX24.profile()
-            console.log('Данные из BX24.profile():', profile)
 
             return {
               id: profile.id || 0,
@@ -356,7 +352,6 @@ export default {
           absenceTimeThreshold: results.absence_time_threshold ? parseInt(results.absence_time_threshold) : 300
         }
 
-        console.log('Настройки контроля присутствия загружены:', settings)
         return settings
 
       } catch (error) {
@@ -392,10 +387,7 @@ export default {
           })
         })
 
-        console.log('Данные текущего пользователя для поиска руководителей:', userData)
-
         if (!userData.UF_DEPARTMENT || !Array.isArray(userData.UF_DEPARTMENT) || userData.UF_DEPARTMENT.length === 0) {
-          console.log('У пользователя нет отделов (UF_DEPARTMENT пуст)')
           return []
         }
 
@@ -412,8 +404,6 @@ export default {
             }
           })
         })
-
-        console.log('Данные отделов:', departments)
 
         // Собираем всех руководителей отделов
         const managers = []
@@ -459,7 +449,6 @@ export default {
           }
         })
 
-        console.log('Найдены руководители:', managers)
         return managers
 
       } catch (error) {
@@ -538,7 +527,6 @@ export default {
                       console.error(`Ошибка push-уведомления руководителю ${manager.id}:`, result.error())
                       resolve({ manager, type: 'push', success: false, error: result.error() })
                     } else {
-                      console.log(`Push-уведомление отправлено руководителю ${manager.name}`)
                       resolve({ manager, type: 'push', success: true })
                     }
                   })
@@ -562,7 +550,6 @@ export default {
                       console.error(`Ошибка отправки в чат руководителю ${manager.id}:`, result.error())
                       resolve({ manager, type: 'chat', success: false, error: result.error() })
                     } else {
-                      console.log(`Сообщение отправлено в чат руководителю ${manager.name}`)
                       resolve({ manager, type: 'chat', success: true })
                     }
                   })
@@ -576,8 +563,6 @@ export default {
         const successful = results.filter(r =>
             r.status === 'fulfilled' && r.value.success
         ).length
-
-        console.log(`Результаты отправки: ${successful}/${notificationPromises.length} успешно`)
 
         if (successful > 0) {
           managerNotificationStatus.value = 'sent'
@@ -623,7 +608,6 @@ export default {
 
     const closeApplication = () => {
       if (typeof BX24 !== 'undefined' && typeof BX24.closeApplication === 'function') {
-        console.log('Закрытие приложения...')
         BX24.closeApplication()
       } else {
         console.error('Функция BX24.closeApplication недоступна')
@@ -649,14 +633,9 @@ export default {
 
         // Проверяем настройки и отправляем уведомление руководителю если нужно
         if (presenceSettings.value?.notifyManagerEnabled && managersData.value.length > 0) {
-          console.log(`Отправка уведомлений ${managersData.value.length} руководителям...`)
           await sendManagerNotifications()
         } else {
-          console.log('Уведомления руководителю не отправлены: либо отключены, либо руководители не найдены')
         }
-
-        // ПРИЛОЖЕНИЕ НЕ ЗАКРЫВАЕТСЯ - просто остается на экране с информацией
-        console.log('Время истекло, приложение остается открытым')
       }
     }
 
@@ -672,7 +651,6 @@ export default {
         if (timeRemaining.value > 0 && !isConfirmed.value) {
           timeRemaining.value--
           totalTimeOnPage.value++
-          console.log(`Осталось времени: ${timeRemaining.value}с, прогресс: ${progressPercentage.value.toFixed(1)}%`)
 
           if (timeRemaining.value === 0) {
             handleTimeExpired()
@@ -685,8 +663,6 @@ export default {
 
     // Инициализация компонента
     const initializeComponent = async () => {
-      console.log('Компонент PresenceCheck загружен с параметрами:', props.alertaParameters)
-
       // Обновляем общее время на странице
       totalTimeOnPage.value = trackingData.value.time_on_page || 0
 
@@ -694,7 +670,6 @@ export default {
         // Загружаем данные текущего пользователя
         const user = await loadCurrentUser()
         currentUser.value = user
-        console.log('Данные текущего пользователя:', user)
 
         // Загружаем настройки
         const settings = await loadPresenceSettings()
@@ -717,18 +692,11 @@ export default {
 
         timeRemaining.value = timerDuration
         initialTime.value = timerDuration
-        console.log(`Таймер установлен на ${timerDuration} секунд (${timerSource})`)
 
         // Загружаем данные руководителей только если включены уведомления
         if (settings?.notifyManagerEnabled) {
           const managers = await loadManagersData()
           managersData.value = managers
-
-          if (managers.length === 0) {
-            console.log('Уведомления руководителю включены, но руководители не найдены')
-          } else {
-            console.log(`Найдено ${managers.length} руководителей для уведомления`)
-          }
         }
 
         // Запускаем таймер
@@ -754,8 +722,6 @@ export default {
           initializeComponent()
         }
       } else {
-        // Режим разработки без BX24
-        console.log('Режим разработки: BX24 не обнаружен')
         initializeComponent()
       }
     })

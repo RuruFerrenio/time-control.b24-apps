@@ -271,7 +271,6 @@ export default {
 
       const createNextProperty = (index) => {
         if (index >= totalProperties) {
-          console.log(`Создано свойств: ${createdCount} из ${totalProperties}`)
           callback(true)
           return
         }
@@ -284,9 +283,7 @@ export default {
           TYPE: prop.TYPE
         }, (result) => {
           if (result.error()) {
-            console.log(`Свойство ${prop.PROPERTY} уже существует или ошибка:`, result.error())
           } else {
-            console.log(`Свойство ${prop.PROPERTY} создано`)
             createdCount++
           }
           createNextProperty(index + 1)
@@ -360,8 +357,6 @@ export default {
           isProcessing.value = false
           alert('Ошибка при создании хранилища. Пожалуйста, попробуйте еще раз.')
         } else {
-          console.log(`Хранилище ${props.entityId} успешно создано`)
-
           // Создаем свойства, если они есть
           if (props.properties && props.properties.length > 0) {
             createStorageProperties((success) => {

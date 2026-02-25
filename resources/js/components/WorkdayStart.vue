@@ -194,8 +194,6 @@ export default {
           })
         })
 
-        console.log('Данные пользователя из user.current:', userData)
-
         // Формируем имя
         const fullName = userData.NAME || ''
         const lastName = userData.LAST_NAME || ''
@@ -259,7 +257,6 @@ export default {
           })
         })
 
-        console.log('Текущий статус рабочего дня:', result)
         return result
       } catch (error) {
         console.error('Ошибка получения статуса рабочего дня:', error)
@@ -291,8 +288,6 @@ export default {
 
         // Получаем текущий статус рабочего дня
         const status = await getCurrentWorkdayStatus()
-        console.log('Текущий статус рабочего дня:', status)
-
         let result
 
         // В зависимости от статуса используем разные методы
@@ -309,8 +304,6 @@ export default {
             params.USER_ID = currentUser.value.id
           }
 
-          console.log('Открываем новый рабочий день с параметрами:', params)
-
           result = await new Promise((resolve, reject) => {
             BX24.callMethod('timeman.open', params, (result) => {
               if (result.error()) {
@@ -322,25 +315,19 @@ export default {
           })
 
         } else if (status.STATUS === 'PAUSED') {
-          console.log('Рабочий день уже открыт')
           result = status
           isStarted.value = true
           statusMessage.value = 'Рабочий день уже начат'
 
         } else if (status.STATUS === 'OPENED') {
-          console.log('Рабочий день уже открыт')
           result = status
           isStarted.value = true
           statusMessage.value = 'Рабочий день уже начат'
         } else {
-          console.log('Рабочий день уже открыт')
           result = status
           isStarted.value = true
           statusMessage.value = 'Рабочий день уже начат'
         }
-
-        console.log('Результат операции:', result)
-
         // Сохраняем информацию о рабочем дне
         workdayInfo.value = result
 
@@ -375,8 +362,6 @@ export default {
 
           // Пробуем возобновить без TIME
           try {
-            console.log('Пробуем возобновить рабочий день без параметра TIME...')
-
             const params = {}
             if (currentUser.value.id && currentUser.value.id > 0) {
               params.USER_ID = currentUser.value.id
@@ -391,8 +376,6 @@ export default {
                 }
               })
             })
-
-            console.log('Рабочий день успешно возобновлен:', result)
 
             workdayInfo.value = result
             isStarted.value = true
@@ -434,7 +417,6 @@ export default {
 
     const closeApplication = () => {
       if (typeof BX24 !== 'undefined' && typeof BX24.closeApplication === 'function') {
-        console.log('Закрытие приложения...')
         BX24.closeApplication()
       } else {
         console.error('Функция BX24.closeApplication недоступна')
@@ -445,13 +427,10 @@ export default {
 
     // Инициализация компонента
     const initializeComponent = async () => {
-      console.log('Компонент WorkdayStart загружен с параметрами:', props.alertaParameters)
-
       try {
         // Загружаем данные текущего пользователя
         const user = await loadCurrentUser()
         currentUser.value = user
-        console.log('Данные текущего пользователя:', user)
 
         // Проверяем текущий статус рабочего дня
         const status = await getCurrentWorkdayStatus()
@@ -478,8 +457,6 @@ export default {
           initializeComponent()
         }
       } else {
-        // Режим разработки без BX24
-        console.log('Режим разработки: BX24 не обнаружен')
         initializeComponent()
       }
     })
