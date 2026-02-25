@@ -63,7 +63,7 @@
                 </div>
 
                 <B24TableWrapper
-                    class="overflow-x-auto w-full border border-gray-200 rounded-lg max-h-[600px]"
+                    class="overflow-x-auto w-full border border-gray-200 rounded-lg"
                     size="sm"
                     zebra
                     row-hover
@@ -250,8 +250,8 @@
 
           <!-- Таблица сотрудников -->
           <B24TableWrapper
-              class="overflow-x-auto w-full border border-gray-200 rounded-lg max-h-[600px]"
-              size="xs"
+              class="overflow-x-auto w-full border border-gray-200 rounded-lg"
+              size="sm"
               zebra
               row-hover
           >
