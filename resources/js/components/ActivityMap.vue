@@ -46,6 +46,22 @@
 
               <!-- Данные -->
               <div v-else-if="!isLoading && processedData.length > 0">
+                <!-- Поиск -->
+                <div class="mb-4">
+                  <B24Input
+                      v-model="searchQuery"
+                      placeholder="Поиск по URL страницы..."
+                      @input="filterPages"
+                      class="w-full"
+                  >
+                    <template #prefix>
+                      <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                      </svg>
+                    </template>
+                  </B24Input>
+                </div>
+
                 <B24TableWrapper
                     class="overflow-x-auto w-full border border-gray-200 rounded-lg"
                     size="sm"
@@ -68,7 +84,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr v-for="(page, index) in processedData" :key="index" class="hover:bg-gray-50">
+                    <tr v-for="(page, index) in paginatedPages" :key="index" class="hover:bg-gray-50">
                       <!-- Категория в виде бейджа -->
                       <td class="text-sm">
                         <B24Badge :class="getCategoryBadgeClass(page.category)">
@@ -91,17 +107,20 @@
                       <!-- Общее время -->
                       <td class="text-sm font-medium">{{ formatDuration(page.totalTime) }}</td>
 
-                      <!-- Количество сотрудников -->
+                      <!-- Количество сотрудников (кликабельно) -->
                       <td class="text-sm">
-                          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            {{ page.employeeCount }}
-                          </span>
+                        <button
+                            @click="showEmployeesModal(page)"
+                            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors cursor-pointer"
+                        >
+                          {{ page.employeeCount }}
+                        </button>
                       </td>
 
                       <!-- Среднее время -->
                       <td class="text-sm">{{ formatDuration(page.averageTime) }}</td>
 
-                      <!-- Список сотрудников -->
+                      <!-- Список сотрудников (первые 3) -->
                       <td class="text-sm">
                         <div class="flex flex-col space-y-1 max-w-xs">
                           <div
@@ -148,6 +167,23 @@
                     </tfoot>
                   </table>
                 </B24TableWrapper>
+
+                <!-- Пагинация -->
+                <div v-if="filteredPages.length > itemsPerPage" class="flex justify-center mt-6">
+                  <B24Pagination
+                      v-model:page="currentPage"
+                      :total="filteredPages.length"
+                      :items-per-page="itemsPerPage"
+                      :sibling-count="2"
+                      show-edges
+                      size="md"
+                  />
+                </div>
+
+                <!-- Информация о количестве записей -->
+                <div class="mt-4 text-sm text-gray-600 text-center">
+                  Показано {{ paginatedPages.length }} из {{ filteredPages.length }} страниц
+                </div>
               </div>
 
               <!-- Сообщение при отсутствии данных -->
@@ -157,6 +193,15 @@
                 </svg>
                 <p class="text-lg">Нет данных о посещениях</p>
                 <p class="text-sm mt-2">Данные появятся после того, как сотрудники начнут посещать страницы</p>
+              </div>
+
+              <!-- Сообщение при отсутствии результатов поиска -->
+              <div v-else-if="filteredPages.length === 0 && processedData.length > 0" class="text-center py-12 text-gray-500">
+                <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                <p class="text-lg">Страницы не найдены</p>
+                <p class="text-sm mt-2">Попробуйте изменить параметры поиска</p>
               </div>
             </div>
           </div>
@@ -168,6 +213,131 @@
         <Sidebar />
       </div>
     </div>
+
+    <!-- Модальное окно детальной информации по сотрудникам -->
+    <B24Modal
+        v-model:open="isShowEmployeesModal"
+        :title="`Сотрудники на странице: ${modalPageData?.url || ''}`"
+        description="Детальная информация о времени, проведенном сотрудниками на странице"
+        size="lg"
+        scrollable
+        :dismissible="true"
+        :ui="{ footer: 'justify-end' }"
+    >
+      <template #body>
+        <div v-if="modalPageData" class="space-y-6">
+          <!-- Информация о странице -->
+          <div class="bg-blue-50 rounded-lg p-4">
+            <div class="flex items-start">
+              <svg class="w-5 h-5 text-blue-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+              </svg>
+              <div class="min-w-0">
+                <div class="text-sm font-medium text-blue-900 mb-1">Информация о странице</div>
+                <div class="text-sm text-blue-700 break-all">
+                  <a :href="modalPageData.url" target="_blank" class="underline">
+                    {{ modalPageData.url }}
+                  </a>
+                </div>
+                <div class="mt-2 text-sm text-blue-700">
+                  <span class="font-semibold">Всего времени:</span> {{ formatDuration(modalPageData.totalTime) }} |
+                  <span class="font-semibold">Сотрудников:</span> {{ modalPageData.employeeCount }} |
+                  <span class="font-semibold">Посещений:</span> {{ modalPageData.visits }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Таблица сотрудников -->
+          <B24TableWrapper
+              class="overflow-x-auto w-full border border-gray-200 rounded-lg"
+              size="xs"
+              zebra
+              row-hover
+          >
+            <table class="min-w-full">
+              <thead class="bg-gray-50">
+              <tr>
+                <th class="text-left font-medium text-gray-700">Сотрудник</th>
+                <th class="text-left font-medium text-gray-700">Время на странице</th>
+                <th class="text-left font-medium text-gray-700">Доля от общего времени</th>
+                <th class="text-left font-medium text-gray-700">Кол-во посещений</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr v-for="employee in modalPageData.employees" :key="employee.userId" class="hover:bg-gray-50">
+                <td class="text-sm">
+                  <div class="flex items-center space-x-2">
+                    <B24User
+                        :name="employee.userName"
+                        size="sm"
+                        :avatar="{
+                              src: getUserPhoto(employee.userId),
+                              initials: getUserInitials(employee.userName)
+                          }"
+                        :chip="{
+                              color: getOnlineStatus(employee.userId) === 'Y'
+                                  ? 'air-primary-success'
+                                  : 'air-secondary-accent',
+                              position: 'top-right'
+                          }"
+                        class="truncate"
+                    />
+                  </div>
+                </td>
+                <td class="text-sm font-medium">{{ formatDuration(employee.time) }}</td>
+                <td class="text-sm">
+                  <div class="flex items-center space-x-2">
+                    <span>{{ calculatePercentage(employee.time, modalPageData.totalTime) }}%</span>
+                    <div class="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div
+                          class="h-full bg-blue-500 rounded-full"
+                          :style="{ width: calculatePercentage(employee.time, modalPageData.totalTime) + '%' }"
+                      ></div>
+                    </div>
+                  </div>
+                </td>
+                <td class="text-sm">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                      {{ employee.visits || 1 }}
+                    </span>
+                </td>
+              </tr>
+              </tbody>
+              <tfoot class="bg-gray-50 font-semibold">
+              <tr>
+                <td colspan="2" class="text-right">Итого:</td>
+                <td>{{ formatDuration(modalPageData.totalTime) }}</td>
+                <td>{{ modalPageData.visits }} посещений</td>
+              </tr>
+              </tfoot>
+            </table>
+          </B24TableWrapper>
+
+          <!-- Дополнительная статистика -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-gray-50 rounded-lg p-4">
+              <div class="text-sm text-gray-600">Среднее время на сотрудника</div>
+              <div class="text-lg font-semibold text-gray-900">{{ formatDuration(modalPageData.averageTime) }}</div>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-4">
+              <div class="text-sm text-gray-600">Максимальное время</div>
+              <div class="text-lg font-semibold text-gray-900">{{ formatDuration(Math.max(...modalPageData.employees.map(e => e.time))) }}</div>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-4">
+              <div class="text-sm text-gray-600">Минимальное время</div>
+              <div class="text-lg font-semibold text-gray-900">{{ formatDuration(Math.min(...modalPageData.employees.map(e => e.time))) }}</div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <template #footer="{ close }">
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 w-full">
+          <B24Button @click="close" color="air-primary" class="w-full sm:w-auto">Закрыть</B24Button>
+        </div>
+      </template>
+    </B24Modal>
   </div>
 </template>
 
@@ -187,6 +357,7 @@ class ActivityMapManager {
     this.isLoading = ref(false)
     this.allItems = ref([])
     this.processedData = ref([])
+    this.filteredPages = ref([])
     this.userProfilesCache = ref({})
     this.categories = ref(categoriesData.categories)
     this.showAllEmployees = ref({})
@@ -197,6 +368,17 @@ class ActivityMapManager {
       totalVisits: 0,
       averageTimePerEmployee: 0
     })
+
+    // Пагинация
+    this.currentPage = ref(1)
+    this.itemsPerPage = ref(20)
+
+    // Поиск
+    this.searchQuery = ref('')
+
+    // Модальное окно
+    this.isShowEmployeesModal = ref(false)
+    this.modalPageData = ref(null)
   }
 
   // Получение инициалов пользователя
@@ -239,6 +421,12 @@ class ActivityMapManager {
     if (minutes > 0) parts.push(`${minutes} мин`)
     if (secs > 0 || parts.length === 0) parts.push(`${secs} сек`)
     return parts.join(' ')
+  }
+
+  // Расчет процента
+  calculatePercentage(value, total) {
+    if (!total) return 0
+    return ((value / total) * 100).toFixed(1)
   }
 
   // Получение класса для бейджа категории
@@ -456,7 +644,7 @@ class ActivityMapManager {
           url,
           category,
           totalTime: 0,
-          employees: new Map(), // userId -> { userName, time }
+          employees: new Map(), // userId -> { userName, time, visits }
           visits: 0,
           items: new Set() // для подсчета уникальных записей
         })
@@ -472,11 +660,13 @@ class ActivityMapManager {
         pageData.employees.set(userId, {
           userId,
           userName,
-          time: 0
+          time: 0,
+          visits: 0
         })
       }
       const employeeData = pageData.employees.get(userId)
       employeeData.time += time
+      employeeData.visits++
     })
 
     // Преобразуем в массив и сортируем
@@ -498,7 +688,7 @@ class ActivityMapManager {
         category: pageData.category,
         totalTime: pageData.totalTime,
         employeeCount: pageData.employees.size,
-        averageTime: Math.round(pageData.totalTime / pageData.employees.size),
+        averageTime: pageData.employees.size > 0 ? Math.round(pageData.totalTime / pageData.employees.size) : 0,
         employees: employeesArray,
         visits: pageData.visits
       }
@@ -515,6 +705,7 @@ class ActivityMapManager {
     result.sort((a, b) => b.totalTime - a.totalTime)
 
     this.processedData.value = result
+    this.filteredPages.value = [...result]
     this.totalStats.value = {
       totalTime: totalTimeAll,
       totalEmployees: totalEmployeesAll.size,
@@ -541,6 +732,7 @@ class ActivityMapManager {
 
       if (items.length === 0) {
         this.processedData.value = []
+        this.filteredPages.value = []
         this.isLoading.value = false
         return
       }
@@ -563,6 +755,9 @@ class ActivityMapManager {
       // Обрабатываем данные
       this.processActivityData(items)
 
+      // Сбрасываем на первую страницу
+      this.currentPage.value = 1
+
     } catch (error) {
       console.error('Ошибка при загрузке данных:', error)
       this.showNotification('error', 'Ошибка при загрузке данных')
@@ -571,10 +766,38 @@ class ActivityMapManager {
     }
   }
 
+  // Фильтрация страниц по поисковому запросу
+  filterPages() {
+    const query = this.searchQuery.value.toLowerCase().trim()
+
+    if (!query) {
+      this.filteredPages.value = [...this.processedData.value]
+    } else {
+      this.filteredPages.value = this.processedData.value.filter(page =>
+          page.url.toLowerCase().includes(query) ||
+          page.category.toLowerCase().includes(query)
+      )
+    }
+
+    this.currentPage.value = 1
+  }
+
   // Переключение показа всех сотрудников
   toggleShowAllEmployees(index) {
     this.showAllEmployees.value[index] = !this.showAllEmployees.value[index]
     this.showAllEmployees.value = { ...this.showAllEmployees.value }
+  }
+
+  // Показать модальное окно с сотрудниками
+  showEmployeesModal(pageData) {
+    this.modalPageData.value = pageData
+    this.isShowEmployeesModal.value = true
+  }
+
+  // Закрыть модальное окно
+  closeEmployeesModal() {
+    this.isShowEmployeesModal.value = false
+    this.modalPageData.value = null
   }
 
   // Инициализация
@@ -598,7 +821,15 @@ export default {
 
     // Вычисляемые свойства для шаблона
     const processedData = computed(() => activityMapManager.processedData.value)
+    const filteredPages = computed(() => activityMapManager.filteredPages.value)
     const totalStats = computed(() => activityMapManager.totalStats.value)
+
+    // Пагинированные данные
+    const paginatedPages = computed(() => {
+      const start = (activityMapManager.currentPage.value - 1) * activityMapManager.itemsPerPage.value
+      const end = start + activityMapManager.itemsPerPage.value
+      return filteredPages.value.slice(start, end)
+    })
 
     onMounted(async () => {
       if (typeof BX24 !== 'undefined' && BX24.init) {
@@ -619,13 +850,26 @@ export default {
       // Состояния
       isLoading: activityMapManager.isLoading,
       processedData,
+      filteredPages,
       showAllEmployees: activityMapManager.showAllEmployees,
       totalStats,
+      currentPage: activityMapManager.currentPage,
+      itemsPerPage: activityMapManager.itemsPerPage,
+      searchQuery: activityMapManager.searchQuery,
+      paginatedPages,
+
+      // Модальное окно
+      isShowEmployeesModal: activityMapManager.isShowEmployeesModal,
+      modalPageData: activityMapManager.modalPageData,
 
       // Методы
       loadAllData: activityMapManager.loadAllData.bind(activityMapManager),
+      filterPages: activityMapManager.filterPages.bind(activityMapManager),
       toggleShowAllEmployees: activityMapManager.toggleShowAllEmployees.bind(activityMapManager),
+      showEmployeesModal: activityMapManager.showEmployeesModal.bind(activityMapManager),
+      closeEmployeesModal: activityMapManager.closeEmployeesModal.bind(activityMapManager),
       formatDuration: activityMapManager.formatDuration.bind(activityMapManager),
+      calculatePercentage: activityMapManager.calculatePercentage.bind(activityMapManager),
       getCategoryBadgeClass: activityMapManager.getCategoryBadgeClass.bind(activityMapManager),
       getUserPhoto: (userId) => {
         const userProfile = activityMapManager.userProfilesCache.value[userId]
@@ -668,8 +912,18 @@ td {
   text-overflow: ellipsis;
 }
 
-/* Стили для списка сотрудников */
-.employee-list {
-  max-width: 300px;
+/* Стили для кликабельного счетчика сотрудников */
+button.inline-flex {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+button.inline-flex:hover {
+  transform: scale(1.05);
+}
+
+/* Стили для прогресс-бара в модальном окне */
+.bg-blue-500 {
+  transition: width 0.3s ease;
 }
 </style>
