@@ -5,176 +5,168 @@
         description="Сводная статистика посещений страниц всеми сотрудниками за всё время"
     />
 
-    <div class="mt-0 md:mt-8">
-      <!-- Карта активности -->
-      <B24Card>
-        <div class="p-0 md:p-6">
-          <div class="space-y-4 md:space-y-6">
-            <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-              <div class="flex-1">
-                <h3 class="text-lg font-semibold text-gray-900">
-                  Карта активности
-                </h3>
-                <p class="text-sm text-gray-500 mt-1">
-                  Сводные данные по посещенным страницам за всё время
-                </p>
+    <div class="mt-0 md:mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+      <div class="lg:col-span-2">
+        <!-- Карта активности -->
+        <B24Card>
+          <div class="p-0 md:p-6">
+            <div class="space-y-4 md:space-y-6">
+              <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                <div class="flex-1">
+                  <h3 class="text-lg font-semibold text-gray-900">
+                    Карта активности
+                  </h3>
+                  <p class="text-sm text-gray-500 mt-1">
+                    Сводные данные по посещенным страницам за всё время
+                  </p>
+                </div>
+                <div class="flex flex-row space-x-2 w-full md:w-40">
+                  <B24Button
+                      @click="loadAllData"
+                      :disabled="isLoading"
+                      color="air-primary"
+                      size="sm"
+                      class="flex-1 w-full sm:w-auto justify-center"
+                  >
+                    <svg class="w-4 h-4 mr-2" :class="{ 'animate-spin': isLoading }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    Обновить
+                  </B24Button>
+                </div>
               </div>
-              <div class="flex flex-row space-x-2 w-full md:w-40">
-                <B24Button
-                    @click="loadAllData"
-                    :disabled="isLoading"
-                    color="air-primary"
+
+              <!-- Прелоадер при загрузке -->
+              <div v-if="isLoading" class="text-center py-12">
+                <svg class="w-8 h-8 mx-auto mb-3 text-gray-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                <p class="text-sm text-gray-500">Загрузка данных...</p>
+              </div>
+
+              <!-- Данные -->
+              <div v-else-if="!isLoading && processedData.length > 0">
+                <B24TableWrapper
+                    class="overflow-x-auto w-full border border-gray-200 rounded-lg"
                     size="sm"
-                    class="flex-1 w-full sm:w-auto justify-center"
+                    zebra
+                    row-hover
+                    :b24ui="{
+                      base: '[&>table>thead>tr]:border-gray-200 [&>table>tbody>tr]:border-gray-100'
+                    }"
                 >
-                  <svg class="w-4 h-4 mr-2" :class="{ 'animate-spin': isLoading }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                  </svg>
-                  Обновить
-                </B24Button>
-              </div>
-            </div>
+                  <table class="min-w-full">
+                    <!-- Заголовок таблицы -->
+                    <thead class="bg-gray-50">
+                    <tr>
+                      <th class="text-left font-medium text-gray-700">Категория</th>
+                      <th class="text-left font-medium text-gray-700">Страница</th>
+                      <th class="text-left font-medium text-gray-700">Общее время</th>
+                      <th class="text-left font-medium text-gray-700">Кол-во сотрудников</th>
+                      <th class="text-left font-medium text-gray-700">Среднее время</th>
+                      <th class="text-left font-medium text-gray-700">Сотрудники</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-for="(page, index) in processedData" :key="index" class="hover:bg-gray-50">
+                      <!-- Категория в виде бейджа -->
+                      <td class="text-sm">
+                        <B24Badge :class="getCategoryBadgeClass(page.category)">
+                          {{ page.category || 'Без категории' }}
+                        </B24Badge>
+                      </td>
 
-            <!-- Прелоадер при загрузке -->
-            <div v-if="isLoading" class="text-center py-12">
-              <svg class="w-8 h-8 mx-auto mb-3 text-gray-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-              </svg>
-              <p class="text-sm text-gray-500">Загрузка данных...</p>
-            </div>
+                      <!-- URL страницы -->
+                      <td class="text-sm">
+                        <a
+                            :href="page.url"
+                            target="_blank"
+                            class="text-blue-600 hover:text-blue-800 hover:underline break-all"
+                            :title="page.url"
+                        >
+                          {{ page.url }}
+                        </a>
+                      </td>
 
-            <!-- Данные -->
-            <div v-else-if="!isLoading && processedData.length > 0">
-              <B24TableWrapper
-                  class="overflow-x-auto w-full border border-gray-200 rounded-lg"
-                  size="sm"
-                  zebra
-                  row-hover
-                  :b24ui="{
-                    base: '[&>table>thead>tr]:border-gray-200 [&>table>tbody>tr]:border-gray-100'
-                  }"
-              >
-                <table class="min-w-full">
-                  <!-- Заголовок таблицы -->
-                  <thead class="bg-gray-50">
-                  <tr>
-                    <th class="text-left font-medium text-gray-700">Категория</th>
-                    <th class="text-left font-medium text-gray-700">Страница</th>
-                    <th class="text-left font-medium text-gray-700">Общее время</th>
-                    <th class="text-left font-medium text-gray-700">Кол-во сотрудников</th>
-                    <th class="text-left font-medium text-gray-700">Среднее время</th>
-                    <th class="text-left font-medium text-gray-700">Сотрудники</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  <template v-for="(category, catIndex) in processedData" :key="catIndex">
-                    <!-- Строка категории -->
-                    <tr class="bg-blue-50/30 font-medium">
-                      <td colspan="6" class="!p-0">
-                        <div class="flex items-center px-4 py-2 cursor-pointer hover:bg-blue-50/50" @click="toggleCategory(catIndex)">
-                          <svg
-                              class="w-4 h-4 mr-2 text-gray-500 transition-transform duration-200"
-                              :class="{ 'transform rotate-90': expandedCategories[catIndex] }"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
+                      <!-- Общее время -->
+                      <td class="text-sm font-medium">{{ formatDuration(page.totalTime) }}</td>
+
+                      <!-- Количество сотрудников -->
+                      <td class="text-sm">
+                          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {{ page.employeeCount }}
+                          </span>
+                      </td>
+
+                      <!-- Среднее время -->
+                      <td class="text-sm">{{ formatDuration(page.averageTime) }}</td>
+
+                      <!-- Список сотрудников -->
+                      <td class="text-sm">
+                        <div class="flex flex-col space-y-1 max-w-xs">
+                          <div
+                              v-for="employee in page.employees.slice(0, showAllEmployees[index] ? undefined : 3)"
+                              :key="employee.userId"
+                              class="flex items-center space-x-2"
                           >
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                          </svg>
-                          <B24Badge :class="getCategoryBadgeClass(category.category)">
-                            {{ category.category || 'Без категории' }}
-                          </B24Badge>
-                          <span class="ml-4 text-sm text-gray-600">
-                              Всего страниц: {{ category.pages.length }} |
-                              Общее время: {{ formatDuration(category.totalTime) }} |
-                              Всего посещений: {{ category.totalVisits }}
-                            </span>
+                            <B24User
+                                :name="employee.userName"
+                                size="xs"
+                                :avatar="{
+                                      src: getUserPhoto(employee.userId),
+                                      initials: getUserInitials(employee.userName)
+                                  }"
+                                :chip="{
+                                      color: getOnlineStatus(employee.userId) === 'Y'
+                                          ? 'air-primary-success'
+                                          : 'air-secondary-accent',
+                                      position: 'top-right'
+                                  }"
+                                class="truncate"
+                            />
+                            <span class="text-xs text-gray-600">{{ formatDuration(employee.time) }}</span>
+                          </div>
+                          <button
+                              v-if="page.employees.length > 3"
+                              @click="toggleShowAllEmployees(index)"
+                              class="text-xs text-blue-600 hover:text-blue-800 mt-1 text-left"
+                          >
+                            {{ showAllEmployees[index] ? 'Скрыть' : `Показать ещё ${page.employees.length - 3}` }}
+                          </button>
                         </div>
                       </td>
                     </tr>
+                    </tbody>
+                    <tfoot class="bg-gray-50 font-semibold">
+                    <tr>
+                      <td colspan="2" class="text-right">Итого:</td>
+                      <td>{{ formatDuration(totalStats.totalTime) }}</td>
+                      <td>{{ totalStats.totalEmployees }}</td>
+                      <td>{{ formatDuration(totalStats.averageTimePerEmployee) }}</td>
+                      <td>{{ totalStats.totalVisits }} посещений</td>
+                    </tr>
+                    </tfoot>
+                  </table>
+                </B24TableWrapper>
+              </div>
 
-                    <!-- Страницы категории -->
-                    <template v-if="expandedCategories[catIndex]">
-                      <tr v-for="(page, pageIndex) in category.pages" :key="pageIndex" class="hover:bg-gray-50">
-                        <td class="text-sm text-gray-500 pl-8">{{ page.category || '—' }}</td>
-                        <td class="text-sm">
-                          <a
-                              :href="page.url"
-                              target="_blank"
-                              class="text-blue-600 hover:text-blue-800 hover:underline break-all"
-                              :title="page.url"
-                          >
-                            {{ page.url }}
-                          </a>
-                        </td>
-                        <td class="text-sm font-medium">{{ formatDuration(page.totalTime) }}</td>
-                        <td class="text-sm">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                              {{ page.employeeCount }}
-                            </span>
-                        </td>
-                        <td class="text-sm">{{ formatDuration(page.averageTime) }}</td>
-                        <td class="text-sm">
-                          <div class="flex flex-col space-y-1 max-w-xs">
-                            <div
-                                v-for="employee in page.employees.slice(0, showAllEmployees[`${catIndex}-${pageIndex}`] ? undefined : 3)"
-                                :key="employee.userId"
-                                class="flex items-center space-x-2"
-                            >
-                              <B24User
-                                  :name="employee.userName"
-                                  size="xs"
-                                  :avatar="{
-                                        src: getUserPhoto(employee.userId),
-                                        initials: getUserInitials(employee.userName)
-                                    }"
-                                  :chip="{
-                                        color: getOnlineStatus(employee.userId) === 'Y'
-                                            ? 'air-primary-success'
-                                            : 'air-secondary-accent',
-                                        position: 'top-right'
-                                    }"
-                                  class="truncate"
-                              />
-                              <span class="text-xs text-gray-600">{{ formatDuration(employee.time) }}</span>
-                            </div>
-                            <button
-                                v-if="page.employees.length > 3"
-                                @click="toggleShowAllEmployees(catIndex, pageIndex)"
-                                class="text-xs text-blue-600 hover:text-blue-800 mt-1 text-left"
-                            >
-                              {{ showAllEmployees[`${catIndex}-${pageIndex}`] ? 'Скрыть' : `Показать ещё ${page.employees.length - 3}` }}
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    </template>
-                  </template>
-                  </tbody>
-                  <tfoot class="bg-gray-50 font-semibold">
-                  <tr>
-                    <td colspan="2" class="text-right">Итого:</td>
-                    <td>{{ formatDuration(totalStats.totalTime) }}</td>
-                    <td>{{ totalStats.totalEmployees }}</td>
-                    <td>{{ formatDuration(totalStats.averageTimePerEmployee) }}</td>
-                    <td>{{ totalStats.totalVisits }} посещений</td>
-                  </tr>
-                  </tfoot>
-                </table>
-              </B24TableWrapper>
-            </div>
-
-            <!-- Сообщение при отсутствии данных -->
-            <div v-else-if="!isLoading" class="text-center py-12 text-gray-500">
-              <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-              </svg>
-              <p class="text-lg">Нет данных о посещениях</p>
-              <p class="text-sm mt-2">Данные появятся после того, как сотрудники начнут посещать страницы</p>
+              <!-- Сообщение при отсутствии данных -->
+              <div v-else-if="!isLoading" class="text-center py-12 text-gray-500">
+                <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <p class="text-lg">Нет данных о посещениях</p>
+                <p class="text-sm mt-2">Данные появятся после того, как сотрудники начнут посещать страницы</p>
+              </div>
             </div>
           </div>
-        </div>
-      </B24Card>
+        </B24Card>
+      </div>
+
+      <!-- Сайдбар -->
+      <div class="lg:col-span-1">
+        <Sidebar />
+      </div>
     </div>
   </div>
 </template>
@@ -182,6 +174,7 @@
 <script>
 import { ref, onMounted, computed } from 'vue'
 import { useToast } from '@bitrix24/b24ui-nuxt/composables/useToast'
+import Sidebar from './Sidebar.vue'
 import categoriesData from './categories.json'
 import {bitrixHelper} from "../helpers/app.js"
 
@@ -196,9 +189,14 @@ class ActivityMapManager {
     this.processedData = ref([])
     this.userProfilesCache = ref({})
     this.categories = ref(categoriesData.categories)
-    this.expandedCategories = ref({})
     this.showAllEmployees = ref({})
     this.isLoadingProfile = ref(false)
+    this.totalStats = ref({
+      totalTime: 0,
+      totalEmployees: 0,
+      totalVisits: 0,
+      averageTimePerEmployee: 0
+    })
   }
 
   // Получение инициалов пользователя
@@ -429,7 +427,7 @@ class ActivityMapManager {
 
   // Обработка данных для карты активности
   processActivityData(items) {
-    const categoryMap = new Map() // категория -> Map страниц
+    const pagesMap = new Map() // url -> данные страницы
     const userIds = new Set()
 
     // Собираем все userId для последующей загрузки профилей
@@ -441,22 +439,16 @@ class ActivityMapManager {
       }
     })
 
-    // Группируем по категориям и страницам
+    // Группируем по страницам
     items.forEach(item => {
       const props = item.PROPERTY_VALUES || {}
-      const category = props.PAGE_CATEGORY || 'Без категории'
       const url = props.PAGE_URL || ''
       const time = parseInt(props.PAGE_TIME) || 0
       const userId = parseInt(props.USER_ID) || 0
       const userName = props.USER_NAME || `Пользователь ${userId}`
+      const category = props.PAGE_CATEGORY || 'Без категории'
 
       if (!url || userId === 0) return
-
-      // Получаем или создаем категорию
-      if (!categoryMap.has(category)) {
-        categoryMap.set(category, new Map())
-      }
-      const pagesMap = categoryMap.get(category)
 
       // Получаем или создаем страницу
       if (!pagesMap.has(url)) {
@@ -493,56 +485,37 @@ class ActivityMapManager {
     let totalEmployeesAll = new Set()
     let totalVisitsAll = 0
 
-    categoryMap.forEach((pagesMap, category) => {
-      const pages = []
-      let categoryTotalTime = 0
-      let categoryVisits = 0
+    pagesMap.forEach(pageData => {
+      const employeesArray = Array.from(pageData.employees.values())
+          .map(emp => ({
+            ...emp,
+            userName: this.userProfilesCache.value[emp.userId]?.FULL_NAME || emp.userName
+          }))
+          .sort((a, b) => b.time - a.time)
 
-      pagesMap.forEach(pageData => {
-        const employeesArray = Array.from(pageData.employees.values())
-            .map(emp => ({
-              ...emp,
-              userName: this.userProfilesCache.value[emp.userId]?.FULL_NAME || emp.userName
-            }))
-            .sort((a, b) => b.time - a.time)
+      const pageInfo = {
+        url: pageData.url,
+        category: pageData.category,
+        totalTime: pageData.totalTime,
+        employeeCount: pageData.employees.size,
+        averageTime: Math.round(pageData.totalTime / pageData.employees.size),
+        employees: employeesArray,
+        visits: pageData.visits
+      }
 
-        const pageInfo = {
-          url: pageData.url,
-          category: pageData.category,
-          totalTime: pageData.totalTime,
-          employeeCount: pageData.employees.size,
-          averageTime: Math.round(pageData.totalTime / pageData.employees.size),
-          employees: employeesArray,
-          visits: pageData.visits
-        }
+      result.push(pageInfo)
 
-        pages.push(pageInfo)
-        categoryTotalTime += pageData.totalTime
-        categoryVisits += pageData.visits
-
-        // Обновляем глобальные счетчики
-        totalTimeAll += pageData.totalTime
-        pageData.employees.forEach((_, userId) => totalEmployeesAll.add(userId))
-        totalVisitsAll += pageData.visits
-      })
-
-      // Сортируем страницы по времени (убывание)
-      pages.sort((a, b) => b.totalTime - a.totalTime)
-
-      result.push({
-        category,
-        pages,
-        totalTime: categoryTotalTime,
-        totalVisits: categoryVisits
-      })
+      // Обновляем глобальные счетчики
+      totalTimeAll += pageData.totalTime
+      pageData.employees.forEach((_, userId) => totalEmployeesAll.add(userId))
+      totalVisitsAll += pageData.visits
     })
 
-    // Сортируем категории по времени (убывание)
+    // Сортируем страницы по времени (убывание)
     result.sort((a, b) => b.totalTime - a.totalTime)
 
     this.processedData.value = result
-
-    return {
+    this.totalStats.value = {
       totalTime: totalTimeAll,
       totalEmployees: totalEmployeesAll.size,
       totalVisits: totalVisitsAll,
@@ -588,7 +561,7 @@ class ActivityMapManager {
       }
 
       // Обрабатываем данные
-      this.totalStats = this.processActivityData(items)
+      this.processActivityData(items)
 
     } catch (error) {
       console.error('Ошибка при загрузке данных:', error)
@@ -598,17 +571,9 @@ class ActivityMapManager {
     }
   }
 
-  // Переключение категории
-  toggleCategory(index) {
-    this.expandedCategories.value[index] = !this.expandedCategories.value[index]
-    // Принудительное обновление
-    this.expandedCategories.value = { ...this.expandedCategories.value }
-  }
-
   // Переключение показа всех сотрудников
-  toggleShowAllEmployees(catIndex, pageIndex) {
-    const key = `${catIndex}-${pageIndex}`
-    this.showAllEmployees.value[key] = !this.showAllEmployees.value[key]
+  toggleShowAllEmployees(index) {
+    this.showAllEmployees.value[index] = !this.showAllEmployees.value[index]
     this.showAllEmployees.value = { ...this.showAllEmployees.value }
   }
 
@@ -625,17 +590,15 @@ class ActivityMapManager {
 
 export default {
   name: 'ActivityMap',
+  components: {
+    Sidebar
+  },
   setup() {
     const activityMapManager = new ActivityMapManager()
 
     // Вычисляемые свойства для шаблона
     const processedData = computed(() => activityMapManager.processedData.value)
-    const totalStats = computed(() => activityMapManager.totalStats || {
-      totalTime: 0,
-      totalEmployees: 0,
-      totalVisits: 0,
-      averageTimePerEmployee: 0
-    })
+    const totalStats = computed(() => activityMapManager.totalStats.value)
 
     onMounted(async () => {
       if (typeof BX24 !== 'undefined' && BX24.init) {
@@ -656,13 +619,11 @@ export default {
       // Состояния
       isLoading: activityMapManager.isLoading,
       processedData,
-      expandedCategories: activityMapManager.expandedCategories,
       showAllEmployees: activityMapManager.showAllEmployees,
       totalStats,
 
       // Методы
       loadAllData: activityMapManager.loadAllData.bind(activityMapManager),
-      toggleCategory: activityMapManager.toggleCategory.bind(activityMapManager),
       toggleShowAllEmployees: activityMapManager.toggleShowAllEmployees.bind(activityMapManager),
       formatDuration: activityMapManager.formatDuration.bind(activityMapManager),
       getCategoryBadgeClass: activityMapManager.getCategoryBadgeClass.bind(activityMapManager),
@@ -699,21 +660,16 @@ td {
   vertical-align: middle;
 }
 
-/* Стили для строк категорий */
-.bg-blue-50\/30 {
-  background-color: rgba(239, 246, 255, 0.3);
+/* Стили для бейджей категорий */
+:deep(.B24Badge) {
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.hover\:bg-blue-50\/50:hover {
-  background-color: rgba(239, 246, 255, 0.5);
-}
-
-/* Анимация для стрелок */
-.transition-transform {
-  transition: transform 0.2s ease-in-out;
-}
-
-.transform.rotate-90 {
-  transform: rotate(90deg);
+/* Стили для списка сотрудников */
+.employee-list {
+  max-width: 300px;
 }
 </style>
