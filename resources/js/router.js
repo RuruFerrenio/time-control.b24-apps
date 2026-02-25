@@ -38,6 +38,11 @@ const routes = [
     component: () => import('./components/Settings.vue'),
   },
   {
+    path: '/activity-map',
+    name: 'activity-map',
+    component: () => import('./components/ActivityMap.vue'),
+  },
+  {
     path: '/presence-check',
     name: 'presence-check',
     component: () => import('./components/PresenceCheck.vue'),
