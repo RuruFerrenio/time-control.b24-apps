@@ -85,7 +85,6 @@
               'bg-green-600': isConfirmed,
               'bg-blue-600': !isConfirmed && timeRemaining > 0 && !isLastTenPercent,
               'bg-red-600': !isConfirmed && timeRemaining > 0 && isLastTenPercent,
-              'bg-red-600': !isConfirmed && timeRemaining <= 0
             }"
               :style="{ width: `${progressPercentage}%` }"
           />
