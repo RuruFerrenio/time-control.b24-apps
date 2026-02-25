@@ -80,7 +80,6 @@
                       <th class="text-left font-medium text-gray-700">Общее время</th>
                       <th class="text-left font-medium text-gray-700">Кол-во сотрудников</th>
                       <th class="text-left font-medium text-gray-700">Среднее время</th>
-                      <th class="text-left font-medium text-gray-700">Сотрудники</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -119,41 +118,6 @@
 
                       <!-- Среднее время -->
                       <td class="text-sm">{{ formatDuration(page.averageTime) }}</td>
-
-                      <!-- Список сотрудников (первые 3) -->
-                      <td class="text-sm">
-                        <div class="flex flex-col space-y-1 max-w-xs">
-                          <div
-                              v-for="employee in page.employees.slice(0, showAllEmployees[index] ? undefined : 3)"
-                              :key="employee.userId"
-                              class="flex items-center space-x-2"
-                          >
-                            <B24User
-                                :name="employee.userName"
-                                size="xs"
-                                :avatar="{
-                                      src: getUserPhoto(employee.userId),
-                                      initials: getUserInitials(employee.userName)
-                                  }"
-                                :chip="{
-                                      color: getOnlineStatus(employee.userId) === 'Y'
-                                          ? 'air-primary-success'
-                                          : 'air-secondary-accent',
-                                      position: 'top-right'
-                                  }"
-                                class="truncate"
-                            />
-                            <span class="text-xs text-gray-600">{{ formatDuration(employee.time) }}</span>
-                          </div>
-                          <button
-                              v-if="page.employees.length > 3"
-                              @click="toggleShowAllEmployees(index)"
-                              class="text-xs text-blue-600 hover:text-blue-800 mt-1 text-left"
-                          >
-                            {{ showAllEmployees[index] ? 'Скрыть' : `Показать ещё ${page.employees.length - 3}` }}
-                          </button>
-                        </div>
-                      </td>
                     </tr>
                     </tbody>
                     <tfoot class="bg-gray-50 font-semibold">
