@@ -415,7 +415,7 @@
                                       : 'air-secondary-accent',
                                   position: 'top-right'
                               }"
-                              class="truncate pt-2"
+                              class="truncate mt-2"
                           />
                           <!-- Кнопка запроса отчета (только для других пользователей, если включено в настройках) -->
                           <div v-if="userData.userId !== currentUserId && subordinateReportsEnabled" class="ml-2 hidden sm:block">
@@ -1245,7 +1245,7 @@
                             : 'air-secondary-accent',
                         position: 'top-right'
                     }"
-                    class="truncate pt-2"
+                    class="truncate mt-2"
                 />
               </div>
             </div>
