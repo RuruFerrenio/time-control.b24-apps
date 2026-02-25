@@ -122,7 +122,7 @@
                     </tbody>
                     <tfoot class="bg-gray-50 font-semibold">
                     <tr>
-                      <td colspan="2" class="text-right">Итого:</td>
+                      <td colspan="1" class="text-right">Итого:</td>
                       <td>{{ formatDuration(totalStats.totalTime) }}</td>
                       <td>{{ totalStats.totalEmployees }}</td>
                       <td>{{ formatDuration(totalStats.averageTimePerEmployee) }}</td>
