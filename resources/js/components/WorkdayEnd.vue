@@ -76,33 +76,6 @@
           <span class="text-sm font-medium">{{ error }}</span>
         </div>
       </div>
-
-      <!-- Итоговая информация после завершения -->
-      <div v-if="workdayInfo && isEnded" class="mt-6 p-4 bg-green-50 rounded-lg text-left border border-green-200">
-        <h3 class="font-semibold text-green-800 mb-2">Итоги рабочего дня:</h3>
-        <div class="space-y-1 text-sm">
-          <div class="flex justify-between">
-            <span class="text-green-700">Начало:</span>
-            <span class="font-medium text-green-800">{{ formatDateTime(workdayInfo.TIME_START) }}</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-green-700">Окончание:</span>
-            <span class="font-medium text-green-800">{{ formatDateTime(workdayInfo.TIME_FINISH) }}</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-green-700">Отработано:</span>
-            <span class="font-medium text-green-800">{{ workdayInfo.DURATION || '00:00:00' }}</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-green-700">Перерывы:</span>
-            <span class="font-medium text-green-800">{{ workdayInfo.TIME_LEAKS || '00:00:00' }}</span>
-          </div>
-          <div class="flex justify-between pt-2 border-t border-green-200 mt-2">
-            <span class="text-green-700 font-semibold">Статус:</span>
-            <span class="font-semibold text-green-800">{{ getStatusText(workdayInfo.STATUS) }}</span>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- Уведомления -->
