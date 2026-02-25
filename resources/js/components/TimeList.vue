@@ -717,8 +717,8 @@
                     :description="`ID: ${selectedUser.id}`"
                     size="md"
                     :avatar="{
-                        src: getUserPhoto(selectedUser.userId),
-                        initials: getUserInitials(selectedUser.userName)
+                        src: getUserPhoto(selectedUser.id),
+                        initials: getUserInitials(selectedUser.name)
                     }"
                     class="truncate"
                 />
