@@ -46,7 +46,7 @@
                     <B24Popover>
                       <B24Button
                           :disabled="isLoading"
-                          color="air-tertiary"
+                          color="air-secondary-accent"
                           size="md"
                           class="w-full justify-between"
                       >
@@ -84,7 +84,7 @@
                   <B24Button
                       @click="resetDateRange"
                       :disabled="isLoading"
-                      color="air-tertiary"
+                      color="air-secondary-accent"
                       size="md"
                       class="flex-shrink-0"
                       :title="'Сбросить фильтр по дате'"
