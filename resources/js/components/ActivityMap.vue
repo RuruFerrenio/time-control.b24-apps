@@ -115,23 +115,6 @@
 
               <!-- Данные -->
               <div v-else-if="!isLoading && processedData.length > 0">
-                <!-- Поле поиска -->
-                <div class="mb-4">
-                  <B24Input
-                      v-model="searchQuery"
-                      placeholder="Поиск по странице или категории..."
-                      size="lg"
-                      :disabled="isLoading"
-                      @input="filterPages"
-                  >
-                    <template #leading>
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                      </svg>
-                    </template>
-                  </B24Input>
-                </div>
-
                 <B24TableWrapper
                     class="overflow-x-auto w-full border border-gray-200 rounded-lg"
                     size="sm"
