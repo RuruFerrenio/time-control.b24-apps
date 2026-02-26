@@ -51,9 +51,6 @@
 
               <!-- Календарь для выбора дня -->
               <div>
-                <label class="block text-sm font-medium text-gray-900 mb-2">
-                  Выберите день для просмотра
-                </label>
                 <B24Popover class="w-full">
                   <B24Button
                       :disabled="isProcessingData"

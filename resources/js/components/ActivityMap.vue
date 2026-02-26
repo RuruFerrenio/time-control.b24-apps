@@ -38,9 +38,6 @@
 
               <!-- Календарь для выбора диапазона -->
               <div>
-                <label class="block text-sm font-medium text-gray-900 mb-2">
-                  Выберите период для просмотра
-                </label>
                 <div class="flex flex-col md:flex-row gap-2">
                   <div class="flex-1">
                     <B24Popover>
