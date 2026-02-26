@@ -36,6 +36,90 @@
                 </div>
               </div>
 
+              <!-- Календарь для выбора периода -->
+              <div>
+                <label class="block text-sm font-medium text-gray-900 mb-2">
+                  Выберите период для просмотра
+                </label>
+                <div class="flex flex-col md:flex-row gap-2">
+                  <div class="flex-1">
+                    <B24Popover class="w-full">
+                      <button
+                          type="button"
+                          :disabled="isLoading"
+                          class="w-full flex items-center justify-between px-4 py-3 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      >
+                        <div class="flex items-center space-x-3">
+                          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                          </svg>
+                          <span class="text-sm text-gray-700">{{ formatDateRangeDisplay() }}</span>
+                        </div>
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                      </button>
+
+                      <template #content>
+                        <div class="p-2">
+                          <B24Calendar
+                              v-model="calendarDate"
+                              @update:modelValue="handleCalendarDateChange"
+                              color="air-primary"
+                              size="md"
+                              :month-controls="true"
+                              :year-controls="false"
+                              :min-value="minCalendarDate"
+                              :max-value="maxCalendarDate"
+                              :is-date-disabled="isDateDisabled"
+                              :is-date-unavailable="isDateUnavailable"
+                              class="rounded-lg"
+                          />
+                        </div>
+                      </template>
+                    </B24Popover>
+                  </div>
+                  <div class="flex gap-2">
+                    <B24Button
+                        @click="setPeriod('all')"
+                        :variant="selectedPeriodType === 'all' ? 'solid' : 'outline'"
+                        color="air-primary"
+                        size="sm"
+                        class="flex-1 md:flex-none"
+                    >
+                      За всё время
+                    </B24Button>
+                    <B24Button
+                        @click="setPeriod('day')"
+                        :variant="selectedPeriodType === 'day' ? 'solid' : 'outline'"
+                        color="air-primary"
+                        size="sm"
+                        class="flex-1 md:flex-none"
+                    >
+                      День
+                    </B24Button>
+                    <B24Button
+                        @click="setPeriod('week')"
+                        :variant="selectedPeriodType === 'week' ? 'solid' : 'outline'"
+                        color="air-primary"
+                        size="sm"
+                        class="flex-1 md:flex-none"
+                    >
+                      Неделя
+                    </B24Button>
+                    <B24Button
+                        @click="setPeriod('month')"
+                        :variant="selectedPeriodType === 'month' ? 'solid' : 'outline'"
+                        color="air-primary"
+                        size="sm"
+                        class="flex-1 md:flex-none"
+                    >
+                      Месяц
+                    </B24Button>
+                  </div>
+                </div>
+              </div>
+
               <!-- Прелоадер при загрузке -->
               <div v-if="isLoading" class="text-center py-12">
                 <svg class="w-8 h-8 mx-auto mb-3 text-gray-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -75,22 +159,17 @@
                     <!-- Заголовок таблицы -->
                     <thead class="bg-gray-50">
                     <tr>
-                      <th class="text-left font-medium text-gray-700">Категория</th>
                       <th class="text-left font-medium text-gray-700">Страница</th>
-                      <th class="text-left font-medium text-gray-700">Общее время</th>
+                      <th class="text-left font-medium text-gray-700">Категория</th>
                       <th class="text-left font-medium text-gray-700">Кол-во сотрудников</th>
+                      <th class="text-left font-medium text-gray-700">Общее время</th>
                       <th class="text-left font-medium text-gray-700">Среднее время</th>
+                      <th class="text-left font-medium text-gray-700">Максимальное время</th>
+                      <th class="text-left font-medium text-gray-700">Минимальное время</th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr v-for="(page, index) in paginatedPages" :key="index" class="hover:bg-gray-50">
-                      <!-- Категория в виде бейджа -->
-                      <td class="text-sm">
-                        <B24Badge :class="getCategoryBadgeClass(page.category)">
-                          {{ page.category || 'Без категории' }}
-                        </B24Badge>
-                      </td>
-
                       <!-- URL страницы -->
                       <td class="text-sm">
                         <a
@@ -103,8 +182,12 @@
                         </a>
                       </td>
 
-                      <!-- Общее время -->
-                      <td class="text-sm font-medium">{{ formatDuration(page.totalTime) }}</td>
+                      <!-- Категория в виде бейджа -->
+                      <td class="text-sm">
+                        <B24Badge :class="getCategoryBadgeClass(page.category)">
+                          {{ page.category || 'Без категории' }}
+                        </B24Badge>
+                      </td>
 
                       <!-- Количество сотрудников (кликабельно) -->
                       <td class="text-sm">
@@ -116,17 +199,26 @@
                         </button>
                       </td>
 
+                      <!-- Общее время -->
+                      <td class="text-sm font-medium">{{ formatDuration(page.totalTime) }}</td>
+
                       <!-- Среднее время -->
                       <td class="text-sm">{{ formatDuration(page.averageTime) }}</td>
+
+                      <!-- Максимальное время -->
+                      <td class="text-sm">{{ formatDuration(page.maxTime) }}</td>
+
+                      <!-- Минимальное время -->
+                      <td class="text-sm">{{ formatDuration(page.minTime) }}</td>
                     </tr>
                     </tbody>
                     <tfoot class="bg-gray-50 font-semibold">
                     <tr>
-                      <td colspan="1" class="text-right">Итого:</td>
+                      <td colspan="3" class="text-right">Итого:</td>
                       <td>{{ formatDuration(totalStats.totalTime) }}</td>
-                      <td>{{ totalStats.totalEmployees }}</td>
                       <td>{{ formatDuration(totalStats.averageTimePerEmployee) }}</td>
-                      <td>{{ totalStats.totalVisits }} посещений</td>
+                      <td>{{ formatDuration(totalStats.maxTime) }}</td>
+                      <td>{{ formatDuration(totalStats.minTime) }}</td>
                     </tr>
                     </tfoot>
                   </table>
@@ -155,8 +247,8 @@
                 <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
-                <p class="text-lg">Нет данных о посещениях</p>
-                <p class="text-sm mt-2">Данные появятся после того, как сотрудники начнут посещать страницы</p>
+                <p class="text-lg">Нет данных о посещениях за выбранный период</p>
+                <p class="text-sm mt-2">Попробуйте изменить период или дождитесь появления новых данных</p>
               </div>
 
               <!-- Сообщение при отсутствии результатов поиска -->
@@ -181,7 +273,7 @@
     <!-- Модальное окно детальной информации по сотрудникам -->
     <B24Modal
         v-model:open="isShowEmployeesModal"
-        :title="`Сотрудники на странице: ${modalPageData?.url || ''}`"
+        :title="`Сотрудники на странице`"
         description="Детальная информация о времени, проведенном сотрудниками на странице"
         size="lg"
         scrollable
@@ -231,7 +323,11 @@
               <tbody>
               <tr v-for="employee in modalPageData.employees" :key="employee.userId" class="hover:bg-gray-50">
                 <td class="text-sm">
-                  <div class="flex items-center space-x-2">
+                  <a
+                      :href="getUserProfileUrl(employee.userId)"
+                      target="_blank"
+                      class="inline-flex items-center hover:opacity-80 transition-opacity"
+                  >
                     <B24User
                         :name="employee.userName"
                         size="sm"
@@ -245,9 +341,9 @@
                                   : 'air-secondary-accent',
                               position: 'top-right'
                           }"
-                        class="truncate"
+                        class="truncate cursor-pointer"
                     />
-                  </div>
+                  </a>
                 </td>
                 <td class="text-sm font-medium">{{ formatDuration(employee.time) }}</td>
                 <td class="text-sm">
@@ -286,11 +382,11 @@
             </div>
             <div class="bg-gray-50 rounded-lg p-4">
               <div class="text-sm text-gray-600">Максимальное время</div>
-              <div class="text-lg font-semibold text-gray-900">{{ formatDuration(Math.max(...modalPageData.employees.map(e => e.time))) }}</div>
+              <div class="text-lg font-semibold text-gray-900">{{ formatDuration(modalPageData.maxTime) }}</div>
             </div>
             <div class="bg-gray-50 rounded-lg p-4">
               <div class="text-sm text-gray-600">Минимальное время</div>
-              <div class="text-lg font-semibold text-gray-900">{{ formatDuration(Math.min(...modalPageData.employees.map(e => e.time))) }}</div>
+              <div class="text-lg font-semibold text-gray-900">{{ formatDuration(modalPageData.minTime) }}</div>
             </div>
           </div>
         </div>
@@ -307,6 +403,7 @@
 
 <script>
 import { ref, onMounted, computed } from 'vue'
+import { CalendarDate } from '@internationalized/date'
 import { useToast } from '@bitrix24/b24ui-nuxt/composables/useToast'
 import Sidebar from './Sidebar.vue'
 import categoriesData from './categories.json'
@@ -330,7 +427,9 @@ class ActivityMapManager {
       totalTime: 0,
       totalEmployees: 0,
       totalVisits: 0,
-      averageTimePerEmployee: 0
+      averageTimePerEmployee: 0,
+      maxTime: 0,
+      minTime: 0
     })
 
     // Пагинация
@@ -343,6 +442,21 @@ class ActivityMapManager {
     // Модальное окно
     this.isShowEmployeesModal = ref(false)
     this.modalPageData = ref(null)
+
+    // Календарь и период
+    this.calendarDate = ref(this.getCalendarDateFromString(this.getTodayDate()))
+    this.minCalendarDate = new CalendarDate(2020, 1, 1)
+    this.maxCalendarDate = new CalendarDate(2030, 12, 31)
+    this.selectedPeriodType = ref('all') // 'all', 'day', 'week', 'month'
+    this.selectedDate = ref(this.getTodayDate())
+    this.historyDays = ref(365) // Максимальный период для отображения
+  }
+
+  // Получение URL профиля пользователя
+  getUserProfileUrl(userId) {
+    if (!userId) return '#'
+    const domain = BX24?.getDomain?.() || ''
+    return `https://${domain}/company/personal/user/${userId}/`
   }
 
   // Получение инициалов пользователя
@@ -411,6 +525,106 @@ class ActivityMapManager {
     } else {
       console[type === 'error' ? 'error' : type === 'success' ? 'log' : 'info'](message)
     }
+  }
+
+  // Методы для работы с календарем
+  getCalendarDateFromString(dateString) {
+    if (!dateString) return null
+    const date = new Date(dateString)
+    return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate())
+  }
+
+  getStringFromCalendarDate(calendarDate) {
+    if (!calendarDate) return ''
+    const year = calendarDate.year
+    const month = calendarDate.month.toString().padStart(2, '0')
+    const day = calendarDate.day.toString().padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  getTodayDate() {
+    return new Date().toISOString().split('T')[0]
+  }
+
+  formatDateRangeDisplay() {
+    if (this.selectedPeriodType.value === 'all') {
+      return 'За всё время'
+    }
+
+    const date = new Date(this.selectedDate.value)
+    return date.toLocaleDateString('ru-RU', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    })
+  }
+
+  isDateDisabled(date) {
+    const dayOfWeek = date.toDate('UTC').getDay()
+    return dayOfWeek === 0 || dayOfWeek === 6
+  }
+
+  isDateUnavailable(date) {
+    const today = new Date()
+    const selectedDate = date.toDate('UTC')
+    const diffTime = today.getTime() - selectedDate.getTime()
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return diffDays > this.historyDays.value
+  }
+
+  handleCalendarDateChange(newDate) {
+    if (newDate) {
+      this.selectedDate.value = this.getStringFromCalendarDate(newDate)
+      this.selectedPeriodType.value = 'day'
+      this.loadAllData()
+    }
+  }
+
+  setPeriod(type) {
+    this.selectedPeriodType.value = type
+    if (type === 'all') {
+      this.selectedDate.value = null
+    } else {
+      this.selectedDate.value = this.getTodayDate()
+      this.calendarDate.value = this.getCalendarDateFromString(this.getTodayDate())
+    }
+    this.loadAllData()
+  }
+
+  // Фильтрация элементов по периоду
+  filterItemsByPeriod(items) {
+    if (this.selectedPeriodType.value === 'all' || !this.selectedDate.value) {
+      return items
+    }
+
+    const selectedDate = new Date(this.selectedDate.value)
+    selectedDate.setHours(0, 0, 0, 0)
+
+    let startDate = new Date(selectedDate)
+    let endDate = new Date(selectedDate)
+
+    switch (this.selectedPeriodType.value) {
+      case 'day':
+        endDate.setHours(23, 59, 59, 999)
+        break
+      case 'week':
+        startDate.setDate(selectedDate.getDate() - selectedDate.getDay() + 1) // Понедельник
+        endDate = new Date(startDate)
+        endDate.setDate(startDate.getDate() + 6)
+        endDate.setHours(23, 59, 59, 999)
+        break
+      case 'month':
+        startDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1)
+        endDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0)
+        endDate.setHours(23, 59, 59, 999)
+        break
+    }
+
+    return items.filter(item => {
+      const itemDate = new Date(item.DATE_CREATE)
+      return itemDate >= startDate && itemDate <= endDate
+    })
   }
 
   // Загрузка профиля текущего пользователя
@@ -579,11 +793,13 @@ class ActivityMapManager {
 
   // Обработка данных для карты активности
   processActivityData(items) {
+    const filteredItems = this.filterItemsByPeriod(items)
+
     const pagesMap = new Map() // url -> данные страницы
     const userIds = new Set()
 
     // Собираем все userId для последующей загрузки профилей
-    items.forEach(item => {
+    filteredItems.forEach(item => {
       const props = item.PROPERTY_VALUES || {}
       const userId = parseInt(props.USER_ID) || 0
       if (userId > 0) {
@@ -592,7 +808,7 @@ class ActivityMapManager {
     })
 
     // Группируем по страницам
-    items.forEach(item => {
+    filteredItems.forEach(item => {
       const props = item.PROPERTY_VALUES || {}
       const url = props.PAGE_URL || ''
       const time = parseInt(props.PAGE_TIME) || 0
@@ -610,7 +826,9 @@ class ActivityMapManager {
           totalTime: 0,
           employees: new Map(), // userId -> { userName, time, visits }
           visits: 0,
-          items: new Set() // для подсчета уникальных записей
+          items: new Set(), // для подсчета уникальных записей
+          maxTime: 0,
+          minTime: Infinity
         })
       }
 
@@ -618,6 +836,10 @@ class ActivityMapManager {
       pageData.totalTime += time
       pageData.visits++
       pageData.items.add(item.ID)
+
+      // Обновляем макс и мин время
+      if (time > pageData.maxTime) pageData.maxTime = time
+      if (time < pageData.minTime) pageData.minTime = time
 
       // Добавляем информацию о сотруднике
       if (!pageData.employees.has(userId)) {
@@ -638,8 +860,13 @@ class ActivityMapManager {
     let totalTimeAll = 0
     let totalEmployeesAll = new Set()
     let totalVisitsAll = 0
+    let globalMaxTime = 0
+    let globalMinTime = Infinity
 
     pagesMap.forEach(pageData => {
+      // Если мин время осталось Infinity, значит нет данных
+      if (pageData.minTime === Infinity) pageData.minTime = 0
+
       const employeesArray = Array.from(pageData.employees.values())
           .map(emp => ({
             ...emp,
@@ -654,7 +881,9 @@ class ActivityMapManager {
         employeeCount: pageData.employees.size,
         averageTime: pageData.employees.size > 0 ? Math.round(pageData.totalTime / pageData.employees.size) : 0,
         employees: employeesArray,
-        visits: pageData.visits
+        visits: pageData.visits,
+        maxTime: pageData.maxTime,
+        minTime: pageData.minTime
       }
 
       result.push(pageInfo)
@@ -663,6 +892,8 @@ class ActivityMapManager {
       totalTimeAll += pageData.totalTime
       pageData.employees.forEach((_, userId) => totalEmployeesAll.add(userId))
       totalVisitsAll += pageData.visits
+      if (pageData.maxTime > globalMaxTime) globalMaxTime = pageData.maxTime
+      if (pageData.minTime < globalMinTime) globalMinTime = pageData.minTime
     })
 
     // Сортируем страницы по времени (убывание)
@@ -676,7 +907,9 @@ class ActivityMapManager {
       totalVisits: totalVisitsAll,
       averageTimePerEmployee: totalEmployeesAll.size > 0
           ? Math.round(totalTimeAll / totalEmployeesAll.size)
-          : 0
+          : 0,
+      maxTime: globalMaxTime,
+      minTime: globalMinTime !== Infinity ? globalMinTime : 0
     }
   }
 
@@ -822,6 +1055,13 @@ export default {
       searchQuery: activityMapManager.searchQuery,
       paginatedPages,
 
+      // Календарь и период
+      calendarDate: activityMapManager.calendarDate,
+      minCalendarDate: activityMapManager.minCalendarDate,
+      maxCalendarDate: activityMapManager.maxCalendarDate,
+      selectedPeriodType: activityMapManager.selectedPeriodType,
+      selectedDate: activityMapManager.selectedDate,
+
       // Модальное окно
       isShowEmployeesModal: activityMapManager.isShowEmployeesModal,
       modalPageData: activityMapManager.modalPageData,
@@ -843,7 +1083,13 @@ export default {
       getOnlineStatus: (userId) => {
         const userProfile = activityMapManager.userProfilesCache.value[userId]
         return userProfile?.IS_ONLINE || 'N'
-      }
+      },
+      getUserProfileUrl: activityMapManager.getUserProfileUrl.bind(activityMapManager),
+      handleCalendarDateChange: activityMapManager.handleCalendarDateChange.bind(activityMapManager),
+      setPeriod: activityMapManager.setPeriod.bind(activityMapManager),
+      formatDateRangeDisplay: activityMapManager.formatDateRangeDisplay.bind(activityMapManager),
+      isDateDisabled: activityMapManager.isDateDisabled.bind(activityMapManager),
+      isDateUnavailable: activityMapManager.isDateUnavailable.bind(activityMapManager)
     }
   }
 }
@@ -889,5 +1135,10 @@ button.inline-flex:hover {
 /* Стили для прогресс-бара в модальном окне */
 .bg-blue-500 {
   transition: width 0.3s ease;
+}
+
+/* Стили для календаря */
+:deep(.B24Popover) {
+  width: 100%;
 }
 </style>
