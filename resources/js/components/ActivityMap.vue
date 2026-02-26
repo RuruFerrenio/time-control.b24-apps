@@ -36,60 +36,63 @@
                 </div>
               </div>
 
-              <!-- Календарь для выбора периода -->
+              <!-- Календарь для выбора диапазона -->
               <div>
                 <label class="block text-sm font-medium text-gray-900 mb-2">
                   Выберите период для просмотра
                 </label>
                 <div class="flex flex-col md:flex-row gap-2">
                   <div class="flex-1">
-                    <B24Popover class="w-full">
-                      <button
-                          type="button"
+                    <B24Popover>
+                      <B24Button
                           :disabled="isLoading"
-                          class="w-full flex items-center justify-between px-4 py-3 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                          color="air-tertiary"
+                          size="md"
+                          class="w-full justify-between"
                       >
-                        <div class="flex items-center space-x-3">
-                          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="flex items-center space-x-2 truncate">
+                          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                           </svg>
-                          <span class="text-sm text-gray-700">{{ formatDateRangeDisplay() }}</span>
+                          <span class="truncate">{{ formatDateRangeDisplay() }}</span>
                         </div>
-                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
-                      </button>
+                      </B24Button>
 
                       <template #content>
                         <div class="p-2">
                           <B24Calendar
-                              v-model="calendarDate"
-                              @update:modelValue="handleCalendarDateChange"
+                              v-model="selectedDateRange"
+                              range
+                              :number-of-months="2"
                               color="air-primary"
                               size="md"
                               :month-controls="true"
-                              :year-controls="false"
+                              :year-controls="true"
                               :min-value="minCalendarDate"
                               :max-value="maxCalendarDate"
                               :is-date-disabled="isDateDisabled"
-                              :is-date-unavailable="isDateUnavailable"
                               class="rounded-lg"
+                              @update:modelValue="handleDateRangeChange"
                           />
                         </div>
                       </template>
                     </B24Popover>
                   </div>
-                  <div class="flex gap-2">
-                    <B24Button
-                        @click="setPeriod('all')"
-                        :variant="selectedPeriodType === 'all' ? 'solid' : 'outline'"
-                        color="air-secondary-accent"
-                        size="sm"
-                        class="flex-1 md:flex-none"
-                    >
-                      За всё время
-                    </B24Button>
-                  </div>
+                  <B24Button
+                      @click="resetDateRange"
+                      :disabled="isLoading"
+                      color="air-tertiary"
+                      size="md"
+                      class="flex-shrink-0"
+                      :title="'Сбросить фильтр по дате'"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                  </B24Button>
                 </div>
               </div>
 
@@ -416,13 +419,26 @@ class ActivityMapManager {
     this.isShowEmployeesModal = ref(false)
     this.modalPageData = ref(null)
 
-    // Календарь и период
-    this.calendarDate = ref(this.getCalendarDateFromString(this.getTodayDate()))
+    // Календарь для диапазона
+    const today = new Date()
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+
+    this.selectedDateRange = ref({
+      start: this.getCalendarDateFromString(this.formatDate(firstDayOfMonth)),
+      end: this.getCalendarDateFromString(this.formatDate(today))
+    })
+
     this.minCalendarDate = new CalendarDate(2020, 1, 1)
     this.maxCalendarDate = new CalendarDate(2030, 12, 31)
-    this.selectedPeriodType = ref('all') // 'all', 'day', 'week', 'month'
-    this.selectedDate = ref(this.getTodayDate())
-    this.historyDays = ref(365) // Максимальный период для отображения
+    this.isDateRangeActive = ref(false) // Флаг, указывающий, активен ли фильтр по дате
+  }
+
+  // Форматирование даты в строку YYYY-MM-DD
+  formatDate(date) {
+    const year = date.getFullYear()
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const day = date.getDate().toString().padStart(2, '0')
+    return `${year}-${month}-${day}`
   }
 
   // Получение URL профиля пользователя
@@ -520,17 +536,18 @@ class ActivityMapManager {
   }
 
   formatDateRangeDisplay() {
-    if (this.selectedPeriodType.value === 'all') {
-      return 'За всё время'
+    if (!this.isDateRangeActive.value || !this.selectedDateRange.value?.start || !this.selectedDateRange.value?.end) {
+      return 'Выберите период'
     }
 
-    const date = new Date(this.selectedDate.value)
-    return date.toLocaleDateString('ru-RU', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    })
+    const startDate = this.selectedDateRange.value.start.toDate('UTC')
+    const endDate = this.selectedDateRange.value.end.toDate('UTC')
+
+    const formatOptions = { day: 'numeric', month: 'long', year: 'numeric' }
+    const startStr = startDate.toLocaleDateString('ru-RU', formatOptions)
+    const endStr = endDate.toLocaleDateString('ru-RU', formatOptions)
+
+    return `${startStr} — ${endStr}`
   }
 
   isDateDisabled(date) {
@@ -538,61 +555,30 @@ class ActivityMapManager {
     return dayOfWeek === 0 || dayOfWeek === 6
   }
 
-  isDateUnavailable(date) {
-    const today = new Date()
-    const selectedDate = date.toDate('UTC')
-    const diffTime = today.getTime() - selectedDate.getTime()
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    return diffDays > this.historyDays.value
-  }
-
-  handleCalendarDateChange(newDate) {
-    if (newDate) {
-      this.selectedDate.value = this.getStringFromCalendarDate(newDate)
-      this.selectedPeriodType.value = 'day'
+  handleDateRangeChange(newRange) {
+    if (newRange?.start && newRange?.end) {
+      this.isDateRangeActive.value = true
+      this.selectedDateRange.value = newRange
       this.loadAllData()
     }
   }
 
-  setPeriod(type) {
-    this.selectedPeriodType.value = type
-    if (type === 'all') {
-      this.selectedDate.value = null
-    } else {
-      this.selectedDate.value = this.getTodayDate()
-      this.calendarDate.value = this.getCalendarDateFromString(this.getTodayDate())
-    }
+  resetDateRange() {
+    this.isDateRangeActive.value = false
     this.loadAllData()
   }
 
-  // Фильтрация элементов по периоду
-  filterItemsByPeriod(items) {
-    if (this.selectedPeriodType.value === 'all' || !this.selectedDate.value) {
+  // Фильтрация элементов по диапазону дат
+  filterItemsByDateRange(items) {
+    if (!this.isDateRangeActive.value || !this.selectedDateRange.value?.start || !this.selectedDateRange.value?.end) {
       return items
     }
 
-    const selectedDate = new Date(this.selectedDate.value)
-    selectedDate.setHours(0, 0, 0, 0)
+    const startDate = this.selectedDateRange.value.start.toDate('UTC')
+    startDate.setHours(0, 0, 0, 0)
 
-    let startDate = new Date(selectedDate)
-    let endDate = new Date(selectedDate)
-
-    switch (this.selectedPeriodType.value) {
-      case 'day':
-        endDate.setHours(23, 59, 59, 999)
-        break
-      case 'week':
-        startDate.setDate(selectedDate.getDate() - selectedDate.getDay() + 1) // Понедельник
-        endDate = new Date(startDate)
-        endDate.setDate(startDate.getDate() + 6)
-        endDate.setHours(23, 59, 59, 999)
-        break
-      case 'month':
-        startDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1)
-        endDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0)
-        endDate.setHours(23, 59, 59, 999)
-        break
-    }
+    const endDate = this.selectedDateRange.value.end.toDate('UTC')
+    endDate.setHours(23, 59, 59, 999)
 
     return items.filter(item => {
       const itemDate = new Date(item.DATE_CREATE)
@@ -766,7 +752,7 @@ class ActivityMapManager {
 
   // Обработка данных для карты активности
   processActivityData(items) {
-    const filteredItems = this.filterItemsByPeriod(items)
+    const filteredItems = this.filterItemsByDateRange(items)
 
     const pagesMap = new Map() // url -> данные страницы
     const userIds = new Set()
@@ -1028,12 +1014,10 @@ export default {
       searchQuery: activityMapManager.searchQuery,
       paginatedPages,
 
-      // Календарь и период
-      calendarDate: activityMapManager.calendarDate,
+      // Календарь и диапазон
+      selectedDateRange: activityMapManager.selectedDateRange,
       minCalendarDate: activityMapManager.minCalendarDate,
       maxCalendarDate: activityMapManager.maxCalendarDate,
-      selectedPeriodType: activityMapManager.selectedPeriodType,
-      selectedDate: activityMapManager.selectedDate,
 
       // Модальное окно
       isShowEmployeesModal: activityMapManager.isShowEmployeesModal,
@@ -1058,11 +1042,10 @@ export default {
         return userProfile?.IS_ONLINE || 'N'
       },
       getUserProfileUrl: activityMapManager.getUserProfileUrl.bind(activityMapManager),
-      handleCalendarDateChange: activityMapManager.handleCalendarDateChange.bind(activityMapManager),
-      setPeriod: activityMapManager.setPeriod.bind(activityMapManager),
+      handleDateRangeChange: activityMapManager.handleDateRangeChange.bind(activityMapManager),
+      resetDateRange: activityMapManager.resetDateRange.bind(activityMapManager),
       formatDateRangeDisplay: activityMapManager.formatDateRangeDisplay.bind(activityMapManager),
-      isDateDisabled: activityMapManager.isDateDisabled.bind(activityMapManager),
-      isDateUnavailable: activityMapManager.isDateUnavailable.bind(activityMapManager)
+      isDateDisabled: activityMapManager.isDateDisabled.bind(activityMapManager)
     }
   }
 }
@@ -1113,5 +1096,10 @@ button.inline-flex:hover {
 /* Стили для календаря */
 :deep(.B24Popover) {
   width: 100%;
+}
+
+/* Стили для кнопки сброса */
+button.flex-shrink-0 {
+  min-width: 40px;
 }
 </style>
