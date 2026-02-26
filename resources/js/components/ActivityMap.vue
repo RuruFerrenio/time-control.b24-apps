@@ -402,17 +402,40 @@ class ActivityMapManager {
     this.modalPageData = ref(null)
 
     // Календарь для диапазона
+    const defaultHistoryDays = 30
     const today = new Date()
-    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+    const startDate = new Date(today)
+    startDate.setDate(today.getDate() - defaultHistoryDays)
 
     this.selectedDateRange = ref({
-      start: this.getCalendarDateFromString(this.formatDate(firstDayOfMonth)),
+      start: this.getCalendarDateFromString(this.formatDate(startDate)),
       end: this.getCalendarDateFromString(this.formatDate(today))
     })
 
     this.minCalendarDate = new CalendarDate(2020, 1, 1)
     this.maxCalendarDate = new CalendarDate(2030, 12, 31)
     this.isDateRangeActive = ref(false) // Флаг, указывающий, активен ли фильтр по дате
+  }
+
+  async updateDateRangeFromSettings() {
+    try {
+      const historyDays = await BX24.appOption.get('page_tracking_history_days')
+      if (historyDays) {
+        const days = parseInt(historyDays)
+        if (!isNaN(days) && days >= 1) {
+          const today = new Date()
+          const startDate = new Date(today)
+          startDate.setDate(today.getDate() - days)
+
+          this.selectedDateRange.value = {
+            start: this.getCalendarDateFromString(this.formatDate(startDate)),
+            end: this.getCalendarDateFromString(this.formatDate(today))
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки настроек периода:', error)
+    }
   }
 
   // Форматирование даты в строку YYYY-MM-DD
@@ -938,10 +961,10 @@ class ActivityMapManager {
     this.modalPageData.value = null
   }
 
-  // Инициализация
   async initialize() {
     try {
       await this.loadAllData()
+      await this.updateDateRangeFromSettings()
     } catch (error) {
       this.showNotification('error', 'Ошибка инициализации приложения')
       this.isLoading.value = false
