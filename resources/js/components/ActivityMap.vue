@@ -47,7 +47,7 @@
                       <B24Button
                           :disabled="isLoading"
                           color="air-secondary-accent"
-                          size="md"
+                          size="lg"
                           class="w-full justify-between"
                       >
                         <div class="flex items-center space-x-2 truncate">
@@ -85,7 +85,7 @@
                       @click="resetDateRange"
                       :disabled="isLoading"
                       color="air-secondary-accent"
-                      size="md"
+                      size="lg"
                       class="flex-shrink-0"
                       :title="'Сбросить фильтр по дате'"
                   >

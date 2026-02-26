@@ -58,7 +58,7 @@
                   <B24Button
                       :disabled="isProcessingData"
                       color="air-secondary-accent"
-                      size="md"
+                      size="lg"
                       class="w-full justify-between"
                   >
                     <div class="flex items-center space-x-3">
