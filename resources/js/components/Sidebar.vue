@@ -70,6 +70,18 @@
                 Карта активности
               </router-link>
 
+              <!-- Заглушка для обычных пользователей -->
+              <div
+                  v-else
+                  class="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-400 cursor-not-allowed"
+                  title="Доступно только администраторам"
+              >
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                </svg>
+                Карта активности
+              </div>
+
               <!-- Пункт настроек виден только администраторам -->
               <router-link
                   v-if="isAdmin"
@@ -105,7 +117,7 @@
             <div class="space-y-2">
               <a
                   href="mailto:it.galera@yandex.ru?subject=Поддержка приложения Автоматический контроль времени"
-                  class="flex items-center text-sm text-gray-600 hover:text-blue-600 p-2 hover:bg-gray-50 rounded"
+                  class="flex items-center px-3 py-2 text-sm font-medium rounded-md"
               >
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/>
