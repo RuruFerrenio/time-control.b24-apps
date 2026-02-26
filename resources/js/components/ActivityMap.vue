@@ -34,8 +34,8 @@
                     Обновить
                   </B24Button>
                   <B24Button
-                      @click=""
-                      :disabled="isLoading"
+                      @click="exportToXLS"
+                      :disabled="isLoading || filteredPages.length === 0"
                       color="air-secondary"
                       size="sm"
                       class="flex-1 w-full sm:w-auto justify-center"
@@ -115,6 +115,22 @@
 
               <!-- Данные -->
               <div v-else-if="!isLoading && processedData.length > 0">
+                <!-- Поле поиска -->
+                <div class="mb-4">
+                  <B24Input
+                      v-model="searchQuery"
+                      placeholder="Поиск по странице или категории..."
+                      size="lg"
+                      :disabled="isLoading"
+                      @input="filterPages"
+                  >
+                    <template #leading>
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                      </svg>
+                    </template>
+                  </B24Input>
+                </div>
 
                 <B24TableWrapper
                     class="overflow-x-auto w-full border border-gray-200 rounded-lg"
@@ -126,16 +142,86 @@
                     }"
                 >
                   <table class="min-w-full">
-                    <!-- Заголовок таблицы -->
+                    <!-- Заголовок таблицы с сортировкой -->
                     <thead class="bg-gray-50">
                     <tr>
-                      <th class="text-left font-medium text-gray-700">Страница</th>
-                      <th class="text-left font-medium text-gray-700">Категория</th>
-                      <th class="text-left font-medium text-gray-700">Кол-во сотрудников</th>
-                      <th class="text-left font-medium text-gray-700">Общее время</th>
-                      <th class="text-left font-medium text-gray-700">Среднее время</th>
-                      <th class="text-left font-medium text-gray-700">Максимальное время</th>
-                      <th class="text-left font-medium text-gray-700">Минимальное время</th>
+                      <th
+                          @click="sortBy('url')"
+                          class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+                      >
+                        <div class="flex items-center space-x-1">
+                          <span>Страница</span>
+                          <span v-if="sortColumn === 'url'" class="text-gray-400">
+                            {{ sortDirection === 'asc' ? '↑' : '↓' }}
+                          </span>
+                        </div>
+                      </th>
+                      <th
+                          @click="sortBy('category')"
+                          class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+                      >
+                        <div class="flex items-center space-x-1">
+                          <span>Категория</span>
+                          <span v-if="sortColumn === 'category'" class="text-gray-400">
+                            {{ sortDirection === 'asc' ? '↑' : '↓' }}
+                          </span>
+                        </div>
+                      </th>
+                      <th
+                          @click="sortBy('employeeCount')"
+                          class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+                      >
+                        <div class="flex items-center space-x-1">
+                          <span>Кол-во сотрудников</span>
+                          <span v-if="sortColumn === 'employeeCount'" class="text-gray-400">
+                            {{ sortDirection === 'asc' ? '↑' : '↓' }}
+                          </span>
+                        </div>
+                      </th>
+                      <th
+                          @click="sortBy('totalTime')"
+                          class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+                      >
+                        <div class="flex items-center space-x-1">
+                          <span>Общее время</span>
+                          <span v-if="sortColumn === 'totalTime'" class="text-gray-400">
+                            {{ sortDirection === 'asc' ? '↑' : '↓' }}
+                          </span>
+                        </div>
+                      </th>
+                      <th
+                          @click="sortBy('averageTime')"
+                          class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+                      >
+                        <div class="flex items-center space-x-1">
+                          <span>Среднее время</span>
+                          <span v-if="sortColumn === 'averageTime'" class="text-gray-400">
+                            {{ sortDirection === 'asc' ? '↑' : '↓' }}
+                          </span>
+                        </div>
+                      </th>
+                      <th
+                          @click="sortBy('maxTime')"
+                          class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+                      >
+                        <div class="flex items-center space-x-1">
+                          <span>Максимальное время</span>
+                          <span v-if="sortColumn === 'maxTime'" class="text-gray-400">
+                            {{ sortDirection === 'asc' ? '↑' : '↓' }}
+                          </span>
+                        </div>
+                      </th>
+                      <th
+                          @click="sortBy('minTime')"
+                          class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+                      >
+                        <div class="flex items-center space-x-1">
+                          <span>Минимальное время</span>
+                          <span v-if="sortColumn === 'minTime'" class="text-gray-400">
+                            {{ sortDirection === 'asc' ? '↑' : '↓' }}
+                          </span>
+                        </div>
+                      </th>
                     </tr>
                     </thead>
                     <tbody>
@@ -375,6 +461,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { CalendarDate } from '@internationalized/date'
 import { useToast } from '@bitrix24/b24ui-nuxt/composables/useToast'
+import * as XLSX from 'xlsx'
 import Sidebar from './Sidebar.vue'
 import categoriesData from './categories.json'
 import {bitrixHelper} from "../helpers/app.js"
@@ -393,6 +480,11 @@ class ActivityMapManager {
     this.categories = ref(categoriesData.categories)
     this.showAllEmployees = ref({})
     this.isLoadingProfile = ref(false)
+
+    // Сортировка
+    this.sortColumn = ref('totalTime')
+    this.sortDirection = ref('desc')
+
     this.totalStats = ref({
       totalTime: 0,
       totalEmployees: 0,
@@ -499,7 +591,7 @@ class ActivityMapManager {
 
   // Форматирование времени
   formatDuration(seconds) {
-    if (!seconds) return '0 сек'
+    if (!seconds && seconds !== 0) return '0 сек'
     const hours = Math.floor(seconds / 3600)
     const minutes = Math.floor((seconds % 3600) / 60)
     const secs = seconds % 60
@@ -508,6 +600,13 @@ class ActivityMapManager {
     if (minutes > 0) parts.push(`${minutes} мин`)
     if (secs > 0 || parts.length === 0) parts.push(`${secs} сек`)
     return parts.join(' ')
+  }
+
+  // Форматирование времени для Excel (в часах)
+  formatDurationForExcel(seconds) {
+    if (!seconds && seconds !== 0) return 0
+    const hours = seconds / 3600
+    return Math.round(hours * 100) / 100 // округляем до 2 знаков
   }
 
   // Расчет процента
@@ -600,6 +699,47 @@ class ActivityMapManager {
     }
 
     this.loadAllData()
+  }
+
+  // Метод для сортировки
+  sortBy(column) {
+    if (this.sortColumn.value === column) {
+      // Если уже сортируем по этой колонке, меняем направление
+      this.sortDirection.value = this.sortDirection.value === 'asc' ? 'desc' : 'asc'
+    } else {
+      // Новая колонка, начинаем с сортировки по убыванию
+      this.sortColumn.value = column
+      this.sortDirection.value = 'desc'
+    }
+
+    // Применяем сортировку
+    this.applySorting()
+  }
+
+  // Применение сортировки к отфильтрованным данным
+  applySorting() {
+    const sorted = [...this.filteredPages.value]
+
+    sorted.sort((a, b) => {
+      let aVal = a[this.sortColumn.value]
+      let bVal = b[this.sortColumn.value]
+
+      // Для строковых полей используем localeCompare
+      if (typeof aVal === 'string') {
+        const result = aVal.localeCompare(bVal, 'ru')
+        return this.sortDirection.value === 'asc' ? result : -result
+      }
+
+      // Для числовых полей
+      if (this.sortDirection.value === 'asc') {
+        return aVal - bVal
+      } else {
+        return bVal - aVal
+      }
+    })
+
+    this.filteredPages.value = sorted
+    this.currentPage.value = 1 // Сбрасываем на первую страницу
   }
 
   // Фильтрация элементов по диапазону дат
@@ -889,11 +1029,12 @@ class ActivityMapManager {
       if (pageData.minTime < globalMinTime) globalMinTime = pageData.minTime
     })
 
-    // Сортируем страницы по времени (убывание)
-    result.sort((a, b) => b.totalTime - a.totalTime)
-
     this.processedData.value = result
     this.filteredPages.value = [...result]
+
+    // Применяем сортировку по умолчанию
+    this.sortBy('totalTime')
+
     this.totalStats.value = {
       totalTime: totalTimeAll,
       totalEmployees: totalEmployeesAll.size,
@@ -969,7 +1110,101 @@ class ActivityMapManager {
       )
     }
 
+    // Применяем текущую сортировку к отфильтрованным данным
+    this.applySorting()
     this.currentPage.value = 1
+  }
+
+  // Экспорт в XLS
+  exportToXLS() {
+    try {
+      if (this.filteredPages.value.length === 0) {
+        this.showNotification('warning', 'Нет данных для экспорта')
+        return
+      }
+
+      // Подготавливаем данные для экспорта
+      const exportData = this.filteredPages.value.map(page => ({
+        'Страница': page.url,
+        'Категория': page.category || 'Без категории',
+        'Кол-во сотрудников': page.employeeCount,
+        'Общее время (часы)': this.formatDurationForExcel(page.totalTime),
+        'Среднее время (часы)': this.formatDurationForExcel(page.averageTime),
+        'Максимальное время (часы)': this.formatDurationForExcel(page.maxTime),
+        'Минимальное время (часы)': this.formatDurationForExcel(page.minTime),
+        'Общее время (текст)': this.formatDuration(page.totalTime),
+        'Среднее время (текст)': this.formatDuration(page.averageTime),
+        'Максимальное время (текст)': this.formatDuration(page.maxTime),
+        'Минимальное время (текст)': this.formatDuration(page.minTime),
+        'Кол-во посещений': page.visits
+      }))
+
+      // Добавляем итоговую строку
+      exportData.push({
+        'Страница': 'ИТОГО:',
+        'Категория': '',
+        'Кол-во сотрудников': this.totalStats.value.totalEmployees,
+        'Общее время (часы)': this.formatDurationForExcel(this.totalStats.value.totalTime),
+        'Среднее время (часы)': this.formatDurationForExcel(this.totalStats.value.averageTimePerEmployee),
+        'Максимальное время (часы)': this.formatDurationForExcel(this.totalStats.value.maxTime),
+        'Минимальное время (часы)': this.formatDurationForExcel(this.totalStats.value.minTime),
+        'Общее время (текст)': this.formatDuration(this.totalStats.value.totalTime),
+        'Среднее время (текст)': this.formatDuration(this.totalStats.value.averageTimePerEmployee),
+        'Максимальное время (текст)': this.formatDuration(this.totalStats.value.maxTime),
+        'Минимальное время (текст)': this.formatDuration(this.totalStats.value.minTime),
+        'Кол-во посещений': this.totalStats.value.totalVisits
+      })
+
+      // Создаем рабочую книгу
+      const wb = XLSX.utils.book_new()
+      const ws = XLSX.utils.json_to_sheet(exportData, { header: [
+          'Страница',
+          'Категория',
+          'Кол-во сотрудников',
+          'Общее время (часы)',
+          'Среднее время (часы)',
+          'Максимальное время (часы)',
+          'Минимальное время (часы)',
+          'Общее время (текст)',
+          'Среднее время (текст)',
+          'Максимальное время (текст)',
+          'Минимальное время (текст)',
+          'Кол-во посещений'
+        ]})
+
+      // Настраиваем ширину колонок
+      const colWidths = [
+        { wch: 50 }, // Страница
+        { wch: 20 }, // Категория
+        { wch: 15 }, // Кол-во сотрудников
+        { wch: 15 }, // Общее время (часы)
+        { wch: 15 }, // Среднее время (часы)
+        { wch: 18 }, // Максимальное время (часы)
+        { wch: 18 }, // Минимальное время (часы)
+        { wch: 20 }, // Общее время (текст)
+        { wch: 20 }, // Среднее время (текст)
+        { wch: 23 }, // Максимальное время (текст)
+        { wch: 23 }, // Минимальное время (текст)
+        { wch: 15 }  // Кол-во посещений
+      ]
+      ws['!cols'] = colWidths
+
+      // Добавляем лист в книгу
+      XLSX.utils.book_append_sheet(wb, ws, 'Карта активности')
+
+      // Формируем имя файла с датой
+      const date = new Date()
+      const dateStr = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
+      const fileName = `activity_map_${dateStr}.xlsx`
+
+      // Сохраняем файл
+      XLSX.writeFile(wb, fileName)
+
+      this.showNotification('success', 'Данные успешно экспортированы')
+    } catch (error) {
+      console.error('Ошибка при экспорте в XLS:', error)
+      this.showNotification('error', 'Ошибка при экспорте данных')
+    }
   }
 
   // Переключение показа всех сотрудников
@@ -1048,6 +1283,10 @@ export default {
       searchQuery: activityMapManager.searchQuery,
       paginatedPages,
 
+      // Сортировка
+      sortColumn: activityMapManager.sortColumn,
+      sortDirection: activityMapManager.sortDirection,
+
       // Календарь и диапазон
       selectedDateRange: activityMapManager.selectedDateRange,
       minCalendarDate: activityMapManager.minCalendarDate,
@@ -1060,6 +1299,8 @@ export default {
       // Методы
       loadAllData: activityMapManager.loadAllData.bind(activityMapManager),
       filterPages: activityMapManager.filterPages.bind(activityMapManager),
+      sortBy: activityMapManager.sortBy.bind(activityMapManager),
+      exportToXLS: activityMapManager.exportToXLS.bind(activityMapManager),
       toggleShowAllEmployees: activityMapManager.toggleShowAllEmployees.bind(activityMapManager),
       showEmployeesModal: activityMapManager.showEmployeesModal.bind(activityMapManager),
       closeEmployeesModal: activityMapManager.closeEmployeesModal.bind(activityMapManager),
@@ -1097,11 +1338,21 @@ th {
   background-color: #f9fafb;
   font-weight: 500;
   padding: 0.75rem 1rem;
+  user-select: none;
 }
 
 td {
   padding: 0.75rem 1rem;
   vertical-align: middle;
+}
+
+/* Стили для заголовков с сортировкой */
+th.cursor-pointer {
+  transition: background-color 0.2s ease;
+}
+
+th.cursor-pointer:hover {
+  background-color: #f3f4f6;
 }
 
 /* Стили для бейджей категорий */
