@@ -425,7 +425,7 @@ class ActivityMapManager {
       if (historyDays) {
         const days = parseInt(historyDays)
         if (!isNaN(days) && days >= 1) {
-          this.pageTrackingHistoryDays = days // сохраняем значение
+          this.pageTrackingHistoryDays = days
           const today = new Date()
           const startDate = new Date(today)
           startDate.setDate(today.getDate() - days)
