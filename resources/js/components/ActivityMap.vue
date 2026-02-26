@@ -77,45 +77,18 @@
                           />
                         </div>
                       </template>
-                      <div class="flex gap-2">
-                        <B24Button
-                            @click="setPeriod('all')"
-                            :variant="selectedPeriodType === 'all' ? 'solid' : 'outline'"
-                            color="air-primary"
-                            size="sm"
-                            class="flex-1 md:flex-none"
-                        >
-                          За всё время
-                        </B24Button>
-                        <B24Button
-                            @click="setPeriod('day')"
-                            :variant="selectedPeriodType === 'day' ? 'solid' : 'outline'"
-                            color="air-primary"
-                            size="sm"
-                            class="flex-1 md:flex-none"
-                        >
-                          День
-                        </B24Button>
-                        <B24Button
-                            @click="setPeriod('week')"
-                            :variant="selectedPeriodType === 'week' ? 'solid' : 'outline'"
-                            color="air-primary"
-                            size="sm"
-                            class="flex-1 md:flex-none"
-                        >
-                          Неделя
-                        </B24Button>
-                        <B24Button
-                            @click="setPeriod('month')"
-                            :variant="selectedPeriodType === 'month' ? 'solid' : 'outline'"
-                            color="air-primary"
-                            size="sm"
-                            class="flex-1 md:flex-none"
-                        >
-                          Месяц
-                        </B24Button>
-                      </div>
                     </B24Popover>
+                  </div>
+                  <div class="flex gap-2">
+                    <B24Button
+                        @click="setPeriod('all')"
+                        :variant="selectedPeriodType === 'all' ? 'solid' : 'outline'"
+                        color="air-secondary-accent"
+                        size="sm"
+                        class="flex-1 md:flex-none"
+                    >
+                      За всё время
+                    </B24Button>
                   </div>
                 </div>
               </div>
