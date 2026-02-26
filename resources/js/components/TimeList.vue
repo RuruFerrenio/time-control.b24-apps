@@ -57,7 +57,7 @@
                 <B24Popover class="w-full">
                   <B24Button
                       :disabled="isProcessingData"
-                      color="air-tertiary"
+                      color="air-secondary-accent"
                       size="md"
                       class="w-full justify-between"
                   >
