@@ -401,6 +401,8 @@ class ActivityMapManager {
     this.isShowEmployeesModal = ref(false)
     this.modalPageData = ref(null)
 
+    this.pageTrackingHistoryDays = 30
+
     // Календарь для диапазона
     const defaultHistoryDays = 30
     const today = new Date()
@@ -423,6 +425,7 @@ class ActivityMapManager {
       if (historyDays) {
         const days = parseInt(historyDays)
         if (!isNaN(days) && days >= 1) {
+          this.pageTrackingHistoryDays = days // сохраняем значение
           const today = new Date()
           const startDate = new Date(today)
           startDate.setDate(today.getDate() - days)
@@ -570,6 +573,20 @@ class ActivityMapManager {
 
   resetDateRange() {
     this.isDateRangeActive.value = false
+
+    // Восстанавливаем диапазон из настроек (или значение по умолчанию)
+    const today = new Date()
+    let startDate = new Date(today)
+
+    // Пытаемся получить значение из настроек (если уже загружено)
+    const historyDays = this.pageTrackingHistoryDays || 30
+    startDate.setDate(today.getDate() - historyDays)
+
+    this.selectedDateRange.value = {
+      start: this.getCalendarDateFromString(this.formatDate(startDate)),
+      end: this.getCalendarDateFromString(this.formatDate(today))
+    }
+
     this.loadAllData()
   }
 
