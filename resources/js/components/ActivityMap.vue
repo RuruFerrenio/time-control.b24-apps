@@ -681,6 +681,7 @@ class ActivityMapManager {
       end: this.getCalendarDateFromString(this.formatDate(today))
     }
 
+    this.isLoading.value = true
     this.loadAllData()
   }
 
