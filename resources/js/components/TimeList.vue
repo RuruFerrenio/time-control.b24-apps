@@ -55,10 +55,11 @@
                   Выберите день для просмотра
                 </label>
                 <B24Popover class="w-full">
-                  <button
-                      type="button"
+                  <B24Button
                       :disabled="isProcessingData"
-                      class="w-full flex items-center justify-between px-4 py-3 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      color="air-tertiary"
+                      size="md"
+                      class="w-full justify-between"
                   >
                     <div class="flex items-center space-x-3">
                       <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,7 +70,7 @@
                     <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                     </svg>
-                  </button>
+                  </B24Button>
 
                   <template #content>
                     <div class="p-2">
