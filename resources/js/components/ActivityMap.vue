@@ -20,7 +20,7 @@
                     Сводные данные по посещенным страницам за всё время
                   </p>
                 </div>
-                <div class="flex flex-row space-x-2 w-full md:w-40">
+                <div class="flex flex-row md:flex-col space-y-0 md:space-y-1 space-x-2 md:space-x-0 w-full md:w-40">
                   <B24Button
                       @click="loadAllData"
                       :disabled="isLoading"
