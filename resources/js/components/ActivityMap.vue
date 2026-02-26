@@ -133,7 +133,7 @@
                         <a
                             :href="page.url"
                             target="_blank"
-                            class="text-blue-600 hover:text-blue-800 hover:underline break-all"
+                            class="text-blue-600 hover:text-blue-800 hover:underline"
                             :title="page.url"
                         >
                           {{ page.url }}
