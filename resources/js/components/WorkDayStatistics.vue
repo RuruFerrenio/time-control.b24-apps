@@ -38,18 +38,6 @@
                     </svg>
                     Обновить
                   </B24Button>
-                  <!--<B24Button
-                      @click="exportToPDF"
-                      :disabled="isLoading"
-                      color="air-secondary"
-                      size="sm"
-                      class="flex-1 w-full sm:w-auto justify-center"
-                  >
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-                    </svg>
-                    Экспорт PDF
-                  </B24Button> -->
                 </div>
               </div>
 
@@ -111,7 +99,7 @@
                       <div class="bg-white p-4">
                         <h4 class="text-sm font-medium text-gray-900 mb-3">
                           <span class="flex items-center gap-2">
-                            Распределение времени
+                            Распределение времени в Bitrix24
                           </span>
                         </h4>
                         <div class="relative w-full h-84">
@@ -119,10 +107,10 @@
                           <!-- Центральный текст -->
                           <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                             <div class="text-2xl md:text-3xl font-bold text-gray-900">
-                              {{ formatPercentage(workDayData.bitrixTimePercentage) }}
+                              {{ formatPercentage(taskPercentage) }}
                             </div>
                             <div class="text-xs md:text-sm text-gray-500 mt-1">
-                              Времени не сохранено
+                              времени в задачах
                             </div>
                           </div>
                         </div>
@@ -134,7 +122,7 @@
                       <div class="bg-white h-full flex flex-col">
                         <!-- Заголовок для мобилок -->
                         <div class="block md:hidden px-4 pt-4 pb-2">
-                          <h3 class="text-sm font-medium text-gray-700">Распределение времени</h3>
+                          <h3 class="text-sm font-medium text-gray-700">Распределение времени в Bitrix24</h3>
                         </div>
 
                         <!-- Список элементов легенды -->
@@ -165,20 +153,11 @@
                                            boxShadow: hoveredLegendIndex === index ? `0 0 0 2px ${item.color}20` : 'none'
                                          }">
                                     </div>
-                                    <div v-if="item.icon"
-                                         class="absolute -bottom-1 -right-1 w-4 h-4 bg-white rounded-full shadow-sm flex items-center justify-center text-[10px]"
-                                         :style="{ color: item.color }">
-                                      {{ item.icon }}
-                                    </div>
                                   </div>
 
                                   <div class="min-w-0 flex-1">
                                     <div class="flex items-center gap-2">
                                       <span class="text-sm font-semibold text-gray-900 truncate">{{ item.label }}</span>
-                                      <span v-if="item.badge"
-                                            class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-600">
-                                            {{ item.badge }}
-                                      </span>
                                     </div>
                                     <div class="flex items-center gap-2 text-xs text-gray-500">
                                       <span class="truncate">{{ item.description }}</span>
@@ -216,14 +195,14 @@
                           <!-- Общая статистика -->
                           <div class="mt-6 pt-5 border-t border-gray-200">
                             <div class="grid grid-cols-2 gap-4 md:gap-6">
-                              <!-- Рабочий день -->
+                              <!-- Всего в Bitrix24 -->
                               <div class="relative bg-gradient-to-br from-gray-50 to-white rounded-xl p-4 border border-gray-100">
                                 <div class="flex flex-col items-center text-center">
                 <span class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
-                  Рабочий день
+                  Всего в Bitrix24
                 </span>
                                   <span class="text-xl md:text-2xl font-bold text-gray-900 leading-none">
-                  {{ formatDuration(workDayData.totalWorkDaySeconds) }}
+                  {{ formatDuration(totalBitrixTime) }}
                 </span>
                                   <span class="text-[10px] text-gray-400 mt-1">общее время</span>
                                 </div>
@@ -235,13 +214,13 @@
                               <div class="relative bg-gradient-to-br from-gray-50 to-white rounded-xl p-4 border border-gray-100">
                                 <div class="flex flex-col items-center text-center">
                 <span class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
-                  Потери
+                  В задачах
                 </span>
                                   <span class="text-xl md:text-2xl font-bold leading-none"
-                                        :class="getEfficiencyColor(workDayData.bitrixTimePercentage)">
-                  {{ formatPercentage(workDayData.bitrixTimePercentage) }}
+                                        :class="getEfficiencyColor(taskPercentage)">
+                  {{ formatPercentage(taskPercentage) }}
                 </span>
-                                  <span class="text-[10px] text-gray-400 mt-1">времени не сохранено</span>
+                                  <span class="text-[10px] text-gray-400 mt-1">от времени в Bitrix24</span>
                                 </div>
                                 <!-- Круговая индикация эффективности -->
                                 <div class="absolute -top-1 -right-1 w-8 h-8">
@@ -249,9 +228,9 @@
                                     <circle cx="18" cy="18" r="16" fill="none"
                                             stroke="#e5e7eb" stroke-width="2"/>
                                     <circle cx="18" cy="18" r="16" fill="none"
-                                            :stroke="getEfficiencyColorValue(workDayData.bitrixTimePercentage)"
+                                            :stroke="getEfficiencyColorValue(taskPercentage)"
                                             stroke-width="2"
-                                            :stroke-dasharray="`${workDayData.bitrixTimePercentage * 1.0048}, 100`"
+                                            :stroke-dasharray="`${taskPercentage * 1.0048}, 100`"
                                             stroke-linecap="round"
                                             transform="rotate(-90 18 18)"/>
                                   </svg>
@@ -268,7 +247,7 @@
                                         d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
                                 <div class="text-sm text-blue-700">
-                                  Стремитесь к тому, чтобы показатель "Времени не сохранено", дежрался около 0%. Для этого необходимо время, проведенное на страницах Битрикс24 связывать с задачами, в рамках которых выполнялись те или иные действия. Сделать это можно во вкладке "История посещений"
+                                  Стремитесь к тому, чтобы показатель "Времени в задачах" был как можно ближе к 100%. Для этого необходимо время, проведенное на страницах Битрикс24, связывать с задачами, в рамках которых выполнялись те или иные действия.
                                 </div>
                               </div>
                             </div>
@@ -383,6 +362,7 @@
                       </p>
                     </div>
                   </div>
+
                   <!-- CRM статистика -->
                   <div class="mt-6 md:mt-8">
                     <div class="bg-white border border-gray-200 rounded-lg p-4">
@@ -491,7 +471,6 @@ import { useToast } from '@bitrix24/b24ui-nuxt/composables/useToast'
 import { useRoute } from 'vue-router'
 import Sidebar from './Sidebar.vue'
 import Chart from 'chart.js/auto'
-import html2pdf from 'html2pdf.js'
 
 const toast = useToast()
 
@@ -539,38 +518,13 @@ class WorkDayStatisticsManager {
       totalWorkDaySeconds: 28800,
       bitrixTimeSeconds: 0,
       elapsedTaskTimeSeconds: 0,
-      bitrixTimeNonTaskSeconds: 0,
-      workDurationSeconds: 0,
-      breakTimeSeconds: 0,
-
-      bitrixTimePercentage: 0,
-      workDurationPercentage: 0,
-      bitrixTimeOfWorkedPercentage: 0,
-      taskTimeOfBitrixPercentage: 0,
-      nonBitrixTimeSeconds: 0,
-      nonBitrixTimePercentage: 0,
-      remainingWorkDaySeconds: 0,
-      remainingPercentage: 0,
-      averageActivityPerHour: 0,
-      projectedBitrixTime: 0,
-      projectedPercentage: 0
+      bitrixTimeNonTaskSeconds: 0
     })
 
     this.taskTimeData = ref({
       totalWorkDaySeconds: 28800,
-      workDurationSeconds: 0,
       elapsedTaskTimeSeconds: 0,
-      tasks: [],
-
-      taskTimePercentage: 0,
-      workDurationPercentage: 0,
-      taskTimeOfWorkedPercentage: 0,
-      taskEfficiencyPercentage: 0,
-      nonTaskTimeSeconds: 0,
-      averageTimePerTask: 0,
-      maxTaskTime: 0,
-      projectedTaskTime: 0,
-      projectedTaskPercentage: 0
+      tasks: []
     })
 
     this.crmData = ref({
@@ -600,11 +554,8 @@ class WorkDayStatisticsManager {
 
     // Цветовая схема
     this.CHART_COLORS = {
-      WORK_DAY: '#d1d5db',      // серый (рабочее время)
       BITRIX_TIME: '#ef4444',   // красный (время в Bitrix24 без задач)
-      BREAK_TIME: '#f97316',    // оранжевый
-      TASK_TIME: '#10b981',     // зеленый
-      OTHER_TIME: '#8b5cf6'     // фиолетовый
+      TASK_TIME: '#10b981'      // зеленый (время в задачах)
     }
 
     // Кэш профилей пользователей
@@ -641,54 +592,6 @@ class WorkDayStatisticsManager {
         accessorKey: 'responsible',
         header: 'Исполнитель',
         cell: 'responsible'
-      }
-    ]
-
-    this.workDaySettingsColumns = [
-      {
-        accessorKey: 'setting',
-        header: 'Настройка',
-        meta: {
-          class: {
-            th: 'text-xs text-gray-600',
-            td: 'text-xs text-gray-600'
-          }
-        }
-      },
-      {
-        accessorKey: 'value',
-        header: 'Значение',
-        cell: 'value',
-        meta: {
-          class: {
-            th: 'text-right',
-            td: 'text-right'
-          }
-        }
-      }
-    ]
-
-    this.workDayStatusColumns = [
-      {
-        accessorKey: 'setting',
-        header: 'Параметр',
-        meta: {
-          class: {
-            th: 'text-xs text-gray-600',
-            td: 'text-xs text-gray-600'
-          }
-        }
-      },
-      {
-        accessorKey: 'value',
-        header: 'Значение',
-        cell: 'value',
-        meta: {
-          class: {
-            th: 'text-right',
-            td: 'text-right'
-          }
-        }
       }
     ]
 
@@ -770,58 +673,6 @@ class WorkDayStatisticsManager {
   }
 
   // Вычисляемые свойства для таблиц
-  get workDaySettingsTableData() {
-    return [
-      {
-        setting: 'Учет времени',
-        value: this.workDaySettings.value.UF_TIMEMAN ? 'Включен' : 'Выключен',
-        badge: true,
-        badgeColor: this.workDaySettings.value.UF_TIMEMAN ? 'air-primary-success' : 'air-secondary-accent'
-      },
-      {
-        setting: 'Свободный график',
-        value: this.workDaySettings.value.UF_TM_FREE ? 'Да' : 'Нет',
-        badge: true,
-        badgeColor: this.workDaySettings.value.UF_TM_FREE ? 'air-primary-success' : 'air-secondary-accent'
-      },
-      {
-        setting: 'Начало дня до',
-        value: this.workDaySettings.value.UF_TM_MAX_START || 'Не задано',
-        badge: false
-      },
-      {
-        setting: 'Конец дня после',
-        value: this.workDaySettings.value.UF_TM_MIN_FINISH || 'Не задано',
-        badge: false
-      }
-    ]
-  }
-
-  get workDayStatusTableData() {
-    return [
-      {
-        setting: 'Статус',
-        value: this.workDayStatus.value.STATUS,
-        badge: true
-      },
-      {
-        setting: 'Начало',
-        value: this.formatDateTime(this.workDayStatus.value.TIME_START) || 'Не начат',
-        badge: false
-      },
-      {
-        setting: 'Длительность',
-        value: this.workDayStatus.value.DURATION || '00:00:00',
-        badge: false
-      },
-      {
-        setting: 'Перерывы',
-        value: this.workDayStatus.value.TIME_LEAKS || '00:00:00',
-        badge: false
-      }
-    ]
-  }
-
   get createdCrmTableData() {
     return [
       {
@@ -890,76 +741,48 @@ class WorkDayStatisticsManager {
   }
 
   // Остальные вычисляемые свойства
+  get totalBitrixTime() {
+    return this.workDayData.value.bitrixTimeSeconds
+  }
+
+  get taskPercentage() {
+    const total = this.totalBitrixTime
+    const taskTime = this.workDayData.value.elapsedTaskTimeSeconds
+
+    if (total === 0) return 0
+
+    return (taskTime / total) * 100
+  }
+
   get bitrixTimeLegend() {
     const data = this.workDayData.value
-    const workDayStatusValue = this.workDayStatus.value
-
-    const today = new Date().toISOString().split('T')[0]
-    const workDayStart = workDayStatusValue.TIME_START
-    const isTodayWorkDay = workDayStart && workDayStart.includes(today)
-
-    // Базовое время для расчета процентов
-    let baseTime = isTodayWorkDay ?
-        (data.workDurationSeconds || data.totalWorkDaySeconds) :
-        data.totalWorkDaySeconds
 
     // Чистое время в Bitrix24 (без задач)
-    // Важно: bitrixTimeSeconds уже включает время в задачах, поэтому вычитаем
     const pureBitrixTime = Math.max(0, data.bitrixTimeSeconds - data.elapsedTaskTimeSeconds)
 
-    // Время в задачах (уже есть в данных)
+    // Время в задачах
     const taskTime = data.elapsedTaskTimeSeconds
 
-    // Время перерывов (только для сегодняшнего дня)
-    const breakTime = isTodayWorkDay ? data.breakTimeSeconds : 0
+    // Расчет процентов (от общего времени в Bitrix24)
+    const totalBitrixTime = data.bitrixTimeSeconds
 
-    // Оставшееся время = базовое время минус все остальные категории
-    const otherTime = Math.max(0, baseTime - pureBitrixTime - taskTime - breakTime)
-
-    // Расчет процентов для каждого элемента
-    const pureBitrixPercentage = baseTime > 0 ? (pureBitrixTime / baseTime) * 100 : 0
-    const taskPercentage = baseTime > 0 ? (taskTime / baseTime) * 100 : 0
-    const breakPercentage = baseTime > 0 ? (breakTime / baseTime) * 100 : 0
-    const otherPercentage = baseTime > 0 ? (otherTime / baseTime) * 100 : 0
-
-    // Для отладки - проверим сумму процентов
-    const totalPercentage = pureBitrixPercentage + taskPercentage + breakPercentage + otherPercentage
+    const pureBitrixPercentage = totalBitrixTime > 0 ? (pureBitrixTime / totalBitrixTime) * 100 : 0
+    const taskPercentage = totalBitrixTime > 0 ? (taskTime / totalBitrixTime) * 100 : 0
 
     return [
-      {
-        label: 'Bitrix24 (без задач)',
-        description: 'Время в системе, не зафиксированное в задачах',
-        value: pureBitrixTime,
-        percentage: `${pureBitrixPercentage.toFixed(1)}%`,
-        color: this.CHART_COLORS.BITRIX_TIME,
-        icon: ''
-      },
       {
         label: 'Время в задачах',
         description: 'Затраченное время на выполнение задач',
         value: taskTime,
         percentage: `${taskPercentage.toFixed(1)}%`,
-        color: this.CHART_COLORS.TASK_TIME,
-        icon: ''
+        color: this.CHART_COLORS.TASK_TIME
       },
       {
-        label: 'Перерывы',
-        description: 'Время перерывов',
-        value: breakTime,
-        percentage: `${breakPercentage.toFixed(1)}%`,
-        color: this.CHART_COLORS.BREAK_TIME,
-        icon: '',
-      },
-      {
-        label: isTodayWorkDay ? 'Прочее рабочее время' : 'Рабочее время',
-        description: isTodayWorkDay ?
-            'Другая активность в рабочее время' :
-            'Запланированное неиспользованное время',
-        value: otherTime,
-        percentage: `${otherPercentage.toFixed(1)}%`,
-        color: this.CHART_COLORS.WORK_DAY,
-        icon: '',
-        badge: isTodayWorkDay ? 'остаток' : 'план',
+        label: 'Bitrix24 (без задач)',
+        description: 'Время в системе, не зафиксированное в задачах',
+        value: pureBitrixTime,
+        percentage: `${pureBitrixPercentage.toFixed(1)}%`,
+        color: this.CHART_COLORS.BITRIX_TIME
       }
     ]
   }
@@ -981,7 +804,6 @@ class WorkDayStatisticsManager {
   get hasData() {
     return this.workDayData.value.bitrixTimeSeconds > 0 ||
         this.workDayData.value.elapsedTaskTimeSeconds > 0 ||
-        this.workDayData.value.workDurationSeconds > 0 ||
         this.workDayStatus.value.STATUS !== 'CLOSED' ||
         this.taskTimeData.value.elapsedTaskTimeSeconds > 0 ||
         this.crmData.value.timelineEvents.length > 0
@@ -1069,26 +891,6 @@ class WorkDayStatisticsManager {
     return hours * 3600 + minutes * 60 + seconds
   }
 
-  getWorkDayStatusClass(status) {
-    const statusMap = {
-      'OPENED': 'bg-green-100 text-green-800',
-      'CLOSED': 'bg-gray-100 text-gray-800',
-      'PAUSED': 'bg-yellow-100 text-yellow-800',
-      'EXPIRED': 'bg-red-100 text-red-800'
-    }
-    return statusMap[status] || 'bg-gray-100 text-gray-800'
-  }
-
-  getWorkDayStatusText(status) {
-    const statusMap = {
-      'OPENED': 'Открыт',
-      'CLOSED': 'Закрыт',
-      'PAUSED': 'Приостановлен',
-      'EXPIRED': 'Истек'
-    }
-    return statusMap[status] || 'Неизвестно'
-  }
-
   getTaskStatusColor(status) {
     const statusMap = {
       '1': 'air-secondary-accent',
@@ -1135,514 +937,6 @@ class WorkDayStatisticsManager {
     const diffTime = today.getTime() - selectedDate.getTime()
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
     return diffDays > this.historyDays.value
-  }
-
-  // Метод для экспорта в PDF
-  async exportToPDF() {
-    try {
-      this.isLoading.value = true  // Исправлено: добавлен this
-
-      // Создаем элемент для экспорта
-      const element = document.createElement('div')
-      element.className = 'bg-white p-6'
-      element.style.cssText = `
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      color: #333;
-    `
-
-      // Заголовок
-      const header = document.createElement('div')
-      header.style.cssText = `
-      margin-bottom: 30px;
-      border-bottom: 2px solid #e5e7eb;
-      padding-bottom: 20px;
-    `
-      header.innerHTML = `
-      <h1 style="font-size: 24px; font-weight: bold; color: #1f2937; margin-bottom: 8px;">${this.pageTitle}</h1>
-      <p style="color: #6b7280; margin-bottom: 4px;"><strong>Дата:</strong> ${this.formatDayDisplay(this.selectedDay.value)}</p>
-      <p style="color: #6b7280;">Сгенерировано: ${new Date().toLocaleString('ru-RU')}</p>
-    `
-      element.appendChild(header)
-
-      // Статистика эффективности
-      const statsHeader = document.createElement('div')
-      statsHeader.style.cssText = `
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 30px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 20px;
-      border-radius: 8px;
-    `
-      statsHeader.innerHTML = `
-      <div>
-        <div style="font-size: 14px; opacity: 0.9;">Эффективность работы в Bitrix24</div>
-        <div style="font-size: 32px; font-weight: bold; margin-top: 8px;">
-          ${this.formatPercentage(this.workDayData.value.bitrixTimePercentage)}
-        </div>
-        <div style="font-size: 14px; margin-top: 4px;">
-          Рабочий день: ${this.formatDuration(this.workDayData.value.totalWorkDaySeconds)}
-        </div>
-      </div>
-      <div style="text-align: center; padding-left: 30px; border-left: 1px solid rgba(255,255,255,0.2);">
-        <div style="font-size: 14px;">Время в Bitrix24</div>
-        <div style="font-size: 24px; font-weight: bold; margin-top: 4px;">
-          ${this.formatDuration(this.workDayData.value.bitrixTimeSeconds)}
-        </div>
-        <div style="font-size: 14px; margin-top: 4px;">
-          Задачи: ${this.formatDuration(this.workDayData.value.elapsedTaskTimeSeconds)}
-        </div>
-      </div>
-    `
-      element.appendChild(statsHeader)
-
-      // График времени
-      const chartContainer = document.createElement('div')
-      chartContainer.style.cssText = `
-      margin-bottom: 30px;
-      page-break-inside: avoid;
-    `
-
-      // Получаем изображение графика
-      let chartImage = ''
-      if (this.bitrixTimeChart.value) {
-        chartImage = this.bitrixTimeChart.value.toDataURL('image/png')
-      }
-
-      chartContainer.innerHTML = `
-      <div style="margin-bottom: 20px;">
-        <h2 style="font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb;">
-          Распределение рабочего времени
-        </h2>
-      </div>
-
-      <div style="display: flex; flex-wrap: wrap; gap: 20px;">
-        <!-- График -->
-        <div style="flex: 1; min-width: 300px;">
-          <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; background: white;">
-            <div style="position: relative; width: 100%; height: 300px;">
-              ${chartImage ? `
-                <img src="${chartImage}" style="width: 100%; height: 100%; object-fit: contain;" />
-                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
-                  <div style="font-size: 28px; font-weight: bold; color: #1f2937;">${this.formatPercentage(this.workDayData.value.bitrixTimePercentage)}</div>
-                  <div style="font-size: 14px; color: #6b7280; margin-top: 5px;">времени в Bitrix24</div>
-                </div>
-              ` : '<div style="text-align: center; padding: 50px; color: #6b7280;">График недоступен</div>'}
-            </div>
-          </div>
-        </div>
-
-        <!-- Легенда -->
-        <div style="flex: 1; min-width: 300px;">
-          <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; background: white;">
-            <div style="margin-bottom: 15px;">
-              <h3 style="font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 10px;">Детализация времени</h3>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-              ${this.bitrixTimeLegend.map(item => `
-                <div style="display: flex; justify-content: space-between; align-items: center;
-                    padding: 12px; border: 1px solid #e5e7eb; border-radius: 6px;
-                    background: #f9fafb;">
-                  <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="width: 16px; height: 16px; border-radius: 50%; border: 2px solid #fff;
-                        box-shadow: 0 1px 3px rgba(0,0,0,0.1); background-color: ${item.color}"></div>
-                    <div>
-                      <div style="font-weight: 600; color: #1f2937; font-size: 14px;">${item.label}</div>
-                      <div style="font-size: 12px; color: #6b7280;">${item.description}</div>
-                    </div>
-                  </div>
-                  <div style="text-align: right;">
-                    <div style="font-weight: bold; color: ${item.color}; font-size: 14px;">
-                      ${this.formatDuration(item.value)}
-                    </div>
-                    <div style="font-size: 12px; color: #6b7280;">${item.percentage}</div>
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-
-            <!-- Общая статистика -->
-            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div style="text-align: center;">
-                  <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Рабочий день</div>
-                  <div style="font-size: 16px; font-weight: bold; color: #1f2937;">
-                    ${this.formatDuration(this.workDayData.value.totalWorkDaySeconds)}
-                  </div>
-                </div>
-                <div style="text-align: center;">
-                  <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Эффективность</div>
-                  <div style="font-size: 16px; font-weight: bold; ${this.getEfficiencyColor(this.workDayData.value.bitrixTimePercentage)}">
-                    ${this.formatPercentage(this.workDayData.value.bitrixTimePercentage)}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    `
-      element.appendChild(chartContainer)
-
-      // Добавляем график временной шкалы если есть
-      if (this.timelineChart.value && this.crmData.value.timelineEvents.length > 0) {
-        const timelineImage = this.timelineChart.value.toDataURL('image/png')
-
-        const timelineContainer = document.createElement('div')
-        timelineContainer.style.cssText = `
-        margin-bottom: 30px;
-        page-break-inside: avoid;
-      `
-        timelineContainer.innerHTML = `
-        <div style="margin-bottom: 20px;">
-          <h2 style="font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb;">
-            Активность CRM в течение дня
-          </h2>
-        </div>
-
-        <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; background: white;">
-          <div style="width: 100%; height: 300px;">
-            <img src="${timelineImage}" style="width: 100%; height: 100%; object-fit: contain;" />
-          </div>
-          <div style="display: flex; justify-content: center; gap: 30px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <div style="width: 12px; height: 12px; border-radius: 50%; background-color: #10b981;"></div>
-              <span style="font-size: 14px; color: #6b7280;">Создано</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <div style="width: 12px; height: 12px; border-radius: 50%; background-color: #3b82f6;"></div>
-              <span style="font-size: 14px; color: #6b7280;">Обновлено</span>
-            </div>
-          </div>
-        </div>
-      `
-        element.appendChild(timelineContainer)
-      }
-
-      // Рабочий день информация
-      const workDayContainer = document.createElement('div')
-      workDayContainer.style.cssText = `
-      margin-bottom: 30px;
-      page-break-inside: avoid;
-    `
-      workDayContainer.innerHTML = `
-      <div style="margin-bottom: 20px;">
-        <h2 style="font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb;">
-          Данные о рабочем дне
-        </h2>
-      </div>
-
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-        <!-- Настройки рабочего времени -->
-        <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; background: white;">
-          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-            <div style="width: 24px; height: 24px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-                border-radius: 6px; display: flex; align-items: center; justify-content: center;">
-              <span style="color: white; font-size: 14px;">⚙️</span>
-            </div>
-            <h3 style="font-size: 16px; font-weight: 600; color: #1e40af;">Настройки рабочего времени</h3>
-          </div>
-
-          <div style="display: flex; flex-direction: column; gap: 12px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 14px; color: #1e40af;">Учет времени:</span>
-              <span style="font-size: 14px; font-weight: 600; padding: 4px 12px; border-radius: 16px;
-                  background: ${this.workDaySettings.value.UF_TIMEMAN ? '#d1fae5' : '#f3f4f6'};
-                  color: ${this.workDaySettings.value.UF_TIMEMAN ? '#065f46' : '#374151'};">
-                ${this.workDaySettings.value.UF_TIMEMAN ? 'Включен' : 'Выключен'}
-              </span>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 14px; color: #1e40af;">Свободный график:</span>
-              <span style="font-size: 14px; font-weight: 600; padding: 4px 12px; border-radius: 16px;
-                  background: ${this.workDaySettings.value.UF_TM_FREE ? '#d1fae5' : '#f3f4f6'};
-                  color: ${this.workDaySettings.value.UF_TM_FREE ? '#065f46' : '#374151'};">
-                ${this.workDaySettings.value.UF_TM_FREE ? 'Да' : 'Нет'}
-              </span>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 14px; color: #1e40af;">Начало дня до:</span>
-              <span style="font-size: 14px; font-weight: 600; color: #1e40af;">${this.workDaySettings.value.UF_TM_MAX_START || 'Не задано'}</span>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 14px; color: #1e40af;">Конец дня после:</span>
-              <span style="font-size: 14px; font-weight: 600; color: #1e40af;">${this.workDaySettings.value.UF_TM_MIN_FINISH || 'Не задано'}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Текущий рабочий день -->
-        <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; background: white;">
-          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-            <div style="width: 24px; height: 24px; background: linear-gradient(135deg, #10b981 0%, #047857 100%);
-                border-radius: 6px; display: flex; align-items: center; justify-content: center;">
-              <span style="color: white; font-size: 14px;">📅</span>
-            </div>
-            <h3 style="font-size: 16px; font-weight: 600; color: #065f46;">Текущий рабочий день</h3>
-          </div>
-
-          <div style="display: flex; flex-direction: column; gap: 12px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 14px; color: #065f46;">Статус:</span>
-              <span style="font-size: 14px; font-weight: 600; padding: 4px 12px; border-radius: 16px;
-                  background: ${this.workDayStatus.value.STATUS === 'OPENED' ? '#d1fae5' :
-          this.workDayStatus.value.STATUS === 'PAUSED' ? '#fef3c7' :
-              this.workDayStatus.value.STATUS === 'EXPIRED' ? '#fee2e2' : '#f3f4f6'};
-                  color: ${this.workDayStatus.value.STATUS === 'OPENED' ? '#065f46' :
-          this.workDayStatus.value.STATUS === 'PAUSED' ? '#92400e' :
-              this.workDayStatus.value.STATUS === 'EXPIRED' ? '#991b1b' : '#374151'};">
-                ${this.getWorkDayStatusText(this.workDayStatus.value.STATUS)}
-              </span>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 14px; color: #065f46;">Начало:</span>
-              <span style="font-size: 14px; font-weight: 600; color: #065f46; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-                ${this.formatDateTime(this.workDayStatus.value.TIME_START) || 'Не начат'}
-              </span>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 14px; color: #065f46;">Длительность:</span>
-              <span style="font-size: 14px; font-weight: 600; color: #065f46;">${this.workDayStatus.value.DURATION || '00:00:00'}</span>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 14px; color: #065f46;">Перерывы:</span>
-              <span style="font-size: 14px; font-weight: 600; color: #065f46;">${this.workDayStatus.value.TIME_LEAKS || '00:00:00'}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    `
-      element.appendChild(workDayContainer)
-
-      // CRM статистика
-      const crmContainer = document.createElement('div')
-      crmContainer.style.cssText = `
-      margin-bottom: 30px;
-      page-break-inside: avoid;
-    `
-      crmContainer.innerHTML = `
-      <div style="margin-bottom: 20px;">
-        <h2 style="font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb;">
-          Активность CRM
-        </h2>
-      </div>
-
-      <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; background: white;">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-          <!-- Созданные -->
-          <div>
-            <h3 style="font-size: 16px; font-weight: 600; color: #10b981; margin-bottom: 15px;
-                padding-bottom: 10px; border-bottom: 1px solid #e5e7eb;">
-              Создано
-            </h3>
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-              ${[
-        { label: 'Сделки', value: this.crmData.value.createdDealsCount },
-        { label: 'Лиды', value: this.crmData.value.createdLeadsCount },
-        { label: 'Контакты', value: this.crmData.value.createdContactsCount },
-        { label: 'Компании', value: this.crmData.value.createdCompaniesCount }
-      ].map(item => `
-                <div style="display: flex; justify-content: space-between; align-items: center;
-                    padding: 10px; border-radius: 6px; background: #f0fdf4; border: 1px solid #d1fae5;">
-                  <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 8px; height: 8px; border-radius: 50%; background-color: #10b981;"></div>
-                    <span style="font-size: 14px; color: #374151;">${item.label}</span>
-                  </div>
-                  <span style="font-size: 16px; font-weight: bold; color: #10b981;">${item.value}</span>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-
-          <!-- Обновленные -->
-          <div>
-            <h3 style="font-size: 16px; font-weight: 600; color: #3b82f6; margin-bottom: 15px;
-                padding-bottom: 10px; border-bottom: 1px solid #e5e7eb;">
-              Обновлено
-            </h3>
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-              ${[
-        { label: 'Сделки', value: this.crmData.value.updatedDealsCount },
-        { label: 'Лиды', value: this.crmData.value.updatedLeadsCount },
-        { label: 'Контакты', value: this.crmData.value.updatedContactsCount },
-        { label: 'Компании', value: this.crmData.value.updatedCompaniesCount }
-      ].map(item => `
-                <div style="display: flex; justify-content: space-between; align-items: center;
-                    padding: 10px; border-radius: 6px; background: #eff6ff; border: 1px solid #dbeafe;">
-                  <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 8px; height: 8px; border-radius: 50%; background-color: #3b82f6;"></div>
-                    <span style="font-size: 14px; color: #374151;">${item.label}</span>
-                  </div>
-                  <span style="font-size: 16px; font-weight: bold; color: #3b82f6;">${item.value}</span>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-        </div>
-
-        <!-- Статусы сделок и лидов -->
-        <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-          <h3 style="font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 15px;">
-            Статусы сделок и лидов
-          </h3>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-            ${[
-        { label: 'Успешные сделки', value: this.crmData.value.successfulDealsCount, colorClass: 'color: #10b981' },
-        { label: 'Провальные сделки', value: this.crmData.value.failedDealsCount, colorClass: 'color: #ef4444' },
-        { label: 'Успешные лиды', value: this.crmData.value.convertedLeadsCount, colorClass: 'color: #10b981' },
-        { label: 'Провальные лиды', value: this.crmData.value.junkLeadsCount, colorClass: 'color: #ef4444' }
-      ].map(item => `
-              <div style="display: flex; justify-content: space-between; align-items: center;
-                  padding: 8px; border-radius: 6px; background: #f9fafb;">
-                <span style="font-size: 14px; color: #6b7280;">${item.label}</span>
-                <span style="font-size: 14px; font-weight: bold; ${item.colorClass}">${item.value}</span>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      </div>
-    `
-      element.appendChild(crmContainer)
-
-      // Список задач
-      if (this.taskTimeData.value.tasks.length > 0) {
-        const tasksContainer = document.createElement('div')
-        tasksContainer.style.cssText = `
-        margin-bottom: 30px;
-        page-break-inside: avoid;
-      `
-
-        const tasksToShow = this.taskTimeData.value.tasks.slice(0, 50)
-
-        tasksContainer.innerHTML = `
-        <div style="margin-bottom: 20px;">
-          <h2 style="font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb;">
-            Задачи за день (${this.taskTimeData.value.tasks.length})
-          </h2>
-        </div>
-
-        <div style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; background: white;">
-          <!-- Заголовок таблицы -->
-          <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
-              background: #f9fafb; padding: 12px 16px; border-bottom: 1px solid #e5e7eb;">
-            <div style="font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase;">Задача</div>
-            <div style="font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase;">Статус</div>
-            <div style="font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase;">Время</div>
-            <div style="font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase;">Исполнитель</div>
-          </div>
-
-          <!-- Строки таблицы -->
-          <div>
-            ${tasksToShow.map((task, index) => `
-              <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
-                  padding: 12px 16px; border-bottom: 1px solid #f3f4f6;
-                  ${index % 2 === 0 ? 'background: #f9fafb;' : 'background: white;'}">
-                <div style="min-width: 0;">
-                  <div style="font-weight: 600; color: #1f2937; font-size: 14px; margin-bottom: 2px;
-                      overflow: hidden; text-overflow: ellipsis;">
-                    ${task.title || `Задача #${task.id}`}
-                  </div>
-                  <div style="font-size: 12px; color: #6b7280;">ID: ${task.id}</div>
-                </div>
-
-                <div>
-                  <span style="font-size: 12px; font-weight: 600; padding: 4px 8px; border-radius: 12px;
-                      background: ${this.getTaskStatusColor(task.status).includes('success') ? '#d1fae5' :
-            this.getTaskStatusColor(task.status).includes('warning') ? '#fef3c7' :
-                this.getTaskStatusColor(task.status).includes('critical') ? '#fee2e2' : '#f3f4f6'};
-                      color: ${this.getTaskStatusColor(task.status).includes('success') ? '#065f46' :
-            this.getTaskStatusColor(task.status).includes('warning') ? '#92400e' :
-                this.getTaskStatusColor(task.status).includes('critical') ? '#991b1b' : '#374151'};">
-                    ${this.getTaskStatusText(task.status)}
-                  </span>
-                </div>
-
-                <div>
-                  <div style="font-size: 14px; font-weight: 600; color: #10b981;">
-                    ${this.formatDuration(task.timeSpent)}
-                  </div>
-                  <div style="font-size: 12px; color: #6b7280;">${task.elapsedItemsCount} записей</div>
-                </div>
-
-                <div style="font-size: 14px; color: #374151; overflow: hidden; text-overflow: ellipsis;">
-                  ${task.responsibleName || 'Текущий пользователь'}
-                </div>
-              </div>
-            `).join('')}
-
-            ${this.taskTimeData.value.tasks.length > 50 ? `
-              <div style="text-align: center; padding: 20px; color: #6b7280; font-style: italic; border-top: 1px solid #e5e7eb;">
-                ...и еще ${this.taskTimeData.value.tasks.length - 50} задач
-              </div>
-            ` : ''}
-          </div>
-        </div>
-      `
-        element.appendChild(tasksContainer)
-      }
-
-      // Футер
-      const footer = document.createElement('div')
-      footer.style.cssText = `
-      margin-top: 40px;
-      padding-top: 20px;
-      border-top: 1px solid #e5e7eb;
-      text-align: center;
-      color: #6b7280;
-      font-size: 12px;
-    `
-      footer.innerHTML = `
-      <p>Bitrix24 Статистика рабочего дня</p>
-      <p>Сгенерировано автоматически • ${new Date().toLocaleString('ru-RU')}</p>
-    `
-      element.appendChild(footer)
-
-      // Настройки PDF
-      const opt = {
-        margin: 0.5,
-        filename: `bitrix24-статистика-${this.selectedDay.value}.pdf`,
-        image: {
-          type: 'jpeg',
-          quality: 0.98
-        },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          backgroundColor: '#ffffff'
-        },
-        jsPDF: {
-          unit: 'in',
-          format: 'a4',
-          orientation: 'portrait'
-        }
-      }
-
-      // Генерация PDF
-      await html2pdf().set(opt).from(element).save()
-
-      toast.add({
-        description: 'PDF успешно экспортирован',
-        variant: 'success'
-      })
-
-    } catch (error) {
-      console.error('Ошибка экспорта PDF:', error)
-      toast.add({
-        description: 'Ошибка при экспорте PDF: ' + error.message,
-        variant: 'error'
-      })
-    } finally {
-      this.isLoading.value = false  // Исправлено: добавлен this
-    }
   }
 
   // Методы для работы с Chart.js
@@ -1944,7 +1238,7 @@ class WorkDayStatisticsManager {
       },
       plugins: {
         legend: {
-          display: false // Легенда не нужна, так как одна линия
+          display: false
         },
         tooltip: {
           enabled: true,
@@ -1993,19 +1287,16 @@ class WorkDayStatisticsManager {
             }
           }
         },
-        // Добавляем анимацию для плавного появления
         animation: {
           duration: isMobile ? 500 : 800,
           easing: 'easeOutQuart',
           animateScale: true,
           animateRotate: false
         },
-        // Добавляем подписи значений над точками (только для десктопа)
         datalabels: {
-          display: false // Отключаем, чтобы не перегружать
+          display: false
         }
       },
-      // Оптимизация для мобильных устройств
       hover: {
         mode: 'nearest',
         intersect: true,
@@ -2079,36 +1370,13 @@ class WorkDayStatisticsManager {
       totalWorkDaySeconds: 28800,
       bitrixTimeSeconds: 0,
       elapsedTaskTimeSeconds: 0,
-      bitrixTimeNonTaskSeconds: 0,
-      workDurationSeconds: 0,
-      breakTimeSeconds: 0,
-      bitrixTimePercentage: 0,
-      workDurationPercentage: 0,
-      bitrixTimeOfWorkedPercentage: 0,
-      taskTimeOfBitrixPercentage: 0,
-      nonBitrixTimeSeconds: 0,
-      nonBitrixTimePercentage: 0,
-      remainingWorkDaySeconds: 0,
-      remainingPercentage: 0,
-      averageActivityPerHour: 0,
-      projectedBitrixTime: 0,
-      projectedPercentage: 0
+      bitrixTimeNonTaskSeconds: 0
     }
 
     this.taskTimeData.value = {
       totalWorkDaySeconds: 28800,
-      workDurationSeconds: 0,
       elapsedTaskTimeSeconds: 0,
-      tasks: [],
-      taskTimePercentage: 0,
-      workDurationPercentage: 0,
-      taskTimeOfWorkedPercentage: 0,
-      taskEfficiencyPercentage: 0,
-      nonTaskTimeSeconds: 0,
-      averageTimePerTask: 0,
-      maxTaskTime: 0,
-      projectedTaskTime: 0,
-      projectedTaskPercentage: 0
+      tasks: []
     }
 
     this.crmData.value = {
@@ -2251,26 +1519,6 @@ class WorkDayStatisticsManager {
 
       if (results[0]) {
         this.workDayStatus.value = results[0]
-
-        const workDurationSeconds = this.timeStringToSeconds(
-            this.workDayStatus.value.DURATION
-        )
-        const breakTimeSeconds = this.timeStringToSeconds(
-            this.workDayStatus.value.TIME_LEAKS || '00:00:00'
-        )
-
-        this.workDayData.value.workDurationSeconds = workDurationSeconds
-        this.taskTimeData.value.workDurationSeconds = workDurationSeconds
-
-        const today = new Date().toISOString().split('T')[0]
-        const workDayStart = this.workDayStatus.value.TIME_START
-        const isTodayWorkDay = workDayStart && workDayStart.includes(today)
-
-        if (isTodayWorkDay) {
-          this.workDayData.value.breakTimeSeconds = breakTimeSeconds
-        } else {
-          this.workDayData.value.breakTimeSeconds = 0
-        }
       }
     } catch (error) {
       this.showNotification('error', 'Ошибка загрузки статуса рабочего дня')
@@ -2462,20 +1710,11 @@ class WorkDayStatisticsManager {
         })
       }
 
-      const maxTaskTime = tasksArray.length > 0
-          ? Math.max(...tasksArray.map(t => t.timeSpent))
-          : 0
-      const averageTimePerTask = tasksArray.length > 0
-          ? totalElapsedTaskTime / tasksArray.length
-          : 0
-
       tasksArray.sort((a, b) => b.timeSpent - a.timeSpent)
 
       this.taskTimeData.value.tasks = tasksArray
       this.taskTimeData.value.elapsedTaskTimeSeconds = totalElapsedTaskTime
       this.workDayData.value.elapsedTaskTimeSeconds = totalElapsedTaskTime
-      this.taskTimeData.value.maxTaskTime = maxTaskTime
-      this.taskTimeData.value.averageTimePerTask = averageTimePerTask
 
       return tasksArray
     } catch (error) {
@@ -2788,84 +2027,8 @@ class WorkDayStatisticsManager {
   }
 
   calculateDerivedData() {
-    const data = this.workDayData.value
-    const totalBitrixTime = data.bitrixTimeSeconds
-    const taskTime = data.elapsedTaskTimeSeconds
-    const pureBitrixTime = totalBitrixTime - taskTime
-
-    const today = new Date().toISOString().split('T')[0]
-    const workDayStart = this.workDayStatus.value.TIME_START
-    const isTodayWorkDay = workDayStart && workDayStart.includes(today)
-
-    const actualBreakTime = isTodayWorkDay ? data.breakTimeSeconds : 0
-
-    const baseTime = isTodayWorkDay ?
-        (data.workDurationSeconds || data.totalWorkDaySeconds) :
-        data.totalWorkDaySeconds
-
-    data.nonBitrixTimeSeconds = Math.max(0,
-        baseTime - pureBitrixTime - taskTime - actualBreakTime
-    )
-
-    data.bitrixTimePercentage = baseTime > 0
-        ? (pureBitrixTime / baseTime) * 100
-        : 0
-
-    data.workDurationPercentage = data.totalWorkDaySeconds > 0
-        ? (data.workDurationSeconds / data.totalWorkDaySeconds) * 100
-        : 0
-
-    data.bitrixTimeOfWorkedPercentage = data.workDurationSeconds > 0
-        ? (pureBitrixTime / data.workDurationSeconds) * 100
-        : 0
-
-    data.taskTimeOfBitrixPercentage = pureBitrixTime > 0
-        ? (taskTime / pureBitrixTime) * 100
-        : 0
-
-    data.nonBitrixTimePercentage = baseTime > 0
-        ? (data.nonBitrixTimeSeconds / baseTime) * 100
-        : 0
-
-    if (isTodayWorkDay) {
-      data.remainingWorkDaySeconds = Math.max(0, data.totalWorkDaySeconds - data.workDurationSeconds)
-    } else {
-      data.remainingWorkDaySeconds = 0
-    }
-
-    data.remainingPercentage = data.totalWorkDaySeconds > 0
-        ? (data.remainingWorkDaySeconds / data.totalWorkDaySeconds) * 100
-        : 0
-
-    const workDurationHours = data.workDurationSeconds / 3600
-    data.averageActivityPerHour = workDurationHours > 0
-        ? pureBitrixTime / 3600 / workDurationHours
-        : 0
-
-    const workDayProgress = isTodayWorkDay && data.totalWorkDaySeconds > 0
-        ? data.workDurationSeconds / data.totalWorkDaySeconds
-        : 1
-
-    data.projectedBitrixTime = workDayProgress > 0
-        ? pureBitrixTime / workDayProgress
-        : pureBitrixTime
-
-    data.projectedPercentage = data.totalWorkDaySeconds > 0
-        ? (data.projectedBitrixTime / data.totalWorkDaySeconds) * 100
-        : 0
-
-    data.bitrixTimePercentage = Math.min(data.bitrixTimePercentage, 100)
-    data.workDurationPercentage = Math.min(data.workDurationPercentage, 100)
-    data.bitrixTimeOfWorkedPercentage = Math.min(data.bitrixTimeOfWorkedPercentage, 100)
-    data.taskTimeOfBitrixPercentage = Math.min(data.taskTimeOfBitrixPercentage, 100)
-    data.nonBitrixTimePercentage = Math.min(data.nonBitrixTimePercentage, 100)
-    data.projectedPercentage = Math.min(data.projectedPercentage, 100)
-
-    if (!isTodayWorkDay) {
-      data.workDurationPercentage = 100
-      data.remainingPercentage = 0
-      data.projectedBitrixTime = pureBitrixTime
-    }
+    // Просто оставляем как есть, ничего не рассчитываем
+    // Данные уже загружены в workDayData и taskTimeData
   }
 
   async loadData() {
@@ -2928,6 +2091,7 @@ class WorkDayStatisticsManager {
       this.isLoading.value = false
     }
   }
+
   getEfficiencyColorValue(percentage) {
     const num = parseFloat(percentage)
     if (num >= 80) return '#10b981'
@@ -2979,18 +2143,18 @@ export default {
       currentUserId: manager.currentUserId,
       showAllTasks: manager.showAllTasks,
 
+      // Новые вычисляемые свойства
+      totalBitrixTime: computed(() => manager.totalBitrixTime),
+      taskPercentage: computed(() => manager.taskPercentage),
+
       // Данные для таблиц B24Table
       displayedTasks: computed(() => manager.displayedTasks),
-      workDaySettingsTableData: computed(() => manager.workDaySettingsTableData),
-      workDayStatusTableData: computed(() => manager.workDayStatusTableData),
       createdCrmTableData: computed(() => manager.createdCrmTableData),
       updatedCrmTableData: computed(() => manager.updatedCrmTableData),
       crmStatusTableData: computed(() => manager.crmStatusTableData),
 
       // Колонки таблиц
       taskColumns: manager.taskColumns,
-      workDaySettingsColumns: manager.workDaySettingsColumns,
-      workDayStatusColumns: manager.workDayStatusColumns,
       crmColumns: manager.crmColumns,
       crmStatusColumns: manager.crmStatusColumns,
 
@@ -3008,14 +2172,11 @@ export default {
       // Методы
       handleCalendarDateChange: manager.handleCalendarDateChange.bind(manager),
       refreshData: manager.refreshData.bind(manager),
-      exportToPDF: manager.exportToPDF.bind(manager),
       formatDayDisplay: manager.formatDayDisplay.bind(manager),
       formatDuration: manager.formatDuration.bind(manager),
       formatPercentage: manager.formatPercentage.bind(manager),
       formatDateTime: manager.formatDateTime.bind(manager),
       formatTime: manager.formatTime.bind(manager),
-      getWorkDayStatusClass: manager.getWorkDayStatusClass.bind(manager),
-      getWorkDayStatusText: manager.getWorkDayStatusText.bind(manager),
       getTaskStatusColor: manager.getTaskStatusColor.bind(manager),
       getTaskStatusText: manager.getTaskStatusText.bind(manager),
       getEfficiencyColor: manager.getEfficiencyColor.bind(manager),
@@ -3025,7 +2186,6 @@ export default {
       getEfficiencyColorValue: manager.getEfficiencyColorValue.bind(manager),
       getTaskUrl: manager.getTaskUrl.bind(manager),
       getUserUrl: manager.getUserUrl.bind(manager),
-
     }
   }
 }
