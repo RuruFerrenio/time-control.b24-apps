@@ -244,7 +244,8 @@
 
                         <!-- Категория в виде бейджа -->
                         <td class="text-sm">
-                          <B24Badge :class="getCategoryBadgeClass(page.category)">
+                          <B24Badge :class="getCategoryBadgeClass(page.category)"
+                                    class="whitespace-nowrap overflow-scroll md:overflow-auto max-w-full inline-block">
                             {{ page.category || 'Без категории' }}
                           </B24Badge>
                         </td>
@@ -437,7 +438,8 @@
 
                         <!-- Любимая категория -->
                         <td class="text-sm">
-                          <B24Badge :class="getCategoryBadgeClass(user.favoriteCategory)">
+                          <B24Badge :class="getCategoryBadgeClass(user.favoriteCategory)"
+                                    class="whitespace-nowrap overflow-scroll md:overflow-auto max-w-full inline-block">
                             {{ user.favoriteCategory || 'Без категории' }}
                           </B24Badge>
                         </td>
@@ -599,7 +601,8 @@
                       <tr v-for="(category, index) in paginatedCategories" :key="index" class="hover:bg-gray-50">
                         <!-- Категория с бейджем -->
                         <td class="text-sm">
-                          <B24Badge :class="getCategoryBadgeClass(category.category)">
+                          <B24Badge :class="getCategoryBadgeClass(category.category)"
+                                    class="whitespace-nowrap overflow-scroll md:overflow-auto max-w-full inline-block">
                             {{ category.category || 'Без категории' }}
                           </B24Badge>
                         </td>
@@ -837,7 +840,8 @@
               <div class="min-w-0">
                 <div class="text-sm font-medium text-blue-900 mb-1">Информация о категории</div>
                 <div class="text-sm text-blue-700">
-                  <B24Badge :class="getCategoryBadgeClass(modalCategoryData.category)">
+                  <B24Badge :class="getCategoryBadgeClass(modalCategoryData.category)"
+                            class="whitespace-nowrap overflow-scroll md:overflow-auto max-w-full inline-block">
                     {{ modalCategoryData.category || 'Без категории' }}
                   </B24Badge>
                 </div>
@@ -950,7 +954,8 @@
               <div class="min-w-0">
                 <div class="text-sm font-medium text-blue-900 mb-1">Информация о категории</div>
                 <div class="text-sm text-blue-700">
-                  <B24Badge :class="getCategoryBadgeClass(modalCategoryData.category)">
+                  <B24Badge :class="getCategoryBadgeClass(modalCategoryData.category)"
+                            class="whitespace-nowrap overflow-scroll md:overflow-auto max-w-full inline-block">
                     {{ modalCategoryData.category || 'Без категории' }}
                   </B24Badge>
                 </div>
