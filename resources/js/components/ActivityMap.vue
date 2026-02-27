@@ -1069,7 +1069,7 @@ class ActivityMapManager {
     this.categories = ref(categoriesData.categories)
     this.showAllEmployees = ref({})
     this.isLoadingProfile = ref(false)
-    this.activeTab = ref('pages') // Активный таб: 'pages', 'users' или 'categories'
+    this.activeTab = ref('categories') // Активный таб: 'pages', 'users' или 'categories'
     this.historyDays = ref(30) // Количество дней истории для закрашивания дат
 
     // Сортировка для страниц
