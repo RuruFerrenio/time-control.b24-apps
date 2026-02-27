@@ -121,7 +121,7 @@
                     { label: 'По категориям', value: 'categories' }
                   ]"
                   @update:modelValue="onTabChange"
-                  class="w-full overflow-scroll md:overflow-auto"
+                  class="flex w-full whitespace-nowrap overflow-scroll md:overflow-auto"
               />
 
               <!-- Прелоадер при загрузке -->
