@@ -2392,7 +2392,8 @@ export default {
       resetDateRange: activityMapManager.resetDateRange.bind(activityMapManager),
       formatDateRangeDisplay: activityMapManager.formatDateRangeDisplay.bind(activityMapManager),
       isDateDisabled: activityMapManager.isDateDisabled.bind(activityMapManager),
-      isDateUnavailable: activityMapManager.isDateUnavailable.bind(activityMapManager)
+      isDateUnavailable: activityMapManager.isDateUnavailable.bind(activityMapManager),
+      getCurrentData: activityMapManager.getCurrentData.bind(activityMapManager),
     }
   }
 }
