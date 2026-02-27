@@ -122,9 +122,9 @@
               <B24Tabs
                   v-model="activeTab"
                   :items="[
-                    { label: 'По страницам', value: 'pages' },
-                    { label: 'По сотрудникам', value: 'users' },
-                    { label: 'По категориям', value: 'categories' }
+                    { label: 'Категории', value: 'categories' },
+                    { label: 'Страницы', value: 'pages' },
+                    { label: 'Сотрудники', value: 'users' },
                   ]"
                   @update:modelValue="onTabChange"
                   class="w-full whitespace-nowrap overflow-scroll md:overflow-auto"
