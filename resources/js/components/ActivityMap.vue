@@ -242,7 +242,8 @@
 
                         <!-- Категория в виде бейджа -->
                         <td class="text-sm">
-                          <B24Badge :class="getCategoryBadgeClass(page.category)">
+                          <B24Badge :class="getCategoryBadgeClass(page.category)"
+                                    class="whitespace-nowrap overflow-scroll md:overflow-auto max-w-full inline-block">
                             {{ page.category || 'Без категории' }}
                           </B24Badge>
                         </td>
@@ -451,7 +452,8 @@
 
                         <!-- Любимая категория -->
                         <td class="text-sm">
-                          <B24Badge :class="getCategoryBadgeClass(user.favoriteCategory)">
+                          <B24Badge :class="getCategoryBadgeClass(user.favoriteCategory)"
+                                    class="whitespace-nowrap overflow-scroll md:overflow-auto max-w-full inline-block">
                             {{ user.favoriteCategory || 'Без категории' }}
                           </B24Badge>
                         </td>
