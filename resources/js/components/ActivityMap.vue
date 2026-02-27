@@ -50,9 +50,11 @@
 
               <!-- Календарь для выбора диапазона -->
               <div>
-                <div class="flex flex-col md:flex-row gap-2">
-                  <div class="flex-1">
-                    <B24Popover>
+                <!-- Мобильная версия: кнопки в ряд (3/4 + 1/4) -->
+                <div class="flex flex-row gap-2">
+                  <!-- Кнопка выбора периода - 3/4 ширины -->
+                  <div class="w-3/4 min-w-0">
+                    <B24Popover class="w-full">
                       <B24Button
                           :disabled="isLoading"
                           color="air-secondary-accent"
@@ -91,24 +93,28 @@
                       </template>
                     </B24Popover>
                   </div>
-                  <B24Button
-                      @click="resetDateRange"
-                      :disabled="isLoading"
-                      color="air-secondary-accent"
-                      size="lg"
-                      class="flex-shrink-0"
-                      :title="'Сбросить фильтр по дате'"
-                  >
-                    <svg
-                        class="w-4 h-4"
-                        :class="{ 'animate-spin': isLoading }"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+
+                  <!-- Кнопка сброса - 1/4 ширины -->
+                  <div class="w-1/4">
+                    <B24Button
+                        @click="resetDateRange"
+                        :disabled="isLoading"
+                        color="air-secondary-accent"
+                        size="lg"
+                        class="w-full"
+                        :title="'Сбросить фильтр по дате'"
                     >
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                  </B24Button>
+                      <svg
+                          class="w-4 h-4 mx-auto"
+                          :class="{ 'animate-spin': isLoading }"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                      >
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                    </B24Button>
+                  </div>
                 </div>
               </div>
 
