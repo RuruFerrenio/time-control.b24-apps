@@ -35,7 +35,7 @@
                   </B24Button>
                   <B24Button
                       @click="exportToXLS"
-                      :disabled="isLoading || filteredPages.length === 0"
+                      :disabled="isLoading || (activeTab === 'pages' ? filteredPages.length === 0 : filteredUsersData.length === 0)"
                       color="air-secondary"
                       size="sm"
                       class="flex-1 w-full sm:w-auto justify-center"
@@ -111,6 +111,17 @@
                 </div>
               </div>
 
+              <!-- Табы для переключения режимов просмотра -->
+              <B24Tabs
+                  v-model="activeTab"
+                  :items="[
+                    { label: 'По страницам', value: 'pages' },
+                    { label: 'По сотрудникам', value: 'users' }
+                  ]"
+                  @update:modelValue="onTabChange"
+                  class="w-full whitespace-nowrap overflow-hidden"
+              />
+
               <!-- Прелоадер при загрузке -->
               <div v-if="isLoading" class="text-center py-12">
                 <svg class="w-8 h-8 mx-auto mb-3 text-gray-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -119,190 +130,396 @@
                 <p class="text-sm text-gray-500">Загрузка данных...</p>
               </div>
 
-              <!-- Данные -->
-              <div v-else-if="!isLoading && processedData.length > 0">
-                <B24TableWrapper
-                    class="overflow-x-auto w-full border border-gray-200 rounded-lg"
-                    size="sm"
-                    zebra
-                    row-hover
-                    :b24ui="{
-                      base: '[&>table>thead>tr]:border-gray-200 [&>table>tbody>tr]:border-gray-100'
-                    }"
-                >
-                  <table class="min-w-full">
-                    <!-- Заголовок таблицы с сортировкой -->
-                    <thead class="bg-gray-50">
-                    <tr>
-                      <th
-                          @click="sortBy('url')"
-                          class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
-                      >
-                        <div class="flex items-center space-x-1">
-                          <span>Страница</span>
-                          <span v-if="sortColumn === 'url'" class="text-gray-400">
-                            {{ sortDirection === 'asc' ? '↑' : '↓' }}
-                          </span>
-                        </div>
-                      </th>
-                      <th
-                          @click="sortBy('category')"
-                          class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
-                      >
-                        <div class="flex items-center space-x-1">
-                          <span>Категория</span>
-                          <span v-if="sortColumn === 'category'" class="text-gray-400">
-                            {{ sortDirection === 'asc' ? '↑' : '↓' }}
-                          </span>
-                        </div>
-                      </th>
-                      <th
-                          @click="sortBy('employeeCount')"
-                          class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
-                      >
-                        <div class="flex items-center space-x-1">
-                          <span>Кол-во сотрудников</span>
-                          <span v-if="sortColumn === 'employeeCount'" class="text-gray-400">
-                            {{ sortDirection === 'asc' ? '↑' : '↓' }}
-                          </span>
-                        </div>
-                      </th>
-                      <th
-                          @click="sortBy('totalTime')"
-                          class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
-                      >
-                        <div class="flex items-center space-x-1">
-                          <span>Общее время</span>
-                          <span v-if="sortColumn === 'totalTime'" class="text-gray-400">
-                            {{ sortDirection === 'asc' ? '↑' : '↓' }}
-                          </span>
-                        </div>
-                      </th>
-                      <th
-                          @click="sortBy('averageTime')"
-                          class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
-                      >
-                        <div class="flex items-center space-x-1">
-                          <span>Среднее время</span>
-                          <span v-if="sortColumn === 'averageTime'" class="text-gray-400">
-                            {{ sortDirection === 'asc' ? '↑' : '↓' }}
-                          </span>
-                        </div>
-                      </th>
-                      <th
-                          @click="sortBy('maxTime')"
-                          class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
-                      >
-                        <div class="flex items-center space-x-1">
-                          <span>Максимальное время</span>
-                          <span v-if="sortColumn === 'maxTime'" class="text-gray-400">
-                            {{ sortDirection === 'asc' ? '↑' : '↓' }}
-                          </span>
-                        </div>
-                      </th>
-                      <th
-                          @click="sortBy('minTime')"
-                          class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
-                      >
-                        <div class="flex items-center space-x-1">
-                          <span>Минимальное время</span>
-                          <span v-if="sortColumn === 'minTime'" class="text-gray-400">
-                            {{ sortDirection === 'asc' ? '↑' : '↓' }}
-                          </span>
-                        </div>
-                      </th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr v-for="(page, index) in paginatedPages" :key="index" class="hover:bg-gray-50">
-                      <!-- URL страницы -->
-                      <td class="text-sm">
-                        <a
-                            :href="page.url"
-                            target="_blank"
-                            class="text-blue-600 hover:text-blue-800 hover:underline"
-                            :title="page.url"
+              <!-- Режим просмотра: По страницам -->
+              <div v-else-if="activeTab === 'pages'">
+                <!-- Данные -->
+                <div v-if="!isLoading && processedData.length > 0">
+                  <B24TableWrapper
+                      class="overflow-x-auto w-full border border-gray-200 rounded-lg"
+                      size="sm"
+                      zebra
+                      row-hover
+                      :b24ui="{
+                        base: '[&>table>thead>tr]:border-gray-200 [&>table>tbody>tr]:border-gray-100'
+                      }"
+                  >
+                    <table class="min-w-full">
+                      <!-- Заголовок таблицы с сортировкой -->
+                      <thead class="bg-gray-50">
+                      <tr>
+                        <th
+                            @click="sortBy('url')"
+                            class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
                         >
-                          {{ page.url }}
-                        </a>
-                      </td>
-
-                      <!-- Категория в виде бейджа -->
-                      <td class="text-sm">
-                        <B24Badge :class="getCategoryBadgeClass(page.category)">
-                          {{ page.category || 'Без категории' }}
-                        </B24Badge>
-                      </td>
-
-                      <!-- Количество сотрудников (кликабельно) -->
-                      <td class="text-sm">
-                        <button
-                            @click="showEmployeesModal(page)"
-                            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors cursor-pointer"
+                          <div class="flex items-center space-x-1">
+                            <span>Страница</span>
+                            <span v-if="sortColumn === 'url'" class="text-gray-400">
+                              {{ sortDirection === 'asc' ? '↑' : '↓' }}
+                            </span>
+                          </div>
+                        </th>
+                        <th
+                            @click="sortBy('category')"
+                            class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
                         >
-                          {{ page.employeeCount }}
-                        </button>
-                      </td>
+                          <div class="flex items-center space-x-1">
+                            <span>Категория</span>
+                            <span v-if="sortColumn === 'category'" class="text-gray-400">
+                              {{ sortDirection === 'asc' ? '↑' : '↓' }}
+                            </span>
+                          </div>
+                        </th>
+                        <th
+                            @click="sortBy('employeeCount')"
+                            class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+                        >
+                          <div class="flex items-center space-x-1">
+                            <span>Кол-во сотрудников</span>
+                            <span v-if="sortColumn === 'employeeCount'" class="text-gray-400">
+                              {{ sortDirection === 'asc' ? '↑' : '↓' }}
+                            </span>
+                          </div>
+                        </th>
+                        <th
+                            @click="sortBy('totalTime')"
+                            class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+                        >
+                          <div class="flex items-center space-x-1">
+                            <span>Общее время</span>
+                            <span v-if="sortColumn === 'totalTime'" class="text-gray-400">
+                              {{ sortDirection === 'asc' ? '↑' : '↓' }}
+                            </span>
+                          </div>
+                        </th>
+                        <th
+                            @click="sortBy('averageTime')"
+                            class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+                        >
+                          <div class="flex items-center space-x-1">
+                            <span>Среднее время</span>
+                            <span v-if="sortColumn === 'averageTime'" class="text-gray-400">
+                              {{ sortDirection === 'asc' ? '↑' : '↓' }}
+                            </span>
+                          </div>
+                        </th>
+                        <th
+                            @click="sortBy('maxTime')"
+                            class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+                        >
+                          <div class="flex items-center space-x-1">
+                            <span>Максимальное время</span>
+                            <span v-if="sortColumn === 'maxTime'" class="text-gray-400">
+                              {{ sortDirection === 'asc' ? '↑' : '↓' }}
+                            </span>
+                          </div>
+                        </th>
+                        <th
+                            @click="sortBy('minTime')"
+                            class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+                        >
+                          <div class="flex items-center space-x-1">
+                            <span>Минимальное время</span>
+                            <span v-if="sortColumn === 'minTime'" class="text-gray-400">
+                              {{ sortDirection === 'asc' ? '↑' : '↓' }}
+                            </span>
+                          </div>
+                        </th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <tr v-for="(page, index) in paginatedPages" :key="index" class="hover:bg-gray-50">
+                        <!-- URL страницы -->
+                        <td class="text-sm">
+                          <a
+                              :href="page.url"
+                              target="_blank"
+                              class="text-blue-600 hover:text-blue-800 hover:underline"
+                              :title="page.url"
+                          >
+                            {{ page.url }}
+                          </a>
+                        </td>
 
-                      <!-- Общее время -->
-                      <td class="text-sm font-medium">{{ formatDuration(page.totalTime) }}</td>
+                        <!-- Категория в виде бейджа -->
+                        <td class="text-sm">
+                          <B24Badge :class="getCategoryBadgeClass(page.category)">
+                            {{ page.category || 'Без категории' }}
+                          </B24Badge>
+                        </td>
 
-                      <!-- Среднее время -->
-                      <td class="text-sm">{{ formatDuration(page.averageTime) }}</td>
+                        <!-- Количество сотрудников (кликабельно) -->
+                        <td class="text-sm">
+                          <button
+                              @click="showEmployeesModal(page)"
+                              class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors cursor-pointer"
+                          >
+                            {{ page.employeeCount }}
+                          </button>
+                        </td>
 
-                      <!-- Максимальное время -->
-                      <td class="text-sm">{{ formatDuration(page.maxTime) }}</td>
+                        <!-- Общее время -->
+                        <td class="text-sm font-medium">{{ formatDuration(page.totalTime) }}</td>
 
-                      <!-- Минимальное время -->
-                      <td class="text-sm">{{ formatDuration(page.minTime) }}</td>
-                    </tr>
-                    </tbody>
-                    <tfoot class="bg-gray-50 font-semibold">
-                    <tr>
-                      <td colspan="3" class="text-right">Итого:</td>
-                      <td>{{ formatDuration(totalStats.totalTime) }}</td>
-                      <td>{{ formatDuration(totalStats.averageTimePerEmployee) }}</td>
-                      <td>{{ formatDuration(totalStats.maxTime) }}</td>
-                      <td>{{ formatDuration(totalStats.minTime) }}</td>
-                    </tr>
-                    </tfoot>
-                  </table>
-                </B24TableWrapper>
+                        <!-- Среднее время -->
+                        <td class="text-sm">{{ formatDuration(page.averageTime) }}</td>
 
-                <!-- Пагинация -->
-                <div v-if="filteredPages.length > itemsPerPage" class="flex justify-center mt-6">
-                  <B24Pagination
-                      v-model:page="currentPage"
-                      :total="filteredPages.length"
-                      :items-per-page="itemsPerPage"
-                      :sibling-count="2"
-                      show-edges
-                      size="md"
-                  />
+                        <!-- Максимальное время -->
+                        <td class="text-sm">{{ formatDuration(page.maxTime) }}</td>
+
+                        <!-- Минимальное время -->
+                        <td class="text-sm">{{ formatDuration(page.minTime) }}</td>
+                      </tr>
+                      </tbody>
+                      <tfoot class="bg-gray-50 font-semibold">
+                      <tr>
+                        <td colspan="3" class="text-right">Итого:</td>
+                        <td>{{ formatDuration(totalStats.totalTime) }}</td>
+                        <td>{{ formatDuration(totalStats.averageTimePerEmployee) }}</td>
+                        <td>{{ formatDuration(totalStats.maxTime) }}</td>
+                        <td>{{ formatDuration(totalStats.minTime) }}</td>
+                      </tr>
+                      </tfoot>
+                    </table>
+                  </B24TableWrapper>
+
+                  <!-- Пагинация -->
+                  <div v-if="filteredPages.length > itemsPerPage" class="flex justify-center mt-6">
+                    <B24Pagination
+                        v-model:page="currentPage"
+                        :total="filteredPages.length"
+                        :items-per-page="itemsPerPage"
+                        :sibling-count="2"
+                        show-edges
+                        size="md"
+                    />
+                  </div>
+
+                  <!-- Информация о количестве записей -->
+                  <div class="mt-4 text-sm text-gray-600 text-center">
+                    Показано {{ paginatedPages.length }} из {{ filteredPages.length }} записей
+                  </div>
                 </div>
 
-                <!-- Информация о количестве записей -->
-                <div class="mt-4 text-sm text-gray-600 text-center">
-                  Показано {{ paginatedPages.length }} из {{ filteredPages.length }} записей
+                <!-- Сообщение при отсутствии данных -->
+                <div v-else-if="!isLoading" class="text-center py-12 text-gray-500">
+                  <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                  </svg>
+                  <p class="text-lg">Нет данных о посещениях за выбранный период</p>
+                  <p class="text-sm mt-2">Попробуйте изменить период или дождитесь появления новых данных</p>
                 </div>
               </div>
 
-              <!-- Сообщение при отсутствии данных -->
-              <div v-else-if="!isLoading" class="text-center py-12 text-gray-500">
-                <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-                <p class="text-lg">Нет данных о посещениях за выбранный период</p>
-                <p class="text-sm mt-2">Попробуйте изменить период или дождитесь появления новых данных</p>
-              </div>
+              <!-- Режим просмотра: По сотрудникам -->
+              <div v-else-if="activeTab === 'users'">
+                <!-- Поиск пользователей -->
+                <div v-if="!isLoading && filteredUsersData.length > 0" class="mb-4">
+                  <B24Input
+                      v-model="userSearchQuery"
+                      placeholder="Поиск по имени пользователя..."
+                      @change="filterUsers"
+                      class="w-full"
+                  >
+                    <template #prefix>
+                      <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                      </svg>
+                    </template>
+                  </B24Input>
+                </div>
 
-              <!-- Сообщение при отсутствии результатов поиска -->
-              <div v-else-if="filteredPages.length === 0 && processedData.length > 0" class="text-center py-12 text-gray-500">
-                <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
-                <p class="text-lg">Записи не найдены</p>
-                <p class="text-sm mt-2">Попробуйте изменить параметры поиска</p>
+                <!-- Данные по сотрудникам -->
+                <div v-if="!isLoading && filteredUsersData.length > 0">
+                  <B24TableWrapper
+                      class="overflow-x-auto w-full border border-gray-200 rounded-lg"
+                      size="sm"
+                      zebra
+                      row-hover
+                      :b24ui="{
+                        base: '[&>table>thead>tr]:border-gray-200 [&>table>tbody>tr]:border-gray-100'
+                      }"
+                  >
+                    <table class="min-w-full">
+                      <!-- Заголовок таблицы с сортировкой -->
+                      <thead class="bg-gray-50">
+                      <tr>
+                        <th
+                            @click="sortUsersBy('userName')"
+                            class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+                        >
+                          <div class="flex items-center space-x-1">
+                            <span>Сотрудник</span>
+                            <span v-if="usersSortColumn === 'userName'" class="text-gray-400">
+                              {{ usersSortDirection === 'asc' ? '↑' : '↓' }}
+                            </span>
+                          </div>
+                        </th>
+                        <th
+                            @click="sortUsersBy('favoriteCategory')"
+                            class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+                        >
+                          <div class="flex items-center space-x-1">
+                            <span>Любимая категория</span>
+                            <span v-if="usersSortColumn === 'favoriteCategory'" class="text-gray-400">
+                              {{ usersSortDirection === 'asc' ? '↑' : '↓' }}
+                            </span>
+                          </div>
+                        </th>
+                        <th
+                            @click="sortUsersBy('totalTime')"
+                            class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+                        >
+                          <div class="flex items-center space-x-1">
+                            <span>Общее время</span>
+                            <span v-if="usersSortColumn === 'totalTime'" class="text-gray-400">
+                              {{ usersSortDirection === 'asc' ? '↑' : '↓' }}
+                            </span>
+                          </div>
+                        </th>
+                        <th
+                            @click="sortUsersBy('averageTimePerDay')"
+                            class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+                        >
+                          <div class="flex items-center space-x-1">
+                            <span>Среднее время в день</span>
+                            <span v-if="usersSortColumn === 'averageTimePerDay'" class="text-gray-400">
+                              {{ usersSortDirection === 'asc' ? '↑' : '↓' }}
+                            </span>
+                          </div>
+                        </th>
+                        <th
+                            @click="sortUsersBy('averageTimePerPage')"
+                            class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+                        >
+                          <div class="flex items-center space-x-1">
+                            <span>Среднее время на странице</span>
+                            <span v-if="usersSortColumn === 'averageTimePerPage'" class="text-gray-400">
+                              {{ usersSortDirection === 'asc' ? '↑' : '↓' }}
+                            </span>
+                          </div>
+                        </th>
+                        <th
+                            @click="sortUsersBy('maxTime')"
+                            class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+                        >
+                          <div class="flex items-center space-x-1">
+                            <span>Максимальное время</span>
+                            <span v-if="usersSortColumn === 'maxTime'" class="text-gray-400">
+                              {{ usersSortDirection === 'asc' ? '↑' : '↓' }}
+                            </span>
+                          </div>
+                        </th>
+                        <th
+                            @click="sortUsersBy('minTime')"
+                            class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+                        >
+                          <div class="flex items-center space-x-1">
+                            <span>Минимальное время</span>
+                            <span v-if="usersSortColumn === 'minTime'" class="text-gray-400">
+                              {{ usersSortDirection === 'asc' ? '↑' : '↓' }}
+                            </span>
+                          </div>
+                        </th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <tr v-for="(user, index) in paginatedUsers" :key="index" class="hover:bg-gray-50">
+                        <!-- Сотрудник с B24User -->
+                        <td class="text-sm">
+                          <a
+                              :href="getUserProfileUrl(user.userId)"
+                              target="_blank"
+                              class="inline-flex items-center hover:opacity-80 transition-opacity"
+                          >
+                            <B24User
+                                :name="user.userName"
+                                size="sm"
+                                :avatar="{
+                                      src: getUserPhoto(user.userId),
+                                      initials: getUserInitials(user.userName)
+                                  }"
+                                :chip="{
+                                      color: getOnlineStatus(user.userId) === 'Y'
+                                          ? 'air-primary-success'
+                                          : 'air-secondary-accent',
+                                      position: 'top-right'
+                                  }"
+                                class="truncate cursor-pointer"
+                            />
+                          </a>
+                        </td>
+
+                        <!-- Любимая категория -->
+                        <td class="text-sm">
+                          <B24Badge :class="getCategoryBadgeClass(user.favoriteCategory)">
+                            {{ user.favoriteCategory || 'Без категории' }}
+                          </B24Badge>
+                        </td>
+
+                        <!-- Общее время -->
+                        <td class="text-sm font-medium">{{ formatDuration(user.totalTime) }}</td>
+
+                        <!-- Среднее время в день -->
+                        <td class="text-sm">{{ formatDuration(user.averageTimePerDay) }}</td>
+
+                        <!-- Среднее время на странице -->
+                        <td class="text-sm">{{ formatDuration(user.averageTimePerPage) }}</td>
+
+                        <!-- Максимальное время -->
+                        <td class="text-sm">{{ formatDuration(user.maxTime) }}</td>
+
+                        <!-- Минимальное время -->
+                        <td class="text-sm">{{ formatDuration(user.minTime) }}</td>
+                      </tr>
+                      </tbody>
+                      <tfoot class="bg-gray-50 font-semibold">
+                      <tr>
+                        <td colspan="2" class="text-right">Итого:</td>
+                        <td>{{ formatDuration(usersTotalStats.totalTime) }}</td>
+                        <td>{{ formatDuration(usersTotalStats.averageTimePerDay) }}</td>
+                        <td>{{ formatDuration(usersTotalStats.averageTimePerPage) }}</td>
+                        <td>{{ formatDuration(usersTotalStats.maxTime) }}</td>
+                        <td>{{ formatDuration(usersTotalStats.minTime) }}</td>
+                      </tr>
+                      </tfoot>
+                    </table>
+                  </B24TableWrapper>
+
+                  <!-- Пагинация для пользователей -->
+                  <div v-if="filteredUsersData.length > itemsPerPage" class="flex justify-center mt-6">
+                    <B24Pagination
+                        v-model:page="currentUserPage"
+                        :total="filteredUsersData.length"
+                        :items-per-page="itemsPerPage"
+                        :sibling-count="2"
+                        show-edges
+                        size="md"
+                    />
+                  </div>
+
+                  <!-- Информация о количестве записей -->
+                  <div class="mt-4 text-sm text-gray-600 text-center">
+                    Показано {{ paginatedUsers.length }} из {{ filteredUsersData.length }} записей
+                  </div>
+                </div>
+
+                <!-- Сообщение при отсутствии данных -->
+                <div v-else-if="!isLoading" class="text-center py-12 text-gray-500">
+                  <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                  </svg>
+                  <p class="text-lg">Нет данных о сотрудниках за выбранный период</p>
+                  <p class="text-sm mt-2">Попробуйте изменить период или дождитесь появления новых данных</p>
+                </div>
+
+                <!-- Сообщение при отсутствии результатов поиска -->
+                <div v-else-if="filteredUsersData.length === 0 && usersData.length > 0" class="text-center py-12 text-gray-500">
+                  <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                  </svg>
+                  <p class="text-lg">Пользователи не найдены</p>
+                  <p class="text-sm mt-2">Попробуйте изменить параметры поиска</p>
+                </div>
               </div>
             </div>
           </div>
@@ -463,17 +680,29 @@ class ActivityMapManager {
     this.currentUserProfile = ref(null)
     this.isLoading = ref(false)
     this.allItems = ref([])
-    this.processedData = ref([])
+    this.processedData = ref([]) // Данные по страницам
+    this.usersData = ref([]) // Данные по сотрудникам
     this.filteredPages = ref([])
+    this.filteredUsersData = ref([])
     this.userProfilesCache = ref({})
     this.categories = ref(categoriesData.categories)
     this.showAllEmployees = ref({})
     this.isLoadingProfile = ref(false)
+    this.activeTab = ref('pages') // Активный таб: 'pages' или 'users'
 
-    // Сортировка
+    // Сортировка для страниц
     this.sortColumn = ref('totalTime')
     this.sortDirection = ref('desc')
 
+    // Сортировка для сотрудников
+    this.usersSortColumn = ref('totalTime')
+    this.usersSortDirection = ref('desc')
+
+    // Поиск по пользователям
+    this.userSearchQuery = ref('')
+    this.currentUserPage = ref(1)
+
+    // Общая статистика по страницам
     this.totalStats = ref({
       totalTime: 0,
       totalEmployees: 0,
@@ -483,12 +712,19 @@ class ActivityMapManager {
       minTime: 0
     })
 
+    // Общая статистика по сотрудникам
+    this.usersTotalStats = ref({
+      totalTime: 0,
+      averageTimePerDay: 0,
+      averageTimePerPage: 0,
+      maxTime: 0,
+      minTime: 0,
+      totalUsers: 0
+    })
+
     // Пагинация
     this.currentPage = ref(1)
     this.itemsPerPage = ref(20)
-
-    // Поиск
-    this.searchQuery = ref('')
 
     // Модальное окно
     this.isShowEmployeesModal = ref(false)
@@ -509,7 +745,7 @@ class ActivityMapManager {
 
     this.minCalendarDate = new CalendarDate(2020, 1, 1)
     this.maxCalendarDate = new CalendarDate(2030, 12, 31)
-    this.isDateRangeActive = ref(false) // Флаг, указывающий, активен ли фильтр по дате
+    this.isDateRangeActive = ref(false)
   }
 
   async updateDateRangeFromSettings() {
@@ -691,22 +927,27 @@ class ActivityMapManager {
     this.loadAllData()
   }
 
-  // Метод для сортировки
+  // Обработка смены таба
+  onTabChange(newTab) {
+    this.activeTab.value = newTab
+    if (newTab === 'users') {
+      this.userSearchQuery.value = ''
+      this.filterUsers()
+      this.currentUserPage.value = 1
+    }
+  }
+
+  // Методы для сортировки страниц
   sortBy(column) {
     if (this.sortColumn.value === column) {
-      // Если уже сортируем по этой колонке, меняем направление
       this.sortDirection.value = this.sortDirection.value === 'asc' ? 'desc' : 'asc'
     } else {
-      // Новая колонка, начинаем с сортировки по убыванию
       this.sortColumn.value = column
       this.sortDirection.value = 'desc'
     }
-
-    // Применяем сортировку
     this.applySorting()
   }
 
-  // Применение сортировки к отфильтрованным данным
   applySorting() {
     const sorted = [...this.filteredPages.value]
 
@@ -714,13 +955,11 @@ class ActivityMapManager {
       let aVal = a[this.sortColumn.value]
       let bVal = b[this.sortColumn.value]
 
-      // Для строковых полей используем localeCompare
       if (typeof aVal === 'string') {
         const result = aVal.localeCompare(bVal, 'ru')
         return this.sortDirection.value === 'asc' ? result : -result
       }
 
-      // Для числовых полей
       if (this.sortDirection.value === 'asc') {
         return aVal - bVal
       } else {
@@ -729,7 +968,58 @@ class ActivityMapManager {
     })
 
     this.filteredPages.value = sorted
-    this.currentPage.value = 1 // Сбрасываем на первую страницу
+    this.currentPage.value = 1
+  }
+
+  // Методы для сортировки сотрудников
+  sortUsersBy(column) {
+    if (this.usersSortColumn.value === column) {
+      this.usersSortDirection.value = this.usersSortDirection.value === 'asc' ? 'desc' : 'asc'
+    } else {
+      this.usersSortColumn.value = column
+      this.usersSortDirection.value = 'desc'
+    }
+    this.applyUsersSorting()
+  }
+
+  applyUsersSorting() {
+    const sorted = [...this.filteredUsersData.value]
+
+    sorted.sort((a, b) => {
+      let aVal = a[this.usersSortColumn.value]
+      let bVal = b[this.usersSortColumn.value]
+
+      if (typeof aVal === 'string') {
+        const result = aVal.localeCompare(bVal, 'ru')
+        return this.usersSortDirection.value === 'asc' ? result : -result
+      }
+
+      if (this.usersSortDirection.value === 'asc') {
+        return aVal - bVal
+      } else {
+        return bVal - aVal
+      }
+    })
+
+    this.filteredUsersData.value = sorted
+    this.currentUserPage.value = 1
+  }
+
+  // Фильтрация пользователей по поисковому запросу
+  filterUsers() {
+    const query = this.userSearchQuery.value.toLowerCase().trim()
+
+    if (!query) {
+      this.filteredUsersData.value = [...this.usersData.value]
+    } else {
+      this.filteredUsersData.value = this.usersData.value.filter(user =>
+          user.userName.toLowerCase().includes(query) ||
+          user.userId.toString().includes(query)
+      )
+    }
+
+    this.applyUsersSorting()
+    this.currentUserPage.value = 1
   }
 
   // Фильтрация элементов по диапазону дат
@@ -914,7 +1204,7 @@ class ActivityMapManager {
     }
   }
 
-  // Обработка данных для карты активности
+  // Обработка данных для карты активности (по страницам)
   processActivityData(items) {
     const filteredItems = this.filterItemsByDateRange(items)
 
@@ -941,15 +1231,14 @@ class ActivityMapManager {
 
       if (!url || userId === 0) return
 
-      // Получаем или создаем страницу
       if (!pagesMap.has(url)) {
         pagesMap.set(url, {
           url,
           category,
           totalTime: 0,
-          employees: new Map(), // userId -> { userName, time, visits }
+          employees: new Map(),
           visits: 0,
-          items: new Set(), // для подсчета уникальных записей
+          items: new Set(),
           maxTime: 0,
           minTime: Infinity
         })
@@ -960,11 +1249,9 @@ class ActivityMapManager {
       pageData.visits++
       pageData.items.add(item.ID)
 
-      // Обновляем макс и мин время
       if (time > pageData.maxTime) pageData.maxTime = time
       if (time < pageData.minTime) pageData.minTime = time
 
-      // Добавляем информацию о сотруднике
       if (!pageData.employees.has(userId)) {
         pageData.employees.set(userId, {
           userId,
@@ -978,7 +1265,7 @@ class ActivityMapManager {
       employeeData.visits++
     })
 
-    // Преобразуем в массив и сортируем
+    // Преобразуем в массив
     const result = []
     let totalTimeAll = 0
     let totalEmployeesAll = new Set()
@@ -987,7 +1274,6 @@ class ActivityMapManager {
     let globalMinTime = Infinity
 
     pagesMap.forEach(pageData => {
-      // Если мин время осталось Infinity, значит нет данных
       if (pageData.minTime === Infinity) pageData.minTime = 0
 
       const employeesArray = Array.from(pageData.employees.values())
@@ -1011,7 +1297,6 @@ class ActivityMapManager {
 
       result.push(pageInfo)
 
-      // Обновляем глобальные счетчики
       totalTimeAll += pageData.totalTime
       pageData.employees.forEach((_, userId) => totalEmployeesAll.add(userId))
       totalVisitsAll += pageData.visits
@@ -1022,7 +1307,6 @@ class ActivityMapManager {
     this.processedData.value = result
     this.filteredPages.value = [...result]
 
-    // Применяем сортировку по умолчанию
     this.sortBy('totalTime')
 
     this.totalStats.value = {
@@ -1034,6 +1318,121 @@ class ActivityMapManager {
           : 0,
       maxTime: globalMaxTime,
       minTime: globalMinTime !== Infinity ? globalMinTime : 0
+    }
+  }
+
+  // Обработка данных по сотрудникам
+  processUsersData(items) {
+    const filteredItems = this.filterItemsByDateRange(items)
+
+    const usersMap = new Map() // userId -> данные пользователя
+    const uniqueDates = new Set() // Уникальные даты для расчета среднего в день
+
+    // Собираем уникальные даты
+    filteredItems.forEach(item => {
+      const dateStr = new Date(item.DATE_CREATE).toDateString()
+      uniqueDates.add(dateStr)
+    })
+
+    const daysCount = uniqueDates.size || 1
+
+    filteredItems.forEach(item => {
+      const props = item.PROPERTY_VALUES || {}
+      const userId = parseInt(props.USER_ID) || 0
+      const userName = props.USER_NAME || `Пользователь ${userId}`
+      const time = parseInt(props.PAGE_TIME) || 0
+      const category = props.PAGE_CATEGORY || 'Без категории'
+
+      if (userId === 0) return
+
+      if (!usersMap.has(userId)) {
+        usersMap.set(userId, {
+          userId,
+          userName,
+          totalTime: 0,
+          visits: 0,
+          categoriesCount: new Map(), // category -> количество посещений
+          maxTime: 0,
+          minTime: Infinity,
+          items: new Set()
+        })
+      }
+
+      const userData = usersMap.get(userId)
+      userData.totalTime += time
+      userData.visits++
+      userData.items.add(item.ID)
+
+      // Обновляем счетчик категорий
+      const categoryCount = userData.categoriesCount.get(category) || 0
+      userData.categoriesCount.set(category, categoryCount + 1)
+
+      if (time > userData.maxTime) userData.maxTime = time
+      if (time < userData.minTime) userData.minTime = time
+    })
+
+    // Преобразуем в массив
+    const result = []
+    let totalTimeAll = 0
+    let totalMaxTime = 0
+    let totalMinTime = Infinity
+    let totalAverageTimePerPageSum = 0
+
+    usersMap.forEach(userData => {
+      if (userData.minTime === Infinity) userData.minTime = 0
+
+      // Находим любимую категорию (с максимальным количеством посещений)
+      let favoriteCategory = null
+      let maxCount = 0
+      userData.categoriesCount.forEach((count, category) => {
+        if (count > maxCount) {
+          maxCount = count
+          favoriteCategory = category
+        }
+      })
+
+      const userName = this.userProfilesCache.value[userData.userId]?.FULL_NAME || userData.userName
+
+      const averageTimePerPage = userData.visits > 0
+          ? Math.round(userData.totalTime / userData.visits)
+          : 0
+
+      const averageTimePerDay = Math.round(userData.totalTime / daysCount)
+
+      const userInfo = {
+        userId: userData.userId,
+        userName,
+        favoriteCategory,
+        totalTime: userData.totalTime,
+        averageTimePerDay,
+        averageTimePerPage,
+        maxTime: userData.maxTime,
+        minTime: userData.minTime,
+        visits: userData.visits
+      }
+
+      result.push(userInfo)
+
+      totalTimeAll += userData.totalTime
+      totalAverageTimePerPageSum += averageTimePerPage
+      if (userData.maxTime > totalMaxTime) totalMaxTime = userData.maxTime
+      if (userData.minTime < totalMinTime) totalMinTime = userData.minTime
+    })
+
+    this.usersData.value = result
+    this.filteredUsersData.value = [...result]
+
+    this.sortUsersBy('totalTime')
+
+    this.usersTotalStats.value = {
+      totalTime: totalTimeAll,
+      averageTimePerDay: Math.round(totalTimeAll / daysCount),
+      averageTimePerPage: result.length > 0
+          ? Math.round(totalAverageTimePerPageSum / result.length)
+          : 0,
+      maxTime: totalMaxTime,
+      minTime: totalMinTime !== Infinity ? totalMinTime : 0,
+      totalUsers: result.length
     }
   }
 
@@ -1054,6 +1453,8 @@ class ActivityMapManager {
       if (items.length === 0) {
         this.processedData.value = []
         this.filteredPages.value = []
+        this.usersData.value = []
+        this.filteredUsersData.value = []
         this.isLoading.value = false
         return
       }
@@ -1073,11 +1474,13 @@ class ActivityMapManager {
         await this.getUserProfilesBatch(Array.from(userIds))
       }
 
-      // Обрабатываем данные
+      // Обрабатываем данные для обоих представлений
       this.processActivityData(items)
+      this.processUsersData(items)
 
       // Сбрасываем на первую страницу
       this.currentPage.value = 1
+      this.currentUserPage.value = 1
 
     } catch (error) {
       console.error('Ошибка при загрузке данных:', error)
@@ -1087,105 +1490,106 @@ class ActivityMapManager {
     }
   }
 
-  // Фильтрация страниц по поисковому запросу
-  filterPages() {
-    const query = this.searchQuery.value.toLowerCase().trim()
-
-    if (!query) {
-      this.filteredPages.value = [...this.processedData.value]
-    } else {
-      this.filteredPages.value = this.processedData.value.filter(page =>
-          page.url.toLowerCase().includes(query) ||
-          page.category.toLowerCase().includes(query)
-      )
-    }
-
-    // Применяем текущую сортировку к отфильтрованным данным
-    this.applySorting()
-    this.currentPage.value = 1
-  }
-
   // Экспорт в XLS
   exportToXLS() {
     try {
-      if (this.filteredPages.value.length === 0) {
+      if (this.activeTab.value === 'pages' && this.filteredPages.value.length === 0) {
+        this.showNotification('warning', 'Нет данных для экспорта')
+        return
+      }
+      if (this.activeTab.value === 'users' && this.filteredUsersData.value.length === 0) {
         this.showNotification('warning', 'Нет данных для экспорта')
         return
       }
 
-      // Подготавливаем данные для экспорта
-      const exportData = this.filteredPages.value.map(page => ({
-        'Страница': page.url,
-        'Категория': page.category || 'Без категории',
-        'Кол-во сотрудников': page.employeeCount,
-        'Общее время (часы)': this.formatDurationForExcel(page.totalTime),
-        'Среднее время (часы)': this.formatDurationForExcel(page.averageTime),
-        'Максимальное время (часы)': this.formatDurationForExcel(page.maxTime),
-        'Минимальное время (часы)': this.formatDurationForExcel(page.minTime),
-        'Общее время (текст)': this.formatDuration(page.totalTime),
-        'Среднее время (текст)': this.formatDuration(page.averageTime),
-        'Максимальное время (текст)': this.formatDuration(page.maxTime),
-        'Минимальное время (текст)': this.formatDuration(page.minTime),
-        'Кол-во посещений': page.visits
-      }))
+      let exportData = []
+      let fileName = ''
 
-      // Добавляем итоговую строку
-      exportData.push({
-        'Страница': 'ИТОГО:',
-        'Категория': '',
-        'Кол-во сотрудников': this.totalStats.value.totalEmployees,
-        'Общее время (часы)': this.formatDurationForExcel(this.totalStats.value.totalTime),
-        'Среднее время (часы)': this.formatDurationForExcel(this.totalStats.value.averageTimePerEmployee),
-        'Максимальное время (часы)': this.formatDurationForExcel(this.totalStats.value.maxTime),
-        'Минимальное время (часы)': this.formatDurationForExcel(this.totalStats.value.minTime),
-        'Общее время (текст)': this.formatDuration(this.totalStats.value.totalTime),
-        'Среднее время (текст)': this.formatDuration(this.totalStats.value.averageTimePerEmployee),
-        'Максимальное время (текст)': this.formatDuration(this.totalStats.value.maxTime),
-        'Минимальное время (текст)': this.formatDuration(this.totalStats.value.minTime),
-        'Кол-во посещений': this.totalStats.value.totalVisits
-      })
+      if (this.activeTab.value === 'pages') {
+        // Экспорт данных по страницам
+        exportData = this.filteredPages.value.map(page => ({
+          'Страница': page.url,
+          'Категория': page.category || 'Без категории',
+          'Кол-во сотрудников': page.employeeCount,
+          'Общее время (часы)': this.formatDurationForExcel(page.totalTime),
+          'Среднее время (часы)': this.formatDurationForExcel(page.averageTime),
+          'Максимальное время (часы)': this.formatDurationForExcel(page.maxTime),
+          'Минимальное время (часы)': this.formatDurationForExcel(page.minTime),
+          'Общее время (текст)': this.formatDuration(page.totalTime),
+          'Среднее время (текст)': this.formatDuration(page.averageTime),
+          'Максимальное время (текст)': this.formatDuration(page.maxTime),
+          'Минимальное время (текст)': this.formatDuration(page.minTime),
+          'Кол-во посещений': page.visits
+        }))
+
+        // Добавляем итоговую строку
+        exportData.push({
+          'Страница': 'ИТОГО:',
+          'Категория': '',
+          'Кол-во сотрудников': this.totalStats.value.totalEmployees,
+          'Общее время (часы)': this.formatDurationForExcel(this.totalStats.value.totalTime),
+          'Среднее время (часы)': this.formatDurationForExcel(this.totalStats.value.averageTimePerEmployee),
+          'Максимальное время (часы)': this.formatDurationForExcel(this.totalStats.value.maxTime),
+          'Минимальное время (часы)': this.formatDurationForExcel(this.totalStats.value.minTime),
+          'Общее время (текст)': this.formatDuration(this.totalStats.value.totalTime),
+          'Среднее время (текст)': this.formatDuration(this.totalStats.value.averageTimePerEmployee),
+          'Максимальное время (текст)': this.formatDuration(this.totalStats.value.maxTime),
+          'Минимальное время (текст)': this.formatDuration(this.totalStats.value.minTime),
+          'Кол-во посещений': this.totalStats.value.totalVisits
+        })
+
+        fileName = `activity_map_pages_${this.formatDate(new Date())}.xlsx`
+
+      } else {
+        // Экспорт данных по сотрудникам
+        exportData = this.filteredUsersData.value.map(user => ({
+          'Сотрудник': user.userName,
+          'ID сотрудника': user.userId,
+          'Любимая категория': user.favoriteCategory || 'Без категории',
+          'Общее время (часы)': this.formatDurationForExcel(user.totalTime),
+          'Среднее время в день (часы)': this.formatDurationForExcel(user.averageTimePerDay),
+          'Среднее время на странице (часы)': this.formatDurationForExcel(user.averageTimePerPage),
+          'Максимальное время (часы)': this.formatDurationForExcel(user.maxTime),
+          'Минимальное время (часы)': this.formatDurationForExcel(user.minTime),
+          'Общее время (текст)': this.formatDuration(user.totalTime),
+          'Среднее время в день (текст)': this.formatDuration(user.averageTimePerDay),
+          'Среднее время на странице (текст)': this.formatDuration(user.averageTimePerPage),
+          'Максимальное время (текст)': this.formatDuration(user.maxTime),
+          'Минимальное время (текст)': this.formatDuration(user.minTime),
+          'Кол-во посещений': user.visits
+        }))
+
+        // Добавляем итоговую строку
+        exportData.push({
+          'Сотрудник': 'ИТОГО:',
+          'ID сотрудника': '',
+          'Любимая категория': '',
+          'Общее время (часы)': this.formatDurationForExcel(this.usersTotalStats.value.totalTime),
+          'Среднее время в день (часы)': this.formatDurationForExcel(this.usersTotalStats.value.averageTimePerDay),
+          'Среднее время на странице (часы)': this.formatDurationForExcel(this.usersTotalStats.value.averageTimePerPage),
+          'Максимальное время (часы)': this.formatDurationForExcel(this.usersTotalStats.value.maxTime),
+          'Минимальное время (часы)': this.formatDurationForExcel(this.usersTotalStats.value.minTime),
+          'Общее время (текст)': this.formatDuration(this.usersTotalStats.value.totalTime),
+          'Среднее время в день (текст)': this.formatDuration(this.usersTotalStats.value.averageTimePerDay),
+          'Среднее время на странице (текст)': this.formatDuration(this.usersTotalStats.value.averageTimePerPage),
+          'Максимальное время (текст)': this.formatDuration(this.usersTotalStats.value.maxTime),
+          'Минимальное время (текст)': this.formatDuration(this.usersTotalStats.value.minTime),
+          'Кол-во посещений': this.usersTotalStats.value.totalVisits || this.filteredUsersData.value.reduce((sum, u) => sum + u.visits, 0)
+        })
+
+        fileName = `activity_map_users_${this.formatDate(new Date())}.xlsx`
+      }
 
       // Создаем рабочую книгу
       const wb = XLSX.utils.book_new()
-      const ws = XLSX.utils.json_to_sheet(exportData, { header: [
-          'Страница',
-          'Категория',
-          'Кол-во сотрудников',
-          'Общее время (часы)',
-          'Среднее время (часы)',
-          'Максимальное время (часы)',
-          'Минимальное время (часы)',
-          'Общее время (текст)',
-          'Среднее время (текст)',
-          'Максимальное время (текст)',
-          'Минимальное время (текст)',
-          'Кол-во посещений'
-        ]})
+      const ws = XLSX.utils.json_to_sheet(exportData)
 
       // Настраиваем ширину колонок
-      const colWidths = [
-        { wch: 50 }, // Страница
-        { wch: 20 }, // Категория
-        { wch: 15 }, // Кол-во сотрудников
-        { wch: 15 }, // Общее время (часы)
-        { wch: 15 }, // Среднее время (часы)
-        { wch: 18 }, // Максимальное время (часы)
-        { wch: 18 }, // Минимальное время (часы)
-        { wch: 20 }, // Общее время (текст)
-        { wch: 20 }, // Среднее время (текст)
-        { wch: 23 }, // Максимальное время (текст)
-        { wch: 23 }, // Минимальное время (текст)
-        { wch: 15 }  // Кол-во посещений
-      ]
+      const colWidths = Object.keys(exportData[0] || {}).map(() => ({ wch: 25 }))
       ws['!cols'] = colWidths
 
       // Добавляем лист в книгу
-      XLSX.utils.book_append_sheet(wb, ws, 'Карта активности')
-
-      // Формируем имя файла с датой
-      const date = new Date()
-      const dateStr = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
-      const fileName = `activity_map_${dateStr}.xlsx`
+      XLSX.utils.book_append_sheet(wb, ws, this.activeTab.value === 'pages' ? 'По страницам' : 'По сотрудникам')
 
       // Сохраняем файл
       XLSX.writeFile(wb, fileName)
@@ -1195,12 +1599,6 @@ class ActivityMapManager {
       console.error('Ошибка при экспорте в XLS:', error)
       this.showNotification('error', 'Ошибка при экспорте данных')
     }
-  }
-
-  // Переключение показа всех сотрудников
-  toggleShowAllEmployees(index) {
-    this.showAllEmployees.value[index] = !this.showAllEmployees.value[index]
-    this.showAllEmployees.value = { ...this.showAllEmployees.value }
   }
 
   // Показать модальное окно с сотрудниками
@@ -1237,13 +1635,23 @@ export default {
     // Вычисляемые свойства для шаблона
     const processedData = computed(() => activityMapManager.processedData.value)
     const filteredPages = computed(() => activityMapManager.filteredPages.value)
+    const usersData = computed(() => activityMapManager.usersData.value)
+    const filteredUsersData = computed(() => activityMapManager.filteredUsersData.value)
     const totalStats = computed(() => activityMapManager.totalStats.value)
+    const usersTotalStats = computed(() => activityMapManager.usersTotalStats.value)
 
-    // Пагинированные данные
+    // Пагинированные данные по страницам
     const paginatedPages = computed(() => {
       const start = (activityMapManager.currentPage.value - 1) * activityMapManager.itemsPerPage.value
       const end = start + activityMapManager.itemsPerPage.value
       return filteredPages.value.slice(start, end)
+    })
+
+    // Пагинированные данные по сотрудникам
+    const paginatedUsers = computed(() => {
+      const start = (activityMapManager.currentUserPage.value - 1) * activityMapManager.itemsPerPage.value
+      const end = start + activityMapManager.itemsPerPage.value
+      return filteredUsersData.value.slice(start, end)
     })
 
     onMounted(async () => {
@@ -1266,16 +1674,25 @@ export default {
       isLoading: activityMapManager.isLoading,
       processedData,
       filteredPages,
+      usersData,
+      filteredUsersData,
       showAllEmployees: activityMapManager.showAllEmployees,
       totalStats,
+      usersTotalStats,
       currentPage: activityMapManager.currentPage,
+      currentUserPage: activityMapManager.currentUserPage,
       itemsPerPage: activityMapManager.itemsPerPage,
-      searchQuery: activityMapManager.searchQuery,
+      userSearchQuery: activityMapManager.userSearchQuery,
       paginatedPages,
+      paginatedUsers,
 
-      // Сортировка
+      // Сортировка для страниц
       sortColumn: activityMapManager.sortColumn,
       sortDirection: activityMapManager.sortDirection,
+
+      // Сортировка для сотрудников
+      usersSortColumn: activityMapManager.usersSortColumn,
+      usersSortDirection: activityMapManager.usersSortDirection,
 
       // Календарь и диапазон
       selectedDateRange: activityMapManager.selectedDateRange,
@@ -1286,14 +1703,18 @@ export default {
       isShowEmployeesModal: activityMapManager.isShowEmployeesModal,
       modalPageData: activityMapManager.modalPageData,
 
+      // Табы
+      activeTab: activityMapManager.activeTab,
+
       // Методы
       loadAllData: activityMapManager.loadAllData.bind(activityMapManager),
-      filterPages: activityMapManager.filterPages.bind(activityMapManager),
       sortBy: activityMapManager.sortBy.bind(activityMapManager),
+      sortUsersBy: activityMapManager.sortUsersBy.bind(activityMapManager),
+      filterUsers: activityMapManager.filterUsers.bind(activityMapManager),
       exportToXLS: activityMapManager.exportToXLS.bind(activityMapManager),
-      toggleShowAllEmployees: activityMapManager.toggleShowAllEmployees.bind(activityMapManager),
       showEmployeesModal: activityMapManager.showEmployeesModal.bind(activityMapManager),
       closeEmployeesModal: activityMapManager.closeEmployeesModal.bind(activityMapManager),
+      onTabChange: activityMapManager.onTabChange.bind(activityMapManager),
       formatDuration: activityMapManager.formatDuration.bind(activityMapManager),
       calculatePercentage: activityMapManager.calculatePercentage.bind(activityMapManager),
       getCategoryBadgeClass: activityMapManager.getCategoryBadgeClass.bind(activityMapManager),
