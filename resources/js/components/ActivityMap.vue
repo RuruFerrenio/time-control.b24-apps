@@ -35,7 +35,7 @@
                   </B24Button>
                   <B24Button
                       @click="exportToXLS"
-                      :disabled="isLoading || (activeTab === 'pages' ? filteredPages.length === 0 : filteredUsersData.length === 0)"
+                      :disabled="isLoading || getCurrentData().length === 0"
                       color="air-secondary"
                       size="sm"
                       class="flex-1 w-full sm:w-auto justify-center"
@@ -83,6 +83,7 @@
                               :min-value="minCalendarDate"
                               :max-value="maxCalendarDate"
                               :is-date-disabled="isDateDisabled"
+                              :is-date-unavailable="isDateUnavailable"
                               class="rounded-lg"
                               @update:modelValue="handleDateRangeChange"
                           />
@@ -116,7 +117,8 @@
                   v-model="activeTab"
                   :items="[
                     { label: 'По страницам', value: 'pages' },
-                    { label: 'По сотрудникам', value: 'users' }
+                    { label: 'По сотрудникам', value: 'users' },
+                    { label: 'По категориям', value: 'categories' }
                   ]"
                   @update:modelValue="onTabChange"
                   class="w-full whitespace-nowrap overflow-hidden"
@@ -242,8 +244,7 @@
 
                         <!-- Категория в виде бейджа -->
                         <td class="text-sm">
-                          <B24Badge :class="getCategoryBadgeClass(page.category)"
-                                    class="whitespace-nowrap overflow-scroll md:overflow-auto max-w-full inline-block">
+                          <B24Badge :class="getCategoryBadgeClass(page.category)">
                             {{ page.category || 'Без категории' }}
                           </B24Badge>
                         </td>
@@ -313,22 +314,6 @@
 
               <!-- Режим просмотра: По сотрудникам -->
               <div v-else-if="activeTab === 'users'">
-                <!-- Поиск пользователей -->
-                <div v-if="!isLoading && filteredUsersData.length > 0" class="mb-4">
-                  <B24Input
-                      v-model="userSearchQuery"
-                      placeholder="Поиск по имени пользователя..."
-                      @change="filterUsers"
-                      class="w-full"
-                  >
-                    <template #prefix>
-                      <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                      </svg>
-                    </template>
-                  </B24Input>
-                </div>
-
                 <!-- Данные по сотрудникам -->
                 <div v-if="!isLoading && filteredUsersData.length > 0">
                   <B24TableWrapper
@@ -452,8 +437,7 @@
 
                         <!-- Любимая категория -->
                         <td class="text-sm">
-                          <B24Badge :class="getCategoryBadgeClass(user.favoriteCategory)"
-                                    class="whitespace-nowrap overflow-scroll md:overflow-auto max-w-full inline-block">
+                          <B24Badge :class="getCategoryBadgeClass(user.favoriteCategory)">
                             {{ user.favoriteCategory || 'Без категории' }}
                           </B24Badge>
                         </td>
@@ -513,14 +497,183 @@
                   <p class="text-lg">Нет данных о сотрудниках за выбранный период</p>
                   <p class="text-sm mt-2">Попробуйте изменить период или дождитесь появления новых данных</p>
                 </div>
+              </div>
 
-                <!-- Сообщение при отсутствии результатов поиска -->
-                <div v-else-if="filteredUsersData.length === 0 && usersData.length > 0" class="text-center py-12 text-gray-500">
+              <!-- Режим просмотра: По категориям -->
+              <div v-else-if="activeTab === 'categories'">
+                <!-- Данные по категориям -->
+                <div v-if="!isLoading && filteredCategoriesData.length > 0">
+                  <B24TableWrapper
+                      class="overflow-x-auto w-full border border-gray-200 rounded-lg"
+                      size="sm"
+                      zebra
+                      row-hover
+                      :b24ui="{
+                        base: '[&>table>thead>tr]:border-gray-200 [&>table>tbody>tr]:border-gray-100'
+                      }"
+                  >
+                    <table class="min-w-full">
+                      <!-- Заголовок таблицы с сортировкой -->
+                      <thead class="bg-gray-50">
+                      <tr>
+                        <th
+                            @click="sortCategoriesBy('category')"
+                            class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+                        >
+                          <div class="flex items-center space-x-1">
+                            <span>Категория</span>
+                            <span v-if="categoriesSortColumn === 'category'" class="text-gray-400">
+                              {{ categoriesSortDirection === 'asc' ? '↑' : '↓' }}
+                            </span>
+                          </div>
+                        </th>
+                        <th
+                            @click="sortCategoriesBy('employeeCount')"
+                            class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+                        >
+                          <div class="flex items-center space-x-1">
+                            <span>Сотрудники</span>
+                            <span v-if="categoriesSortColumn === 'employeeCount'" class="text-gray-400">
+                              {{ categoriesSortDirection === 'asc' ? '↑' : '↓' }}
+                            </span>
+                          </div>
+                        </th>
+                        <th
+                            @click="sortCategoriesBy('pagesCount')"
+                            class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+                        >
+                          <div class="flex items-center space-x-1">
+                            <span>Страницы</span>
+                            <span v-if="categoriesSortColumn === 'pagesCount'" class="text-gray-400">
+                              {{ categoriesSortDirection === 'asc' ? '↑' : '↓' }}
+                            </span>
+                          </div>
+                        </th>
+                        <th
+                            @click="sortCategoriesBy('totalTime')"
+                            class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+                        >
+                          <div class="flex items-center space-x-1">
+                            <span>Общее время</span>
+                            <span v-if="categoriesSortColumn === 'totalTime'" class="text-gray-400">
+                              {{ categoriesSortDirection === 'asc' ? '↑' : '↓' }}
+                            </span>
+                          </div>
+                        </th>
+                        <th
+                            @click="sortCategoriesBy('averageTimePerPerson')"
+                            class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+                        >
+                          <div class="flex items-center space-x-1">
+                            <span>Среднее время (на человека)</span>
+                            <span v-if="categoriesSortColumn === 'averageTimePerPerson'" class="text-gray-400">
+                              {{ categoriesSortDirection === 'asc' ? '↑' : '↓' }}
+                            </span>
+                          </div>
+                        </th>
+                        <th
+                            @click="sortCategoriesBy('maxTime')"
+                            class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+                        >
+                          <div class="flex items-center space-x-1">
+                            <span>Максимальное время</span>
+                            <span v-if="categoriesSortColumn === 'maxTime'" class="text-gray-400">
+                              {{ categoriesSortDirection === 'asc' ? '↑' : '↓' }}
+                            </span>
+                          </div>
+                        </th>
+                        <th
+                            @click="sortCategoriesBy('minTime')"
+                            class="text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+                        >
+                          <div class="flex items-center space-x-1">
+                            <span>Минимальное время</span>
+                            <span v-if="categoriesSortColumn === 'minTime'" class="text-gray-400">
+                              {{ categoriesSortDirection === 'asc' ? '↑' : '↓' }}
+                            </span>
+                          </div>
+                        </th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <tr v-for="(category, index) in paginatedCategories" :key="index" class="hover:bg-gray-50">
+                        <!-- Категория с бейджем -->
+                        <td class="text-sm">
+                          <B24Badge :class="getCategoryBadgeClass(category.category)">
+                            {{ category.category || 'Без категории' }}
+                          </B24Badge>
+                        </td>
+
+                        <!-- Количество сотрудников (кликабельно) -->
+                        <td class="text-sm">
+                          <button
+                              @click="showCategoryEmployeesModal(category)"
+                              class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors cursor-pointer"
+                          >
+                            {{ category.employeeCount }}
+                          </button>
+                        </td>
+
+                        <!-- Количество страниц (кликабельно) -->
+                        <td class="text-sm">
+                          <button
+                              @click="showCategoryPagesModal(category)"
+                              class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 hover:bg-green-200 transition-colors cursor-pointer"
+                          >
+                            {{ category.pagesCount }}
+                          </button>
+                        </td>
+
+                        <!-- Общее время -->
+                        <td class="text-sm font-medium">{{ formatDuration(category.totalTime) }}</td>
+
+                        <!-- Среднее время на человека -->
+                        <td class="text-sm">{{ formatDuration(category.averageTimePerPerson) }}</td>
+
+                        <!-- Максимальное время -->
+                        <td class="text-sm">{{ formatDuration(category.maxTime) }}</td>
+
+                        <!-- Минимальное время -->
+                        <td class="text-sm">{{ formatDuration(category.minTime) }}</td>
+                      </tr>
+                      </tbody>
+                      <tfoot class="bg-gray-50 font-semibold">
+                      <tr>
+                        <td colspan="3" class="text-right">Итого:</td>
+                        <td>{{ formatDuration(categoriesTotalStats.totalTime) }}</td>
+                        <td>{{ formatDuration(categoriesTotalStats.averageTimePerPerson) }}</td>
+                        <td>{{ formatDuration(categoriesTotalStats.maxTime) }}</td>
+                        <td>{{ formatDuration(categoriesTotalStats.minTime) }}</td>
+                      </tr>
+                      </tfoot>
+                    </table>
+                  </B24TableWrapper>
+
+                  <!-- Пагинация для категорий -->
+                  <div v-if="filteredCategoriesData.length > itemsPerPage" class="flex justify-center mt-6">
+                    <B24Pagination
+                        v-model:page="currentCategoryPage"
+                        :total="filteredCategoriesData.length"
+                        :items-per-page="itemsPerPage"
+                        :sibling-count="2"
+                        show-edges
+                        size="md"
+                    />
+                  </div>
+
+                  <!-- Информация о количестве записей -->
+                  <div class="mt-4 text-sm text-gray-600 text-center">
+                    Показано {{ paginatedCategories.length }} из {{ filteredCategoriesData.length }} записей
+                  </div>
+                </div>
+
+                <!-- Сообщение при отсутствии данных -->
+                <div v-else-if="!isLoading" class="text-center py-12 text-gray-500">
                   <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l5 5a2 2 0 01.586 1.414V19a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"/>
                   </svg>
-                  <p class="text-lg">Пользователи не найдены</p>
-                  <p class="text-sm mt-2">Попробуйте изменить параметры поиска</p>
+                  <p class="text-lg">Нет данных о категориях за выбранный период</p>
+                  <p class="text-sm mt-2">Попробуйте изменить период или дождитесь появления новых данных</p>
                 </div>
               </div>
             </div>
@@ -534,7 +687,7 @@
       </div>
     </div>
 
-    <!-- Модальное окно детальной информации по сотрудникам -->
+    <!-- Модальное окно детальной информации по сотрудникам на странице -->
     <B24Modal
         v-model:open="isShowEmployeesModal"
         :title="`Сотрудники на странице`"
@@ -662,6 +815,219 @@
         </div>
       </template>
     </B24Modal>
+
+    <!-- Модальное окно сотрудников по категории -->
+    <B24Modal
+        v-model:open="isShowCategoryEmployeesModal"
+        :title="`Сотрудники в категории`"
+        description="Список сотрудников, посещавших страницы данной категории"
+        size="lg"
+        scrollable
+        :dismissible="true"
+        :ui="{ footer: 'justify-end' }"
+    >
+      <template #body>
+        <div v-if="modalCategoryData" class="space-y-6">
+          <!-- Информация о категории -->
+          <div class="bg-blue-50 rounded-lg p-4">
+            <div class="flex items-start">
+              <svg class="w-5 h-5 text-blue-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l5 5a2 2 0 01.586 1.414V19a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"/>
+              </svg>
+              <div class="min-w-0">
+                <div class="text-sm font-medium text-blue-900 mb-1">Информация о категории</div>
+                <div class="text-sm text-blue-700">
+                  <B24Badge :class="getCategoryBadgeClass(modalCategoryData.category)">
+                    {{ modalCategoryData.category || 'Без категории' }}
+                  </B24Badge>
+                </div>
+                <div class="mt-2 text-sm text-blue-700">
+                  <span class="font-semibold">Всего времени:</span> {{ formatDuration(modalCategoryData.totalTime) }} |
+                  <span class="font-semibold">Сотрудников:</span> {{ modalCategoryData.employeeCount }} |
+                  <span class="font-semibold">Страниц:</span> {{ modalCategoryData.pagesCount }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Таблица сотрудников -->
+          <B24TableWrapper
+              class="overflow-x-auto w-full border border-gray-200 rounded-lg"
+              size="sm"
+              zebra
+              row-hover
+          >
+            <table class="min-w-full">
+              <thead class="bg-gray-50">
+              <tr>
+                <th class="text-left font-medium text-gray-700">Сотрудник</th>
+                <th class="text-left font-medium text-gray-700">Время в категории</th>
+                <th class="text-left font-medium text-gray-700">Доля от общего времени</th>
+                <th class="text-left font-medium text-gray-700">Кол-во посещений</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr v-for="employee in modalCategoryData.employees" :key="employee.userId" class="hover:bg-gray-50">
+                <td class="text-sm">
+                  <a
+                      :href="getUserProfileUrl(employee.userId)"
+                      target="_blank"
+                      class="inline-flex items-center hover:opacity-80 transition-opacity"
+                  >
+                    <B24User
+                        :name="employee.userName"
+                        size="sm"
+                        :avatar="{
+                              src: getUserPhoto(employee.userId),
+                              initials: getUserInitials(employee.userName)
+                          }"
+                        :chip="{
+                              color: getOnlineStatus(employee.userId) === 'Y'
+                                  ? 'air-primary-success'
+                                  : 'air-secondary-accent',
+                              position: 'top-right'
+                          }"
+                        class="truncate cursor-pointer"
+                    />
+                  </a>
+                </td>
+                <td class="text-sm font-medium">{{ formatDuration(employee.time) }}</td>
+                <td class="text-sm">
+                  <div class="flex items-center space-x-2">
+                    <span>{{ calculatePercentage(employee.time, modalCategoryData.totalTime) }}%</span>
+                    <div class="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div
+                          class="h-full bg-blue-500 rounded-full"
+                          :style="{ width: calculatePercentage(employee.time, modalCategoryData.totalTime) + '%' }"
+                      ></div>
+                    </div>
+                  </div>
+                </td>
+                <td class="text-sm">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                      {{ employee.visits }}
+                    </span>
+                </td>
+              </tr>
+              </tbody>
+              <tfoot class="bg-gray-50 font-semibold">
+              <tr>
+                <td colspan="2" class="text-right">Итого:</td>
+                <td>{{ formatDuration(modalCategoryData.totalTime) }}</td>
+                <td>{{ modalCategoryData.employees.reduce((sum, emp) => sum + emp.visits, 0) }} посещений</td>
+              </tr>
+              </tfoot>
+            </table>
+          </B24TableWrapper>
+        </div>
+      </template>
+
+      <template #footer="{ close }">
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 w-full">
+          <B24Button @click="close" color="air-primary" class="w-full sm:w-auto">Закрыть</B24Button>
+        </div>
+      </template>
+    </B24Modal>
+
+    <!-- Модальное окно страниц по категории -->
+    <B24Modal
+        v-model:open="isShowCategoryPagesModal"
+        :title="`Страницы в категории`"
+        description="Список страниц в данной категории"
+        size="lg"
+        scrollable
+        :dismissible="true"
+        :ui="{ footer: 'justify-end' }"
+    >
+      <template #body>
+        <div v-if="modalCategoryData" class="space-y-6">
+          <!-- Информация о категории -->
+          <div class="bg-blue-50 rounded-lg p-4">
+            <div class="flex items-start">
+              <svg class="w-5 h-5 text-blue-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l5 5a2 2 0 01.586 1.414V19a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"/>
+              </svg>
+              <div class="min-w-0">
+                <div class="text-sm font-medium text-blue-900 mb-1">Информация о категории</div>
+                <div class="text-sm text-blue-700">
+                  <B24Badge :class="getCategoryBadgeClass(modalCategoryData.category)">
+                    {{ modalCategoryData.category || 'Без категории' }}
+                  </B24Badge>
+                </div>
+                <div class="mt-2 text-sm text-blue-700">
+                  <span class="font-semibold">Всего времени:</span> {{ formatDuration(modalCategoryData.totalTime) }} |
+                  <span class="font-semibold">Сотрудников:</span> {{ modalCategoryData.employeeCount }} |
+                  <span class="font-semibold">Страниц:</span> {{ modalCategoryData.pagesCount }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Таблица страниц -->
+          <B24TableWrapper
+              class="overflow-x-auto w-full border border-gray-200 rounded-lg"
+              size="sm"
+              zebra
+              row-hover
+          >
+            <table class="min-w-full">
+              <thead class="bg-gray-50">
+              <tr>
+                <th class="text-left font-medium text-gray-700">Страница</th>
+                <th class="text-left font-medium text-gray-700">Время на странице</th>
+                <th class="text-left font-medium text-gray-700">Доля от общего времени</th>
+                <th class="text-left font-medium text-gray-700">Кол-во сотрудников</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr v-for="page in modalCategoryData.pages" :key="page.url" class="hover:bg-gray-50">
+                <td class="text-sm">
+                  <a
+                      :href="page.url"
+                      target="_blank"
+                      class="text-blue-600 hover:text-blue-800 hover:underline break-all"
+                      :title="page.url"
+                  >
+                    {{ page.url }}
+                  </a>
+                </td>
+                <td class="text-sm font-medium">{{ formatDuration(page.time) }}</td>
+                <td class="text-sm">
+                  <div class="flex items-center space-x-2">
+                    <span>{{ calculatePercentage(page.time, modalCategoryData.totalTime) }}%</span>
+                    <div class="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div
+                          class="h-full bg-green-500 rounded-full"
+                          :style="{ width: calculatePercentage(page.time, modalCategoryData.totalTime) + '%' }"
+                      ></div>
+                    </div>
+                  </div>
+                </td>
+                <td class="text-sm">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      {{ page.employeeCount }}
+                    </span>
+                </td>
+              </tr>
+              </tbody>
+              <tfoot class="bg-gray-50 font-semibold">
+              <tr>
+                <td colspan="2" class="text-right">Итого:</td>
+                <td>{{ formatDuration(modalCategoryData.totalTime) }}</td>
+                <td>{{ modalCategoryData.pagesCount }} страниц</td>
+              </tr>
+              </tfoot>
+            </table>
+          </B24TableWrapper>
+        </div>
+      </template>
+
+      <template #footer="{ close }">
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 w-full">
+          <B24Button @click="close" color="air-primary" class="w-full sm:w-auto">Закрыть</B24Button>
+        </div>
+      </template>
+    </B24Modal>
   </div>
 </template>
 
@@ -684,13 +1050,16 @@ class ActivityMapManager {
     this.allItems = ref([])
     this.processedData = ref([]) // Данные по страницам
     this.usersData = ref([]) // Данные по сотрудникам
+    this.categoriesData = ref([]) // Данные по категориям
     this.filteredPages = ref([])
     this.filteredUsersData = ref([])
+    this.filteredCategoriesData = ref([])
     this.userProfilesCache = ref({})
     this.categories = ref(categoriesData.categories)
     this.showAllEmployees = ref({})
     this.isLoadingProfile = ref(false)
-    this.activeTab = ref('pages') // Активный таб: 'pages' или 'users'
+    this.activeTab = ref('pages') // Активный таб: 'pages', 'users' или 'categories'
+    this.historyDays = ref(30) // Количество дней истории для закрашивания дат
 
     // Сортировка для страниц
     this.sortColumn = ref('totalTime')
@@ -700,9 +1069,19 @@ class ActivityMapManager {
     this.usersSortColumn = ref('totalTime')
     this.usersSortDirection = ref('desc')
 
-    // Поиск по пользователям
-    this.userSearchQuery = ref('')
+    // Сортировка для категорий
+    this.categoriesSortColumn = ref('totalTime')
+    this.categoriesSortDirection = ref('desc')
+
+    // Пагинация для страниц
+    this.currentPage = ref(1)
+    this.itemsPerPage = ref(20)
+
+    // Пагинация для сотрудников
     this.currentUserPage = ref(1)
+
+    // Пагинация для категорий
+    this.currentCategoryPage = ref(1)
 
     // Общая статистика по страницам
     this.totalStats = ref({
@@ -724,13 +1103,21 @@ class ActivityMapManager {
       totalUsers: 0
     })
 
-    // Пагинация
-    this.currentPage = ref(1)
-    this.itemsPerPage = ref(20)
+    // Общая статистика по категориям
+    this.categoriesTotalStats = ref({
+      totalTime: 0,
+      averageTimePerPerson: 0,
+      maxTime: 0,
+      minTime: 0,
+      totalCategories: 0
+    })
 
-    // Модальное окно
+    // Модальные окна
     this.isShowEmployeesModal = ref(false)
+    this.isShowCategoryEmployeesModal = ref(false)
+    this.isShowCategoryPagesModal = ref(false)
     this.modalPageData = ref(null)
+    this.modalCategoryData = ref(null)
 
     this.pageTrackingHistoryDays = 30
 
@@ -757,6 +1144,7 @@ class ActivityMapManager {
         const days = parseInt(historyDays)
         if (!isNaN(days) && days >= 1) {
           this.pageTrackingHistoryDays = days
+          this.historyDays.value = days
           const today = new Date()
           const startDate = new Date(today)
           startDate.setDate(today.getDate() - days)
@@ -901,6 +1289,15 @@ class ActivityMapManager {
     return dayOfWeek === 0 || dayOfWeek === 6
   }
 
+  // Метод для определения недоступных дат (старше historyDays)
+  isDateUnavailable(date) {
+    const today = new Date()
+    const selectedDate = date.toDate('UTC')
+    const diffTime = today.getTime() - selectedDate.getTime()
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return diffDays > this.historyDays.value
+  }
+
   handleDateRangeChange(newRange) {
     if (newRange?.start && newRange?.end) {
       this.isDateRangeActive.value = true
@@ -929,13 +1326,30 @@ class ActivityMapManager {
     this.loadAllData()
   }
 
+  // Получение текущих данных для экспорта
+  getCurrentData() {
+    switch (this.activeTab.value) {
+      case 'pages':
+        return this.filteredPages.value
+      case 'users':
+        return this.filteredUsersData.value
+      case 'categories':
+        return this.filteredCategoriesData.value
+      default:
+        return []
+    }
+  }
+
   // Обработка смены таба
   onTabChange(newTab) {
     this.activeTab.value = newTab
-    if (newTab === 'users') {
-      this.userSearchQuery.value = ''
-      this.filterUsers()
+    // Сбрасываем страницы пагинации при смене таба
+    if (newTab === 'pages') {
+      this.currentPage.value = 1
+    } else if (newTab === 'users') {
       this.currentUserPage.value = 1
+    } else if (newTab === 'categories') {
+      this.currentCategoryPage.value = 1
     }
   }
 
@@ -1007,21 +1421,38 @@ class ActivityMapManager {
     this.currentUserPage.value = 1
   }
 
-  // Фильтрация пользователей по поисковому запросу
-  filterUsers() {
-    const query = this.userSearchQuery.value.toLowerCase().trim()
-
-    if (!query) {
-      this.filteredUsersData.value = [...this.usersData.value]
+  // Методы для сортировки категорий
+  sortCategoriesBy(column) {
+    if (this.categoriesSortColumn.value === column) {
+      this.categoriesSortDirection.value = this.categoriesSortDirection.value === 'asc' ? 'desc' : 'asc'
     } else {
-      this.filteredUsersData.value = this.usersData.value.filter(user =>
-          user.userName.toLowerCase().includes(query) ||
-          user.userId.toString().includes(query)
-      )
+      this.categoriesSortColumn.value = column
+      this.categoriesSortDirection.value = 'desc'
     }
+    this.applyCategoriesSorting()
+  }
 
-    this.applyUsersSorting()
-    this.currentUserPage.value = 1
+  applyCategoriesSorting() {
+    const sorted = [...this.filteredCategoriesData.value]
+
+    sorted.sort((a, b) => {
+      let aVal = a[this.categoriesSortColumn.value]
+      let bVal = b[this.categoriesSortColumn.value]
+
+      if (typeof aVal === 'string') {
+        const result = aVal.localeCompare(bVal, 'ru')
+        return this.categoriesSortDirection.value === 'asc' ? result : -result
+      }
+
+      if (this.categoriesSortDirection.value === 'asc') {
+        return aVal - bVal
+      } else {
+        return bVal - aVal
+      }
+    })
+
+    this.filteredCategoriesData.value = sorted
+    this.currentCategoryPage.value = 1
   }
 
   // Фильтрация элементов по диапазону дат
@@ -1438,6 +1869,134 @@ class ActivityMapManager {
     }
   }
 
+  // Обработка данных по категориям
+  processCategoriesData(items) {
+    const filteredItems = this.filterItemsByDateRange(items)
+
+    const categoriesMap = new Map() // category -> данные категории
+
+    filteredItems.forEach(item => {
+      const props = item.PROPERTY_VALUES || {}
+      const category = props.PAGE_CATEGORY || 'Без категории'
+      const time = parseInt(props.PAGE_TIME) || 0
+      const userId = parseInt(props.USER_ID) || 0
+      const url = props.PAGE_URL || ''
+
+      if (userId === 0) return
+
+      if (!categoriesMap.has(category)) {
+        categoriesMap.set(category, {
+          category,
+          totalTime: 0,
+          employees: new Map(), // userId -> { time, visits }
+          pages: new Map(), // url -> { time, employeeCount }
+          maxTime: 0,
+          minTime: Infinity,
+          visits: 0
+        })
+      }
+
+      const categoryData = categoriesMap.get(category)
+      categoryData.totalTime += time
+      categoryData.visits++
+
+      if (time > categoryData.maxTime) categoryData.maxTime = time
+      if (time < categoryData.minTime) categoryData.minTime = time
+
+      // Обновляем данные по сотрудникам
+      if (!categoryData.employees.has(userId)) {
+        const userName = this.userProfilesCache.value[userId]?.FULL_NAME || props.USER_NAME || `Пользователь ${userId}`
+        categoryData.employees.set(userId, {
+          userId,
+          userName,
+          time: 0,
+          visits: 0
+        })
+      }
+      const employeeData = categoryData.employees.get(userId)
+      employeeData.time += time
+      employeeData.visits++
+
+      // Обновляем данные по страницам
+      if (!categoryData.pages.has(url)) {
+        categoryData.pages.set(url, {
+          url,
+          time: 0,
+          employeeCount: 0,
+          employees: new Set()
+        })
+      }
+      const pageData = categoryData.pages.get(url)
+      pageData.time += time
+      pageData.employees.add(userId)
+      pageData.employeeCount = pageData.employees.size
+    })
+
+    // Преобразуем в массив
+    const result = []
+    let totalTimeAll = 0
+    let totalMaxTime = 0
+    let totalMinTime = Infinity
+    let totalAverageTimePerPersonSum = 0
+
+    categoriesMap.forEach(categoryData => {
+      if (categoryData.minTime === Infinity) categoryData.minTime = 0
+
+      const employeesArray = Array.from(categoryData.employees.values())
+          .map(emp => ({
+            ...emp,
+            userName: this.userProfilesCache.value[emp.userId]?.FULL_NAME || emp.userName
+          }))
+          .sort((a, b) => b.time - a.time)
+
+      const pagesArray = Array.from(categoryData.pages.values())
+          .map(page => ({
+            ...page,
+            employees: Array.from(page.employees)
+          }))
+          .sort((a, b) => b.time - a.time)
+
+      const averageTimePerPerson = categoryData.employees.size > 0
+          ? Math.round(categoryData.totalTime / categoryData.employees.size)
+          : 0
+
+      const categoryInfo = {
+        category: categoryData.category,
+        totalTime: categoryData.totalTime,
+        employeeCount: categoryData.employees.size,
+        pagesCount: categoryData.pages.size,
+        averageTimePerPerson,
+        maxTime: categoryData.maxTime,
+        minTime: categoryData.minTime,
+        employees: employeesArray,
+        pages: pagesArray,
+        visits: categoryData.visits
+      }
+
+      result.push(categoryInfo)
+
+      totalTimeAll += categoryData.totalTime
+      totalAverageTimePerPersonSum += averageTimePerPerson
+      if (categoryData.maxTime > totalMaxTime) totalMaxTime = categoryData.maxTime
+      if (categoryData.minTime < totalMinTime) totalMinTime = categoryData.minTime
+    })
+
+    this.categoriesData.value = result
+    this.filteredCategoriesData.value = [...result]
+
+    this.sortCategoriesBy('totalTime')
+
+    this.categoriesTotalStats.value = {
+      totalTime: totalTimeAll,
+      averageTimePerPerson: result.length > 0
+          ? Math.round(totalAverageTimePerPersonSum / result.length)
+          : 0,
+      maxTime: totalMaxTime,
+      minTime: totalMinTime !== Infinity ? totalMinTime : 0,
+      totalCategories: result.length
+    }
+  }
+
   // Основной метод загрузки всех данных
   async loadAllData() {
     try {
@@ -1457,6 +2016,8 @@ class ActivityMapManager {
         this.filteredPages.value = []
         this.usersData.value = []
         this.filteredUsersData.value = []
+        this.categoriesData.value = []
+        this.filteredCategoriesData.value = []
         this.isLoading.value = false
         return
       }
@@ -1476,13 +2037,15 @@ class ActivityMapManager {
         await this.getUserProfilesBatch(Array.from(userIds))
       }
 
-      // Обрабатываем данные для обоих представлений
+      // Обрабатываем данные для всех представлений
       this.processActivityData(items)
       this.processUsersData(items)
+      this.processCategoriesData(items)
 
       // Сбрасываем на первую страницу
       this.currentPage.value = 1
       this.currentUserPage.value = 1
+      this.currentCategoryPage.value = 1
 
     } catch (error) {
       console.error('Ошибка при загрузке данных:', error)
@@ -1495,11 +2058,8 @@ class ActivityMapManager {
   // Экспорт в XLS
   exportToXLS() {
     try {
-      if (this.activeTab.value === 'pages' && this.filteredPages.value.length === 0) {
-        this.showNotification('warning', 'Нет данных для экспорта')
-        return
-      }
-      if (this.activeTab.value === 'users' && this.filteredUsersData.value.length === 0) {
+      const currentData = this.getCurrentData()
+      if (currentData.length === 0) {
         this.showNotification('warning', 'Нет данных для экспорта')
         return
       }
@@ -1542,7 +2102,7 @@ class ActivityMapManager {
 
         fileName = `activity_map_pages_${this.formatDate(new Date())}.xlsx`
 
-      } else {
+      } else if (this.activeTab.value === 'users') {
         // Экспорт данных по сотрудникам
         exportData = this.filteredUsersData.value.map(user => ({
           'Сотрудник': user.userName,
@@ -1576,10 +2136,45 @@ class ActivityMapManager {
           'Среднее время на странице (текст)': this.formatDuration(this.usersTotalStats.value.averageTimePerPage),
           'Максимальное время (текст)': this.formatDuration(this.usersTotalStats.value.maxTime),
           'Минимальное время (текст)': this.formatDuration(this.usersTotalStats.value.minTime),
-          'Кол-во посещений': this.usersTotalStats.value.totalVisits || this.filteredUsersData.value.reduce((sum, u) => sum + u.visits, 0)
+          'Кол-во посещений': this.filteredUsersData.value.reduce((sum, u) => sum + u.visits, 0)
         })
 
         fileName = `activity_map_users_${this.formatDate(new Date())}.xlsx`
+
+      } else if (this.activeTab.value === 'categories') {
+        // Экспорт данных по категориям
+        exportData = this.filteredCategoriesData.value.map(category => ({
+          'Категория': category.category || 'Без категории',
+          'Кол-во сотрудников': category.employeeCount,
+          'Кол-во страниц': category.pagesCount,
+          'Общее время (часы)': this.formatDurationForExcel(category.totalTime),
+          'Среднее время на человека (часы)': this.formatDurationForExcel(category.averageTimePerPerson),
+          'Максимальное время (часы)': this.formatDurationForExcel(category.maxTime),
+          'Минимальное время (часы)': this.formatDurationForExcel(category.minTime),
+          'Общее время (текст)': this.formatDuration(category.totalTime),
+          'Среднее время на человека (текст)': this.formatDuration(category.averageTimePerPerson),
+          'Максимальное время (текст)': this.formatDuration(category.maxTime),
+          'Минимальное время (текст)': this.formatDuration(category.minTime),
+          'Кол-во посещений': category.visits
+        }))
+
+        // Добавляем итоговую строку
+        exportData.push({
+          'Категория': 'ИТОГО:',
+          'Кол-во сотрудников': '',
+          'Кол-во страниц': '',
+          'Общее время (часы)': this.formatDurationForExcel(this.categoriesTotalStats.value.totalTime),
+          'Среднее время на человека (часы)': this.formatDurationForExcel(this.categoriesTotalStats.value.averageTimePerPerson),
+          'Максимальное время (часы)': this.formatDurationForExcel(this.categoriesTotalStats.value.maxTime),
+          'Минимальное время (часы)': this.formatDurationForExcel(this.categoriesTotalStats.value.minTime),
+          'Общее время (текст)': this.formatDuration(this.categoriesTotalStats.value.totalTime),
+          'Среднее время на человека (текст)': this.formatDuration(this.categoriesTotalStats.value.averageTimePerPerson),
+          'Максимальное время (текст)': this.formatDuration(this.categoriesTotalStats.value.maxTime),
+          'Минимальное время (текст)': this.formatDuration(this.categoriesTotalStats.value.minTime),
+          'Кол-во посещений': this.filteredCategoriesData.value.reduce((sum, c) => sum + c.visits, 0)
+        })
+
+        fileName = `activity_map_categories_${this.formatDate(new Date())}.xlsx`
       }
 
       // Создаем рабочую книгу
@@ -1591,7 +2186,7 @@ class ActivityMapManager {
       ws['!cols'] = colWidths
 
       // Добавляем лист в книгу
-      XLSX.utils.book_append_sheet(wb, ws, this.activeTab.value === 'pages' ? 'По страницам' : 'По сотрудникам')
+      XLSX.utils.book_append_sheet(wb, ws, this.getTabLabel())
 
       // Сохраняем файл
       XLSX.writeFile(wb, fileName)
@@ -1603,16 +2198,54 @@ class ActivityMapManager {
     }
   }
 
-  // Показать модальное окно с сотрудниками
+  // Получение названия текущего таба для экспорта
+  getTabLabel() {
+    switch (this.activeTab.value) {
+      case 'pages':
+        return 'По страницам'
+      case 'users':
+        return 'По сотрудникам'
+      case 'categories':
+        return 'По категориям'
+      default:
+        return 'Карта активности'
+    }
+  }
+
+  // Показать модальное окно с сотрудниками на странице
   showEmployeesModal(pageData) {
     this.modalPageData.value = pageData
     this.isShowEmployeesModal.value = true
   }
 
-  // Закрыть модальное окно
+  // Показать модальное окно с сотрудниками в категории
+  showCategoryEmployeesModal(categoryData) {
+    this.modalCategoryData.value = categoryData
+    this.isShowCategoryEmployeesModal.value = true
+  }
+
+  // Показать модальное окно со страницами в категории
+  showCategoryPagesModal(categoryData) {
+    this.modalCategoryData.value = categoryData
+    this.isShowCategoryPagesModal.value = true
+  }
+
+  // Закрыть модальное окно сотрудников на странице
   closeEmployeesModal() {
     this.isShowEmployeesModal.value = false
     this.modalPageData.value = null
+  }
+
+  // Закрыть модальное окно сотрудников в категории
+  closeCategoryEmployeesModal() {
+    this.isShowCategoryEmployeesModal.value = false
+    this.modalCategoryData.value = null
+  }
+
+  // Закрыть модальное окно страниц в категории
+  closeCategoryPagesModal() {
+    this.isShowCategoryPagesModal.value = false
+    this.modalCategoryData.value = null
   }
 
   async initialize() {
@@ -1639,8 +2272,11 @@ export default {
     const filteredPages = computed(() => activityMapManager.filteredPages.value)
     const usersData = computed(() => activityMapManager.usersData.value)
     const filteredUsersData = computed(() => activityMapManager.filteredUsersData.value)
+    const categoriesData = computed(() => activityMapManager.categoriesData.value)
+    const filteredCategoriesData = computed(() => activityMapManager.filteredCategoriesData.value)
     const totalStats = computed(() => activityMapManager.totalStats.value)
     const usersTotalStats = computed(() => activityMapManager.usersTotalStats.value)
+    const categoriesTotalStats = computed(() => activityMapManager.categoriesTotalStats.value)
 
     // Пагинированные данные по страницам
     const paginatedPages = computed(() => {
@@ -1654,6 +2290,13 @@ export default {
       const start = (activityMapManager.currentUserPage.value - 1) * activityMapManager.itemsPerPage.value
       const end = start + activityMapManager.itemsPerPage.value
       return filteredUsersData.value.slice(start, end)
+    })
+
+    // Пагинированные данные по категориям
+    const paginatedCategories = computed(() => {
+      const start = (activityMapManager.currentCategoryPage.value - 1) * activityMapManager.itemsPerPage.value
+      const end = start + activityMapManager.itemsPerPage.value
+      return filteredCategoriesData.value.slice(start, end)
     })
 
     onMounted(async () => {
@@ -1678,15 +2321,19 @@ export default {
       filteredPages,
       usersData,
       filteredUsersData,
+      categoriesData,
+      filteredCategoriesData,
       showAllEmployees: activityMapManager.showAllEmployees,
       totalStats,
       usersTotalStats,
+      categoriesTotalStats,
       currentPage: activityMapManager.currentPage,
       currentUserPage: activityMapManager.currentUserPage,
+      currentCategoryPage: activityMapManager.currentCategoryPage,
       itemsPerPage: activityMapManager.itemsPerPage,
-      userSearchQuery: activityMapManager.userSearchQuery,
       paginatedPages,
       paginatedUsers,
+      paginatedCategories,
 
       // Сортировка для страниц
       sortColumn: activityMapManager.sortColumn,
@@ -1696,14 +2343,21 @@ export default {
       usersSortColumn: activityMapManager.usersSortColumn,
       usersSortDirection: activityMapManager.usersSortDirection,
 
+      // Сортировка для категорий
+      categoriesSortColumn: activityMapManager.categoriesSortColumn,
+      categoriesSortDirection: activityMapManager.categoriesSortDirection,
+
       // Календарь и диапазон
       selectedDateRange: activityMapManager.selectedDateRange,
       minCalendarDate: activityMapManager.minCalendarDate,
       maxCalendarDate: activityMapManager.maxCalendarDate,
 
-      // Модальное окно
+      // Модальные окна
       isShowEmployeesModal: activityMapManager.isShowEmployeesModal,
+      isShowCategoryEmployeesModal: activityMapManager.isShowCategoryEmployeesModal,
+      isShowCategoryPagesModal: activityMapManager.isShowCategoryPagesModal,
       modalPageData: activityMapManager.modalPageData,
+      modalCategoryData: activityMapManager.modalCategoryData,
 
       // Табы
       activeTab: activityMapManager.activeTab,
@@ -1712,10 +2366,14 @@ export default {
       loadAllData: activityMapManager.loadAllData.bind(activityMapManager),
       sortBy: activityMapManager.sortBy.bind(activityMapManager),
       sortUsersBy: activityMapManager.sortUsersBy.bind(activityMapManager),
-      filterUsers: activityMapManager.filterUsers.bind(activityMapManager),
+      sortCategoriesBy: activityMapManager.sortCategoriesBy.bind(activityMapManager),
       exportToXLS: activityMapManager.exportToXLS.bind(activityMapManager),
       showEmployeesModal: activityMapManager.showEmployeesModal.bind(activityMapManager),
+      showCategoryEmployeesModal: activityMapManager.showCategoryEmployeesModal.bind(activityMapManager),
+      showCategoryPagesModal: activityMapManager.showCategoryPagesModal.bind(activityMapManager),
       closeEmployeesModal: activityMapManager.closeEmployeesModal.bind(activityMapManager),
+      closeCategoryEmployeesModal: activityMapManager.closeCategoryEmployeesModal.bind(activityMapManager),
+      closeCategoryPagesModal: activityMapManager.closeCategoryPagesModal.bind(activityMapManager),
       onTabChange: activityMapManager.onTabChange.bind(activityMapManager),
       formatDuration: activityMapManager.formatDuration.bind(activityMapManager),
       calculatePercentage: activityMapManager.calculatePercentage.bind(activityMapManager),
@@ -1733,7 +2391,8 @@ export default {
       handleDateRangeChange: activityMapManager.handleDateRangeChange.bind(activityMapManager),
       resetDateRange: activityMapManager.resetDateRange.bind(activityMapManager),
       formatDateRangeDisplay: activityMapManager.formatDateRangeDisplay.bind(activityMapManager),
-      isDateDisabled: activityMapManager.isDateDisabled.bind(activityMapManager)
+      isDateDisabled: activityMapManager.isDateDisabled.bind(activityMapManager),
+      isDateUnavailable: activityMapManager.isDateUnavailable.bind(activityMapManager)
     }
   }
 }
@@ -1776,7 +2435,7 @@ th.cursor-pointer:hover {
   text-overflow: ellipsis;
 }
 
-/* Стили для кликабельного счетчика сотрудников */
+/* Стили для кликабельного счетчика сотрудников и страниц */
 button.inline-flex {
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1787,7 +2446,7 @@ button.inline-flex:hover {
 }
 
 /* Стили для прогресс-бара в модальном окне */
-.bg-blue-500 {
+.bg-blue-500, .bg-green-500 {
   transition: width 0.3s ease;
 }
 
