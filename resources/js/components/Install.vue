@@ -575,6 +575,204 @@
                       </div>
                     </div>
                   </B24Card>
+
+                  <!-- Помощь в старте рабочего дня -->
+                  <B24Card class="hover:shadow-lg transition-shadow duration-300">
+                    <div class="p-6">
+                      <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                          <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                          </div>
+                          <div class="flex-1">
+                            <h3 class="text-lg font-semibold text-gray-900">
+                              Помощь в старте рабочего дня
+                            </h3>
+                            <p class="text-sm text-gray-500">Автоматическая помощь сотрудникам в своевременном начале рабочего дня</p>
+                          </div>
+                        </div>
+                        <div class="ml-4 flex items-center space-x-4">
+                          <div class="w-2 h-2 rounded-full" :class="selectedFeatures.workdayStart ? 'bg-green-500' : 'bg-red-500'"></div>
+                          <B24Switch
+                              v-model="selectedFeatures.workdayStart"
+                              :disabled="isInstalling"
+                              class="large-bordered-switch"
+                          />
+                        </div>
+                      </div>
+
+                      <div v-if="selectedFeatures.workdayStart" class="space-y-4 pt-4 border-t">
+                        <B24FormField
+                            label="Способ старта рабочего дня"
+                            name="workdayStartMethod"
+                            :help-text="`Текущий способ: ${getWorkdayStartMethodText()}`"
+                        >
+                          <B24RadioGroup
+                              v-model="configSettings.workdayStart.method"
+                              :disabled="isInstalling"
+                              :items="[
+                                  {
+                                      label: 'Автоматический старт',
+                                      value: 'auto',
+                                      description: 'Рабочий день начинается автоматически при открытии'
+                                  },
+                                  {
+                                      label: 'Модальное окно с предупреждением',
+                                      value: 'modal',
+                                      description: 'Показывать окно с предложением начать рабочий день'
+                                  }
+                              ]"
+                              orientation="horizontal"
+                              variant="card"
+                              size="sm"
+                              default-value="modal"
+                              indicator="end"
+                              class="overflow-scroll"
+                          />
+                        </B24FormField>
+
+                        <!-- Информация о системе помощи -->
+                        <div class="space-y-4 mt-6">
+                          <h4 class="text-sm font-medium text-gray-900">
+                            Как работает помощь в старте рабочего дня
+                          </h4>
+                          <div class="space-y-3">
+                            <div class="flex items-start">
+                              <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                <span class="text-xs font-medium text-blue-600">1</span>
+                              </div>
+                              <div>
+                                <p class="text-sm text-gray-700">
+                                  При открытии страницы портала, система проверяет, запущен ли рабочий день пользователя и является ли текущее время рабочим.
+                                </p>
+                              </div>
+                            </div>
+                            <div class="flex items-start">
+                              <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                <span class="text-xs font-medium text-blue-600">2</span>
+                              </div>
+                              <div>
+                                <p class="text-sm text-gray-700">
+                                  <span class="font-medium">Автоматический старт:</span> рабочий день начинается автоматически без участия сотрудника.
+                                </p>
+                              </div>
+                            </div>
+                            <div class="flex items-start">
+                              <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                <span class="text-xs font-medium text-blue-600">3</span>
+                              </div>
+                              <div>
+                                <p class="text-sm text-gray-700">
+                                  <span class="font-medium">Модальное окно:</span> показывается окно с кнопкой "Начать рабочий день", пока сотрудник не начнет рабочий день.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </B24Card>
+
+                  <!-- Помощь в завершении рабочего дня -->
+                  <B24Card class="hover:shadow-lg transition-shadow duration-300">
+                    <div class="p-6">
+                      <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                          <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                          </div>
+                          <div class="flex-1">
+                            <h3 class="text-lg font-semibold text-gray-900">
+                              Помощь в завершении рабочего дня
+                            </h3>
+                            <p class="text-sm text-gray-500">Автоматическая помощь сотрудникам в своевременном завершении рабочего дня</p>
+                          </div>
+                        </div>
+                        <div class="ml-4 flex items-center space-x-4">
+                          <div class="w-2 h-2 rounded-full" :class="selectedFeatures.workdayEnd ? 'bg-green-500' : 'bg-red-500'"></div>
+                          <B24Switch
+                              v-model="selectedFeatures.workdayEnd"
+                              :disabled="isInstalling"
+                              class="large-bordered-switch"
+                          />
+                        </div>
+                      </div>
+
+                      <div v-if="selectedFeatures.workdayEnd" class="space-y-4 pt-4 border-t">
+                        <B24FormField
+                            label="Способ завершения рабочего дня"
+                            name="workdayEndMethod"
+                            :help-text="`Текущий способ: ${getWorkdayEndMethodText()}`"
+                        >
+                          <B24RadioGroup
+                              v-model="configSettings.workdayEnd.method"
+                              :disabled="isInstalling"
+                              :items="[
+                                  {
+                                      label: 'Автоматическое завершение',
+                                      value: 'auto',
+                                      description: 'Рабочий день завершается автоматически'
+                                  },
+                                  {
+                                      label: 'Модальное окно с предупреждением',
+                                      value: 'modal',
+                                      description: 'Показывать окно с предложением завершить рабочий день'
+                                  }
+                              ]"
+                              orientation="horizontal"
+                              variant="card"
+                              size="sm"
+                              default-value="modal"
+                              indicator="end"
+                              class="overflow-scroll"
+                          />
+                        </B24FormField>
+
+                        <!-- Информация о системе помощи -->
+                        <div class="space-y-4 mt-6">
+                          <h4 class="text-sm font-medium text-gray-900">
+                            Как работает помощь в завершении рабочего дня
+                          </h4>
+                          <div class="space-y-3">
+                            <div class="flex items-start">
+                              <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                <span class="text-xs font-medium text-blue-600">1</span>
+                              </div>
+                              <div>
+                                <p class="text-sm text-gray-700">
+                                  При открытии страницы портала, система проверяет, запущен ли рабочий день пользователя и является ли текущее время рабочим.
+                                </p>
+                              </div>
+                            </div>
+                            <div class="flex items-start">
+                              <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                <span class="text-xs font-medium text-blue-600">2</span>
+                              </div>
+                              <div>
+                                <p class="text-sm text-gray-700">
+                                  <span class="font-medium">Автоматическое завершение:</span> рабочий день закрывается автоматически без участия сотрудника.
+                                </p>
+                              </div>
+                            </div>
+                            <div class="flex items-start">
+                              <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                <span class="text-xs font-medium text-blue-600">3</span>
+                              </div>
+                              <div>
+                                <p class="text-sm text-gray-700">
+                                  <span class="font-medium">Модальное окно:</span> показывается окно с кнопкой "Завершить рабочий день", пока сотрудник не завершит рабочий день.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </B24Card>
                 </div>
 
                 <!-- Кнопки навигации -->
@@ -1016,6 +1214,14 @@ export default {
         employeeReactionTime: 300,
         responseMethod: 'chat',
         deliveryMethod: 'chat'
+      },
+      workdayStart: {
+        enabled: true,
+        method: 'modal'
+      },
+      workdayEnd: {
+        enabled: true,
+        method: 'modal'
       }
     })
 
@@ -1483,6 +1689,22 @@ export default {
         'all': 'Чат и Push-уведомление'
       }
       return methods[configSettings.value.subordinateReports.deliveryMethod] || 'чат'
+    }
+
+    const getWorkdayStartMethodText = () => {
+      const methods = {
+        'auto': 'Автоматический старт',
+        'modal': 'Модальное окно с предупреждением'
+      }
+      return methods[configSettings.value.workdayStart.method] || 'модальное окно'
+    }
+
+    const getWorkdayEndMethodText = () => {
+      const methods = {
+        'auto': 'Автоматическое завершение',
+        'modal': 'Модальное окно с предупреждением'
+      }
+      return methods[configSettings.value.workdayEnd.method] || 'модальное окно'
     }
 
     const toggleNotifyManager = (newValue) => {
