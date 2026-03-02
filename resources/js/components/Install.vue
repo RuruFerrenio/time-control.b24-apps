@@ -198,10 +198,71 @@
                               </div>
                             </div>
                           </div>
+
                         </B24FormField>
                       </div>
                     </div>
                   </B24Card>
+
+                  <!-- Информация о системе отслеживания -->
+                  <div class="space-y-4 mt-6">
+                    <h4 class="text-sm font-medium text-gray-900">
+                      Как работает система отслеживания:
+                    </h4>
+                    <div class="space-y-3">
+                      <div class="flex items-start">
+                        <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                          <span class="text-xs font-medium text-blue-600">1</span>
+                        </div>
+                        <div>
+                          <p class="text-sm text-gray-700">
+                            Система записывает посещение страницы сотрудником, если он задерживается на странице больше 10 секунд (сократить эту задержку в данной версии приложения нельзя).
+                          </p>
+                        </div>
+                      </div>
+                      <div class="flex items-start">
+                        <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                          <span class="text-xs font-medium text-blue-600">2</span>
+                        </div>
+                        <div>
+                          <p class="text-sm text-gray-700">
+                            Для каждого посещения сохраняется URL страницы, время нахождения, пользователь и категория страницы.
+                          </p>
+                        </div>
+                      </div>
+                      <div class="flex items-start">
+                        <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                          <span class="text-xs font-medium text-blue-600">3</span>
+                        </div>
+                        <div>
+                          <p class="text-sm text-gray-700">
+                            Данные сохраняются в хранилище Bitrix24 с группировкой по дням.
+                          </p>
+                        </div>
+                      </div>
+                      <div class="flex items-start">
+                        <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                          <span class="text-xs font-medium text-blue-600">4</span>
+                        </div>
+                        <div>
+                          <p class="text-sm text-gray-700">
+                            Данные из хранилища Bitrix24 об истории посещения страниц пользователям отображаются в удобном для восприятия виде на странице приложения - История посещений. Здесь пользователь может изучить свои затраты времени на каждой странице и, при желании, добавить время в задачи.
+                          </p>
+                        </div>
+                      </div>
+                      <div class="flex items-start">
+                        <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                          <span class="text-xs font-medium text-blue-600">5</span>
+                        </div>
+                        <div>
+                          <p class="text-sm text-gray-700">
+                            История посещений хранится {{ formData.pageTracking.historyDays }} дней, после чего старые
+                            записи автоматически удаляются.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
                   <!-- Контроль присутствия -->
                   <B24Card class="hover:shadow-lg transition-shadow duration-300">
@@ -409,6 +470,48 @@
                     </div>
                   </B24Card>
 
+                  <!-- Информация о системе контроля присутствия -->
+                  <div class="space-y-4 mt-6">
+                    <h4 class="text-sm font-medium text-gray-900">
+                      Как работает система контроля присутствия
+                    </h4>
+                    <div class="space-y-3">
+                      <div class="flex items-start">
+                        <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                          <span class="text-xs font-medium text-blue-600">1</span>
+                        </div>
+                        <div>
+                          <p class="text-sm text-gray-700">
+                            Через {{ formData.presenceControl.pageTimeThreshold }} минут с момента открытия сотрудником страницы
+                            будет всплывать модальное окно с кнопкой подтверждения присутствия, которая доступна для нажатия {{ formData.presenceControl.notifyManager.absenceTimeThreshold }} секунд.
+                          </p>
+                        </div>
+                      </div>
+                      <div class="flex items-start">
+                        <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                          <span class="text-xs font-medium text-blue-600">2</span>
+                        </div>
+                        <div>
+                          <p class="text-sm text-gray-700">
+                            Если пользователь действительно присутствует на рабочем месте, нажатие кнопки "Я здесь" закроет модальное окно
+                            и время на странице будет фиксироваться дальше. В противном случае, учет времени на странице останавливается, пока пользователь не подаст признаки активности в Битрикс24.
+                          </p>
+                        </div>
+                      </div>
+                      <div v-if="formData.presenceControl.notifyManager.enabled" class="flex items-start">
+                        <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                          <span class="text-xs font-medium text-blue-600">3</span>
+                        </div>
+                        <div>
+                          <p class="text-sm text-gray-700">
+                            По истечении {{ formData.presenceControl.notifyManager.absenceTimeThreshold }} секунд с момента появляения модального окна у сотрудника, руководителю будет отправлено уведомление
+                            о том, что пользователь не подтвердил своего присутствия на рабочем месте.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <!-- Разрешить запрос отчета о деятельности подчиненных -->
                   <B24Card class="hover:shadow-lg transition-shadow duration-300">
                     <div class="p-6">
@@ -575,6 +678,56 @@
                       </div>
                     </div>
                   </B24Card>
+
+                  <!-- Информация о системе запросов отчетов -->
+                  <div class="space-y-4 mt-6">
+                    <h4 class="text-sm font-medium text-gray-900">
+                      Как работает система запросов отчетов
+                    </h4>
+                    <div class="space-y-3">
+                      <div class="flex items-start">
+                        <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                          <span class="text-xs font-medium text-blue-600">1</span>
+                        </div>
+                        <div>
+                          <p class="text-sm text-gray-700">
+                            В списке "Время всех сотрудников" в истории посещений в блоке пользователя появляется кнопка "Запросить отчет", которая инициирует запрос обратной связи от сотрудника.
+                          </p>
+                        </div>
+                      </div>
+                      <div class="flex items-start">
+                        <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                          <span class="text-xs font-medium text-blue-600">2</span>
+                        </div>
+                        <div>
+                          <p class="text-sm text-gray-700">
+                            Сотруднику отправляется уведомление через {{ getDeliveryMethodText() }} с прикрепленной ссылкой на заполнение короткой формы и предоставляется {{ formData.subordinateReports.employeeReactionTime }} секунд для
+                            подготовки отчета.
+                          </p>
+                        </div>
+                      </div>
+                      <div class="flex items-start">
+                        <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                          <span class="text-xs font-medium text-blue-600">3</span>
+                        </div>
+                        <div>
+                          <p class="text-sm text-gray-700">
+                            Сотрудник заполняет форму, описывая, чем занимается в данный момент.
+                          </p>
+                        </div>
+                      </div>
+                      <div class="flex items-start">
+                        <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                          <span class="text-xs font-medium text-blue-600">4</span>
+                        </div>
+                        <div>
+                          <p class="text-sm text-gray-700">
+                            Информация, внесенная сотрудником в отчет автоматически возвращается инициатору запроса через {{ getResponseMethodText() }}.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
                   <!-- Помощь в старте рабочего дня -->
                   <B24Card class="hover:shadow-lg transition-shadow duration-300">
