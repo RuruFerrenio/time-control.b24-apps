@@ -383,7 +383,7 @@
                                 size="sm"
                                 default-value="push"
                                 indicator="end"
-                                class="overflow-scroll"
+                                class="overflow-scroll md:overflow-auto"
                             />
                           </B24FormField>
                         </div>
@@ -571,7 +571,7 @@
                         size="sm"
                         default-value="push"
                         indicator="end"
-                        class="overflow-scroll"
+                        class="overflow-scroll md:overflow-auto"
                     />
                   </B24FormField>
 
@@ -606,7 +606,7 @@
                         size="sm"
                         default-value="push"
                         indicator="end"
-                        class="overflow-scroll"
+                        class="overflow-scroll md:overflow-auto"
                     />
                   </B24FormField>
                 </B24Form>
@@ -722,7 +722,7 @@
                         size="sm"
                         default-value="modal"
                         indicator="end"
-                        class="overflow-scroll"
+                        class="overflow-scroll md:overflow-auto"
                     />
                   </B24FormField>
                 </B24Form>
@@ -845,7 +845,7 @@
                         size="sm"
                         default-value="modal"
                         indicator="end"
-                        class="overflow-scroll"
+                        class="overflow-scroll md:overflow-auto"
                     />
                   </B24FormField>
                 </B24Form>
