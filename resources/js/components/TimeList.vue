@@ -1478,7 +1478,7 @@ class HierarchicalDataManager {
       })
     }
 
-    const reportUrl = `/marketplace/view/local.6953c3c26d1bd5.96725557/?params[parameters]=${reportParams.parameters}`
+    const reportUrl = `/marketplace/view/app.69a5d18b17b992.72418389/?params[parameters]=${reportParams.parameters}`
 
     // Форматируем сообщение с BB-кодами
     const fullMessage = `[SIZE=16][B]📋 Запрос отчета о деятельности[/B][/SIZE]\n\n`
