@@ -44,17 +44,6 @@
                 Карта активности
               </router-link>
 
-              <!-- НОВЫЙ ПУНКТ: Плагин для браузера (некликабельный, с подсказкой) -->
-              <div
-                  class="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-400 cursor-not-allowed relative group"
-                  title="В следующей версии..."
-              >
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
-                </svg>
-                Плагин для браузера
-              </div>
-
               <!-- Ссылка на статистику рабочего дня с проверкой тарифа -->
               <router-link
                   to="/workday-statistics"
@@ -66,6 +55,17 @@
                 </svg>
                 Статистика рабочего дня
               </router-link>
+
+              <!-- НОВЫЙ ПУНКТ: Плагин для браузера (некликабельный, с подсказкой) -->
+              <div
+                  class="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-400 cursor-not-allowed relative group"
+                  title="В следующей версии..."
+              >
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                </svg>
+                Плагин для браузера
+              </div>
 
               <!-- Пункт настроек виден только администраторам -->
               <router-link
