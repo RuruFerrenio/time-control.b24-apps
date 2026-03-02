@@ -84,7 +84,6 @@
                               :year-controls="true"
                               :min-value="minCalendarDate"
                               :max-value="maxCalendarDate"
-                              :is-date-disabled="isDateDisabled"
                               :is-date-unavailable="isDateUnavailable"
                               class="rounded-lg"
                               @update:modelValue="handleDateRangeChange"
@@ -1295,11 +1294,6 @@ class ActivityMapManager {
     return `${startStr} — ${endStr}`
   }
 
-  isDateDisabled(date) {
-    const dayOfWeek = date.toDate('UTC').getDay()
-    return dayOfWeek === 0 || dayOfWeek === 6
-  }
-
   // Метод для определения недоступных дат (старше historyDays)
   isDateUnavailable(date) {
     const today = new Date()
@@ -2402,7 +2396,6 @@ export default {
       handleDateRangeChange: activityMapManager.handleDateRangeChange.bind(activityMapManager),
       resetDateRange: activityMapManager.resetDateRange.bind(activityMapManager),
       formatDateRangeDisplay: activityMapManager.formatDateRangeDisplay.bind(activityMapManager),
-      isDateDisabled: activityMapManager.isDateDisabled.bind(activityMapManager),
       isDateUnavailable: activityMapManager.isDateUnavailable.bind(activityMapManager),
       getCurrentData: activityMapManager.getCurrentData.bind(activityMapManager),
     }

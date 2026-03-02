@@ -62,16 +62,23 @@
 
             <!-- Кнопка очистки -->
             <div class="flex space-x-2">
-              <button
+              <B24Button
                   @click="clearStorage"
                   :disabled="isProcessing"
-                  class="flex-1 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  color="air-primary-alert"
+                  size="md"
+                  class="flex-1"
               >
-                <svg v-if="isProcessing" class="w-4 h-4 mr-2 inline animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                </svg>
+                <template #left-icon>
+                  <svg v-if="isProcessing" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                  </svg>
+                  <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
+                </template>
                 {{ isProcessing ? 'Очистка...' : 'Очистить хранилище' }}
-              </button>
+              </B24Button>
             </div>
           </div>
 
@@ -121,6 +128,7 @@
 
 <script>
 import { ref, onMounted } from 'vue'
+import { useToast } from '@bitrix24/b24ui-nuxt/composables/useToast'
 
 export default {
   name: 'StorageManager',
@@ -147,12 +155,55 @@ export default {
     }
   },
   setup(props) {
+    const toast = useToast()
+
     const storageStatus = ref({
       initialized: false,
       totalItems: 0
     })
 
     const isProcessing = ref(false)
+
+    // Показать уведомление
+    const showNotification = (type, message) => {
+      if (toast) {
+        toast.add({
+          description: message,
+          variant: type
+        })
+      } else {
+        console[type === 'error' ? 'error' : type === 'success' ? 'log' : 'info'](message)
+      }
+    }
+
+    // Показать подтверждение
+    const showConfirm = (message) => {
+      return new Promise((resolve) => {
+        if (toast) {
+          // Создаем кастомное подтверждение через toast с действиями
+          toast.add({
+            description: message,
+            variant: 'warning',
+            actions: [
+              {
+                label: 'Да, очистить',
+                onClick: () => resolve(true),
+                variant: 'air-primary-alert'
+              },
+              {
+                label: 'Отмена',
+                onClick: () => resolve(false),
+                variant: 'air-tertiary'
+              }
+            ],
+            timeout: 0
+          })
+        } else {
+          // Fallback на стандартный confirm
+          resolve(confirm(message))
+        }
+      })
+    }
 
     // Получение описания хранилища в зависимости от типа
     const getStorageDescription = () => {
@@ -283,6 +334,7 @@ export default {
           TYPE: prop.TYPE
         }, (result) => {
           if (result.error()) {
+            console.error(`Ошибка при создании свойства ${prop.PROPERTY}:`, result.error())
           } else {
             createdCount++
           }
@@ -294,7 +346,7 @@ export default {
     }
 
     // Очистка хранилища - УНИВЕРСАЛЬНЫЙ МЕТОД ДЛЯ ВСЕХ ТИПОВ
-    const clearStorage = () => {
+    const clearStorage = async () => {
       let confirmMessage = ''
 
       if (props.entityId === 'pr_tracking') {
@@ -305,7 +357,9 @@ export default {
         confirmMessage = `Вы уверены, что хотите полностью очистить хранилище "${props.storageName}"? Все данные будут безвозвратно удалены.`
       }
 
-      if (!confirm(confirmMessage)) {
+      const confirmed = await showConfirm(confirmMessage)
+
+      if (!confirmed) {
         return
       }
 
@@ -313,6 +367,7 @@ export default {
         isProcessing.value = true
 
         if (!BX24) {
+          showNotification('error', 'Библиотека Bitrix24 не доступна')
           isProcessing.value = false
           return
         }
@@ -326,6 +381,7 @@ export default {
             }, (deleteResult) => {
               if (deleteResult.error()) {
                 console.error('Ошибка при удалении хранилища:', deleteResult.error())
+                showNotification('error', 'Ошибка при удалении хранилища')
               }
               // Создаем новое хранилище
               createNewStorage()
@@ -338,7 +394,7 @@ export default {
 
       } catch (error) {
         console.error('Ошибка при очистке хранилища:', error)
-        alert('Ошибка при очистке хранилища. Пожалуйста, попробуйте еще раз.')
+        showNotification('error', 'Ошибка при очистке хранилища. Пожалуйста, попробуйте еще раз.')
         isProcessing.value = false
       }
     }
@@ -355,7 +411,7 @@ export default {
         if (result.error()) {
           console.error('Ошибка при создании хранилища:', result.error())
           isProcessing.value = false
-          alert('Ошибка при создании хранилища. Пожалуйста, попробуйте еще раз.')
+          showNotification('error', 'Ошибка при создании хранилища. Пожалуйста, попробуйте еще раз.')
         } else {
           // Создаем свойства, если они есть
           if (props.properties && props.properties.length > 0) {
@@ -364,7 +420,7 @@ export default {
               storageStatus.value.initialized = true
               storageStatus.value.totalItems = 0
 
-              alert(`Хранилище "${props.storageName}" успешно очищено и создано заново!`)
+              showNotification('success', `Хранилище "${props.storageName}" успешно очищено и создано заново!`)
               isProcessing.value = false
             })
           } else {
@@ -372,7 +428,7 @@ export default {
             storageStatus.value.initialized = true
             storageStatus.value.totalItems = 0
 
-            alert(`Хранилище "${props.storageName}" успешно очищено и создано заново!`)
+            showNotification('success', `Хранилище "${props.storageName}" успешно очищено и создано заново!`)
             isProcessing.value = false
           }
         }

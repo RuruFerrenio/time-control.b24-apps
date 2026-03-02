@@ -101,13 +101,23 @@
 
           <!-- Кнопка обновления встроек -->
           <div class="flex space-x-2">
-            <button
+            <B24Button
                 @click="updatePlacements"
                 :disabled="isProcessing"
-                class="flex-1 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                color="air-primary"
+                size="md"
+                class="flex-1"
             >
+              <template #left-icon>
+                <svg v-if="!isProcessing" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                <svg v-else class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+              </template>
               {{ isProcessing ? 'Обновление...' : 'Обновить встройки' }}
-            </button>
+            </B24Button>
           </div>
         </div>
 
@@ -166,10 +176,13 @@
 
 <script>
 import { ref, onMounted } from 'vue'
+import { useToast } from '@bitrix24/b24ui-nuxt/composables/useToast'
 
 export default {
   name: 'PlacementsManager',
   setup() {
+    const toast = useToast()
+
     // Статус встроек
     const placementsStatus = ref({
       pageBackgroundWorker: {
@@ -329,6 +342,47 @@ export default {
       }
     }
 
+    // Показать уведомление
+    const showNotification = (type, message) => {
+      if (toast) {
+        toast.add({
+          description: message,
+          variant: type
+        })
+      } else {
+        console[type === 'error' ? 'error' : type === 'success' ? 'log' : 'info'](message)
+      }
+    }
+
+    // Показать подтверждение
+    const showConfirm = (message) => {
+      return new Promise((resolve) => {
+        if (toast) {
+          // Создаем кастомное подтверждение через toast с действиями
+          toast.add({
+            description: message,
+            variant: 'warning',
+            actions: [
+              {
+                label: 'Да',
+                onClick: () => resolve(true),
+                variant: 'air-primary'
+              },
+              {
+                label: 'Нет',
+                onClick: () => resolve(false),
+                variant: 'air-tertiary'
+              }
+            ],
+            timeout: 0
+          })
+        } else {
+          // Fallback на стандартный confirm
+          resolve(confirm(message))
+        }
+      })
+    }
+
     // Проверка статуса встроек
     const checkPlacementsStatus = async () => {
       try {
@@ -357,7 +411,9 @@ export default {
 
     // Обновление встроек
     const updatePlacements = async () => {
-      if (!confirm('Вы уверены, что хотите обновить все встройки? Существующие встройки будут удалены и зарегистрированы заново.')) {
+      const confirmed = await showConfirm('Вы уверены, что хотите обновить все встройки? Существующие встройки будут удалены и зарегистрированы заново.')
+
+      if (!confirmed) {
         return
       }
 
@@ -370,10 +426,10 @@ export default {
         // Проверяем статус после регистрации
         await checkPlacementsStatus()
 
-        alert('Встройки успешно обновлены!')
+        showNotification('success', 'Встройки успешно обновлены!')
       } catch (error) {
         console.error('Ошибка при обновлении встроек:', error)
-        alert('Произошла ошибка при обновлении встроек. Пожалуйста, попробуйте еще раз.')
+        showNotification('error', 'Произошла ошибка при обновлении встроек. Пожалуйста, попробуйте еще раз.')
       } finally {
         isProcessing.value = false
       }
