@@ -1194,7 +1194,9 @@ export default {
     const selectedFeatures = ref({
       pageTracking: true,
       presenceControl: true,
-      subordinateReports: true
+      subordinateReports: true,
+      workdayStart: true,
+      workdayEnd: true
     })
 
     // Настройки по умолчанию
