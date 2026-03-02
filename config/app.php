@@ -123,4 +123,6 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'redirect_uri' => env('APP_REDIRECT_URI'),
+
 ];
