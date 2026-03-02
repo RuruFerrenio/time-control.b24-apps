@@ -25,7 +25,7 @@
             <div class="bg-gray-50 rounded-lg p-4">
               <div class="flex items-start justify-between">
                 <div class="flex-1">
-                  <div class="flex items-center space-x-3 mb-2">Фоновый счетчик
+                  <div class="flex items-center space-x-3 mb-2">
                     <div>
                       <p class="font-medium text-gray-900">Фоновый счетчик</p>
                       <p class="text-sm text-gray-500">Подсчитывает время, проведенное пользователем на странице</p>
