@@ -1554,6 +1554,11 @@ export default {
           employee_reaction_time: configSettings.value.subordinateReports.employeeReactionTime.toString(),
           response_method: configSettings.value.subordinateReports.responseMethod,
           delivery_method: configSettings.value.subordinateReports.deliveryMethod,
+          // НОВЫЕ НАСТРОЙКИ
+          workday_start_enabled: selectedFeatures.value.workdayStart ? 'Y' : 'N',
+          workday_start_method: configSettings.value.workdayStart.method,
+          workday_end_enabled: selectedFeatures.value.workdayEnd ? 'Y' : 'N',
+          workday_end_method: configSettings.value.workdayEnd.method,
           installation_completed: 'Y'
         }
 
@@ -1823,7 +1828,9 @@ export default {
       getNotificationMethodText,
       getResponseMethodText,
       getDeliveryMethodText,
-      toggleNotifyManager
+      toggleNotifyManager,
+      getWorkdayStartMethodText,
+      getWorkdayEndMethodText
     }
   }
 }
