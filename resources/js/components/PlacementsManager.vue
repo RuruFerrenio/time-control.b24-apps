@@ -25,12 +25,7 @@
             <div class="bg-gray-50 rounded-lg p-4">
               <div class="flex items-start justify-between">
                 <div class="flex-1">
-                  <div class="flex items-center space-x-3 mb-2">
-                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                      </svg>
-                    </div>
+                  <div class="flex items-center space-x-3 mb-2">Фоновый счетчик
                     <div>
                       <p class="font-medium text-gray-900">Фоновый счетчик</p>
                       <p class="text-sm text-gray-500">Подсчитывает время, проведенное пользователем на странице</p>
@@ -63,11 +58,6 @@
               <div class="flex items-start justify-between">
                 <div class="flex-1">
                   <div class="flex items-center space-x-3 mb-2">
-                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                      <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
-                      </svg>
-                    </div>
                     <div>
                       <p class="font-medium text-gray-900">Форма для отчета</p>
                       <p class="text-sm text-gray-500">Позволяет сотруднику заполнять запрошенные отчеты</p>

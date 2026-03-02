@@ -716,7 +716,7 @@
               </svg>
               <div class="min-w-0">
                 <div class="text-sm font-medium text-blue-900 mb-1">Информация о странице</div>
-                <div class="text-sm text-blue-700 break-all">
+                <div class="text-sm text-blue-700">
                   <a :href="modalPageData.url" target="_blank" class="underline">
                     {{ modalPageData.url }}
                   </a>
@@ -996,7 +996,7 @@
                   <a
                       :href="page.url"
                       target="_blank"
-                      class="text-blue-600 hover:text-blue-800 hover:underline break-all"
+                      class="text-blue-600 hover:text-blue-800 hover:underline"
                       :title="page.url"
                   >
                     {{ page.url }}

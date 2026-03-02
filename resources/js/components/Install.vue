@@ -608,268 +608,8 @@
           </div>
         </B24Card>
 
-        <!-- Шаг 3: Настройка встроек и хранилища -->
+        <!-- Шаг 3: Установка и настройка -->
         <B24Card v-else-if="currentStep === 3" class="mb-8">
-          <div class="p-6">
-            <div class="flex items-start space-x-6">
-              <div class="flex-shrink-0">
-                <div class="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                  </svg>
-                </div>
-              </div>
-              <div class="flex-1">
-                <h2 class="text-2xl font-bold text-gray-900 mb-4">
-                  Настройка встроек и хранилища
-                </h2>
-                <p class="text-gray-600 mb-6">
-                  Зарегистрируйте необходимые встройки и настройте хранилище для данных системы.
-                </p>
-
-                <!-- Встройки -->
-                <div class="bg-gray-50 rounded-xl p-6 mb-8">
-                  <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                    Регистрация встроек
-                  </h3>
-                  <div class="space-y-6">
-                    <!-- PAGE_BACKGROUND_WORKER -->
-                    <div class="flex items-center justify-between">
-                      <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                          </svg>
-                        </div>
-                        <div>
-                          <p class="font-medium text-gray-900">Фоновый счетчик</p>
-                          <p class="text-sm text-gray-500">Подсчитывает время, проведенное пользователем на странице</p>
-                        </div>
-                      </div>
-                      <div class="ml-4">
-                        <div v-if="placementStatus.pageBackgroundWorker === 'loading'" class="ml-4">
-                          <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                        </div>
-                        <div v-else-if="placementStatus.pageBackgroundWorker === 'success'" class="ml-4">
-                          <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                          </svg>
-                        </div>
-                        <div v-else-if="placementStatus.pageBackgroundWorker === 'error'" class="ml-4">
-                          <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                          </svg>
-                        </div>
-                        <div v-else class="flex items-center space-x-4">
-                          <div class="w-2 h-2 rounded-full" :class="selectedPlacements.pageBackgroundWorker ? 'bg-green-500' : 'bg-red-500'"></div>
-                          <B24Switch
-                              v-model="selectedPlacements.pageBackgroundWorker"
-                              :disabled="isInstalling"
-                              class="large-bordered-switch"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- REST_APP_URI -->
-                    <div class="flex items-center justify-between">
-                      <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                          <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
-                          </svg>
-                        </div>
-                        <div>
-                          <p class="font-medium text-gray-900">Форма для отчета</p>
-                          <p class="text-sm text-gray-500">Позволяет сотруднику заполнять запрошенные отчеты</p>
-                        </div>
-                      </div>
-                      <div class="ml-4">
-                        <div v-if="placementStatus.restAppUri === 'loading'" class="ml-4">
-                          <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                        </div>
-                        <div v-else-if="placementStatus.restAppUri === 'success'" class="ml-4">
-                          <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                          </svg>
-                        </div>
-                        <div v-else-if="placementStatus.restAppUri === 'error'" class="ml-4">
-                          <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                          </svg>
-                        </div>
-                        <div v-else class="flex items-center space-x-4">
-                          <div class="w-2 h-2 rounded-full" :class="selectedPlacements.restAppUri ? 'bg-green-500' : 'bg-red-500'"></div>
-                          <B24Switch
-                              v-model="selectedPlacements.restAppUri"
-                              :disabled="isInstalling"
-                              class="large-bordered-switch"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Хранилище -->
-                <div class="bg-gray-50 rounded-xl p-6 mb-8">
-                  <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                    Настройка хранилища
-                  </h3>
-                  <div class="space-y-4">
-                    <div class="flex items-center justify-between">
-                      <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                          <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
-                          </svg>
-                        </div>
-                        <div>
-                          <p class="font-medium text-gray-900">Хранилище истории посещений</p>
-                          <p class="text-sm text-gray-500">pr_tracking - Статистика посещений</p>
-                        </div>
-                      </div>
-                      <div class="ml-4">
-                        <div v-if="storageStatus === 'loading'" class="ml-4">
-                          <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                        </div>
-                        <div v-else-if="storageStatus === 'success'" class="ml-4">
-                          <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                          </svg>
-                        </div>
-                        <div v-else-if="storageStatus === 'error'" class="ml-4">
-                          <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                          </svg>
-                        </div>
-                        <div v-else class="flex items-center space-x-4">
-                          <div class="w-2 h-2 rounded-full" :class="selectedStorage ? 'bg-green-500' : 'bg-red-500'"></div>
-                          <B24Switch
-                              v-model="selectedStorage"
-                              :disabled="isInstalling"
-                              class="large-bordered-switch"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Информация о хранилище -->
-                    <div class="mt-3">
-                      <div class="flex items-start p-3 bg-blue-50 rounded-lg">
-                        <svg class="w-5 h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        <div class="text-sm text-blue-700">
-                          <span class="font-medium">Важно:</span> Выполняет роль локальной базы данных, место под хранилище выделяется на самом портале Битрикс24. Это позволяет избежать хранения данных на стороне стороннего сервера.
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Хранилище сохраненного времени -->
-                <div class="bg-gray-50 rounded-xl p-6 mb-8">
-                  <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                    Настройка хранилища сохраненного времени
-                  </h3>
-                  <div class="space-y-4">
-                    <div class="flex items-center justify-between">
-                      <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                          <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                          </svg>
-                        </div>
-                        <div>
-                          <p class="font-medium text-gray-900">Хранилище сохраненного времени</p>
-                          <p class="text-sm text-gray-500">pr_saved_time - Персональные счетчики времени</p>
-                        </div>
-                      </div>
-                      <div class="ml-4">
-                        <div v-if="savedTimeStorageStatus === 'loading'" class="ml-4">
-                          <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                        </div>
-                        <div v-else-if="savedTimeStorageStatus === 'success'" class="ml-4">
-                          <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                          </svg>
-                        </div>
-                        <div v-else-if="savedTimeStorageStatus === 'error'" class="ml-4">
-                          <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                          </svg>
-                        </div>
-                        <div v-else class="flex items-center space-x-4">
-                          <div class="w-2 h-2 rounded-full" :class="selectedSavedTimeStorage ? 'bg-green-500' : 'bg-red-500'"></div>
-                          <B24Switch
-                              v-model="selectedSavedTimeStorage"
-                              :disabled="isInstalling"
-                              class="large-bordered-switch"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Информация о хранилище -->
-                    <div class="mt-3">
-                      <div class="flex items-start p-3 bg-blue-50 rounded-lg">
-                        <svg class="w-5 h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        <div class="text-sm text-blue-700">
-                          <span class="font-medium">Важно:</span> Хранит персональные счетчики сохраненного времени каждого пользователя. Сбрасывайте счетчики при необходимости через раздел настроек.
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Кнопки навигации -->
-                <div class="flex justify-between pt-6 border-t">
-                  <B24Button
-                      @click="prevStep"
-                      variant="outline"
-                      size="large"
-                      class="px-4 py-2"
-                  >
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                    </svg>
-                    Назад
-                  </B24Button>
-                  <B24Button
-                      @click="startInstallation"
-                      variant="primary"
-                      size="large"
-                      :disabled="isInstalling || !hasSelectedFeatures"
-                      class="px-4 py-2"
-                  >
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                    </svg>
-                    Установить
-                  </B24Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </B24Card>
-
-        <!-- Шаг 4: Установка и настройка -->
-        <B24Card v-else-if="currentStep === 4" class="mb-8">
           <div class="p-6">
             <div class="flex items-start space-x-6">
               <div class="flex-shrink-0">
@@ -905,7 +645,7 @@
 
                 <!-- Детали установки -->
                 <div class="space-y-4 mb-8">
-                  <!-- Хранилище -->
+                  <!-- Хранилище активности -->
                   <div class="flex items-center">
                     <div class="w-8 h-8 flex-shrink-0">
                       <div v-if="storageStatus === 'loading'">
@@ -925,12 +665,41 @@
                         </svg>
                       </div>
                       <div v-else>
-                        <div class="w-2 h-2 bg-gray-300 rounded-full"></div>
+                        <div class="w-5 h-5 bg-gray-300 rounded-full"></div>
                       </div>
                     </div>
                     <div class="ml-3">
-                      <p class="text-sm font-medium text-gray-900">Регистрация хранилища</p>
+                      <p class="text-sm font-medium text-gray-900">Регистрация хранилища активности</p>
                       <p class="text-xs text-gray-500">pr_tracking - Статистика посещений</p>
+                    </div>
+                  </div>
+
+                  <!-- Хранилище сохраненного времени -->
+                  <div class="flex items-center">
+                    <div class="w-8 h-8 flex-shrink-0">
+                      <div v-if="savedTimeStorageStatus === 'loading'">
+                        <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      </div>
+                      <div v-else-if="savedTimeStorageStatus === 'success'">
+                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                      </div>
+                      <div v-else-if="savedTimeStorageStatus === 'error'">
+                        <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                      </div>
+                      <div v-else>
+                        <div class="w-5 h-5 bg-gray-300 rounded-full"></div>
+                      </div>
+                    </div>
+                    <div class="ml-3">
+                      <p class="text-sm font-medium text-gray-900">Регистрация хранилища сохраненного времени</p>
+                      <p class="text-xs text-gray-500">pr_saved_time - Персональные счетчики времени</p>
                     </div>
                   </div>
 
@@ -954,7 +723,7 @@
                         </svg>
                       </div>
                       <div v-else>
-                        <div class="w-2 h-2 bg-gray-300 rounded-full"></div>
+                        <div class="w-5 h-5 bg-gray-300 rounded-full"></div>
                       </div>
                     </div>
                     <div class="ml-3">
@@ -983,7 +752,7 @@
                         </svg>
                       </div>
                       <div v-else>
-                        <div class="w-2 h-2 bg-gray-300 rounded-full"></div>
+                        <div class="w-5 h-5 bg-gray-300 rounded-full"></div>
                       </div>
                     </div>
                     <div class="ml-3">
@@ -1026,8 +795,8 @@
           </div>
         </B24Card>
 
-        <!-- Шаг 5: Завершение -->
-        <B24Card v-else-if="currentStep === 5" class="mb-8">
+        <!-- Шаг 4: Завершение -->
+        <B24Card v-else-if="currentStep === 4" class="mb-8">
           <div class="p-6">
             <div class="flex items-start space-x-6">
               <div class="flex-shrink-0">
@@ -1075,29 +844,29 @@
                         </svg>
                         <span class="text-sm text-gray-700">Запрос отчетов о деятельности</span>
                       </div>
-                      <div v-if="selectedPlacements.pageBackgroundWorker" class="flex items-center">
+                      <div class="flex items-center">
                         <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
-                        <span class="text-sm text-gray-700">Фоновый счетчик</span>
+                        <span class="text-sm text-gray-700">Фоновый счетчик (встройка)</span>
                       </div>
-                      <div v-if="selectedPlacements.restAppUri" class="flex items-center">
+                      <div class="flex items-center">
                         <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
-                        <span class="text-sm text-gray-700">Форма для отчета</span>
+                        <span class="text-sm text-gray-700">Форма для отчета (встройка)</span>
                       </div>
-                      <div v-if="selectedStorage" class="flex items-center">
+                      <div class="flex items-center">
                         <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
-                        <span class="text-sm text-gray-700">Хранилище активности</span>
+                        <span class="text-sm text-gray-700">Хранилище активности (pr_tracking)</span>
                       </div>
-                      <div v-if="selectedSavedTimeStorage" class="flex items-center">
+                      <div class="flex items-center">
                         <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
-                        <span class="text-sm text-gray-700">Хранилище сохраненного времени</span>
+                        <span class="text-sm text-gray-700">Хранилище сохраненного времени (pr_saved_time)</span>
                       </div>
                     </div>
 
@@ -1220,7 +989,7 @@ export default {
   setup() {
     // Состояние
     const currentStep = ref(1)
-    const totalSteps = 5
+    const totalSteps = 4
     const progress = computed(() => Math.round((currentStep.value / totalSteps) * 100))
 
     // Выбранные функции
@@ -1229,16 +998,6 @@ export default {
       presenceControl: true,
       subordinateReports: true
     })
-
-    // Выбранные встройки
-    const selectedPlacements = ref({
-      pageBackgroundWorker: true,
-      restAppUri: true
-    })
-
-    // Хранилище
-    const selectedStorage = ref(true)
-    const selectedSavedTimeStorage = ref(true)
 
     // Настройки по умолчанию
     const configSettings = ref({
@@ -1266,12 +1025,6 @@ export default {
     const installedCount = ref(0)
 
     // Статусы компонентов
-    const featureStatus = ref({
-      pageTracking: { installed: false, checking: false },
-      presenceControl: { installed: false, checking: false },
-      subordinateReports: { installed: false, checking: false }
-    })
-
     const placementStatus = ref({
       pageBackgroundWorker: null,
       restAppUri: null
@@ -1324,18 +1077,6 @@ export default {
         })
       },
 
-      getPlacements: async () => {
-        try {
-          const result = await bitrixAPI.call('placement.get', {})
-          console.log('Список встроек:', result)
-          return result || []
-        } catch (error) {
-          console.error('Ошибка при получении списка встроек:', error)
-          return []
-        }
-      },
-
-      // Методы для работы с настройками
       setAppOption: async (key, value) => {
         try {
           const result = await bitrixAPI.call('app.option.set', {
@@ -1345,16 +1086,6 @@ export default {
         } catch (error) {
           console.error('Ошибка сохранения настройки:', error)
           throw error
-        }
-      },
-
-      getAppOption: async (key) => {
-        try {
-          const result = await bitrixAPI.call('app.option.get', { option: key })
-          return result
-        } catch (error) {
-          console.error('Ошибка получения настройки:', error)
-          return null
         }
       }
     }
@@ -1373,7 +1104,6 @@ export default {
         try {
           const config = placementManager.getConfig(placementType)
 
-          // Для PAGE_BACKGROUND_WORKER используем специальный формат конфигурации
           const placementConfig = placementType === 'PAGE_BACKGROUND_WORKER'
               ? {
                 PLACEMENT: placementType,
@@ -1393,23 +1123,12 @@ export default {
                     TITLE: config.title,
                     DESCRIPTION: config.description,
                     GROUP_NAME: 'Time control tools'
-                  },
-                  be: {
-                    TITLE: config.title,
-                    DESCRIPTION: config.description,
-                    GROUP_NAME: 'Інструменты кантролю часу'
-                  },
-                  kk: {
-                    TITLE: config.title,
-                    DESCRIPTION: config.description,
-                    GROUP_NAME: 'Уақытты бақылау құралдары'
                   }
                 },
                 OPTIONS: config.options
               }
 
-          const result = await bitrixAPI.call('placement.bind', placementConfig)
-          console.log(`Встройка ${placementType} зарегистрирована:`, result)
+          await bitrixAPI.call('placement.bind', placementConfig)
           return true
         } catch (error) {
           console.error(`Ошибка регистрации встройки ${placementType}:`, error)
@@ -1419,72 +1138,44 @@ export default {
 
       unbind: async (placementType, handler) => {
         try {
-          const result = await bitrixAPI.call('placement.unbind', {
+          await bitrixAPI.call('placement.unbind', {
             PLACEMENT: placementType,
             HANDLER: handler
           })
-          console.log(`Встройка ${placementType} удалена:`, result)
-          return result
+          return true
         } catch (error) {
           console.error(`Ошибка удаления встройки ${placementType}:`, error)
-          // Игнорируем ошибку, если встройка не существует
           return null
-        }
-      },
-
-      checkStatus: async (placementType, handler) => {
-        try {
-          const placements = await bitrixAPI.getPlacements()
-
-          if (!Array.isArray(placements)) {
-            console.warn('Получен некорректный формат данных встроек:', placements)
-            return false
-          }
-
-          const placement = placements.find(p =>
-              p.placement === placementType &&
-              p.handler === handler
-          )
-
-          return !!placement
-        } catch (error) {
-          console.error(`Ошибка при проверке статуса встройки ${placementType}:`, error)
-          return false
         }
       }
     }
 
     // Менеджер хранилища
     const storageManager = {
-
-      // В объекте storageManager добавьте:
-
-// Проверка существования хранилища сохраненного времени
-      checkSavedTimeStorageExists: () => {
+      checkStorageExists: (entityId) => {
         return new Promise((resolve) => {
-          if (!BX24) {
-            resolve(false)
-            return
-          }
-
           BX24.callMethod('entity.get', {}, (result) => {
             if (result.error()) {
               console.error('Ошибка при проверке хранилищ:', result.error())
               resolve(false)
             } else {
               const entities = result.data()
-              const exists = entities.some(entity => entity.ENTITY === 'pr_saved_time')
+              const exists = entities.some(entity => entity.ENTITY === entityId)
               resolve(exists)
             }
           })
         })
       },
 
-// Создание свойств для хранилища сохраненного времени
-      createSavedTimeStorageProperties: () => {
+      createStorageProperties: (entityId, properties) => {
         return new Promise((resolve) => {
           let createdCount = 0
-          const totalProperties = SAVED_TIME_STORAGE_PROPERTIES.length
+          const totalProperties = properties.length
+
+          if (totalProperties === 0) {
+            resolve(true)
+            return
+          }
 
           const createNextProperty = (index) => {
             if (index >= totalProperties) {
@@ -1492,18 +1183,15 @@ export default {
               return
             }
 
-            const prop = SAVED_TIME_STORAGE_PROPERTIES[index]
+            const prop = properties[index]
             BX24.callMethod('entity.item.property.add', {
-              ENTITY: 'pr_saved_time',
+              ENTITY: entityId,
               PROPERTY: prop.PROPERTY,
               NAME: prop.NAME,
               TYPE: prop.TYPE
             }, (result) => {
               if (result.error()) {
                 console.log(`Свойство ${prop.PROPERTY} уже существует или ошибка:`, result.error())
-              } else {
-                console.log(`Свойство ${prop.PROPERTY} создано`)
-                createdCount++
               }
               createNextProperty(index + 1)
             })
@@ -1513,152 +1201,36 @@ export default {
         })
       },
 
-      // Настройка хранилища сохраненного времени
-      setupSavedTimeStorage: async () => {
+      setupStorage: async (entityId, storageName, properties) => {
         try {
-          savedTimeStorageStatus.value = 'loading'
-
-          if (!BX24) {
-            throw new Error('Библиотека Bitrix24 не доступна')
-          }
-
-          // Проверяем существование хранилища
-          const exists = await storageManager.checkSavedTimeStorageExists()
+          const exists = await storageManager.checkStorageExists(entityId)
 
           if (!exists) {
-            // Создаем новое хранилище
             await new Promise((resolve, reject) => {
               BX24.callMethod('entity.add', {
-                ENTITY: 'pr_saved_time',
-                NAME: 'Сохраненное время',
+                ENTITY: entityId,
+                NAME: storageName,
                 ACCESS: {
                   AU: 'W'
                 }
               }, (result) => {
                 if (result.error()) {
-                  reject(new Error('Ошибка при создании хранилища сохраненного времени: ' + result.error()))
+                  reject(new Error(`Ошибка при создании хранилища: ${result.error()}`))
                 } else {
-                  console.log('Хранилище сохраненного времени успешно создано')
                   resolve()
                 }
               })
             })
 
-            // Создаем свойства
-            await storageManager.createSavedTimeStorageProperties()
+            await storageManager.createStorageProperties(entityId, properties)
           } else {
-            console.log('Хранилище сохраненного времени уже существует')
+            console.log(`Хранилище ${entityId} уже существует`)
           }
 
-          savedTimeStorageStatus.value = 'success'
-          installedCount.value++
           return true
         } catch (error) {
-          console.error('Ошибка настройки хранилища сохраненного времени:', error)
-          savedTimeStorageStatus.value = 'error'
-          return false
-        }
-      },
-
-      // Проверка существования хранилища
-      checkStorageExists: () => {
-        return new Promise((resolve) => {
-          if (!BX24) {
-            resolve(false)
-            return
-          }
-
-          BX24.callMethod('entity.get', {}, (result) => {
-            if (result.error()) {
-              console.error('Ошибка при проверке хранилищ:', result.error())
-              resolve(false)
-            } else {
-              const entities = result.data()
-              const exists = entities.some(entity => entity.ENTITY === 'pr_tracking')
-              resolve(exists)
-            }
-          })
-        })
-
-      },
-
-      // Создание свойств хранилища
-      createStorageProperties: () => {
-        return new Promise((resolve) => {
-          let createdCount = 0
-          const totalProperties = STORAGE_PROPERTIES.length
-
-          const createNextProperty = (index) => {
-            if (index >= totalProperties) {
-              resolve(true)
-              return
-            }
-
-            const prop = STORAGE_PROPERTIES[index]
-            BX24.callMethod('entity.item.property.add', {
-              ENTITY: 'pr_tracking',
-              PROPERTY: prop.PROPERTY,
-              NAME: prop.NAME,
-              TYPE: prop.TYPE
-            }, (result) => {
-              if (result.error()) {
-                console.log(`Свойство ${prop.PROPERTY} уже существует или ошибка:`, result.error())
-              } else {
-                console.log(`Свойство ${prop.PROPERTY} создано`)
-                createdCount++
-              }
-              createNextProperty(index + 1)
-            })
-          }
-
-          createNextProperty(0)
-        })
-      },
-
-      // Инициализация хранилища
-      setupStorage: async () => {
-        try {
-          storageStatus.value = 'loading'
-
-          if (!BX24) {
-            throw new Error('Библиотека Bitrix24 не доступна')
-          }
-
-          // Проверяем существование хранилища
-          const exists = await storageManager.checkStorageExists()
-
-          if (!exists) {
-            // Создаем новое хранилище
-            await new Promise((resolve, reject) => {
-              BX24.callMethod('entity.add', {
-                ENTITY: 'pr_tracking',
-                NAME: 'Статистика посещений',
-                ACCESS: {
-                  AU: 'W'
-                }
-              }, (result) => {
-                if (result.error()) {
-                  reject(new Error('Ошибка при создании хранилища: ' + result.error()))
-                } else {
-                  console.log('Хранилище успешно создано')
-                  resolve()
-                }
-              })
-            })
-
-            // Создаем свойства
-            await storageManager.createStorageProperties()
-          } else {
-            console.log('Хранилище уже существует')
-          }
-
-          storageStatus.value = 'success'
-          installedCount.value++
-          return true
-        } catch (error) {
-          console.error('Ошибка настройки хранилища:', error)
-          storageStatus.value = 'error'
-          return false
+          console.error(`Ошибка настройки хранилища ${entityId}:`, error)
+          throw error
         }
       }
     }
@@ -1765,30 +1337,20 @@ export default {
       settingsStatus.value = 'loading'
       try {
         const settingsToSave = {
-          // Основные функции
           page_tracking_enabled: selectedFeatures.value.pageTracking ? 'Y' : 'N',
           presence_control_enabled: selectedFeatures.value.presenceControl ? 'Y' : 'N',
           subordinate_reports_enabled: selectedFeatures.value.subordinateReports ? 'Y' : 'N',
-
-          // Настройки отслеживания посещений
           page_tracking_history_days: configSettings.value.pageTracking.historyDays.toString(),
-
-          // Настройки контроля присутствия
           presence_page_time_threshold: configSettings.value.presenceControl.pageTimeThreshold.toString(),
           notify_manager_enabled: configSettings.value.presenceControl.notifyManager.enabled ? 'Y' : 'N',
           absence_time_threshold: configSettings.value.presenceControl.notifyManager.absenceTimeThreshold.toString(),
           notification_method: configSettings.value.presenceControl.notifyManager.method,
-
-          // Настройки отчетов
           employee_reaction_time: configSettings.value.subordinateReports.employeeReactionTime.toString(),
           response_method: configSettings.value.subordinateReports.responseMethod,
           delivery_method: configSettings.value.subordinateReports.deliveryMethod,
-
-          // Флаг завершенной установки
           installation_completed: 'Y'
         }
 
-        // Сохраняем все настройки
         for (const [key, value] of Object.entries(settingsToSave)) {
           await bitrixAPI.setAppOption(key, value)
         }
@@ -1803,43 +1365,28 @@ export default {
       }
     }
 
-    // Регистрация встроек с проверкой существования
-    const registerPlacements = async () => {
-      const placementsToInstall = []
-
-      if (selectedPlacements.value.pageBackgroundWorker) {
-        placementsToInstall.push({
+    // Регистрация всех встроек
+    const registerAllPlacements = async () => {
+      const placements = [
+        {
           id: 'pageBackgroundWorker',
           type: 'PAGE_BACKGROUND_WORKER',
           handler: HANDLERS.pageBackgroundWorker,
           title: 'Фоновый счетчик',
           description: 'Подсчитывает время, проведенное пользователем на странице'
-        })
-      }
-
-      if (selectedPlacements.value.restAppUri) {
-        placementsToInstall.push({
+        },
+        {
           id: 'restAppUri',
           type: 'REST_APP_URI',
           handler: HANDLERS.restAppUri,
           title: 'Форма для отчета',
           description: 'Позволяет сотруднику заполнять запрошенные отчеты'
-        })
-      }
+        }
+      ]
 
-      for (const placement of placementsToInstall) {
+      for (const placement of placements) {
         placementStatus.value[placement.id] = 'loading'
         try {
-          // Проверяем, существует ли уже такая встройка
-          const exists = await placementManager.checkStatus(placement.type, placement.handler)
-
-          // Если существует, удаляем
-          if (exists) {
-            console.log(`Встройка ${placement.type} уже существует, удаляем...`)
-            await placementManager.unbind(placement.type, placement.handler)
-          }
-
-          // Регистрируем новую встройку
           await placementManager.bind(placement.type, placement.handler)
           placementStatus.value[placement.id] = 'success'
           installedCount.value++
@@ -1849,13 +1396,16 @@ export default {
         }
       }
 
-      return placementsToInstall
+      return placements
     }
 
     // Основная функция установки
     const startInstallation = async () => {
+      if (currentStep.value === 2) {
+        currentStep.value = 3
+      }
+
       isInstalling.value = true
-      currentStep.value = 4
       installedCount.value = 0
 
       // Сбрасываем статусы
@@ -1864,21 +1414,26 @@ export default {
         restAppUri: null
       }
       storageStatus.value = null
+      savedTimeStorageStatus.value = null
       settingsStatus.value = null
 
       try {
-        // 1. Регистрация хранилища (с проверкой и удалением если существует)
-        if (selectedStorage.value) {
-          await storageManager.setupStorage()
-        }
-        if (selectedSavedTimeStorage.value) {
-          await storageManager.setupSavedTimeStorage()
-        }
+        // 1. Регистрация хранилища активности
+        storageStatus.value = 'loading'
+        await storageManager.setupStorage('pr_tracking', 'Статистика посещений', STORAGE_PROPERTIES)
+        storageStatus.value = 'success'
+        installedCount.value++
 
-        // 2. Регистрация встроек (с проверкой и удалением если существуют)
-        await registerPlacements()
+        // 2. Регистрация хранилища сохраненного времени
+        savedTimeStorageStatus.value = 'loading'
+        await storageManager.setupStorage('pr_saved_time', 'Сохраненное время', SAVED_TIME_STORAGE_PROPERTIES)
+        savedTimeStorageStatus.value = 'success'
+        installedCount.value++
 
-        // 3. Сохранение настроек
+        // 3. Регистрация встроек
+        await registerAllPlacements()
+
+        // 4. Сохранение настроек
         await saveSettings()
 
         installationComplete.value = true
@@ -1940,41 +1495,24 @@ export default {
     })
 
     const placementsToInstall = computed(() => {
-      const placements = []
-
-      if (selectedPlacements.value.pageBackgroundWorker) {
-        placements.push({
+      return [
+        {
           id: 'pageBackgroundWorker',
           title: 'Фоновый счетчик',
           description: 'Подсчитывает время, проведенное пользователем на странице'
-        })
-      }
-
-      if (selectedPlacements.value.restAppUri) {
-        placements.push({
+        },
+        {
           id: 'restAppUri',
           title: 'Форма для отчета',
           description: 'Позволяет сотруднику заполнять запрошенные отчеты'
-        })
-      }
-
-      return placements
+        }
+      ]
     })
 
     const installationsToProcess = computed(() => {
-      let count = 0
-
-      // Хранилища
-      if (selectedStorage.value) count++
-      if (selectedSavedTimeStorage.value) count++
-
-      // Встройки
-      if (selectedPlacements.value.pageBackgroundWorker) count++
-      if (selectedPlacements.value.restAppUri) count++
-
-      // Настройки (всегда 1)
-      count++
-
+      let count = 2 // Два хранилища
+      count += 2 // Две встройки
+      count += 1 // Настройки
       return count
     })
 
@@ -1993,7 +1531,10 @@ export default {
 
     // Методы навигации
     const nextStep = () => {
-      if (currentStep.value < totalSteps) {
+      if (currentStep.value === 2) {
+        // Запускаем установку при переходе на шаг 3
+        startInstallation()
+      } else if (currentStep.value < totalSteps) {
         currentStep.value++
       }
     }
@@ -2009,17 +1550,11 @@ export default {
         await bitrixAPI.installFinish()
       } catch (error) {
         console.error('Ошибка завершения установки:', error)
-        if (typeof toast !== 'undefined') {
-          toast.add({
-            description: 'Ошибка завершения установки',
-            variant: 'error'
-          })
-        }
       }
     }
 
     const openApp = () => {
-      window.location.href = '/app'
+      window.location.href = '/'
     }
 
     return {
@@ -2028,19 +1563,14 @@ export default {
       totalSteps,
       progress,
       selectedFeatures,
-      selectedPlacements,
-      selectedStorage,
       configSettings,
       isInstalling,
       installationComplete,
       installedCount,
-      featureStatus,
       placementStatus,
       storageStatus,
-      selectedSavedTimeStorage,
       savedTimeStorageStatus,
       settingsStatus,
-
 
       // Ошибки
       historyDaysError,
@@ -2058,7 +1588,6 @@ export default {
       // Методы
       nextStep,
       prevStep,
-      startInstallation,
       finishInstallation,
       openApp,
 
@@ -2109,11 +1638,6 @@ export default {
 ::v-deep .b24-switch__toggle--disabled {
   opacity: 0.5 !important;
   cursor: not-allowed !important;
-}
-
-::v-deep .b24-switch__toggle--disabled.b24-switch__toggle--checked {
-  background-color: #3b82f6 !important;
-  border-color: #3b82f6 !important;
 }
 
 /* Анимации */
