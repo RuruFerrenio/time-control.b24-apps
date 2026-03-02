@@ -143,7 +143,6 @@
                             :help-text="`Текущее значение: ${configSettings.pageTracking.historyDays} дней`"
                         >
                           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Поле ввода -->
                             <div>
                               <B24Input
                                   v-model.number="configSettings.pageTracking.historyDays"
@@ -159,8 +158,6 @@
                                 </template>
                               </B24Input>
                             </div>
-
-                            <!-- Слайдер для настройки -->
                             <div class="space-y-2">
                               <input
                                   type="range"
@@ -173,12 +170,11 @@
                               >
                               <div class="flex justify-between text-xs text-gray-500">
                                 <span>1 день</span>
-                                <span>7 дней</span>
+                                <span>30 дней</span>
                               </div>
                             </div>
                           </div>
 
-                          <!-- Ошибка валидации -->
                           <div v-if="historyDaysError" class="mt-2 text-sm text-red-600 flex items-center">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
@@ -186,7 +182,6 @@
                             {{ historyDaysError }}
                           </div>
 
-                          <!-- Информация о хранении -->
                           <div class="mt-3">
                             <div class="flex items-start p-3 bg-blue-50 rounded-lg">
                               <svg class="w-5 h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -198,71 +193,69 @@
                               </div>
                             </div>
                           </div>
-
                         </B24FormField>
+
+                        <!-- Информация о системе отслеживания -->
+                        <div class="space-y-4 mt-6">
+                          <h4 class="text-sm font-medium text-gray-900">
+                            Как работает система отслеживания:
+                          </h4>
+                          <div class="space-y-3">
+                            <div class="flex items-start">
+                              <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                <span class="text-xs font-medium text-blue-600">1</span>
+                              </div>
+                              <div>
+                                <p class="text-sm text-gray-700">
+                                  Система записывает посещение страницы сотрудником, если он задерживается на странице больше 10 секунд (сократить эту задержку в данной версии приложения нельзя).
+                                </p>
+                              </div>
+                            </div>
+                            <div class="flex items-start">
+                              <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                <span class="text-xs font-medium text-blue-600">2</span>
+                              </div>
+                              <div>
+                                <p class="text-sm text-gray-700">
+                                  Для каждого посещения сохраняется URL страницы, время нахождения, пользователь и категория страницы.
+                                </p>
+                              </div>
+                            </div>
+                            <div class="flex items-start">
+                              <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                <span class="text-xs font-medium text-blue-600">3</span>
+                              </div>
+                              <div>
+                                <p class="text-sm text-gray-700">
+                                  Данные сохраняются в хранилище Bitrix24 с группировкой по дням.
+                                </p>
+                              </div>
+                            </div>
+                            <div class="flex items-start">
+                              <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                <span class="text-xs font-medium text-blue-600">4</span>
+                              </div>
+                              <div>
+                                <p class="text-sm text-gray-700">
+                                  Данные из хранилища Bitrix24 об истории посещения страниц пользователям отображаются в удобном для восприятия виде на странице приложения - История посещений. Здесь пользователь может изучить свои затраты времени на каждой странице и, при желании, добавить время в задачи.
+                                </p>
+                              </div>
+                            </div>
+                            <div class="flex items-start">
+                              <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                <span class="text-xs font-medium text-blue-600">5</span>
+                              </div>
+                              <div>
+                                <p class="text-sm text-gray-700">
+                                  История посещений хранится {{ configSettings.pageTracking.historyDays }} дней, после чего старые записи автоматически удаляются.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </B24Card>
-
-                  <!-- Информация о системе отслеживания -->
-                  <div class="space-y-4 mt-6">
-                    <h4 class="text-sm font-medium text-gray-900">
-                      Как работает система отслеживания:
-                    </h4>
-                    <div class="space-y-3">
-                      <div class="flex items-start">
-                        <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                          <span class="text-xs font-medium text-blue-600">1</span>
-                        </div>
-                        <div>
-                          <p class="text-sm text-gray-700">
-                            Система записывает посещение страницы сотрудником, если он задерживается на странице больше 10 секунд (сократить эту задержку в данной версии приложения нельзя).
-                          </p>
-                        </div>
-                      </div>
-                      <div class="flex items-start">
-                        <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                          <span class="text-xs font-medium text-blue-600">2</span>
-                        </div>
-                        <div>
-                          <p class="text-sm text-gray-700">
-                            Для каждого посещения сохраняется URL страницы, время нахождения, пользователь и категория страницы.
-                          </p>
-                        </div>
-                      </div>
-                      <div class="flex items-start">
-                        <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                          <span class="text-xs font-medium text-blue-600">3</span>
-                        </div>
-                        <div>
-                          <p class="text-sm text-gray-700">
-                            Данные сохраняются в хранилище Bitrix24 с группировкой по дням.
-                          </p>
-                        </div>
-                      </div>
-                      <div class="flex items-start">
-                        <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                          <span class="text-xs font-medium text-blue-600">4</span>
-                        </div>
-                        <div>
-                          <p class="text-sm text-gray-700">
-                            Данные из хранилища Bitrix24 об истории посещения страниц пользователям отображаются в удобном для восприятия виде на странице приложения - История посещений. Здесь пользователь может изучить свои затраты времени на каждой странице и, при желании, добавить время в задачи.
-                          </p>
-                        </div>
-                      </div>
-                      <div class="flex items-start">
-                        <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                          <span class="text-xs font-medium text-blue-600">5</span>
-                        </div>
-                        <div>
-                          <p class="text-sm text-gray-700">
-                            История посещений хранится {{ formData.pageTracking.historyDays }} дней, после чего старые
-                            записи автоматически удаляются.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
 
                   <!-- Контроль присутствия -->
                   <B24Card class="hover:shadow-lg transition-shadow duration-300">
@@ -298,7 +291,6 @@
                             :help-text="`Текущее значение: ${configSettings.presenceControl.pageTimeThreshold} минут`"
                         >
                           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Поле ввода -->
                             <div>
                               <B24Input
                                   v-model.number="configSettings.presenceControl.pageTimeThreshold"
@@ -314,8 +306,6 @@
                                 </template>
                               </B24Input>
                             </div>
-
-                            <!-- Слайдер для настройки -->
                             <div class="space-y-2">
                               <input
                                   type="range"
@@ -333,7 +323,6 @@
                             </div>
                           </div>
 
-                          <!-- Ошибка валидации -->
                           <div v-if="pageTimeThresholdError" class="mt-2 text-sm text-red-600 flex items-center">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
@@ -341,7 +330,6 @@
                             {{ pageTimeThresholdError }}
                           </div>
 
-                          <!-- Настройка уведомлений руководителя -->
                           <div class="space-y-4 pt-4">
                             <div class="flex items-center justify-between">
                               <div class="flex-1">
@@ -363,16 +351,13 @@
                               </div>
                             </div>
 
-                            <!-- Дополнительные настройки уведомлений -->
                             <div v-if="configSettings.presenceControl.notifyManager.enabled" class="space-y-4">
-                              <!-- Время на подтверждение присутствия -->
                               <B24FormField
                                   label="Время на подтверждение присутствия"
                                   name="absenceTimeThreshold"
                                   :help-text="`Текущее значение: ${configSettings.presenceControl.notifyManager.absenceTimeThreshold} секунд`"
                               >
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                  <!-- Поле ввода -->
                                   <div>
                                     <B24Input
                                         v-model.number="configSettings.presenceControl.notifyManager.absenceTimeThreshold"
@@ -388,8 +373,6 @@
                                       </template>
                                     </B24Input>
                                   </div>
-
-                                  <!-- Слайдер для настройки -->
                                   <div class="space-y-2">
                                     <input
                                         type="range"
@@ -407,7 +390,6 @@
                                   </div>
                                 </div>
 
-                                <!-- Ошибка валидации -->
                                 <div v-if="absenceTimeThresholdError" class="mt-2 text-sm text-red-600 flex items-center">
                                   <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
@@ -415,7 +397,6 @@
                                   {{ absenceTimeThresholdError }}
                                 </div>
 
-                                <!-- Информация о настройке -->
                                 <div class="mt-3">
                                   <div class="flex items-start p-3 bg-yellow-50 rounded-lg">
                                     <svg class="w-5 h-5 text-yellow-500 mr-2 flex-shrink-0 mt-0.5" fill="none"
@@ -430,7 +411,6 @@
                                 </div>
                               </B24FormField>
 
-                              <!-- Способ уведомления -->
                               <B24FormField
                                   label="Способ уведомления"
                                   name="notificationMethod"
@@ -460,57 +440,57 @@
                                     size="sm"
                                     default-value="push"
                                     indicator="end"
-                                    class="overflow-scroll md:overflow-auto"
+                                    class="overflow-scroll"
                                 />
                               </B24FormField>
                             </div>
                           </div>
                         </B24FormField>
+
+                        <!-- Информация о системе контроля присутствия -->
+                        <div class="space-y-4 mt-6">
+                          <h4 class="text-sm font-medium text-gray-900">
+                            Как работает система контроля присутствия
+                          </h4>
+                          <div class="space-y-3">
+                            <div class="flex items-start">
+                              <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                <span class="text-xs font-medium text-blue-600">1</span>
+                              </div>
+                              <div>
+                                <p class="text-sm text-gray-700">
+                                  Через {{ configSettings.presenceControl.pageTimeThreshold }} минут с момента открытия сотрудником страницы
+                                  будет всплывать модальное окно с кнопкой подтверждения присутствия, которая доступна для нажатия {{ configSettings.presenceControl.notifyManager.absenceTimeThreshold }} секунд.
+                                </p>
+                              </div>
+                            </div>
+                            <div class="flex items-start">
+                              <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                <span class="text-xs font-medium text-blue-600">2</span>
+                              </div>
+                              <div>
+                                <p class="text-sm text-gray-700">
+                                  Если пользователь действительно присутствует на рабочем месте, нажатие кнопки "Я здесь" закроет модальное окно
+                                  и время на странице будет фиксироваться дальше. В противном случае, учет времени на странице останавливается, пока пользователь не подаст признаки активности в Битрикс24.
+                                </p>
+                              </div>
+                            </div>
+                            <div v-if="configSettings.presenceControl.notifyManager.enabled" class="flex items-start">
+                              <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                <span class="text-xs font-medium text-blue-600">3</span>
+                              </div>
+                              <div>
+                                <p class="text-sm text-gray-700">
+                                  По истечении {{ configSettings.presenceControl.notifyManager.absenceTimeThreshold }} секунд с момента появления модального окна у сотрудника, руководителю будет отправлено уведомление
+                                  о том, что пользователь не подтвердил своего присутствия на рабочем месте.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </B24Card>
-
-                  <!-- Информация о системе контроля присутствия -->
-                  <div class="space-y-4 mt-6">
-                    <h4 class="text-sm font-medium text-gray-900">
-                      Как работает система контроля присутствия
-                    </h4>
-                    <div class="space-y-3">
-                      <div class="flex items-start">
-                        <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                          <span class="text-xs font-medium text-blue-600">1</span>
-                        </div>
-                        <div>
-                          <p class="text-sm text-gray-700">
-                            Через {{ formData.presenceControl.pageTimeThreshold }} минут с момента открытия сотрудником страницы
-                            будет всплывать модальное окно с кнопкой подтверждения присутствия, которая доступна для нажатия {{ formData.presenceControl.notifyManager.absenceTimeThreshold }} секунд.
-                          </p>
-                        </div>
-                      </div>
-                      <div class="flex items-start">
-                        <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                          <span class="text-xs font-medium text-blue-600">2</span>
-                        </div>
-                        <div>
-                          <p class="text-sm text-gray-700">
-                            Если пользователь действительно присутствует на рабочем месте, нажатие кнопки "Я здесь" закроет модальное окно
-                            и время на странице будет фиксироваться дальше. В противном случае, учет времени на странице останавливается, пока пользователь не подаст признаки активности в Битрикс24.
-                          </p>
-                        </div>
-                      </div>
-                      <div v-if="formData.presenceControl.notifyManager.enabled" class="flex items-start">
-                        <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                          <span class="text-xs font-medium text-blue-600">3</span>
-                        </div>
-                        <div>
-                          <p class="text-sm text-gray-700">
-                            По истечении {{ formData.presenceControl.notifyManager.absenceTimeThreshold }} секунд с момента появляения модального окна у сотрудника, руководителю будет отправлено уведомление
-                            о том, что пользователь не подтвердил своего присутствия на рабочем месте.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
 
                   <!-- Разрешить запрос отчета о деятельности подчиненных -->
                   <B24Card class="hover:shadow-lg transition-shadow duration-300">
@@ -546,7 +526,6 @@
                             :help-text="`Текущее значение: ${configSettings.subordinateReports.employeeReactionTime} секунд`"
                         >
                           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Поле ввода -->
                             <div>
                               <B24Input
                                   v-model.number="configSettings.subordinateReports.employeeReactionTime"
@@ -562,8 +541,6 @@
                                 </template>
                               </B24Input>
                             </div>
-
-                            <!-- Слайдер для настройки -->
                             <div class="space-y-2">
                               <input
                                   type="range"
@@ -581,7 +558,6 @@
                             </div>
                           </div>
 
-                          <!-- Ошибка валидации -->
                           <div v-if="employeeReactionTimeError" class="mt-2 text-sm text-red-600 flex items-center">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
@@ -589,7 +565,6 @@
                             {{ employeeReactionTimeError }}
                           </div>
 
-                          <!-- Информация о настройке -->
                           <div class="mt-3">
                             <div class="flex items-start p-3 bg-blue-50 rounded-lg">
                               <svg class="w-5 h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
@@ -606,7 +581,6 @@
                           </div>
                         </B24FormField>
 
-                        <!-- Способ получения ответа -->
                         <B24FormField
                             label="Способ получения ответа"
                             name="responseMethod"
@@ -637,11 +611,10 @@
                               size="sm"
                               default-value="push"
                               indicator="end"
-                              class="overflow-scroll md:overflow-auto"
+                              class="overflow-scroll"
                           />
                         </B24FormField>
 
-                        <!-- Способ доставки запроса подчиненному -->
                         <B24FormField
                             label="Способ доставки запроса подчиненному"
                             name="deliveryMethod"
@@ -672,62 +645,61 @@
                               size="sm"
                               default-value="push"
                               indicator="end"
-                              class="overflow-scroll md:overflow-auto"
+                              class="overflow-scroll"
                           />
                         </B24FormField>
+
+                        <!-- Информация о системе запросов отчетов -->
+                        <div class="space-y-4 mt-6">
+                          <h4 class="text-sm font-medium text-gray-900">
+                            Как работает система запросов отчетов
+                          </h4>
+                          <div class="space-y-3">
+                            <div class="flex items-start">
+                              <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                <span class="text-xs font-medium text-blue-600">1</span>
+                              </div>
+                              <div>
+                                <p class="text-sm text-gray-700">
+                                  В списке "Время всех сотрудников" в истории посещений в блоке пользователя появляется кнопка "Запросить отчет", которая инициирует запрос обратной связи от сотрудника.
+                                </p>
+                              </div>
+                            </div>
+                            <div class="flex items-start">
+                              <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                <span class="text-xs font-medium text-blue-600">2</span>
+                              </div>
+                              <div>
+                                <p class="text-sm text-gray-700">
+                                  Сотруднику отправляется уведомление через {{ getDeliveryMethodText() }} с прикрепленной ссылкой на заполнение короткой формы и предоставляется {{ configSettings.subordinateReports.employeeReactionTime }} секунд для подготовки отчета.
+                                </p>
+                              </div>
+                            </div>
+                            <div class="flex items-start">
+                              <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                <span class="text-xs font-medium text-blue-600">3</span>
+                              </div>
+                              <div>
+                                <p class="text-sm text-gray-700">
+                                  Сотрудник заполняет форму, описывая, чем занимается в данный момент.
+                                </p>
+                              </div>
+                            </div>
+                            <div class="flex items-start">
+                              <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                <span class="text-xs font-medium text-blue-600">4</span>
+                              </div>
+                              <div>
+                                <p class="text-sm text-gray-700">
+                                  Информация, внесенная сотрудником в отчет автоматически возвращается инициатору запроса через {{ getResponseMethodText() }}.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </B24Card>
-
-                  <!-- Информация о системе запросов отчетов -->
-                  <div class="space-y-4 mt-6">
-                    <h4 class="text-sm font-medium text-gray-900">
-                      Как работает система запросов отчетов
-                    </h4>
-                    <div class="space-y-3">
-                      <div class="flex items-start">
-                        <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                          <span class="text-xs font-medium text-blue-600">1</span>
-                        </div>
-                        <div>
-                          <p class="text-sm text-gray-700">
-                            В списке "Время всех сотрудников" в истории посещений в блоке пользователя появляется кнопка "Запросить отчет", которая инициирует запрос обратной связи от сотрудника.
-                          </p>
-                        </div>
-                      </div>
-                      <div class="flex items-start">
-                        <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                          <span class="text-xs font-medium text-blue-600">2</span>
-                        </div>
-                        <div>
-                          <p class="text-sm text-gray-700">
-                            Сотруднику отправляется уведомление через {{ getDeliveryMethodText() }} с прикрепленной ссылкой на заполнение короткой формы и предоставляется {{ formData.subordinateReports.employeeReactionTime }} секунд для
-                            подготовки отчета.
-                          </p>
-                        </div>
-                      </div>
-                      <div class="flex items-start">
-                        <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                          <span class="text-xs font-medium text-blue-600">3</span>
-                        </div>
-                        <div>
-                          <p class="text-sm text-gray-700">
-                            Сотрудник заполняет форму, описывая, чем занимается в данный момент.
-                          </p>
-                        </div>
-                      </div>
-                      <div class="flex items-start">
-                        <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                          <span class="text-xs font-medium text-blue-600">4</span>
-                        </div>
-                        <div>
-                          <p class="text-sm text-gray-700">
-                            Информация, внесенная сотрудником в отчет автоматически возвращается инициатору запроса через {{ getResponseMethodText() }}.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
 
                   <!-- Помощь в старте рабочего дня -->
                   <B24Card class="hover:shadow-lg transition-shadow duration-300">
@@ -782,7 +754,7 @@
                               size="sm"
                               default-value="modal"
                               indicator="end"
-                              class="overflow-scroll md:overflow-auto"
+                              class="overflow-scroll"
                           />
                         </B24FormField>
 
@@ -881,7 +853,7 @@
                               size="sm"
                               default-value="modal"
                               indicator="end"
-                              class="overflow-scroll md:overflow-auto"
+                              class="overflow-scroll"
                           />
                         </B24FormField>
 
@@ -1195,6 +1167,18 @@
                         </svg>
                         <span class="text-sm text-gray-700">Запрос отчетов о деятельности</span>
                       </div>
+                      <div v-if="selectedFeatures.workdayStart" class="flex items-center">
+                        <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">Помощь в старте рабочего дня</span>
+                      </div>
+                      <div v-if="selectedFeatures.workdayEnd" class="flex items-center">
+                        <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">Помощь в завершении рабочего дня</span>
+                      </div>
                       <div class="flex items-center">
                         <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
@@ -1298,52 +1282,52 @@
 import { ref, computed, onMounted } from 'vue'
 import { useToast } from '@bitrix24/b24ui-nuxt/composables/useToast'
 
-const toast = useToast()
-
-// Конфигурации встроек
-const PLACEMENT_CONFIGS = {
-  PAGE_BACKGROUND_WORKER: {
-    title: 'Фоновый счетчик',
-    description: 'Подсчитывает время, проведенное пользователем на странице',
-    options: {
-      errorHandlerUrl: `${window.location.origin}/placements/error-handler`
-    }
-  },
-  REST_APP_URI: {
-    title: 'Форма для отчета',
-    description: 'Позволяет сотруднику заполнять запрошенные отчеты',
-    options: {}
-  }
-}
-
-// Определения свойств хранилища
-const STORAGE_PROPERTIES = [
-  { PROPERTY: 'USER_ID', NAME: 'ID пользователя', TYPE: 'N' },
-  { PROPERTY: 'USER_NAME', NAME: 'Имя пользователя', TYPE: 'S' },
-  { PROPERTY: 'PAGE_URL', NAME: 'URL страницы', TYPE: 'S' },
-  { PROPERTY: 'PAGE_TIME', NAME: 'Время на странице (сек)', TYPE: 'N' },
-  { PROPERTY: 'PAGE_CATEGORY', NAME: 'Категория страницы', TYPE: 'S' },
-  { PROPERTY: 'TASK_ID', NAME: 'ID связанной задачи', TYPE: 'N' },
-  { PROPERTY: 'ELAPSED_ITEM_ID', NAME: 'ID записи времени', TYPE: 'N' }
-]
-
-// Определения свойств хранилища сохраненного времени
-const SAVED_TIME_STORAGE_PROPERTIES = [
-  { PROPERTY: 'USER_ID', NAME: 'ID пользователя', TYPE: 'N' },
-  { PROPERTY: 'USER_NAME', NAME: 'Имя пользователя', TYPE: 'S' },
-  { PROPERTY: 'TOTAL_TIME', NAME: 'Общее сохраненное время (сек)', TYPE: 'N' },
-  { PROPERTY: 'UPDATED_AT', NAME: 'Дата последнего обновления', TYPE: 'S' }
-]
-
 export default {
   name: 'Install',
   setup() {
+    const toast = useToast()
+
+    // Конфигурации встроек
+    const PLACEMENT_CONFIGS = {
+      PAGE_BACKGROUND_WORKER: {
+        title: 'Фоновый счетчик',
+        description: 'Подсчитывает время, проведенное пользователем на странице',
+        options: {
+          errorHandlerUrl: `${window.location.origin}/placements/error-handler`
+        }
+      },
+      REST_APP_URI: {
+        title: 'Форма для отчета',
+        description: 'Позволяет сотруднику заполнять запрошенные отчеты',
+        options: {}
+      }
+    }
+
+    // Определения свойств хранилища
+    const STORAGE_PROPERTIES = [
+      { PROPERTY: 'USER_ID', NAME: 'ID пользователя', TYPE: 'N' },
+      { PROPERTY: 'USER_NAME', NAME: 'Имя пользователя', TYPE: 'S' },
+      { PROPERTY: 'PAGE_URL', NAME: 'URL страницы', TYPE: 'S' },
+      { PROPERTY: 'PAGE_TIME', NAME: 'Время на странице (сек)', TYPE: 'N' },
+      { PROPERTY: 'PAGE_CATEGORY', NAME: 'Категория страницы', TYPE: 'S' },
+      { PROPERTY: 'TASK_ID', NAME: 'ID связанной задачи', TYPE: 'N' },
+      { PROPERTY: 'ELAPSED_ITEM_ID', NAME: 'ID записи времени', TYPE: 'N' }
+    ]
+
+    // Определения свойств хранилища сохраненного времени
+    const SAVED_TIME_STORAGE_PROPERTIES = [
+      { PROPERTY: 'USER_ID', NAME: 'ID пользователя', TYPE: 'N' },
+      { PROPERTY: 'USER_NAME', NAME: 'Имя пользователя', TYPE: 'S' },
+      { PROPERTY: 'TOTAL_TIME', NAME: 'Общее сохраненное время (сек)', TYPE: 'N' },
+      { PROPERTY: 'UPDATED_AT', NAME: 'Дата последнего обновления', TYPE: 'S' }
+    ]
+
     // Состояние
     const currentStep = ref(1)
     const totalSteps = 4
     const progress = computed(() => Math.round((currentStep.value / totalSteps) * 100))
 
-    // Выбранные функции
+    // Выбранные функции - ВСЕ ВКЛЮЧЕНЫ ПО УМОЛЧАНИЮ
     const selectedFeatures = ref({
       pageTracking: true,
       presenceControl: true,
@@ -1445,7 +1429,10 @@ export default {
           })
           return result
         } catch (error) {
-          console.error('Ошибка сохранения настройки:', error)
+          toast.add({
+            description: `Ошибка сохранения настройки ${key}`,
+            variant: 'error'
+          })
           throw error
         }
       }
@@ -1492,7 +1479,10 @@ export default {
           await bitrixAPI.call('placement.bind', placementConfig)
           return true
         } catch (error) {
-          console.error(`Ошибка регистрации встройки ${placementType}:`, error)
+          toast.add({
+            description: `Ошибка регистрации встройки ${placementType}`,
+            variant: 'error'
+          })
           throw error
         }
       },
@@ -1505,7 +1495,10 @@ export default {
           })
           return true
         } catch (error) {
-          console.error(`Ошибка удаления встройки ${placementType}:`, error)
+          toast.add({
+            description: `Ошибка удаления встройки ${placementType}`,
+            variant: 'error'
+          })
           return null
         }
       }
@@ -1517,7 +1510,10 @@ export default {
         return new Promise((resolve) => {
           BX24.callMethod('entity.get', {}, (result) => {
             if (result.error()) {
-              console.error('Ошибка при проверке хранилищ:', result.error())
+              toast.add({
+                description: `Ошибка при проверке хранилища ${entityId}`,
+                variant: 'error'
+              })
               resolve(false)
             } else {
               const entities = result.data()
@@ -1552,7 +1548,10 @@ export default {
               TYPE: prop.TYPE
             }, (result) => {
               if (result.error()) {
-                console.log(`Свойство ${prop.PROPERTY} уже существует или ошибка:`, result.error())
+                toast.add({
+                  description: `Свойство ${prop.PROPERTY} уже существует или ошибка создания`,
+                  variant: 'warning'
+                })
               }
               createNextProperty(index + 1)
             })
@@ -1584,13 +1583,14 @@ export default {
             })
 
             await storageManager.createStorageProperties(entityId, properties)
-          } else {
-            console.log(`Хранилище ${entityId} уже существует`)
           }
 
           return true
         } catch (error) {
-          console.error(`Ошибка настройки хранилища ${entityId}:`, error)
+          toast.add({
+            description: `Ошибка настройки хранилища ${entityId}`,
+            variant: 'error'
+          })
           throw error
         }
       }
@@ -1709,7 +1709,6 @@ export default {
           employee_reaction_time: configSettings.value.subordinateReports.employeeReactionTime.toString(),
           response_method: configSettings.value.subordinateReports.responseMethod,
           delivery_method: configSettings.value.subordinateReports.deliveryMethod,
-          // НОВЫЕ НАСТРОЙКИ
           workday_start_enabled: selectedFeatures.value.workdayStart ? 'Y' : 'N',
           workday_start_method: configSettings.value.workdayStart.method,
           workday_end_enabled: selectedFeatures.value.workdayEnd ? 'Y' : 'N',
@@ -1725,8 +1724,11 @@ export default {
         installedCount.value++
         return true
       } catch (error) {
-        console.error('Ошибка сохранения настроек:', error)
         settingsStatus.value = 'error'
+        toast.add({
+          description: 'Ошибка сохранения настроек',
+          variant: 'error'
+        })
         return false
       }
     }
@@ -1757,7 +1759,6 @@ export default {
           placementStatus.value[placement.id] = 'success'
           installedCount.value++
         } catch (error) {
-          console.error(`Ошибка регистрации встройки ${placement.type}:`, error)
           placementStatus.value[placement.id] = 'error'
         }
       }
@@ -1804,20 +1805,15 @@ export default {
 
         installationComplete.value = true
 
-        if (typeof toast !== 'undefined') {
-          toast.add({
-            description: 'Система успешно установлена и настроена',
-            variant: 'success'
-          })
-        }
+        toast.add({
+          description: 'Система успешно установлена и настроена',
+          variant: 'success'
+        })
       } catch (error) {
-        console.error('Ошибка установки:', error)
-        if (typeof toast !== 'undefined') {
-          toast.add({
-            description: 'Произошла ошибка при установке системы',
-            variant: 'error'
-          })
-        }
+        toast.add({
+          description: 'Произошла ошибка при установке системы',
+          variant: 'error'
+        })
       } finally {
         isInstalling.value = false
       }
@@ -1907,8 +1903,9 @@ export default {
       { id: 1, text: 'Автоматическое отслеживание посещений страниц сотрудниками' },
       { id: 2, text: 'Мониторинг активности и присутствия на рабочем месте' },
       { id: 3, text: 'Запрос и получение отчетов о деятельности подчиненных' },
-      { id: 4, text: 'Безопасное хранение данных в защищенном хранилище Bitrix24' },
-      { id: 5, text: 'Гибкая настройка параметров мониторинга' }
+      { id: 4, text: 'Помощь в старте и завершении рабочего дня' },
+      { id: 5, text: 'Безопасное хранение данных в защищенном хранилище Bitrix24' },
+      { id: 6, text: 'Гибкая настройка параметров мониторинга' }
     ])
 
     // Методы навигации
@@ -1931,7 +1928,10 @@ export default {
       try {
         await bitrixAPI.installFinish()
       } catch (error) {
-        console.error('Ошибка завершения установки:', error)
+        toast.add({
+          description: 'Ошибка завершения установки',
+          variant: 'error'
+        })
       }
     }
 
@@ -1983,9 +1983,9 @@ export default {
       getNotificationMethodText,
       getResponseMethodText,
       getDeliveryMethodText,
-      toggleNotifyManager,
       getWorkdayStartMethodText,
-      getWorkdayEndMethodText
+      getWorkdayEndMethodText,
+      toggleNotifyManager
     }
   }
 }
