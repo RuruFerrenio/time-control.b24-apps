@@ -685,7 +685,7 @@
             ref="createTaskFormRef"
             :state="taskFormData"
             :validate="validateTaskForm"
-            class="space-y-6 px-4"
+            class="space-y-6"
             @submit="createTask"
         >
           <!-- Заголовок задачи -->
