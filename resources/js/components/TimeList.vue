@@ -142,7 +142,7 @@
                                         : 'air-secondary-accent',
                                     position: 'top-right'
                                 }"
-                                class="truncate"
+                                class="truncate overflow-visible"
                             />
                           </div>
                           <div class="flex items-center space-x-4 ml-2">
@@ -409,16 +409,16 @@
                                 :description="`ID: ${userData.userId}`"
                                 size="sm"
                                 :avatar="{
-                src: getUserPhoto(userData.userId),
-                initials: getUserInitials(userData.userName)
-            }"
-                                :chip="{
-                color: getOnlineStatus(userData.userId) === 'Y'
-                    ? 'air-primary-success'
-                    : 'air-secondary-accent',
-                position: 'top-right'
-            }"
-                                class="truncate"
+                                    src: getUserPhoto(userData.userId),
+                                    initials: getUserInitials(userData.userName)
+                                }"
+                                                    :chip="{
+                                    color: getOnlineStatus(userData.userId) === 'Y'
+                                        ? 'air-primary-success'
+                                        : 'air-secondary-accent',
+                                    position: 'top-right'
+                                }"
+                                class="truncate overflow-visible"
                             />
                             <!-- Кнопка запроса отчета (только для других пользователей, если включено в настройках) -->
                             <div v-if="userData.userId !== currentUserId && subordinateReportsEnabled" class="ml-2 hidden sm:block">
@@ -725,7 +725,7 @@
                         src: getUserPhoto(selectedUser.id),
                         initials: getUserInitials(selectedUser.name)
                     }"
-                    class="truncate"
+                    class="truncate overflow-visible"
                 />
               </div>
               <B24Button
@@ -775,7 +775,7 @@
                         src: getUserPhoto(user.userId),
                         initials: getUserInitials(user.userName)
                       }"
-                      class="truncate"
+                      class="truncate overflow-visible"
                   />
                   <button
                       type="button"
@@ -1248,6 +1248,7 @@
                             : 'air-secondary-accent',
                         position: 'top-right'
                     }"
+                    class="truncate overflow-visible"
                 />
               </div>
             </div>

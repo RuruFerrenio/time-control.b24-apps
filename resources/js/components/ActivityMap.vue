@@ -436,7 +436,7 @@
                                           : 'air-secondary-accent',
                                       position: 'top-right'
                                   }"
-                                class="truncate cursor-pointer"
+                                class="truncate cursor-pointer overflow-visible"
                             />
                           </a>
                         </td>
@@ -766,7 +766,7 @@
                                   : 'air-secondary-accent',
                               position: 'top-right'
                           }"
-                        class="truncate cursor-pointer"
+                        class="truncate cursor-pointer overflow-visible"
                     />
                   </a>
                 </td>
@@ -896,7 +896,7 @@
                                   : 'air-secondary-accent',
                               position: 'top-right'
                           }"
-                        class="truncate cursor-pointer"
+                        class="truncate cursor-pointer overflow-visible"
                     />
                   </a>
                 </td>
