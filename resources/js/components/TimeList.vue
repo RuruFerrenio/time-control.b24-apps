@@ -1102,7 +1102,6 @@
                       target="_blank"
                       class="underline"
                   >#{{ modalPageData.taskId }}</a></div>
-                  <div>Запись времени: #{{ modalPageData.elapsedItemId }}</div>
                 </div>
               </div>
             </div>
@@ -1178,7 +1177,7 @@
                   Вы собираетесь удалить связь записи с задачей. Это действие:
                   <ul class="list-disc list-inside mt-1 ml-2">
                     <li>Удалит запись времени из задачи</li>
-                    <li>Удалит ID задачи и записи времени из хранилища</li>
+                    <li>Удалит связь между задачей и записью посещения из хранилища</li>
                     <li>Не изменит саму запись посещения</li>
                     <li>Позволит создать новую связь с этой или другой задачей</li>
                   </ul>
@@ -1194,7 +1193,6 @@
                   target="_blank"
                   class="underline"
               >#{{ modalPageData.taskId }}</a></div>
-              <div>Запись времени: #{{ modalPageData.elapsedItemId }}</div>
               <div>Время: {{ formatDuration(modalPageData.pageTime) }}</div>
             </div>
           </div>
