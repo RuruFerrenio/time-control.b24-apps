@@ -13,3 +13,5 @@ use Illuminate\Support\Facades\Route;
 Route::get('/app', [AppController::class, 'oauthCallback']);
 
 Route::post('/app', [AppController::class, 'index']);
+
+Route::get('/app', [AppController::class, 'index']);
