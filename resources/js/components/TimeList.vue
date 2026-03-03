@@ -200,7 +200,7 @@
                                           :class="getCategoryBadgeClass(categoryData.category)"
                                           class="whitespace-nowrap overflow-scroll md:overflow-auto max-w-full inline-block"
                                       >
-                                        {{ categoryData.category || 'Не указана' }}
+                                        {{ categoryData.category || 'Без категории' }}
                                       </B24Badge>
                                     </div>
                                   </div>
@@ -545,7 +545,7 @@
                                           :class="getCategoryBadgeClass(categoryData.category)"
                                           class="whitespace-nowrap overflow-scroll md:overflow-auto max-w-full inline-block"
                                       >
-                                        {{ categoryData.category || 'Не указана' }}
+                                        {{ categoryData.category || 'Без категории' }}
                                       </B24Badge>
                                     </div>
                                   </div>
@@ -3103,7 +3103,7 @@ class HierarchicalDataManager {
       userData.totalTime += pageTime
 
       const categoryKey = pageCategory || 'uncategorized'
-      const displayCategory = pageCategory || 'Не указана'
+      const displayCategory = pageCategory || 'Без категории'
 
       if (!userData.categories.has(categoryKey)) {
         userData.categories.set(categoryKey, {
