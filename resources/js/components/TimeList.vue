@@ -1749,7 +1749,6 @@ class HierarchicalDataManager {
 
   toggleCategory(userId, category, tab) {
     const key = `${userId}-${category || 'uncategorized'}`
-    console.log('toggleCategory:', { userId, category, key, tab })
 
     if (tab === 'my-time') {
       // Создаем новый объект для обеспечения реактивности
@@ -1758,7 +1757,6 @@ class HierarchicalDataManager {
         ...this.expandedCategoriesMyTime.value,
         [key]: !currentValue
       }
-      console.log('expandedCategoriesMyTime after:', this.expandedCategoriesMyTime.value[key])
       this.forceUIUpdate()
     } else if (tab === 'all-time') {
       // Создаем новый объект для обеспечения реактивности
@@ -1767,7 +1765,6 @@ class HierarchicalDataManager {
         ...this.expandedCategoriesAllTime.value,
         [key]: !currentValue
       }
-      console.log('expandedCategoriesAllTime after:', this.expandedCategoriesAllTime.value[key])
       this.forceUIUpdate()
     }
   }
