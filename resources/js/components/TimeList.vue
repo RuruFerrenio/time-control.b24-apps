@@ -3103,9 +3103,12 @@ class HierarchicalDataManager {
       userData.totalTime += pageTime
 
       const categoryKey = pageCategory || 'uncategorized'
+      const displayCategory = pageCategory || 'Не указана'
+
       if (!userData.categories.has(categoryKey)) {
         userData.categories.set(categoryKey, {
-          category: categoryKey,
+          category: displayCategory,
+          originalCategory: pageCategory,
           totalTime: 0,
           pages: new Map()
         })
