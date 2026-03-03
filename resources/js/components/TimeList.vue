@@ -391,237 +391,244 @@
                       :key="userData.userId"
                       class="border border-gray-200 rounded-lg overflow-hidden"
                   >
-                    <!-- Заголовок пользователя -->
-                    <div
-                        class="px-4 py-3 border-b border-gray-200 cursor-pointer transition-colors"
-                        :class="userData.userId === currentUserId ? 'bg-blue-50 border-blue-100 hover:bg-blue-100' : 'bg-gray-50 hover:bg-gray-50'"
-                        @click="toggleUser(userData.userId, 'all-time')"
+                    <!-- Заголовок пользователя с B24Collapsible -->
+                    <B24Collapsible
+                        :unmount-on-hide="false"
+                        v-model:open="expandedUsersAllTime[userData.userId]"
+                        @update:open="(value) => handleUserCollapsibleUpdate(userData.userId, value, 'all-time')"
                     >
-                      <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-3 min-w-0 flex-1">
-                          <B24User
-                              :name="userData.userName"
-                              :description="`ID: ${userData.userId}`"
-                              size="sm"
-                              :avatar="{
-                                  src: getUserPhoto(userData.userId),
-                                  initials: getUserInitials(userData.userName)
-                              }"
-                              :chip="{
-                                  color: getOnlineStatus(userData.userId) === 'Y'
-                                      ? 'air-primary-success'
-                                      : 'air-secondary-accent',
-                                  position: 'top-right'
-                              }"
-                              class="truncate"
-                          />
-                          <!-- Кнопка запроса отчета (только для других пользователей, если включено в настройках) -->
-                          <div v-if="userData.userId !== currentUserId && subordinateReportsEnabled" class="ml-2 hidden sm:block">
-                            <B24Button
-                                @click="showRequestReportModal(userData)"
+                      <!-- Заголовок - теперь button -->
+                      <button
+                          class="w-full px-4 py-3 border-b border-gray-200 text-left transition-colors"
+                          :class="userData.userId === currentUserId ? 'bg-blue-50 border-blue-100 hover:bg-blue-100' : 'bg-gray-50 hover:bg-gray-50'"
+                      >
+                        <div class="flex items-center justify-between">
+                          <div class="flex items-center space-x-3 min-w-0 flex-1">
+                            <B24User
+                                :name="userData.userName"
+                                :description="`ID: ${userData.userId}`"
                                 size="sm"
-                                color="air-selection"
-                                title="Запросить отчет"
+                                :avatar="{
+                src: getUserPhoto(userData.userId),
+                initials: getUserInitials(userData.userName)
+            }"
+                                :chip="{
+                color: getOnlineStatus(userData.userId) === 'Y'
+                    ? 'air-primary-success'
+                    : 'air-secondary-accent',
+                position: 'top-right'
+            }"
+                                class="truncate"
+                            />
+                            <!-- Кнопка запроса отчета (только для других пользователей, если включено в настройках) -->
+                            <div v-if="userData.userId !== currentUserId && subordinateReportsEnabled" class="ml-2 hidden sm:block">
+                              <B24Button
+                                  @click="showRequestReportModal(userData)"
+                                  size="sm"
+                                  color="air-selection"
+                                  title="Запросить отчет"
+                              >
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                Запросить отчет
+                              </B24Button>
+                            </div>
+                            <!-- Кнопка "Посмотреть статистику" -->
+                            <router-link
+                                v-if="userData.userId !== currentUserId && bitrixHelper && bitrixHelper.isStatisticsAvailable()"
+                                :to="{ path: '/workday-statistics', query: { userId: userData.userId } }"
+                                class="hidden sm:block"
+                                size="sm"
                             >
-                              <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                              </svg>
-                              Запросить отчет
-                            </B24Button>
+                              <B24Button
+                                  size="sm"
+                                  color="air-selection"
+                                  class="text-xs"
+                                  title="Посмотреть статистику"
+                              >
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                </svg>
+                                Статистика
+                              </B24Button>
+                            </router-link>
                           </div>
-                          <!-- Кнопка "Посмотреть статистику" -->
-                          <router-link
-                              v-if="userData.userId !== currentUserId && bitrixHelper && bitrixHelper.isStatisticsAvailable()"
-                              :to="{ path: '/workday-statistics', query: { userId: userData.userId } }"
-                              class="hidden sm:block"
-                              size="sm"
-                          >
-                            <B24Button
-                                size="sm"
-                                color="air-selection"
-                                class="text-xs"
-                                title="Посмотреть статистику"
+                          <div class="flex items-center space-x-4 ml-2">
+                            <div class="text-right hidden sm:block">
+                              <div class="text-xs text-gray-600">Общее время</div>
+                              <div class="text-sm font-semibold text-gray-900">{{ formatDuration(userData.totalTime) }}</div>
+                            </div>
+                            <svg
+                                class="w-5 h-5 text-gray-500 transition-transform flex-shrink-0"
+                                :class="{ 'transform rotate-180': expandedUsersAllTime[userData.userId] }"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
                             >
-                              <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                              </svg>
-                              Статистика
-                            </B24Button>
-                          </router-link>
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                          </div>
                         </div>
-                        <div class="flex items-center space-x-4 ml-2">
-                          <div class="text-right hidden sm:block">
+                        <!-- Мобильные кнопки и время -->
+                        <div class="sm:hidden mt-3 flex flex-wrap items-center justify-between gap-2">
+                          <div class="text-left">
                             <div class="text-xs text-gray-600">Общее время</div>
                             <div class="text-sm font-semibold text-gray-900">{{ formatDuration(userData.totalTime) }}</div>
                           </div>
-                          <svg
-                              class="w-5 h-5 text-gray-500 transition-transform flex-shrink-0"
-                              :class="{ 'transform rotate-180': expandedUsersAllTime[userData.userId] }"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                          >
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                          </svg>
-                        </div>
-                      </div>
-                      <!-- Мобильные кнопки и время -->
-                      <div class="sm:hidden mt-3 flex flex-wrap items-center justify-between gap-2">
-                        <div class="text-left">
-                          <div class="text-xs text-gray-600">Общее время</div>
-                          <div class="text-sm font-semibold text-gray-900">{{ formatDuration(userData.totalTime) }}</div>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                          <div v-if="userData.userId !== currentUserId && subordinateReportsEnabled">
-                            <B24Button
-                                @click="showRequestReportModal(userData)"
-                                size="md"
-                                color="air-selection"
-                                title="Запросить отчет"
-                            >
-                              <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                              </svg>
-                              Отчет
-                            </B24Button>
-                          </div>
-                          <router-link
-                              v-if="userData.userId !== currentUserId && bitrixHelper && bitrixHelper.isStatisticsAvailable()"
-                              :to="{ path: '/workday-statistics', query: { userId: userData.userId } }"
-                              class="inline-block"
-                              size="md"
-                          >
-                            <B24Button
-                                size="md"
-                                color="air-selection"
-                                class="text-xs"
-                                title="Посмотреть статистику"
-                            >
-                              <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                              </svg>
-                              Статистика
-                            </B24Button>
-                          </router-link>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Категории пользователя -->
-                    <div v-if="expandedUsersAllTime[userData.userId]" class="divide-y divide-gray-100">
-                      <div
-                          v-for="categoryData in userData.categories"
-                          :key="`${userData.userId}-${categoryData.category || 'uncategorized'}`"
-                      >
-                        <!-- Заголовок категории -->
-                        <div
-                            class="px-4 py-3 bg-gray-50 border-b border-gray-100 cursor-pointer hover:bg-gray-100 transition-colors"
-                            @click="toggleCategory(userData.userId, categoryData.category, 'all-time')"
-                        >
-                          <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-3 min-w-0 flex-1">
-                              <svg
-                                  class="w-4 h-4 text-gray-500 transition-transform flex-shrink-0"
-                                  :class="{ 'transform rotate-90': expandedCategoriesAllTime[`${userData.userId}-${categoryData.category}`] }"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
+                          <div class="flex items-center space-x-2">
+                            <div v-if="userData.userId !== currentUserId && subordinateReportsEnabled">
+                              <B24Button
+                                  @click="showRequestReportModal(userData)"
+                                  size="md"
+                                  color="air-selection"
+                                  title="Запросить отчет"
                               >
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                              </svg>
-                              <div class="flex items-center space-x-2 min-w-0">
-                                <B24Badge
-                                    :class="getCategoryBadgeClass(categoryData.category)"
-                                    class="whitespace-nowrap overflow-scroll md:overflow-auto max-w-full inline-block"
-                                >
-                                  {{ categoryData.category || 'Не указана' }}
-                                </B24Badge>
-                              </div>
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                Отчет
+                              </B24Button>
                             </div>
-                            <div class="text-right ml-2">
-                              <div class="text-xs text-gray-600">Время</div>
-                              <div class="text-sm font-semibold text-gray-900">
-                                {{ formatDuration(categoryData.totalTime) }}
-                              </div>
-                            </div>
+                            <router-link
+                                v-if="userData.userId !== currentUserId && bitrixHelper && bitrixHelper.isStatisticsAvailable()"
+                                :to="{ path: '/workday-statistics', query: { userId: userData.userId } }"
+                                class="inline-block"
+                                size="md"
+                            >
+                              <B24Button
+                                  size="md"
+                                  color="air-selection"
+                                  class="text-xs"
+                                  title="Посмотреть статистику"
+                              >
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                </svg>
+                                Статистика
+                              </B24Button>
+                            </router-link>
                           </div>
                         </div>
+                      </button>
 
-                        <!-- Страницы в категории -->
-                        <div
-                            v-if="expandedCategoriesAllTime[`${userData.userId}-${categoryData.category}`]"
-                            class="divide-y divide-gray-100"
-                        >
+                      <!-- Контент - категории пользователя -->
+                      <template #content>
+                        <div class="divide-y divide-gray-100">
                           <div
-                              v-for="pageData in categoryData.pages"
-                              :key="pageData.itemId"
-                              class="px-4 py-3 hover:bg-gray-50"
+                              v-for="categoryData in userData.categories"
+                              :key="`${userData.userId}-${categoryData.category || 'uncategorized'}`"
                           >
-                            <div class="flex flex-col md:flex-row md:items-start justify-between gap-3">
-                              <div class="flex-1 min-w-0">
-                                <div class="flex items-start space-x-3">
-                                  <div class="flex-shrink-0 mt-1">
-                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                            <!-- Категория с B24Collapsible -->
+                            <B24Collapsible
+                                :unmount-on-hide="false"
+                                v-model:open="expandedCategoriesAllTime[`${userData.userId}-${categoryData.category}`]"
+                                @update:open="(value) => handleCategoryCollapsibleUpdate(userData.userId, categoryData.category, value, 'all-time')"
+                            >
+                              <!-- Заголовок категории - button -->
+                              <button
+                                  class="w-full px-4 py-3 bg-gray-50 border-b border-gray-100 text-left hover:bg-gray-100 transition-colors"
+                              >
+                                <div class="flex items-center justify-between">
+                                  <div class="flex items-center space-x-3 min-w-0 flex-1">
+                                    <svg
+                                        class="w-4 h-4 text-gray-500 transition-transform flex-shrink-0"
+                                        :class="{ 'transform rotate-90': expandedCategoriesAllTime[`${userData.userId}-${categoryData.category}`] }"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                     </svg>
+                                    <div class="flex items-center space-x-2 min-w-0">
+                                      <B24Badge
+                                          :class="getCategoryBadgeClass(categoryData.category)"
+                                          class="whitespace-nowrap overflow-scroll md:overflow-auto max-w-full inline-block"
+                                      >
+                                        {{ categoryData.category || 'Не указана' }}
+                                      </B24Badge>
+                                    </div>
                                   </div>
-                                  <div class="flex-1 min-w-0">
-                                    <div class="flex items-center space-x-2 mb-1">
-                                      <a
-                                          :href="pageData.pageUrl"
-                                          target="_blank"
-                                          class="text-sm text-blue-600 hover:text-blue-800 break-all md:truncate block"
-                                          :title="pageData.pageUrl"
-                                      >
-                                        {{ pageData.pageUrl }}
-                                      </a>
-                                      <div
-                                          v-if="pageData.isLatest"
-                                          class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"
-                                          title="Самое свежее посещение"
-                                      ></div>
-                                    </div>
-                                    <div class="flex flex-col md:flex-row md:flex-wrap items-start md:items-center gap-1 md:gap-2 lg:gap-4 text-xs text-gray-500">
-                                      <!-- Основная информация - всегда видна -->
-                                      <div class="flex items-center gap-2">
-                                        <span>Время на странице: {{ formatDuration(pageData.pageTime) }}</span>
-                                        <span v-if="pageData.count > 1">({{ pageData.count }} посещений)</span>
-                                      </div>
-
-                                      <!-- Дополнительная информация - на новой строке на мобильных -->
-                                      <div class="flex flex-col xs:flex-row gap-1 xs:gap-3 md:hidden">
-                                        <span>Первое посещение: {{ formatTime(pageData.createdAt) }}</span>
-                                        <span>Последнее посещение: {{ formatTime(pageData.updatedAt) }}</span>
-                                      </div>
-
-                                      <!-- Дополнительная информация для десктопов -->
-                                      <div class="hidden md:flex items-center gap-4">
-                                        <span>Первое посещение: {{ formatTime(pageData.createdAt) }}</span>
-                                        <span>Последнее посещение: {{ formatTime(pageData.updatedAt) }}</span>
-                                      </div>
-                                    </div>
-                                    <!-- Привязанная задача -->
-                                    <div v-if="pageData.taskId" class="mt-2">
-                                      <a
-                                          :href="getTaskUrl(pageData.taskId)"
-                                          target="_blank"
-                                          class="inline-flex items-center text-xs text-green-600 hover:text-green-800"
-                                      >
-                                        Связанная задача
-                                        <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M5 13l4 4L19 7"/>
-                                        </svg>
-                                      </a>
+                                  <div class="text-right ml-2">
+                                    <div class="text-xs text-gray-600">Время</div>
+                                    <div class="text-sm font-semibold text-gray-900">
+                                      {{ formatDuration(categoryData.totalTime) }}
                                     </div>
                                   </div>
                                 </div>
-                              </div>
-                            </div>
+                              </button>
+
+                              <!-- Контент - страницы в категории -->
+                              <template #content>
+                                <div class="divide-y divide-gray-100">
+                                  <div
+                                      v-for="pageData in categoryData.pages"
+                                      :key="pageData.itemId"
+                                      class="px-4 py-3 hover:bg-gray-50"
+                                  >
+                                    <!-- содержимое страницы (без изменений) -->
+                                    <div class="flex flex-col md:flex-row md:items-start justify-between gap-3">
+                                      <div class="flex-1 min-w-0">
+                                        <div class="flex items-start space-x-3">
+                                          <div class="flex-shrink-0 mt-1">
+                                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                                            </svg>
+                                          </div>
+                                          <div class="flex-1 min-w-0">
+                                            <div class="flex items-center space-x-2 mb-1">
+                                              <a
+                                                  :href="pageData.pageUrl"
+                                                  target="_blank"
+                                                  class="text-sm text-blue-600 hover:text-blue-800 break-all md:truncate block"
+                                                  :title="pageData.pageUrl"
+                                              >
+                                                {{ pageData.pageUrl }}
+                                              </a>
+                                              <div
+                                                  v-if="pageData.isLatest"
+                                                  class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"
+                                                  title="Самое свежее посещение"
+                                              ></div>
+                                            </div>
+                                            <div class="flex flex-col md:flex-row md:flex-wrap items-start md:items-center gap-1 md:gap-2 lg:gap-4 text-xs text-gray-500">
+                                              <div class="flex items-center gap-2">
+                                                <span>Время на странице: {{ formatDuration(pageData.pageTime) }}</span>
+                                                <span v-if="pageData.count > 1">({{ pageData.count }} посещений)</span>
+                                              </div>
+                                              <div class="flex flex-col xs:flex-row gap-1 xs:gap-3 md:hidden">
+                                                <span>Первое посещение: {{ formatTime(pageData.createdAt) }}</span>
+                                                <span>Последнее посещение: {{ formatTime(pageData.updatedAt) }}</span>
+                                              </div>
+                                              <div class="hidden md:flex items-center gap-4">
+                                                <span>Первое посещение: {{ formatTime(pageData.createdAt) }}</span>
+                                                <span>Последнее посещение: {{ formatTime(pageData.updatedAt) }}</span>
+                                              </div>
+                                            </div>
+                                            <div v-if="pageData.taskId" class="mt-2">
+                                              <a
+                                                  :href="getTaskUrl(pageData.taskId)"
+                                                  target="_blank"
+                                                  class="inline-flex items-center text-xs text-green-600 hover:text-green-800"
+                                              >
+                                                Связанная задача
+                                                <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                </svg>
+                                              </a>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </template>
+                            </B24Collapsible>
                           </div>
                         </div>
-                      </div>
-                    </div>
+                      </template>
+                    </B24Collapsible>
                   </div>
 
                   <!-- Пагинация для пользователей -->
@@ -1584,6 +1591,37 @@ class HierarchicalDataManager {
     return diffDays > this.historyDays
   }
 
+  handleUserCollapsibleUpdate(userId, isOpen, tab) {
+    if (tab === 'my-time') {
+      this.expandedUsersMyTime.value[userId] = isOpen
+
+      if (isOpen) {
+        const userData = this.myTimeData.value.find(u => u.userId === userId)
+        if (userData) {
+          userData.categories.forEach(categoryData => {
+            const key = `${userId}-${categoryData.category || 'uncategorized'}`
+            this.expandedCategoriesMyTime.value[key] = true
+          })
+        }
+      } else {
+        Object.keys(this.expandedCategoriesMyTime.value).forEach(key => {
+          if (key.startsWith(`${userId}-`)) {
+            this.expandedCategoriesMyTime.value[key] = false
+          }
+        })
+      }
+    } else if (tab === 'all-time') {
+      this.expandedUsersAllTime.value[userId] = isOpen
+      if (!isOpen) {
+        Object.keys(this.expandedCategoriesAllTime.value).forEach(key => {
+          if (key.startsWith(`${userId}-`)) {
+            this.expandedCategoriesAllTime.value[key] = false
+          }
+        })
+      }
+    }
+  }
+
   handleCategoryCollapsibleUpdate(userId, category, isOpen, tab) {
     const key = `${userId}-${category || 'uncategorized'}`
     if (tab === 'my-time') {
@@ -1749,86 +1787,13 @@ class HierarchicalDataManager {
 
   toggleCategory(userId, category, tab) {
     const key = `${userId}-${category || 'uncategorized'}`
-
     if (tab === 'my-time') {
-      // Создаем новый объект для обеспечения реактивности
-      const currentValue = this.expandedCategoriesMyTime.value[key] || false
-      this.expandedCategoriesMyTime.value = {
-        ...this.expandedCategoriesMyTime.value,
-        [key]: !currentValue
-      }
+      this.expandedCategoriesMyTime.value[key] = !this.expandedCategoriesMyTime.value[key]
       this.forceUIUpdate()
     } else if (tab === 'all-time') {
-      // Создаем новый объект для обеспечения реактивности
-      const currentValue = this.expandedCategoriesAllTime.value[key] || false
-      this.expandedCategoriesAllTime.value = {
-        ...this.expandedCategoriesAllTime.value,
-        [key]: !currentValue
-      }
+      this.expandedCategoriesAllTime.value[key] = !this.expandedCategoriesAllTime.value[key]
       this.forceUIUpdate()
     }
-  }
-
-  handleUserCollapsibleUpdate(userId, isOpen, tab) {
-    if (tab === 'my-time') {
-      // Создаем новый объект для пользователей
-      this.expandedUsersMyTime.value = {
-        ...this.expandedUsersMyTime.value,
-        [userId]: isOpen
-      }
-
-      if (isOpen) {
-        // При открытии пользователя - открываем все его категории
-        const userData = this.myTimeData.value.find(u => u.userId === userId)
-        if (userData) {
-          const newCategories = { ...this.expandedCategoriesMyTime.value }
-          userData.categories.forEach(categoryData => {
-            const key = `${userId}-${categoryData.category || 'uncategorized'}`
-            newCategories[key] = true
-          })
-          this.expandedCategoriesMyTime.value = newCategories
-        }
-      } else {
-        // При закрытии пользователя - закрываем все его категории
-        const newCategories = { ...this.expandedCategoriesMyTime.value }
-        Object.keys(newCategories).forEach(key => {
-          if (key.startsWith(`${userId}-`)) {
-            newCategories[key] = false
-          }
-        })
-        this.expandedCategoriesMyTime.value = newCategories
-      }
-    } else if (tab === 'all-time') {
-      // Создаем новый объект для пользователей
-      this.expandedUsersAllTime.value = {
-        ...this.expandedUsersAllTime.value,
-        [userId]: isOpen
-      }
-
-      if (isOpen) {
-        // При открытии пользователя - открываем все его категории
-        const userData = this.filteredHierarchicalData.value.find(u => u.userId === userId)
-        if (userData) {
-          const newCategories = { ...this.expandedCategoriesAllTime.value }
-          userData.categories.forEach(categoryData => {
-            const key = `${userId}-${categoryData.category || 'uncategorized'}`
-            newCategories[key] = true
-          })
-          this.expandedCategoriesAllTime.value = newCategories
-        }
-      } else {
-        // При закрытии пользователя - закрываем все его категории
-        const newCategories = { ...this.expandedCategoriesAllTime.value }
-        Object.keys(newCategories).forEach(key => {
-          if (key.startsWith(`${userId}-`)) {
-            newCategories[key] = false
-          }
-        })
-        this.expandedCategoriesAllTime.value = newCategories
-      }
-    }
-
-    this.forceUIUpdate()
   }
 
   // Метод для фильтрации пользователей
