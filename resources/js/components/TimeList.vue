@@ -516,7 +516,7 @@
                         <!-- Заголовок категории -->
                         <div
                             class="px-4 py-3 bg-gray-50 border-b border-gray-100 cursor-pointer hover:bg-gray-100 transition-colors"
-                            @click="toggleCategory(userData.userId, categoryData.category, 'all-time')"
+                            @click="toggleCategory(userData.userId, categoryData.category || 'uncategorized', 'all-time')"
                         >
                           <div class="flex items-center justify-between">
                             <div class="flex items-center space-x-3 min-w-0 flex-1">
