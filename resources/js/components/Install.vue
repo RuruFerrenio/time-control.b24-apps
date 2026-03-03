@@ -51,7 +51,7 @@
                   Настройте систему мониторинга активности сотрудников, которая поможет оптимизировать рабочее время и повысить продуктивность.
                 </p>
 
-                <div class="bg-blue-50 rounded-xl p-6 mb-6">
+                <div class="bg-blue-50 rounded-xl p-1 md:p-6 mb-6">
                   <h3 class="text-lg font-semibold text-blue-800 mb-3">
                     Ключевые возможности системы
                   </h3>
@@ -107,7 +107,7 @@
                 <div class="space-y-6 mb-8">
                   <!-- Отслеживание посещений -->
                   <B24Card class="hover:shadow-lg transition-shadow duration-300">
-                    <div class="p-6">
+                    <div class="p-1 md:p-6">
                       <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center space-x-3">
                           <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -259,7 +259,7 @@
 
                   <!-- Контроль присутствия -->
                   <B24Card class="hover:shadow-lg transition-shadow duration-300">
-                    <div class="p-6">
+                    <div class="p-1 md:p-6">
                       <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center space-x-3">
                           <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -494,7 +494,7 @@
 
                   <!-- Разрешить запрос отчета о деятельности подчиненных -->
                   <B24Card class="hover:shadow-lg transition-shadow duration-300">
-                    <div class="p-6">
+                    <div class="p-1 md:p-6">
                       <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center space-x-3">
                           <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -703,7 +703,7 @@
 
                   <!-- Помощь в старте рабочего дня -->
                   <B24Card class="hover:shadow-lg transition-shadow duration-300">
-                    <div class="p-6">
+                    <div class="p-1 md:p-6">
                       <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center space-x-3">
                           <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
@@ -802,7 +802,7 @@
 
                   <!-- Помощь в завершении рабочего дня -->
                   <B24Card class="hover:shadow-lg transition-shadow duration-300">
-                    <div class="p-6">
+                    <div class="p-1 md:p-6">
                       <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center space-x-3">
                           <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -1139,7 +1139,7 @@
                     Система контроля времени сотрудников успешно установлена и настроена.
                   </p>
 
-                  <div class="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-6">
+                  <div class="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-1 md:p-6">
                     <h3 class="text-xl font-bold text-gray-900 mb-3">
                       Что дальше?
                     </h3>
@@ -1219,7 +1219,7 @@
                     </div>
                   </div>
 
-                  <div class="bg-gray-50 rounded-xl p-6">
+                  <div class="bg-gray-50 rounded-xl p-1 md:p-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-3">
                       Следующие шаги
                     </h3>
