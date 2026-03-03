@@ -65,7 +65,7 @@ const finalLocale = availableLocales.includes(normalizedLang) ? normalizedLang :
 // Создаем экземпляр i18n с определенным языком
 const i18n = createI18n({
   locale: finalLocale,
-  fallbackLocale: 'en', // Английский как fallback
+  fallbackLocale: 'ru', // Английский как fallback
   messages,
   legacy: false
 })
