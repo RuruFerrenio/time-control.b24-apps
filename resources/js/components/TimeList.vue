@@ -1594,7 +1594,9 @@ class HierarchicalDataManager {
         if (userData) {
           userData.categories.forEach(categoryData => {
             const key = `${userId}-${categoryData.category || 'uncategorized'}`
+            console.log('  Auto-expanding category:', { key, category: categoryData.category })
             this.expandedCategoriesMyTime.value[key] = true
+            console.log('  After setting:', this.expandedCategoriesMyTime.value[key])
           })
         }
       } else {
@@ -1781,12 +1783,15 @@ class HierarchicalDataManager {
 
   toggleCategory(userId, category, tab) {
     const key = `${userId}-${category || 'uncategorized'}`
-    console.log('toggleCategory:', { userId, category, key, tab }) // Добавьте эту строку
+    console.log('toggleCategory:', { userId, category, key, tab })
+
     if (tab === 'my-time') {
       this.expandedCategoriesMyTime.value[key] = !this.expandedCategoriesMyTime.value[key]
+      console.log('expandedCategoriesMyTime after:', this.expandedCategoriesMyTime.value[key]) // Добавьте
       this.forceUIUpdate()
     } else if (tab === 'all-time') {
       this.expandedCategoriesAllTime.value[key] = !this.expandedCategoriesAllTime.value[key]
+      console.log('expandedCategoriesAllTime after:', this.expandedCategoriesAllTime.value[key]) // Добавьте
       this.forceUIUpdate()
     }
   }
