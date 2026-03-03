@@ -34,7 +34,7 @@
       <div class="mx-auto">
         <!-- Шаг 1: Приветствие -->
         <B24Card v-if="currentStep === 1" class="mb-8">
-          <div class="p-6">
+          <div class="p-1 md:p-6">
             <div class="flex items-start space-x-6">
               <div class="hidden md:flex md:flex-shrink-0">
                 <div class="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -85,7 +85,7 @@
 
         <!-- Шаг 2: Настройка основных функций -->
         <B24Card v-else-if="currentStep === 2" class="mb-8">
-          <div class="p-6">
+          <div class="p-1 md:p-6">
             <div class="flex items-start space-x-6">
               <div class="hidden md:flex md:flex-shrink-0">
                 <div class="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -933,7 +933,7 @@
 
         <!-- Шаг 3: Установка и настройка -->
         <B24Card v-else-if="currentStep === 3" class="mb-8">
-          <div class="p-6">
+          <div class="p-1 md:p-6">
             <div class="flex items-start space-x-6">
               <div class="flex-shrink-0">
                 <div class="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -1120,7 +1120,7 @@
 
         <!-- Шаг 4: Завершение -->
         <B24Card v-else-if="currentStep === 4" class="mb-8">
-          <div class="p-6">
+          <div class="p-1 md:p-6">
             <div class="flex items-start space-x-6">
               <div class="flex-shrink-0">
                 <div class="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center">
