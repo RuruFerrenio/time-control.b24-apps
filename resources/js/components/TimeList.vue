@@ -1584,40 +1584,6 @@ class HierarchicalDataManager {
     return diffDays > this.historyDays
   }
 
-  handleUserCollapsibleUpdate(userId, isOpen, tab) {
-    console.log('handleUserCollapsibleUpdate:', { userId, isOpen, tab })
-    if (tab === 'my-time') {
-      this.expandedUsersMyTime.value[userId] = isOpen
-
-      if (isOpen) {
-        const userData = this.myTimeData.value.find(u => u.userId === userId)
-        if (userData) {
-          userData.categories.forEach(categoryData => {
-            const key = `${userId}-${categoryData.category || 'uncategorized'}`
-            console.log('  Auto-expanding category:', { key, category: categoryData.category })
-            this.expandedCategoriesMyTime.value[key] = true
-            console.log('  After setting:', this.expandedCategoriesMyTime.value[key])
-          })
-        }
-      } else {
-        Object.keys(this.expandedCategoriesMyTime.value).forEach(key => {
-          if (key.startsWith(`${userId}-`)) {
-            this.expandedCategoriesMyTime.value[key] = false
-          }
-        })
-      }
-    } else if (tab === 'all-time') {
-      this.expandedUsersAllTime.value[userId] = isOpen
-      if (!isOpen) {
-        Object.keys(this.expandedCategoriesAllTime.value).forEach(key => {
-          if (key.startsWith(`${userId}-`)) {
-            this.expandedCategoriesAllTime.value[key] = false
-          }
-        })
-      }
-    }
-  }
-
   handleCategoryCollapsibleUpdate(userId, category, isOpen, tab) {
     const key = `${userId}-${category || 'uncategorized'}`
     if (tab === 'my-time') {
@@ -1786,14 +1752,86 @@ class HierarchicalDataManager {
     console.log('toggleCategory:', { userId, category, key, tab })
 
     if (tab === 'my-time') {
-      this.expandedCategoriesMyTime.value[key] = !this.expandedCategoriesMyTime.value[key]
-      console.log('expandedCategoriesMyTime after:', this.expandedCategoriesMyTime.value[key]) // Добавьте
+      // Создаем новый объект для обеспечения реактивности
+      const currentValue = this.expandedCategoriesMyTime.value[key] || false
+      this.expandedCategoriesMyTime.value = {
+        ...this.expandedCategoriesMyTime.value,
+        [key]: !currentValue
+      }
+      console.log('expandedCategoriesMyTime after:', this.expandedCategoriesMyTime.value[key])
       this.forceUIUpdate()
     } else if (tab === 'all-time') {
-      this.expandedCategoriesAllTime.value[key] = !this.expandedCategoriesAllTime.value[key]
-      console.log('expandedCategoriesAllTime after:', this.expandedCategoriesAllTime.value[key]) // Добавьте
+      // Создаем новый объект для обеспечения реактивности
+      const currentValue = this.expandedCategoriesAllTime.value[key] || false
+      this.expandedCategoriesAllTime.value = {
+        ...this.expandedCategoriesAllTime.value,
+        [key]: !currentValue
+      }
+      console.log('expandedCategoriesAllTime after:', this.expandedCategoriesAllTime.value[key])
       this.forceUIUpdate()
     }
+  }
+
+  handleUserCollapsibleUpdate(userId, isOpen, tab) {
+    if (tab === 'my-time') {
+      // Создаем новый объект для пользователей
+      this.expandedUsersMyTime.value = {
+        ...this.expandedUsersMyTime.value,
+        [userId]: isOpen
+      }
+
+      if (isOpen) {
+        // При открытии пользователя - открываем все его категории
+        const userData = this.myTimeData.value.find(u => u.userId === userId)
+        if (userData) {
+          const newCategories = { ...this.expandedCategoriesMyTime.value }
+          userData.categories.forEach(categoryData => {
+            const key = `${userId}-${categoryData.category || 'uncategorized'}`
+            newCategories[key] = true
+          })
+          this.expandedCategoriesMyTime.value = newCategories
+        }
+      } else {
+        // При закрытии пользователя - закрываем все его категории
+        const newCategories = { ...this.expandedCategoriesMyTime.value }
+        Object.keys(newCategories).forEach(key => {
+          if (key.startsWith(`${userId}-`)) {
+            newCategories[key] = false
+          }
+        })
+        this.expandedCategoriesMyTime.value = newCategories
+      }
+    } else if (tab === 'all-time') {
+      // Создаем новый объект для пользователей
+      this.expandedUsersAllTime.value = {
+        ...this.expandedUsersAllTime.value,
+        [userId]: isOpen
+      }
+
+      if (isOpen) {
+        // При открытии пользователя - открываем все его категории
+        const userData = this.filteredHierarchicalData.value.find(u => u.userId === userId)
+        if (userData) {
+          const newCategories = { ...this.expandedCategoriesAllTime.value }
+          userData.categories.forEach(categoryData => {
+            const key = `${userId}-${categoryData.category || 'uncategorized'}`
+            newCategories[key] = true
+          })
+          this.expandedCategoriesAllTime.value = newCategories
+        }
+      } else {
+        // При закрытии пользователя - закрываем все его категории
+        const newCategories = { ...this.expandedCategoriesAllTime.value }
+        Object.keys(newCategories).forEach(key => {
+          if (key.startsWith(`${userId}-`)) {
+            newCategories[key] = false
+          }
+        })
+        this.expandedCategoriesAllTime.value = newCategories
+      }
+    }
+
+    this.forceUIUpdate()
   }
 
   // Метод для фильтрации пользователей
