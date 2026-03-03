@@ -60,30 +60,72 @@ class AppController extends Controller
 		return view('b24api.oauth-callback', $params);
 	}
 
-	/**
-	 * Основной метод для плейсментов (оставляем как есть)
-	 */
 	public function index(Bitrix24ApiClient $bitrix24, Request $request): View
 	{
+		// Проверяем, это OAuth редирект?
+		if ($request->has('code')) {
+			// Преобразуем OAuth параметры в формат плейсмента
+			$oauthData = [
+				'auth' => [
+					'code' => $request->input('code'),
+					'state' => $request->input('state'),
+					'domain' => $request->input('domain'),
+					'member_id' => $request->input('member_id'),
+					'scope' => $request->input('scope'),
+					'server_domain' => $request->input('server_domain')
+				]
+			];
+
+			// Создаём PLACEMENT_OPTIONS в нужном формате
+			$placementOptions = json_encode([
+				'parameters' => json_encode([
+					'mode' => 'oauth',
+					'auth_data' => $oauthData
+				])
+			]);
+
+			// Добавляем параметры в request для совместимости
+			$request->merge([
+				'PLACEMENT_OPTIONS' => $placementOptions,
+				'PLACEMENT' => 'OAUTH_REDIRECT',
+				'params' => $oauthData
+			]);
+
+			Log::info('OAuth redirect transformed to placement format', [
+				'original_params' => $request->all(),
+				'transformed_placement_options' => $placementOptions
+			]);
+		}
+
+		// Теперь код работает одинаково для обоих типов запросов
 		$placementOptions = $request->input('PLACEMENT_OPTIONS', '{}');
 		$params = $request->input('params', []);
 		$options = json_decode($placementOptions, true) ?? [];
 
+		// Параметры могут быть вложенными
+		$parameters = [];
 		if (isset($options['parameters'])) {
-			$parameters = json_decode($options['parameters'], true) ?? [];
+			if (is_string($options['parameters'])) {
+				$parameters = json_decode($options['parameters'], true) ?? [];
+			} else {
+				$parameters = $options['parameters'] ?? [];
+			}
 		}
 
-		$mode = $parameters['mode'] ?? null;
+		$mode = $parameters['mode'] ?? $params['mode'] ?? null;
 
-		Log::info('Background placement called', [
+		Log::info('Request processed', [
+			'type' => $request->has('code') ? 'oauth' : 'placement',
 			'placementOptions' => $placementOptions,
 			'params' => $params,
 			'placement' => $request->input('PLACEMENT'),
+			'mode' => $mode
 		]);
 
 		return view('b24api.index', [
 			'placementOptions' => $placementOptions,
 			'mode' => $mode,
+			'params' => $params // передаём params в шаблон если нужно
 		]);
 	}
 }
