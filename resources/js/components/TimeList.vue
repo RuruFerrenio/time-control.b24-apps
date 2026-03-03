@@ -3105,7 +3105,7 @@ class HierarchicalDataManager {
       const categoryKey = pageCategory || 'uncategorized'
       if (!userData.categories.has(categoryKey)) {
         userData.categories.set(categoryKey, {
-          category: pageCategory,
+          category: categoryKey,
           totalTime: 0,
           pages: new Map()
         })
