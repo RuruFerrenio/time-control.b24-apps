@@ -34,7 +34,7 @@
       <div class="mx-auto">
         <!-- Шаг 1: Приветствие -->
         <B24Card v-if="currentStep === 1" class="mb-8">
-          <div class="p-4 md:p-6">
+          <div class="p-1 md:p-6">
             <div class="flex flex-col md:flex-row md:items-start md:space-x-6">
               <div class="hidden md:flex md:flex-shrink-0 mb-4 md:mb-0">
                 <div class="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -85,7 +85,7 @@
 
         <!-- Шаг 2: Настройка основных функций -->
         <B24Card v-else-if="currentStep === 2" class="mb-8">
-          <div class="p-4 md:p-6">
+          <div class="p-1 md:p-6">
             <div class="flex flex-col md:flex-row md:items-start md:space-x-6">
               <div class="hidden md:flex md:flex-shrink-0 mb-4 md:mb-0">
                 <div class="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -107,7 +107,7 @@
                 <div class="space-y-4 md:space-y-6 mb-6 md:mb-8">
                   <!-- Отслеживание посещений -->
                   <B24Card class="hover:shadow-lg transition-shadow duration-300">
-                    <div class="p-4 md:p-6">
+                    <div class="p-1 md:p-6">
                       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
                         <div class="flex items-center space-x-3 mb-3 sm:mb-0">
                           <div class="w-10 h-10 md:w-12 md:h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -223,7 +223,7 @@
 
                   <!-- Контроль присутствия -->
                   <B24Card class="hover:shadow-lg transition-shadow duration-300">
-                    <div class="p-4 md:p-6">
+                    <div class="p-1 md:p-6">
                       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
                         <div class="flex items-center space-x-3 mb-3 sm:mb-0">
                           <div class="w-10 h-10 md:w-12 md:h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -438,7 +438,7 @@
 
         <!-- Разрешить запрос отчета о деятельности подчиненных -->
         <B24Card class="hover:shadow-lg transition-shadow duration-300">
-          <div class="p-4 md:p-6">
+          <div class="p-1 md:p-6">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
               <div class="flex items-center space-x-3 mb-3 sm:mb-0">
                 <div class="w-10 h-10 md:w-12 md:h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -620,7 +620,7 @@
 
       <!-- Помощь в старте рабочего дня -->
       <B24Card class="hover:shadow-lg transition-shadow duration-300">
-        <div class="p-4 md:p-6">
+        <div class="p-1 md:p-6">
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
             <div class="flex items-center space-x-3 mb-3 sm:mb-0">
               <div class="w-10 h-10 md:w-12 md:h-12 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -699,7 +699,7 @@
 
     <!-- Помощь в завершении рабочего дня -->
     <B24Card class="hover:shadow-lg transition-shadow duration-300">
-      <div class="p-4 md:p-6">
+      <div class="p-1 md:p-6">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
           <div class="flex items-center space-x-3 mb-3 sm:mb-0">
             <div class="w-10 h-10 md:w-12 md:h-12 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -810,7 +810,7 @@
 
   <!-- Шаг 3: Установка и настройка -->
   <B24Card v-else-if="currentStep === 3" class="mb-8">
-    <div class="p-4 md:p-6">
+    <div class="p-1 md:p-6">
       <div class="flex flex-col md:flex-row md:items-start md:space-x-6">
         <div class="hidden md:flex md:flex-shrink-0 mb-4 md:mb-0">
           <div class="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -997,7 +997,7 @@
 
   <!-- Шаг 4: Завершение -->
   <B24Card v-else-if="currentStep === 4" class="mb-8">
-    <div class="p-4 md:p-6">
+    <div class="p-1 md:p-6">
       <div class="flex flex-col md:flex-row md:items-start md:space-x-6">
         <div class="hidden md:flex md:flex-shrink-0 mb-4 md:mb-0">
           <div class="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center">
