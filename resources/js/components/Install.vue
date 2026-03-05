@@ -204,12 +204,12 @@
                           </h4>
                           <div class="space-y-2 md:space-y-3">
                             <div v-for="(item, index) in [
-                              'Система записывает посещение страницы сотрудником, если он задерживается на странице больше 10 секунд (сократить эту задержку в данной версии приложения нельзя).',
-                              'Для каждого посещения сохраняется URL страницы, время нахождения, пользователь и категория страницы.',
-                              'Данные сохраняются в хранилище Bitrix24 с группировкой по дням.',
-                              'Данные из хранилища Bitrix24 об истории посещения страниц пользователям отображаются в удобном для восприятия виде на странице приложения - История посещений. Здесь пользователь может изучить свои затраты времени на каждой странице и, при желании, добавить время в задачи.',
-                              `История посещений хранится ${configSettings.pageTracking.historyDays} дней, после чего старые записи автоматически удаляются.`
-                            ]" :key="index" class="flex items-start">
+      'Система записывает посещение страницы сотрудником, если он задерживается на странице больше 10 секунд (сократить эту задержку в данной версии приложения нельзя).',
+      'Для каждого посещения сохраняется URL страницы, время нахождения, пользователь и категория страницы.',
+      'Данные сохраняются в хранилище Bitrix24 с группировкой по дням.',
+      'Данные из хранилища Bitrix24 об истории посещения страниц пользователям отображаются в удобном для восприятия виде на странице приложения - История посещений. Здесь пользователь может изучить свои затраты времени на каждой странице и, при желании, добавить время в задачи.',
+      `История посещений хранится ${configSettings.pageTracking.historyDays} дней, после чего старые записи автоматически удаляются.`
+    ]" :key="index" class="flex items-start">
                               <div class="w-5 h-5 md:w-6 md:h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2 md:mr-3 flex-shrink-0">
                                 <span class="text-xs font-medium text-blue-600">{{ index + 1 }}</span>
                               </div>
@@ -421,8 +421,8 @@
                           </h4>
                           <div class="space-y-2 md:space-y-3">
                             <div v-for="(item, index) in [
-                              `Через ${configSettings.presenceControl.pageTimeThreshold} минут с момента открытия сотрудником страницы будет всплывать модальное окно с кнопкой подтверждения присутствия, которая доступна для нажатия ${configSettings.presenceControl.notifyManager.absenceTimeThreshold} секунд.`,
-                              `Если пользователь действительно присутствует на рабочем месте, нажатие кнопки Я здесь закроет модальное окно и время на странице будет фиксироваться дальше. В противном случае, учет времени на странице останавливается, пока пользователь не подаст признаки активности в Битрикс24.`,
+      `Через ${configSettings.presenceControl.pageTimeThreshold} минут с момента открытия сотрудником страницы будет всплывать модальное окно с кнопкой подтверждения присутствия, которая доступна для нажатия ${configSettings.presenceControl.notifyManager.absenceTimeThreshold} секунд.`,
+      `Если пользователь действительно присутствует на рабочем месте, нажатие кнопки "Я здесь" закроет модальное окно и время на странице будет фиксироваться дальше. В противном случае, учет времени на странице останавливается, пока пользователь не подаст признаки активности в Битрикс24.`,
                             configSettings.presenceControl.notifyManager.enabled ? `По истечении ${configSettings.presenceControl.notifyManager.absenceTimeThreshold} секунд с момента появления модального окна у сотрудника, руководителю будет отправлено уведомление о том, что пользователь не подтвердил своего присутствия на рабочем месте.` : null
                             ].filter(Boolean)" :key="index" class="flex items-start">
                             <div class="w-5 h-5 md:w-6 md:h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2 md:mr-3 flex-shrink-0">
@@ -431,6 +431,7 @@
                             <p class="text-xs md:text-sm text-gray-700">{{ item }}</p>
                           </div>
                         </div>
+                      </div>
                       </div>
                     </div>
                 </div>
@@ -602,7 +603,7 @@
                 </h4>
                 <div class="space-y-2 md:space-y-3">
                   <div v-for="(item, index) in [
-                              'В списке Время всех сотрудников в истории посещений в блоке пользователя появляется кнопка Запросить отчет, которая инициирует запрос обратной связи от сотрудника.',
+      'В списке "Время всех сотрудников" в истории посещений в блоке пользователя появляется кнопка "Запросить отчет", которая инициирует запрос обратной связи от сотрудника.',
                   `Сотруднику отправляется уведомление через ${getDeliveryMethodText()} с прикрепленной ссылкой на заполнение короткой формы и предоставляется ${configSettings.subordinateReports.employeeReactionTime} секунд для подготовки отчета.`,
                   'Сотрудник заполняет форму, описывая, чем занимается в данный момент.',
                   `Информация, внесенная сотрудником в отчет автоматически возвращается инициатору запроса через ${getResponseMethodText()}.`
@@ -613,6 +614,7 @@
                   <p class="text-xs md:text-sm text-gray-700">{{ item }}</p>
                 </div>
               </div>
+            </div>
             </div>
           </div>
       </div>
@@ -679,12 +681,12 @@
             <!-- Информация о системе помощи -->
             <div class="space-y-3 mt-4 md:mt-6">
               <h4 class="text-sm font-medium text-gray-900">
-                Как работает помощь в старте рабочего дня
+                Как работает помощь в завершении рабочего дня
               </h4>
               <div class="space-y-2 md:space-y-3">
                 <div v-for="(item, index) in [
-                              'При открытии страницы портала, система проверяет, запущен ли рабочий день пользователя и является ли текущее время рабочим.',
-                              configSettings.workdayStart.method === 'auto' ? 'Автоматический старт: рабочий день начинается автоматически без участия сотрудника.' : 'Модальное окно: показывается окно с кнопкой "Начать рабочий день", пока сотрудник не начнет рабочий день.'
+      'При открытии страницы портала, система проверяет, запущен ли рабочий день пользователя и является ли текущее время рабочим.',
+      configSettings.workdayEnd.method === 'auto' ? 'Автоматическое завершение: рабочий день закрывается автоматически без участия сотрудника.' : 'Модальное окно: показывается окно с кнопкой "Завершить рабочий день", пока сотрудник не завершит рабочий день.'
                 ]" :key="index" class="flex items-start">
                 <div class="w-5 h-5 md:w-6 md:h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2 md:mr-3 flex-shrink-0">
                   <span class="text-xs font-medium text-blue-600">{{ index + 1 }}</span>
@@ -692,6 +694,8 @@
                 <p class="text-xs md:text-sm text-gray-700">{{ item }}</p>
               </div>
             </div>
+          </div>
+          </div>
           </div>
         </div>
     </div>
@@ -1325,37 +1329,6 @@ export default {
         return config
       },
 
-      // Получение списка всех зарегистрированных встроек
-      getPlacements: () => {
-        return new Promise((resolve, reject) => {
-          BX24.callMethod('placement.list', {}, (result) => {
-            if (result.error()) {
-              reject(new Error(result.error().getError()))
-            } else {
-              resolve(result.data())
-            }
-          })
-        })
-      },
-
-      // Удаление встройки
-      unbind: async (placementType, handler) => {
-        try {
-          await bitrixAPI.call('placement.unbind', {
-            PLACEMENT: placementType,
-            HANDLER: handler
-          })
-          return true
-        } catch (error) {
-          toast.add({
-            description: `Ошибка удаления встройки ${placementType}`,
-            variant: 'error'
-          })
-          return null
-        }
-      },
-
-      // Регистрация новой встройки
       bind: async (placementType, handler) => {
         try {
           const config = placementManager.getConfig(placementType)
@@ -1395,86 +1368,43 @@ export default {
         }
       },
 
-      // Удаление существующих встроек и регистрация новых
-      reinstall: async (placementType, handler, title, description) => {
+      unbind: async (placementType, handler) => {
         try {
-          // Получаем список всех встроек
-          const placements = await placementManager.getPlacements()
-
-          // Ищем существующую встройку с таким же обработчиком
-          const existingPlacement = placements.find(p =>
-              p.PLACEMENT === placementType && p.HANDLER === handler
-          )
-
-          if (existingPlacement) {
-            // Удаляем существующую встройку
-            await placementManager.unbind(placementType, handler)
-          }
-
-          // Регистрируем новую встройку
-          await placementManager.bind(placementType, handler)
-
+          await bitrixAPI.call('placement.unbind', {
+            PLACEMENT: placementType,
+            HANDLER: handler
+          })
           return true
         } catch (error) {
           toast.add({
-            description: `Ошибка переустановки встройки ${title}`,
+            description: `Ошибка удаления встройки ${placementType}`,
             variant: 'error'
           })
-          throw error
+          return null
         }
       }
     }
 
     // Менеджер хранилища
     const storageManager = {
-      // Получение списка всех хранилищ
-      getStorages: () => {
-        return new Promise((resolve, reject) => {
+      checkStorageExists: (entityId) => {
+        return new Promise((resolve) => {
           BX24.callMethod('entity.get', {}, (result) => {
             if (result.error()) {
-              reject(new Error(result.error().getError()))
+              toast.add({
+                description: `Ошибка при проверке хранилища ${entityId}`,
+                variant: 'error'
+              })
+              resolve(false)
             } else {
-              resolve(result.data())
+              const entities = result.data()
+              const exists = entities.some(entity => entity.ENTITY === entityId)
+              resolve(exists)
             }
           })
         })
       },
 
-      // Удаление хранилища
-      deleteStorage: (entityId) => {
-        return new Promise((resolve, reject) => {
-          BX24.callMethod('entity.delete', {
-            ENTITY: entityId
-          }, (result) => {
-            if (result.error()) {
-              reject(new Error(result.error().getError()))
-            } else {
-              resolve(true)
-            }
-          })
-        })
-      },
-
-      // Создание хранилища
-      createStorage: (entityId, storageName) => {
-        return new Promise((resolve, reject) => {
-          BX24.callMethod('entity.add', {
-            ENTITY: entityId,
-            NAME: storageName,
-            ACCESS: {
-              AU: 'W'
-            }
-          }, (result) => {
-            if (result.error()) {
-              reject(new Error(`Ошибка при создании хранилища: ${result.error()}`))
-            } else {
-              resolve()
-            }
-          })
-        })
-      },
-
-      // Создание свойств хранилища
       createStorageProperties: (entityId, properties) => {
         return new Promise((resolve) => {
           let createdCount = 0
@@ -1512,30 +1442,34 @@ export default {
         })
       },
 
-      // Полная переустановка хранилища (удаление + создание)
-      reinstallStorage: async (entityId, storageName, properties) => {
+      setupStorage: async (entityId, storageName, properties) => {
         try {
-          // Получаем список всех хранилищ
-          const storages = await storageManager.getStorages()
+          const exists = await storageManager.checkStorageExists(entityId)
 
-          // Ищем существующее хранилище
-          const existingStorage = storages.find(storage => storage.ENTITY === entityId)
+          if (!exists) {
+            await new Promise((resolve, reject) => {
+              BX24.callMethod('entity.add', {
+                ENTITY: entityId,
+                NAME: storageName,
+                ACCESS: {
+                  AU: 'W'
+                }
+              }, (result) => {
+                if (result.error()) {
+                  reject(new Error(`Ошибка при создании хранилища: ${result.error()}`))
+                } else {
+                  resolve()
+                }
+              })
+            })
 
-          if (existingStorage) {
-            // Удаляем существующее хранилище
-            await storageManager.deleteStorage(entityId)
+            await storageManager.createStorageProperties(entityId, properties)
           }
-
-          // Создаем новое хранилище
-          await storageManager.createStorage(entityId, storageName)
-
-          // Создаем свойства
-          await storageManager.createStorageProperties(entityId, properties)
 
           return true
         } catch (error) {
           toast.add({
-            description: `Ошибка переустановки хранилища ${entityId}`,
+            description: `Ошибка настройки хранилища ${entityId}`,
             variant: 'error'
           })
           throw error
@@ -1680,7 +1614,7 @@ export default {
       }
     }
 
-    // Регистрация всех встроек с переустановкой
+    // Регистрация всех встроек
     const registerAllPlacements = async () => {
       const placements = [
         {
@@ -1702,13 +1636,7 @@ export default {
       for (const placement of placements) {
         placementStatus.value[placement.id] = 'loading'
         try {
-          // Используем метод reinstall для удаления существующей и создания новой встройки
-          await placementManager.reinstall(
-              placement.type,
-              placement.handler,
-              placement.title,
-              placement.description
-          )
+          await placementManager.bind(placement.type, placement.handler)
           placementStatus.value[placement.id] = 'success'
           installedCount.value++
         } catch (error) {
@@ -1738,19 +1666,19 @@ export default {
       settingsStatus.value = null
 
       try {
-        // 1. Переустановка хранилища активности (удаление + создание)
+        // 1. Регистрация хранилища активности
         storageStatus.value = 'loading'
-        await storageManager.reinstallStorage('pr_tracking', 'Статистика посещений', STORAGE_PROPERTIES)
+        await storageManager.setupStorage('pr_tracking', 'Статистика посещений', STORAGE_PROPERTIES)
         storageStatus.value = 'success'
         installedCount.value++
 
-        // 2. Переустановка хранилища сохраненного времени (удаление + создание)
+        // 2. Регистрация хранилища сохраненного времени
         savedTimeStorageStatus.value = 'loading'
-        await storageManager.reinstallStorage('pr_saved_time', 'Сохраненное время', SAVED_TIME_STORAGE_PROPERTIES)
+        await storageManager.setupStorage('pr_saved_time', 'Сохраненное время', SAVED_TIME_STORAGE_PROPERTIES)
         savedTimeStorageStatus.value = 'success'
         installedCount.value++
 
-        // 3. Переустановка встроек (удаление + создание)
+        // 3. Регистрация встроек
         await registerAllPlacements()
 
         // 4. Сохранение настроек
