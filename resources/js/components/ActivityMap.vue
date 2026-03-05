@@ -53,7 +53,7 @@
                 <!-- Мобильная версия: кнопки в ряд (4/5 + 1/5) -->
                 <div class="flex flex-row gap-2">
                   <!-- Кнопка выбора периода - 3/4 ширины -->
-                  <div class="w-4/5 min-w-0">
+                  <div class="w-5/6 min-w-0">
                     <B24Popover class="w-full">
                       <B24Button
                           :disabled="isLoading"
@@ -93,8 +93,8 @@
                     </B24Popover>
                   </div>
 
-                  <!-- Кнопка сброса - 1/4 ширины -->
-                  <div class="w-1/5">
+                  <!-- Кнопка сброса - 1/5 ширины -->
+                  <div class="w-1/6">
                     <B24Button
                         @click="resetDateRange"
                         :disabled="isLoading"
