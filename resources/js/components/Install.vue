@@ -1269,35 +1269,11 @@
                         </svg>
                         <span class="text-xs md:text-sm text-gray-700">Помощь в завершении рабочего дня</span>
                       </div>
-                      <div class="flex items-start">
-                        <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        <span class="text-xs md:text-sm text-gray-700">Фоновый счетчик (встройка)</span>
-                      </div>
-                      <div class="flex items-start">
-                        <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        <span class="text-xs md:text-sm text-gray-700">Форма для отчета (встройка)</span>
-                      </div>
-                      <div class="flex items-start">
-                        <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        <span class="text-xs md:text-sm text-gray-700">Хранилище активности (pr_tracking)</span>
-                      </div>
-                      <div class="flex items-start">
-                        <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        <span class="text-xs md:text-sm text-gray-700">Хранилище сохраненного времени (pr_saved_time)</span>
-                      </div>
                     </div>
 
                     <div class="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4 mt-4 md:mt-6">
                       <a
-                          href="mailto:it.galera@yandex.ru?subject=Поддержка приложения Автоматический контроль времени"
+                          href="mailto:it.galera@yandex.ru?subject=Поддержка приложения TLaunder:Чистое время"
                           target="_blank"
                           class="w-full sm:w-auto inline-flex items-center justify-center px-4 md:px-6 py-2 md:py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-300 text-sm md:text-base"
                       >
@@ -2059,8 +2035,7 @@ export default {
       { id: 2, text: 'Мониторинг активности и присутствия на рабочем месте' },
       { id: 3, text: 'Запрос и получение отчетов о деятельности подчиненных' },
       { id: 4, text: 'Помощь в старте и завершении рабочего дня' },
-      { id: 5, text: 'Безопасное хранение данных в защищенном хранилище Bitrix24' },
-      { id: 6, text: 'Гибкая настройка параметров мониторинга' }
+      { id: 6, text: 'Гибкая настройка параметров системы' }
     ])
 
     // Методы навигации
