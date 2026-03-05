@@ -204,12 +204,12 @@
                           </h4>
                           <div class="space-y-2 md:space-y-3">
                             <div v-for="(item, index) in [
-      'Система записывает посещение страницы сотрудником, если он задерживается на странице больше 10 секунд (сократить эту задержку в данной версии приложения нельзя).',
-      'Для каждого посещения сохраняется URL страницы, время нахождения, пользователь и категория страницы.',
-      'Данные сохраняются в хранилище Bitrix24 с группировкой по дням.',
-      'Данные из хранилища Bitrix24 об истории посещения страниц пользователям отображаются в удобном для восприятия виде на странице приложения - История посещений. Здесь пользователь может изучить свои затраты времени на каждой странице и, при желании, добавить время в задачи.',
-      `История посещений хранится ${configSettings.pageTracking.historyDays} дней, после чего старые записи автоматически удаляются.`
-    ]" :key="index" class="flex items-start">
+                              'Система записывает посещение страницы сотрудником, если он задерживается на странице больше 10 секунд (сократить эту задержку в данной версии приложения нельзя).',
+                              'Для каждого посещения сохраняется URL страницы, время нахождения, пользователь и категория страницы.',
+                              'Данные сохраняются в хранилище Bitrix24 с группировкой по дням.',
+                              'Данные из хранилища Bitrix24 об истории посещения страниц пользователям отображаются в удобном для восприятия виде на странице приложения - История посещений. Здесь пользователь может изучить свои затраты времени на каждой странице и, при желании, добавить время в задачи.',
+                              `История посещений хранится ${configSettings.pageTracking.historyDays} дней, после чего старые записи автоматически удаляются.`
+                            ]" :key="index" class="flex items-start">
                               <div class="w-5 h-5 md:w-6 md:h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2 md:mr-3 flex-shrink-0">
                                 <span class="text-xs font-medium text-blue-600">{{ index + 1 }}</span>
                               </div>
@@ -386,22 +386,22 @@
                                     v-model="configSettings.presenceControl.notifyManager.method"
                                     :disabled="isInstalling"
                                     :items="[
-                                        {
-                                            label: 'Чат',
-                                            value: 'chat',
-                                            description: 'Сообщение в чате'
-                                        },
-                                        {
-                                            label: 'Push',
-                                            value: 'push',
-                                            description: 'Системное уведомление'
-                                        },
-                                        {
-                                            label: 'Оба',
-                                            value: 'all',
-                                            description: 'Оба способа'
-                                        }
-                                    ]"
+                                    {
+                                      label: 'Чат',
+                                      value: 'chat',
+                                      description: 'Сообщение в чате'
+                                    },
+                                    {
+                                      label: 'Push',
+                                      value: 'push',
+                                      description: 'Системное уведомление'
+                                    },
+                                    {
+                                      label: 'Оба',
+                                      value: 'all',
+                                      description: 'Оба способа'
+                                    }
+                                  ]"
                                     orientation="vertical"
                                     variant="card"
                                     size="sm"
@@ -421,8 +421,8 @@
                           </h4>
                           <div class="space-y-2 md:space-y-3">
                             <div v-for="(item, index) in [
-      `Через ${configSettings.presenceControl.pageTimeThreshold} минут с момента открытия сотрудником страницы будет всплывать модальное окно с кнопкой подтверждения присутствия, которая доступна для нажатия ${configSettings.presenceControl.notifyManager.absenceTimeThreshold} секунд.`,
-      `Если пользователь действительно присутствует на рабочем месте, нажатие кнопки "Я здесь" закроет модальное окно и время на странице будет фиксироваться дальше. В противном случае, учет времени на странице останавливается, пока пользователь не подаст признаки активности в Битрикс24.`,
+                              `Через ${configSettings.presenceControl.pageTimeThreshold} минут с момента открытия сотрудником страницы будет всплывать модальное окно с кнопкой подтверждения присутствия, которая доступна для нажатия ${configSettings.presenceControl.notifyManager.absenceTimeThreshold} секунд.`,
+                              `Если пользователь действительно присутствует на рабочем месте, нажатие кнопки "Я здесь" закроет модальное окно и время на странице будет фиксироваться дальше. В противном случае, учет времени на странице останавливается, пока пользователь не подаст признаки активности в Битрикс24.`,
                             configSettings.presenceControl.notifyManager.enabled ? `По истечении ${configSettings.presenceControl.notifyManager.absenceTimeThreshold} секунд с момента появления модального окна у сотрудника, руководителю будет отправлено уведомление о том, что пользователь не подтвердил своего присутствия на рабочем месте.` : null
                             ].filter(Boolean)" :key="index" class="flex items-start">
                             <div class="w-5 h-5 md:w-6 md:h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2 md:mr-3 flex-shrink-0">
@@ -431,7 +431,6 @@
                             <p class="text-xs md:text-sm text-gray-700">{{ item }}</p>
                           </div>
                         </div>
-                      </div>
                       </div>
                     </div>
                 </div>
@@ -537,22 +536,22 @@
                     v-model="configSettings.subordinateReports.responseMethod"
                     :disabled="isInstalling"
                     :items="[
-                                  {
-                                      label: 'Чат',
-                                      value: 'chat',
-                                      description: 'Ответ в чате'
-                                  },
-                                  {
-                                      label: 'Push',
-                                      value: 'push',
-                                      description: 'Ответ через push'
-                                  },
-                                  {
-                                      label: 'Оба',
-                                      value: 'all',
-                                      description: 'Оба способа'
-                                  }
-                              ]"
+                              {
+                                label: 'Чат',
+                                value: 'chat',
+                                description: 'Ответ в чате'
+                              },
+                              {
+                                label: 'Push',
+                                value: 'push',
+                                description: 'Ответ через push'
+                              },
+                              {
+                                label: 'Оба',
+                                value: 'all',
+                                description: 'Оба способа'
+                              }
+                            ]"
                     orientation="vertical"
                     variant="card"
                     size="sm"
@@ -571,22 +570,22 @@
                     v-model="configSettings.subordinateReports.deliveryMethod"
                     :disabled="isInstalling"
                     :items="[
-                                  {
-                                      label: 'Чат',
-                                      value: 'chat',
-                                      description: 'Запрос через чат'
-                                  },
-                                  {
-                                      label: 'Push',
-                                      value: 'push',
-                                      description: 'Запрос через push'
-                                  },
-                                  {
-                                      label: 'Оба',
-                                      value: 'all',
-                                      description: 'Оба способа'
-                                  }
-                              ]"
+                              {
+                                label: 'Чат',
+                                value: 'chat',
+                                description: 'Запрос через чат'
+                              },
+                              {
+                                label: 'Push',
+                                value: 'push',
+                                description: 'Запрос через push'
+                              },
+                              {
+                                label: 'Оба',
+                                value: 'all',
+                                description: 'Оба способа'
+                              }
+                            ]"
                     orientation="vertical"
                     variant="card"
                     size="sm"
@@ -603,7 +602,7 @@
                 </h4>
                 <div class="space-y-2 md:space-y-3">
                   <div v-for="(item, index) in [
-      'В списке "Время всех сотрудников" в истории посещений в блоке пользователя появляется кнопка "Запросить отчет", которая инициирует запрос обратной связи от сотрудника.',
+                              'В списке "Время всех сотрудников" в истории посещений в блоке пользователя появляется кнопка "Запросить отчет", которая инициирует запрос обратной связи от сотрудника.',
                   `Сотруднику отправляется уведомление через ${getDeliveryMethodText()} с прикрепленной ссылкой на заполнение короткой формы и предоставляется ${configSettings.subordinateReports.employeeReactionTime} секунд для подготовки отчета.`,
                   'Сотрудник заполняет форму, описывая, чем занимается в данный момент.',
                   `Информация, внесенная сотрудником в отчет автоматически возвращается инициатору запроса через ${getResponseMethodText()}.`
@@ -614,7 +613,6 @@
                   <p class="text-xs md:text-sm text-gray-700">{{ item }}</p>
                 </div>
               </div>
-            </div>
             </div>
           </div>
       </div>
@@ -658,17 +656,17 @@
                   v-model="configSettings.workdayStart.method"
                   :disabled="isInstalling"
                   :items="[
-                                  {
-                                      label: 'Автоматический старт',
-                                      value: 'auto',
-                                      description: 'Рабочий день начинается автоматически при открытии'
-                                  },
-                                  {
-                                      label: 'Модальное окно',
-                                      value: 'modal',
-                                      description: 'Показывать окно с предложением начать рабочий день'
-                                  }
-                              ]"
+                              {
+                                label: 'Автоматический старт',
+                                value: 'auto',
+                                description: 'Рабочий день начинается автоматически при открытии'
+                              },
+                              {
+                                label: 'Модальное окно',
+                                value: 'modal',
+                                description: 'Показывать окно с предложением начать рабочий день'
+                              }
+                            ]"
                   orientation="vertical"
                   variant="card"
                   size="sm"
@@ -681,12 +679,12 @@
             <!-- Информация о системе помощи -->
             <div class="space-y-3 mt-4 md:mt-6">
               <h4 class="text-sm font-medium text-gray-900">
-                Как работает помощь в завершении рабочего дня
+                Как работает помощь в старте рабочего дня
               </h4>
               <div class="space-y-2 md:space-y-3">
                 <div v-for="(item, index) in [
-      'При открытии страницы портала, система проверяет, запущен ли рабочий день пользователя и является ли текущее время рабочим.',
-      configSettings.workdayEnd.method === 'auto' ? 'Автоматическое завершение: рабочий день закрывается автоматически без участия сотрудника.' : 'Модальное окно: показывается окно с кнопкой "Завершить рабочий день", пока сотрудник не завершит рабочий день.'
+                              'При открытии страницы портала, система проверяет, запущен ли рабочий день пользователя и является ли текущее время рабочим.',
+                              configSettings.workdayStart.method === 'auto' ? 'Автоматический старт: рабочий день начинается автоматически без участия сотрудника.' : 'Модальное окно: показывается окно с кнопкой "Начать рабочий день", пока сотрудник не начнет рабочий день.'
                 ]" :key="index" class="flex items-start">
                 <div class="w-5 h-5 md:w-6 md:h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2 md:mr-3 flex-shrink-0">
                   <span class="text-xs font-medium text-blue-600">{{ index + 1 }}</span>
@@ -694,8 +692,6 @@
                 <p class="text-xs md:text-sm text-gray-700">{{ item }}</p>
               </div>
             </div>
-          </div>
-          </div>
           </div>
         </div>
     </div>
@@ -739,17 +735,17 @@
                 v-model="configSettings.workdayEnd.method"
                 :disabled="isInstalling"
                 :items="[
-                                  {
-                                      label: 'Автоматическое завершение',
-                                      value: 'auto',
-                                      description: 'Рабочий день завершается автоматически'
-                                  },
-                                  {
-                                      label: 'Модальное окно',
-                                      value: 'modal',
-                                      description: 'Показывать окно с предложением завершить рабочий день'
-                                  }
-                              ]"
+                              {
+                                label: 'Автоматическое завершение',
+                                value: 'auto',
+                                description: 'Рабочий день завершается автоматически'
+                              },
+                              {
+                                label: 'Модальное окно',
+                                value: 'modal',
+                                description: 'Показывать окно с предложением завершить рабочий день'
+                              }
+                            ]"
                 orientation="vertical"
                 variant="card"
                 size="sm"
@@ -1160,7 +1156,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useToast } from '@bitrix24/b24ui-nuxt/composables/useToast'
 
 export default {
