@@ -386,22 +386,22 @@
                                     v-model="configSettings.presenceControl.notifyManager.method"
                                     :disabled="isInstalling"
                                     :items="[
-                                    {
-                                      label: 'Чат',
-                                      value: 'chat',
-                                      description: 'Сообщение в чате'
-                                    },
-                                    {
-                                      label: 'Push',
-                                      value: 'push',
-                                      description: 'Системное уведомление'
-                                    },
-                                    {
-                                      label: 'Оба',
-                                      value: 'all',
-                                      description: 'Оба способа'
-                                    }
-                                  ]"
+                                      {
+                                        label: 'Чат',
+                                        value: 'chat',
+                                        description: 'Сообщение в чате'
+                                      },
+                                      {
+                                        label: 'Push',
+                                        value: 'push',
+                                        description: 'Системное уведомление'
+                                      },
+                                      {
+                                        label: 'Оба',
+                                        value: 'all',
+                                        description: 'Оба способа'
+                                      }
+                                    ]"
                                     orientation="vertical"
                                     variant="card"
                                     size="sm"
@@ -421,9 +421,9 @@
                           </h4>
                           <div class="space-y-2 md:space-y-3">
                             <div v-for="(item, index) in [
-                              `Через ${configSettings.presenceControl.pageTimeThreshold} минут с момента открытия сотрудником страницы будет всплывать модальное окно с кнопкой подтверждения присутствия, которая доступна для нажатия ${configSettings.presenceControl.notifyManager.absenceTimeThreshold} секунд.`,
-                              `Если пользователь действительно присутствует на рабочем месте, нажатие кнопки "Я здесь" закроет модальное окно и время на странице будет фиксироваться дальше. В противном случае, учет времени на странице останавливается, пока пользователь не подаст признаки активности в Битрикс24.`,
-                            configSettings.presenceControl.notifyManager.enabled ? `По истечении ${configSettings.presenceControl.notifyManager.absenceTimeThreshold} секунд с момента появления модального окна у сотрудника, руководителю будет отправлено уведомление о том, что пользователь не подтвердил своего присутствия на рабочем месте.` : null
+                              'Через ' + configSettings.presenceControl.pageTimeThreshold + ' минут с момента открытия сотрудником страницы будет всплывать модальное окно с кнопкой подтверждения присутствия, которая доступна для нажатия ' + configSettings.presenceControl.notifyManager.absenceTimeThreshold + ' секунд.',
+                              'Если пользователь действительно присутствует на рабочем месте, нажатие кнопки "Я здесь" закроет модальное окно и время на странице будет фиксироваться дальше. В противном случае, учет времени на странице останавливается, пока пользователь не подаст признаки активности в Битрикс24.',
+                            configSettings.presenceControl.notifyManager.enabled ? 'По истечении ' + configSettings.presenceControl.notifyManager.absenceTimeThreshold + ' секунд с момента появления модального окна у сотрудника, руководителю будет отправлено уведомление о том, что пользователь не подтвердил своего присутствия на рабочем месте.' : null
                             ].filter(Boolean)" :key="index" class="flex items-start">
                             <div class="w-5 h-5 md:w-6 md:h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2 md:mr-3 flex-shrink-0">
                               <span class="text-xs font-medium text-blue-600">{{ index + 1 }}</span>
@@ -536,22 +536,22 @@
                     v-model="configSettings.subordinateReports.responseMethod"
                     :disabled="isInstalling"
                     :items="[
-                              {
-                                label: 'Чат',
-                                value: 'chat',
-                                description: 'Ответ в чате'
-                              },
-                              {
-                                label: 'Push',
-                                value: 'push',
-                                description: 'Ответ через push'
-                              },
-                              {
-                                label: 'Оба',
-                                value: 'all',
-                                description: 'Оба способа'
-                              }
-                            ]"
+                                {
+                                  label: 'Чат',
+                                  value: 'chat',
+                                  description: 'Ответ в чате'
+                                },
+                                {
+                                  label: 'Push',
+                                  value: 'push',
+                                  description: 'Ответ через push'
+                                },
+                                {
+                                  label: 'Оба',
+                                  value: 'all',
+                                  description: 'Оба способа'
+                                }
+                              ]"
                     orientation="vertical"
                     variant="card"
                     size="sm"
@@ -570,22 +570,22 @@
                     v-model="configSettings.subordinateReports.deliveryMethod"
                     :disabled="isInstalling"
                     :items="[
-                              {
-                                label: 'Чат',
-                                value: 'chat',
-                                description: 'Запрос через чат'
-                              },
-                              {
-                                label: 'Push',
-                                value: 'push',
-                                description: 'Запрос через push'
-                              },
-                              {
-                                label: 'Оба',
-                                value: 'all',
-                                description: 'Оба способа'
-                              }
-                            ]"
+                                {
+                                  label: 'Чат',
+                                  value: 'chat',
+                                  description: 'Запрос через чат'
+                                },
+                                {
+                                  label: 'Push',
+                                  value: 'push',
+                                  description: 'Запрос через push'
+                                },
+                                {
+                                  label: 'Оба',
+                                  value: 'all',
+                                  description: 'Оба способа'
+                                }
+                              ]"
                     orientation="vertical"
                     variant="card"
                     size="sm"
@@ -603,9 +603,9 @@
                 <div class="space-y-2 md:space-y-3">
                   <div v-for="(item, index) in [
                               'В списке "Время всех сотрудников" в истории посещений в блоке пользователя появляется кнопка "Запросить отчет", которая инициирует запрос обратной связи от сотрудника.',
-                  `Сотруднику отправляется уведомление через ${getDeliveryMethodText()} с прикрепленной ссылкой на заполнение короткой формы и предоставляется ${configSettings.subordinateReports.employeeReactionTime} секунд для подготовки отчета.`,
+                  'Сотруднику отправляется уведомление через ' + getDeliveryMethodText() + ' с прикрепленной ссылкой на заполнение короткой формы и предоставляется ' + configSettings.subordinateReports.employeeReactionTime + ' секунд для подготовки отчета.',
                   'Сотрудник заполняет форму, описывая, чем занимается в данный момент.',
-                  `Информация, внесенная сотрудником в отчет автоматически возвращается инициатору запроса через ${getResponseMethodText()}.`
+                  'Информация, внесенная сотрудником в отчет автоматически возвращается инициатору запроса через ' + getResponseMethodText() + '.'
                   ]" :key="index" class="flex items-start">
                   <div class="w-5 h-5 md:w-6 md:h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2 md:mr-3 flex-shrink-0">
                     <span class="text-xs font-medium text-blue-600">{{ index + 1 }}</span>
@@ -656,17 +656,17 @@
                   v-model="configSettings.workdayStart.method"
                   :disabled="isInstalling"
                   :items="[
-                              {
-                                label: 'Автоматический старт',
-                                value: 'auto',
-                                description: 'Рабочий день начинается автоматически при открытии'
-                              },
-                              {
-                                label: 'Модальное окно',
-                                value: 'modal',
-                                description: 'Показывать окно с предложением начать рабочий день'
-                              }
-                            ]"
+                                {
+                                  label: 'Автоматический старт',
+                                  value: 'auto',
+                                  description: 'Рабочий день начинается автоматически при открытии'
+                                },
+                                {
+                                  label: 'Модальное окно',
+                                  value: 'modal',
+                                  description: 'Показывать окно с предложением начать рабочий день'
+                                }
+                              ]"
                   orientation="vertical"
                   variant="card"
                   size="sm"
@@ -735,17 +735,17 @@
                 v-model="configSettings.workdayEnd.method"
                 :disabled="isInstalling"
                 :items="[
-                              {
-                                label: 'Автоматическое завершение',
-                                value: 'auto',
-                                description: 'Рабочий день завершается автоматически'
-                              },
-                              {
-                                label: 'Модальное окно',
-                                value: 'modal',
-                                description: 'Показывать окно с предложением завершить рабочий день'
-                              }
-                            ]"
+                                {
+                                  label: 'Автоматическое завершение',
+                                  value: 'auto',
+                                  description: 'Рабочий день завершается автоматически'
+                                },
+                                {
+                                  label: 'Модальное окно',
+                                  value: 'modal',
+                                  description: 'Показывать окно с предложением завершить рабочий день'
+                                }
+                              ]"
                 orientation="vertical"
                 variant="card"
                 size="sm"
