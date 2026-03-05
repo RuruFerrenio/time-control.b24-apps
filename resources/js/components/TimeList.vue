@@ -109,7 +109,6 @@
                   </svg>
                   <p class="text-sm text-gray-500">Загрузка данных...</p>
                 </div>
-
                 <!-- Данные -->
                 <div v-else-if="!isProcessingData && myTimeData.length > 0" class="space-y-2">
                   <div
@@ -558,7 +557,6 @@
                                   </div>
                                 </div>
                               </button>
-
                               <!-- Контент - страницы в категории -->
                               <template #content>
                                 <div class="divide-y divide-gray-100">
