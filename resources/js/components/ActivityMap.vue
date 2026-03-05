@@ -50,10 +50,10 @@
 
               <!-- Календарь для выбора диапазона -->
               <div>
-                <!-- Мобильная версия: кнопки в ряд (3/4 + 1/4) -->
+                <!-- Мобильная версия: кнопки в ряд (4/5 + 1/5) -->
                 <div class="flex flex-row gap-2">
                   <!-- Кнопка выбора периода - 3/4 ширины -->
-                  <div class="w-3/4 min-w-0">
+                  <div class="w-4/5 min-w-0">
                     <B24Popover class="w-full">
                       <B24Button
                           :disabled="isLoading"
@@ -94,7 +94,7 @@
                   </div>
 
                   <!-- Кнопка сброса - 1/4 ширины -->
-                  <div class="w-1/4">
+                  <div class="w-1/5">
                     <B24Button
                         @click="resetDateRange"
                         :disabled="isLoading"
