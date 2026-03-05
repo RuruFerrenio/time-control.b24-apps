@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-    <div class="container mx-auto px-4 py-4 md:py-8">
+    <div class="container mx-auto px-1 md:px-4 py-4 md:py-8">
       <!-- Шапка с логотипом -->
       <div class="text-center mb-8 md:mb-12">
         <div class="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 bg-blue-100 rounded-2xl mb-4 md:mb-6">
@@ -82,7 +82,6 @@
             </div>
           </div>
         </B24Card>
-
         <!-- Шаг 2: Настройка основных функций -->
         <B24Card v-else-if="currentStep === 2" class="mb-8">
           <div class="p-0 md:p-6">
@@ -1023,7 +1022,6 @@
             </div>
           </div>
         </B24Card>
-
         <!-- Шаг 3: Установка и настройка -->
         <B24Card v-else-if="currentStep === 3" class="mb-8">
           <div class="p-1 md:p-6">
@@ -1210,7 +1208,6 @@
             </div>
           </div>
         </B24Card>
-
         <!-- Шаг 4: Завершение -->
         <B24Card v-else-if="currentStep === 4" class="mb-8">
           <div class="p-1 md:p-6">
