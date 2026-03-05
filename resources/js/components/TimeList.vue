@@ -471,11 +471,13 @@
                           </div>
                         </div>
                         <!-- Мобильные кнопки и время -->
-                        <div class="sm:hidden mt-3 flex flex-wrap items-center justify-end gap-2">
+                        <div class="sm:hidden mt-3 flex flex-wrap items-center justify-between gap-2">
+                          <!-- Общее время слева -->
                           <div class="text-left">
                             <div class="text-xs text-gray-600">Общее время</div>
                             <div class="text-sm font-semibold text-gray-900">{{ formatDuration(userData.totalTime) }}</div>
                           </div>
+                          <!-- Кнопки справа, на одной линии с временем -->
                           <div class="flex items-center space-x-2">
                             <div v-if="userData.userId !== currentUserId && subordinateReportsEnabled">
                               <B24Button
@@ -491,6 +493,7 @@
                                 Отчет
                               </B24Button>
                             </div>
+
                             <router-link
                                 v-if="userData.userId !== currentUserId && bitrixHelper && bitrixHelper.isStatisticsAvailable()"
                                 :to="{ path: '/workday-statistics', query: { userId: userData.userId } }"
