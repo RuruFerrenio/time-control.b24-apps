@@ -31,7 +31,17 @@
       <div class="lg:col-span-2">
         <B24Card>
           <div class="p-6">
-            <div class="space-y-6">
+            <!-- Прелоадер во время загрузки -->
+            <div v-if="isLoading" class="text-center py-12">
+              <svg class="w-12 h-12 mx-auto mb-4 text-gray-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">Загрузка данных отчета</h3>
+              <p class="text-gray-500">Пожалуйста, подождите...</p>
+            </div>
+
+            <!-- Контент после загрузки -->
+            <div v-else class="space-y-6">
               <!-- Заголовок -->
               <div>
                 <h3 class="text-lg font-semibold text-gray-900 mb-2">Отчет о деятельности</h3>
@@ -464,6 +474,7 @@ export default {
     const currentUserProfile = ref(null)
     const selectedTask = ref(null)
     const isShowTaskSelectorModal = ref(false)
+    const isLoading = ref(true) // Новый флаг для прелоадера
 
     // Переменные для работы с задачами
     const allUserTasks = ref([])
@@ -876,10 +887,15 @@ export default {
 
     // Инициализация компонента
     const initializeComponent = async () => {
-      checkMobileDevice()
-      if (isMobileDevice.value) return
+      isLoading.value = true // Включаем прелоадер
 
       try {
+        checkMobileDevice()
+        if (isMobileDevice.value) {
+          isLoading.value = false
+          return
+        }
+
         // Загружаем текущего пользователя
         if (BX24?.callBatch) {
           const result = await new Promise((resolve) => {
@@ -899,19 +915,12 @@ export default {
         const params = decodeParameters()
         if (!params) {
           toast.add({ description: 'Неверные параметры запроса', variant: 'error' })
+          isLoading.value = false
           return
         }
 
         const settings = await getAppSettings()
         const reactionTime = parseInt(settings.employeeReactionTime) || 300
-
-        // Проверяем время
-        const timeDiff = (Date.now() - new Date(params.requestTime)) / 1000
-        if (timeDiff >= reactionTime) {
-          isTimeExpired.value = true
-          toast.add({ description: 'Время на отправку отчета истекло', variant: 'warning' })
-          return
-        }
 
         // Загружаем информацию о запросе
         const requesterProfile = await loadUserProfile(params.requesterId)
@@ -920,12 +929,21 @@ export default {
           requestTime: params.requestTime
         }
 
-        // Инициализируем таймер
-        initializeTimer(params.requestTime, reactionTime)
+        // Проверяем время
+        const timeDiff = (Date.now() - new Date(params.requestTime)) / 1000
+        if (timeDiff >= reactionTime) {
+          isTimeExpired.value = true
+          toast.add({ description: 'Время на отправку отчета истекло', variant: 'warning' })
+        } else {
+          // Инициализируем таймер
+          initializeTimer(params.requestTime, reactionTime)
+        }
 
       } catch (error) {
         console.error('Ошибка инициализации:', error)
         toast.add({ description: 'Ошибка при загрузке данных', variant: 'error' })
+      } finally {
+        isLoading.value = false // Выключаем прелоадер
       }
     }
 
@@ -960,6 +978,7 @@ export default {
       tasksPerPage,
       taskStatusOptions,
       filteredTasks,
+      isLoading, // Экспортируем флаг загрузки
       validateReportForm,
       formatTime,
       formatDateTime,
