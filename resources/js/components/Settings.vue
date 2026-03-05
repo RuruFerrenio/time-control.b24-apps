@@ -706,17 +706,17 @@
                         v-model="formData.workdayStart.method"
                         :disabled="isProcessing"
                         :items="[
-                    {
-                        label: 'Автоматический старт',
-                        value: 'auto',
-                        description: 'Рабочий день начинается автоматически при открытии'
-                    },
-                    {
-                        label: 'Модальное окно с предупреждением',
-                        value: 'modal',
-                        description: 'Показывать окно с предложением начать рабочий день'
-                    }
-                ]"
+                            {
+                                label: 'Автоматический старт',
+                                value: 'auto',
+                                description: 'Рабочий день начинается автоматически при открытии'
+                            },
+                            {
+                                label: 'Модальное окно с предупреждением',
+                                value: 'modal',
+                                description: 'Показывать окно с предложением начать рабочий день'
+                            }
+                        ]"
                         orientation="horizontal"
                         variant="card"
                         size="sm"
@@ -829,17 +829,17 @@
                         v-model="formData.workdayEnd.method"
                         :disabled="isProcessing"
                         :items="[
-                    {
-                        label: 'Автоматическое завершение',
-                        value: 'auto',
-                        description: 'Рабочий день завершается автоматически'
-                    },
-                    {
-                        label: 'Модальное окно с предупреждением',
-                        value: 'modal',
-                        description: 'Показывать окно с предложением завершить рабочий день'
-                    }
-                ]"
+                            {
+                                label: 'Автоматическое завершение',
+                                value: 'auto',
+                                description: 'Рабочий день завершается автоматически'
+                            },
+                            {
+                                label: 'Модальное окно с предупреждением',
+                                value: 'modal',
+                                description: 'Показывать окно с предложением завершить рабочий день'
+                            }
+                        ]"
                         orientation="horizontal"
                         variant="card"
                         size="sm"

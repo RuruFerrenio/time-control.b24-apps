@@ -85,7 +85,7 @@
 
         <!-- Шаг 2: Настройка основных функций -->
         <B24Card v-else-if="currentStep === 2" class="mb-8">
-          <div class="p-1 md:p-6">
+          <div class="p-0 md:p-6">
             <div class="flex flex-col md:flex-row md:items-start md:space-x-6">
               <div class="hidden md:flex md:flex-shrink-0 mb-4 md:mb-0">
                 <div class="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -402,12 +402,12 @@
                                             description: 'Оба способа'
                                         }
                                     ]"
-                                    orientation="vertical"
+                                    orientation="horizontal"
                                     variant="card"
                                     size="sm"
                                     default-value="push"
                                     indicator="end"
-                                    class="space-y-2"
+                                    class="overflow-scroll md:overflow-auto"
                                 />
                               </B24FormField>
                             </div>
@@ -536,28 +536,28 @@
                     v-model="configSettings.subordinateReports.responseMethod"
                     :disabled="isInstalling"
                     :items="[
-                                  {
-                                      label: 'Чат',
-                                      value: 'chat',
-                                      description: 'Ответ в чате'
-                                  },
-                                  {
-                                      label: 'Push',
-                                      value: 'push',
-                                      description: 'Ответ через push'
-                                  },
-                                  {
-                                      label: 'Оба',
-                                      value: 'all',
-                                      description: 'Оба способа'
-                                  }
-                              ]"
-                    orientation="vertical"
+                        {
+                            label: 'Чат',
+                            value: 'chat',
+                            description: 'Ответ в чате'
+                        },
+                        {
+                            label: 'Push',
+                            value: 'push',
+                            description: 'Ответ через push'
+                        },
+                        {
+                            label: 'Оба',
+                            value: 'all',
+                            description: 'Оба способа'
+                        }
+                    ]"
+                    orientation="horizontal"
                     variant="card"
                     size="sm"
                     default-value="push"
                     indicator="end"
-                    class="space-y-2"
+                    class="overflow-scroll md:overflow-auto"
                 />
               </B24FormField>
 
@@ -570,28 +570,28 @@
                     v-model="configSettings.subordinateReports.deliveryMethod"
                     :disabled="isInstalling"
                     :items="[
-                                  {
-                                      label: 'Чат',
-                                      value: 'chat',
-                                      description: 'Запрос через чат'
-                                  },
-                                  {
-                                      label: 'Push',
-                                      value: 'push',
-                                      description: 'Запрос через push'
-                                  },
-                                  {
-                                      label: 'Оба',
-                                      value: 'all',
-                                      description: 'Оба способа'
-                                  }
-                              ]"
-                    orientation="vertical"
+                        {
+                            label: 'Чат',
+                            value: 'chat',
+                            description: 'Запрос через чат'
+                        },
+                        {
+                            label: 'Push',
+                            value: 'push',
+                            description: 'Запрос через push'
+                        },
+                        {
+                            label: 'Оба',
+                            value: 'all',
+                            description: 'Оба способа'
+                        }
+                    ]"
+                    orientation="horizontal"
                     variant="card"
                     size="sm"
                     default-value="push"
                     indicator="end"
-                    class="space-y-2"
+                    class="overflow-scroll md:overflow-auto"
                 />
               </B24FormField>
 
@@ -656,23 +656,23 @@
                   v-model="configSettings.workdayStart.method"
                   :disabled="isInstalling"
                   :items="[
-                                  {
-                                      label: 'Автоматический старт',
-                                      value: 'auto',
-                                      description: 'Рабочий день начинается автоматически при открытии'
-                                  },
-                                  {
-                                      label: 'Модальное окно',
-                                      value: 'modal',
-                                      description: 'Показывать окно с предложением начать рабочий день'
-                                  }
-                              ]"
-                  orientation="vertical"
+                      {
+                          label: 'Автоматический старт',
+                          value: 'auto',
+                          description: 'Рабочий день начинается автоматически при открытии'
+                      },
+                      {
+                          label: 'Модальное окно',
+                          value: 'modal',
+                          description: 'Показывать окно с предложением начать рабочий день'
+                      }
+                  ]"
+                  orientation="horizontal"
                   variant="card"
                   size="sm"
-                  default-value="modal"
+                  default-value="push"
                   indicator="end"
-                  class="space-y-2"
+                  class="overflow-scroll md:overflow-auto"
               />
             </B24FormField>
 
@@ -735,23 +735,23 @@
                 v-model="configSettings.workdayEnd.method"
                 :disabled="isInstalling"
                 :items="[
-                                  {
-                                      label: 'Автоматическое завершение',
-                                      value: 'auto',
-                                      description: 'Рабочий день завершается автоматически'
-                                  },
-                                  {
-                                      label: 'Модальное окно',
-                                      value: 'modal',
-                                      description: 'Показывать окно с предложением завершить рабочий день'
-                                  }
-                              ]"
-                orientation="vertical"
+                    {
+                        label: 'Автоматическое завершение',
+                        value: 'auto',
+                        description: 'Рабочий день завершается автоматически'
+                    },
+                    {
+                        label: 'Модальное окно',
+                        value: 'modal',
+                        description: 'Показывать окно с предложением завершить рабочий день'
+                    }
+                ]"
+                orientation="horizontal"
                 variant="card"
                 size="sm"
-                default-value="modal"
+                default-value="push"
                 indicator="end"
-                class="space-y-2"
+                class="overflow-scroll md:overflow-auto"
             />
           </B24FormField>
 
@@ -808,348 +808,337 @@
   </div>
   </B24Card>
 
-  <!-- Шаг 3: Установка и настройка -->
-  <B24Card v-else-if="currentStep === 3" class="mb-8">
-    <div class="p-1 md:p-6">
-      <div class="flex flex-col md:flex-row md:items-start md:space-x-6">
-        <div class="hidden md:flex md:flex-shrink-0 mb-4 md:mb-0">
-          <div class="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center">
-            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-            </svg>
-          </div>
-        </div>
-        <div class="flex-1">
-          <h2 class="text-xl md:text-2xl font-bold text-gray-900 mb-3 md:mb-4">
-            Установка системы
-          </h2>
-          <p class="text-sm md:text-base text-gray-600 mb-4 md:mb-6">
-            Выполняется установка и настройка выбранных компонентов системы.
-          </p>
-
-          <!-- Прогресс установки -->
-          <div class="mb-6 md:mb-8">
-            <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs md:text-sm font-medium text-blue-600">
-                      Прогресс: {{ installationProgress }}%
-                    </span>
-              <span class="text-xs md:text-sm text-gray-500">{{ installedCount }}/{{ installationsToProcess }}</span>
-            </div>
-            <div class="h-1.5 md:h-2 bg-gray-200 rounded-full overflow-hidden">
-              <div
-                  class="h-full bg-blue-600 transition-all duration-300 ease-out"
-                  :style="{ width: installationProgress + '%' }"
-              ></div>
-            </div>
-          </div>
-
-          <!-- Детали установки -->
-          <div class="space-y-3 md:space-y-4 mb-6 md:mb-8">
-            <!-- Хранилище активности -->
-            <div class="flex items-center">
-              <div class="w-6 h-6 md:w-8 md:h-8 flex-shrink-0">
-                <div v-if="storageStatus === 'loading'">
-                  <svg class="animate-spin h-4 w-4 md:h-5 md:w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        <!-- Шаг 3: Установка и настройка -->
+        <B24Card v-else-if="currentStep === 3" class="mb-8">
+          <div class="p-1 md:p-6">
+            <div class="flex flex-col md:flex-row md:items-start md:space-x-6">
+              <div class="hidden md:flex md:flex-shrink-0 mb-4 md:mb-0">
+                <div class="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                   </svg>
-                </div>
-                <div v-else-if="storageStatus === 'success'">
-                  <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                  </svg>
-                </div>
-                <div v-else-if="storageStatus === 'error'">
-                  <svg class="w-4 h-4 md:w-5 md:h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                  </svg>
-                </div>
-                <div v-else>
-                  <div class="w-4 h-4 md:w-5 md:h-5 bg-gray-300 rounded-full"></div>
                 </div>
               </div>
-              <div class="ml-2 md:ml-3">
-                <p class="text-xs md:text-sm font-medium text-gray-900">Регистрация хранилища активности</p>
-                <p class="text-xs text-gray-500">pr_tracking - Статистика посещений</p>
-              </div>
-            </div>
+              <div class="flex-1">
+                <h2 class="text-xl md:text-2xl font-bold text-gray-900 mb-3 md:mb-4">
+                  Установка системы
+                </h2>
+                <p class="text-sm md:text-base text-gray-600 mb-4 md:mb-6">
+                  Выполняется установка и настройка выбранных компонентов системы.
+                </p>
 
-            <!-- Хранилище сохраненного времени -->
-            <div class="flex items-center">
-              <div class="w-6 h-6 md:w-8 md:h-8 flex-shrink-0">
-                <div v-if="savedTimeStorageStatus === 'loading'">
-                  <svg class="animate-spin h-4 w-4 md:h-5 md:w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
+                <!-- Прогресс установки -->
+                <div class="mb-6 md:mb-8">
+                  <div class="flex items-center justify-between mb-2">
+                          <span class="text-xs md:text-sm font-medium text-blue-600">
+                            Прогресс: {{ installationProgress }}%
+                          </span>
+                    <span class="text-xs md:text-sm text-gray-500">{{ installedCount }}/{{ installationsToProcess }}</span>
+                  </div>
+                  <div class="h-1.5 md:h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                        class="h-full bg-blue-600 transition-all duration-300 ease-out"
+                        :style="{ width: installationProgress + '%' }"
+                    ></div>
+                  </div>
                 </div>
-                <div v-else-if="savedTimeStorageStatus === 'success'">
-                  <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                  </svg>
-                </div>
-                <div v-else-if="savedTimeStorageStatus === 'error'">
-                  <svg class="w-4 h-4 md:w-5 md:h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                  </svg>
-                </div>
-                <div v-else>
-                  <div class="w-4 h-4 md:w-5 md:h-5 bg-gray-300 rounded-full"></div>
-                </div>
-              </div>
-              <div class="ml-2 md:ml-3">
-                <p class="text-xs md:text-sm font-medium text-gray-900">Регистрация хранилища сохраненного времени</p>
-                <p class="text-xs text-gray-500">pr_saved_time - Персональные счетчики времени</p>
-              </div>
-            </div>
 
-            <!-- Встройки -->
-            <div v-for="placement in placementsToInstall" :key="placement.id" class="flex items-center">
-              <div class="w-6 h-6 md:w-8 md:h-8 flex-shrink-0">
-                <div v-if="placementStatus[placement.id] === 'loading'">
-                  <svg class="animate-spin h-4 w-4 md:h-5 md:w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                </div>
-                <div v-else-if="placementStatus[placement.id] === 'success'">
-                  <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                  </svg>
-                </div>
-                <div v-else-if="placementStatus[placement.id] === 'error'">
-                  <svg class="w-4 h-4 md:w-5 md:h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                  </svg>
-                </div>
-                <div v-else>
-                  <div class="w-4 h-4 md:w-5 md:h-5 bg-gray-300 rounded-full"></div>
-                </div>
-              </div>
-              <div class="ml-2 md:ml-3">
-                <p class="text-xs md:text-sm font-medium text-gray-900">{{ placement.title }}</p>
-                <p class="text-xs text-gray-500">{{ placement.description }}</p>
-              </div>
-            </div>
+                <!-- Детали установки -->
+                <div class="space-y-3 md:space-y-4 mb-6 md:mb-8">
+                  <!-- Хранилище активности -->
+                  <div class="flex items-center">
+                    <div class="w-6 h-6 md:w-8 md:h-8 flex-shrink-0">
+                      <div v-if="storageStatus === 'loading'">
+                        <svg class="animate-spin h-4 w-4 md:h-5 md:w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      </div>
+                      <div v-else-if="storageStatus === 'success'">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                      </div>
+                      <div v-else-if="storageStatus === 'error'">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                      </div>
+                      <div v-else>
+                        <div class="w-4 h-4 md:w-5 md:h-5 bg-gray-300 rounded-full"></div>
+                      </div>
+                    </div>
+                    <div class="ml-2 md:ml-3">
+                      <p class="text-xs md:text-sm font-medium text-gray-900">Регистрация хранилища активности</p>
+                      <p class="text-xs text-gray-500">pr_tracking - Статистика посещений</p>
+                    </div>
+                  </div>
 
-            <!-- Настройки приложения -->
-            <div class="flex items-center">
-              <div class="w-6 h-6 md:w-8 md:h-8 flex-shrink-0">
-                <div v-if="settingsStatus === 'loading'">
-                  <svg class="animate-spin h-4 w-4 md:h-5 md:w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                </div>
-                <div v-else-if="settingsStatus === 'success'">
-                  <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                  </svg>
-                </div>
-                <div v-else-if="settingsStatus === 'error'">
-                  <svg class="w-4 h-4 md:w-5 md:h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                  </svg>
-                </div>
-                <div v-else>
-                  <div class="w-4 h-4 md:w-5 md:h-5 bg-gray-300 rounded-full"></div>
-                </div>
-              </div>
-              <div class="ml-2 md:ml-3">
-                <p class="text-xs md:text-sm font-medium text-gray-900">Настройка параметров системы</p>
-                <p class="text-xs text-gray-500">Сохранение настроек функций</p>
-              </div>
-            </div>
-          </div>
+                  <!-- Хранилище сохраненного времени -->
+                  <div class="flex items-center">
+                    <div class="w-6 h-6 md:w-8 md:h-8 flex-shrink-0">
+                      <div v-if="savedTimeStorageStatus === 'loading'">
+                        <svg class="animate-spin h-4 w-4 md:h-5 md:w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      </div>
+                      <div v-else-if="savedTimeStorageStatus === 'success'">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                      </div>
+                      <div v-else-if="savedTimeStorageStatus === 'error'">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                      </div>
+                      <div v-else>
+                        <div class="w-4 h-4 md:w-5 md:h-5 bg-gray-300 rounded-full"></div>
+                      </div>
+                    </div>
+                    <div class="ml-2 md:ml-3">
+                      <p class="text-xs md:text-sm font-medium text-gray-900">Регистрация хранилища сохраненного времени</p>
+                      <p class="text-xs text-gray-500">pr_saved_time - Персональные счетчики времени</p>
+                    </div>
+                  </div>
 
-          <!-- Кнопки навигации -->
-          <div class="flex flex-col sm:flex-row justify-between gap-3 pt-6 border-t">
-            <B24Button
-                v-if="!installationComplete"
-                @click="prevStep"
-                variant="outline"
-                size="large"
-                :disabled="isInstalling"
-                class="w-full sm:w-auto px-4 py-2 text-sm md:text-base order-2 sm:order-1"
-            >
-              <svg class="w-4 h-4 md:w-5 md:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-              </svg>
-              Назад
-            </B24Button>
-            <B24Button
-                v-if="installationComplete"
-                @click="nextStep"
-                variant="primary"
-                size="large"
-                class="w-full sm:w-auto px-4 py-2 text-sm md:text-base order-1 sm:order-2"
-            >
-              Завершить
-              <svg class="w-4 h-4 md:w-5 md:h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-              </svg>
-            </B24Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </B24Card>
+                  <!-- Встройки -->
+                  <div v-for="placement in placementsToInstall" :key="placement.id" class="flex items-center">
+                    <div class="w-6 h-6 md:w-8 md:h-8 flex-shrink-0">
+                      <div v-if="placementStatus[placement.id] === 'loading'">
+                        <svg class="animate-spin h-4 w-4 md:h-5 md:w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      </div>
+                      <div v-else-if="placementStatus[placement.id] === 'success'">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                      </div>
+                      <div v-else-if="placementStatus[placement.id] === 'error'">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                      </div>
+                      <div v-else>
+                        <div class="w-4 h-4 md:w-5 md:h-5 bg-gray-300 rounded-full"></div>
+                      </div>
+                    </div>
+                    <div class="ml-2 md:ml-3">
+                      <p class="text-xs md:text-sm font-medium text-gray-900">{{ placement.title }}</p>
+                      <p class="text-xs text-gray-500">{{ placement.description }}</p>
+                    </div>
+                  </div>
 
-  <!-- Шаг 4: Завершение -->
-  <B24Card v-else-if="currentStep === 4" class="mb-8">
-    <div class="p-1 md:p-6">
-      <div class="flex flex-col md:flex-row md:items-start md:space-x-6">
-        <div class="hidden md:flex md:flex-shrink-0 mb-4 md:mb-0">
-          <div class="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center">
-            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-          </div>
-        </div>
-        <div class="flex-1">
-          <h2 class="text-xl md:text-2xl font-bold text-gray-900 mb-3 md:mb-4">
-            Установка завершена!
-          </h2>
+                  <!-- Настройки приложения -->
+                  <div class="flex items-center">
+                    <div class="w-6 h-6 md:w-8 md:h-8 flex-shrink-0">
+                      <div v-if="settingsStatus === 'loading'">
+                        <svg class="animate-spin h-4 w-4 md:h-5 md:w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      </div>
+                      <div v-else-if="settingsStatus === 'success'">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                      </div>
+                      <div v-else-if="settingsStatus === 'error'">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                      </div>
+                      <div v-else>
+                        <div class="w-4 h-4 md:w-5 md:h-5 bg-gray-300 rounded-full"></div>
+                      </div>
+                    </div>
+                    <div class="ml-2 md:ml-3">
+                      <p class="text-xs md:text-sm font-medium text-gray-900">Настройка параметров системы</p>
+                      <p class="text-xs text-gray-500">Сохранение настроек функций</p>
+                    </div>
+                  </div>
+                </div>
 
-          <div class="space-y-4 md:space-y-6">
-            <p class="text-base md:text-lg text-gray-700">
-              Система контроля времени сотрудников успешно установлена и настроена.
-            </p>
-
-            <div class="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-4 md:p-6">
-              <h3 class="text-lg md:text-xl font-bold text-gray-900 mb-2 md:mb-3">
-                Что дальше?
-              </h3>
-              <p class="text-sm md:text-base text-gray-600 mb-3 md:mb-4">
-                Система готова к использованию. Вы можете начать мониторинг активности сотрудников прямо сейчас.
-              </p>
-
-              <!-- Информация об установленных компонентах -->
-              <div class="space-y-2">
-                <div v-if="selectedFeatures.pageTracking" class="flex items-start">
-                  <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                  </svg>
-                  <span class="text-xs md:text-sm text-gray-700">Отслеживание посещений страниц</span>
+                <!-- Кнопки навигации -->
+                <div class="flex flex-col sm:flex-row justify-between gap-3 pt-6 border-t">
+                  <B24Button
+                      v-if="!installationComplete"
+                      @click="prevStep"
+                      variant="outline"
+                      size="large"
+                      :disabled="isInstalling"
+                      class="w-full sm:w-auto px-4 py-2 text-sm md:text-base order-2 sm:order-1"
+                  >
+                    <svg class="w-4 h-4 md:w-5 md:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    Назад
+                  </B24Button>
+                  <B24Button
+                      v-if="installationComplete"
+                      @click="nextStep"
+                      variant="primary"
+                      size="large"
+                      class="w-full sm:w-auto px-4 py-2 text-sm md:text-base order-1 sm:order-2"
+                  >
+                    Завершить
+                    <svg class="w-4 h-4 md:w-5 md:h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                  </B24Button>
                 </div>
-                <div v-if="selectedFeatures.presenceControl" class="flex items-start">
-                  <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                  </svg>
-                  <span class="text-xs md:text-sm text-gray-700">Контроль присутствия сотрудников</span>
-                </div>
-                <div v-if="selectedFeatures.subordinateReports" class="flex items-start">
-                  <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                  </svg>
-                  <span class="text-xs md:text-sm text-gray-700">Запрос отчетов о деятельности</span>
-                </div>
-                <div v-if="selectedFeatures.workdayStart" class="flex items-start">
-                  <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                  </svg>
-                  <span class="text-xs md:text-sm text-gray-700">Помощь в старте рабочего дня</span>
-                </div>
-                <div v-if="selectedFeatures.workdayEnd" class="flex items-start">
-                  <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                  </svg>
-                  <span class="text-xs md:text-sm text-gray-700">Помощь в завершении рабочего дня</span>
-                </div>
-                <div class="flex items-start">
-                  <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                  </svg>
-                  <span class="text-xs md:text-sm text-gray-700">Фоновый счетчик (встройка)</span>
-                </div>
-                <div class="flex items-start">
-                  <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                  </svg>
-                  <span class="text-xs md:text-sm text-gray-700">Форма для отчета (встройка)</span>
-                </div>
-                <div class="flex items-start">
-                  <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                  </svg>
-                  <span class="text-xs md:text-sm text-gray-700">Хранилище активности (pr_tracking)</span>
-                </div>
-                <div class="flex items-start">
-                  <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                  </svg>
-                  <span class="text-xs md:text-sm text-gray-700">Хранилище сохраненного времени (pr_saved_time)</span>
-                </div>
-              </div>
-
-              <div class="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4 mt-4 md:mt-6">
-                <a
-                    href="mailto:it.galera@yandex.ru?subject=Поддержка приложения Автоматический контроль времени"
-                    target="_blank"
-                    class="w-full sm:w-auto inline-flex items-center justify-center px-4 md:px-6 py-2 md:py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-300 text-sm md:text-base"
-                >
-                  <svg class="w-4 h-4 md:w-5 md:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/>
-                  </svg>
-                  Техническая поддержка
-                </a>
-              </div>
-            </div>
-
-            <div class="bg-gray-50 rounded-xl p-4 md:p-6">
-              <h3 class="text-base md:text-lg font-semibold text-gray-900 mb-2 md:mb-3">
-                Следующие шаги
-              </h3>
-              <ul class="space-y-2">
-                <li class="flex items-start text-gray-700">
-                  <svg class="w-4 h-4 md:w-5 md:h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                  </svg>
-                  <span class="text-xs md:text-sm">Перейдите в приложение для просмотра данных мониторинга</span>
-                </li>
-                <li class="flex items-start text-gray-700">
-                  <svg class="w-4 h-4 md:w-5 md:h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                  </svg>
-                  <span class="text-xs md:text-sm">Настройте дополнительные параметры в разделе "Настройки"</span>
-                </li>
-                <li class="flex items-start text-gray-700">
-                  <svg class="w-4 h-4 md:w-5 md:h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                  </svg>
-                  <span class="text-xs md:text-sm">Ознакомьте сотрудников с новыми возможностями системы</span>
-                </li>
-              </ul>
-            </div>
-
-            <div class="flex flex-col sm:flex-row justify-between gap-3 pt-6 border-t">
-              <B24Button
-                  @click="openApp"
-                  variant="outline"
-                  size="large"
-                  class="w-full sm:w-auto px-4 py-2 text-sm md:text-base order-2 sm:order-1"
-              >
-                <svg class="w-4 h-4 md:w-5 md:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                </svg>
-                Перейти в приложение
-              </B24Button>
-              <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto order-1 sm:order-2">
-                <B24Button
-                    @click="finishInstallation"
-                    variant="primary"
-                    size="large"
-                    class="w-full sm:w-auto px-4 py-2 text-sm md:text-base"
-                >
-                  Завершить установку
-                </B24Button>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-  </B24Card>
+        </B24Card>
+
+        <!-- Шаг 4: Завершение -->
+        <B24Card v-else-if="currentStep === 4" class="mb-8">
+          <div class="p-1 md:p-6">
+            <div class="flex flex-col md:flex-row md:items-start md:space-x-6">
+              <div class="hidden md:flex md:flex-shrink-0 mb-4 md:mb-0">
+                <div class="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center">
+                  <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="flex-1">
+                <h2 class="text-xl md:text-2xl font-bold text-gray-900 mb-3 md:mb-4">
+                  Установка завершена!
+                </h2>
+
+                <div class="space-y-4 md:space-y-6">
+                  <p class="text-base md:text-lg text-gray-700">
+                    Система контроля времени сотрудников успешно установлена и настроена.
+                  </p>
+
+                  <div class="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-4 md:p-6">
+                    <h3 class="text-lg md:text-xl font-bold text-gray-900 mb-2 md:mb-3">
+                      Что дальше?
+                    </h3>
+                    <p class="text-sm md:text-base text-gray-600 mb-3 md:mb-4">
+                      Система готова к использованию. Вы можете начать мониторинг активности сотрудников прямо сейчас.
+                    </p>
+
+                    <!-- Информация об установленных компонентах -->
+                    <div class="space-y-2">
+                      <div v-if="selectedFeatures.pageTracking" class="flex items-start">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <span class="text-xs md:text-sm text-gray-700">Отслеживание посещений страниц</span>
+                      </div>
+                      <div v-if="selectedFeatures.presenceControl" class="flex items-start">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <span class="text-xs md:text-sm text-gray-700">Контроль присутствия сотрудников</span>
+                      </div>
+                      <div v-if="selectedFeatures.subordinateReports" class="flex items-start">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <span class="text-xs md:text-sm text-gray-700">Запрос отчетов о деятельности</span>
+                      </div>
+                      <div v-if="selectedFeatures.workdayStart" class="flex items-start">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <span class="text-xs md:text-sm text-gray-700">Помощь в старте рабочего дня</span>
+                      </div>
+                      <div v-if="selectedFeatures.workdayEnd" class="flex items-start">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <span class="text-xs md:text-sm text-gray-700">Помощь в завершении рабочего дня</span>
+                      </div>
+                      <div class="flex items-start">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <span class="text-xs md:text-sm text-gray-700">Фоновый счетчик (встройка)</span>
+                      </div>
+                      <div class="flex items-start">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <span class="text-xs md:text-sm text-gray-700">Форма для отчета (встройка)</span>
+                      </div>
+                      <div class="flex items-start">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <span class="text-xs md:text-sm text-gray-700">Хранилище активности (pr_tracking)</span>
+                      </div>
+                      <div class="flex items-start">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <span class="text-xs md:text-sm text-gray-700">Хранилище сохраненного времени (pr_saved_time)</span>
+                      </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4 mt-4 md:mt-6">
+                      <a
+                          href="mailto:it.galera@yandex.ru?subject=Поддержка приложения Автоматический контроль времени"
+                          target="_blank"
+                          class="w-full sm:w-auto inline-flex items-center justify-center px-4 md:px-6 py-2 md:py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-300 text-sm md:text-base"
+                      >
+                        <svg class="w-4 h-4 md:w-5 md:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                        Техническая поддержка
+                      </a>
+                    </div>
+                  </div>
+
+                  <div class="bg-gray-50 rounded-xl p-4 md:p-6">
+                    <h3 class="text-base md:text-lg font-semibold text-gray-900 mb-2 md:mb-3">
+                      Следующие шаги
+                    </h3>
+                    <ul class="space-y-2">
+                      <li class="flex items-start text-gray-700">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                        <span class="text-xs md:text-sm">Перейдите в приложение для просмотра данных мониторинга</span>
+                      </li>
+                      <li class="flex items-start text-gray-700">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                        <span class="text-xs md:text-sm">Настройте дополнительные параметры в разделе "Настройки"</span>
+                      </li>
+                      <li class="flex items-start text-gray-700">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                        <span class="text-xs md:text-sm">Ознакомьте сотрудников с новыми возможностями системы</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div class="flex flex-col sm:flex-row justify-between gap-3 pt-6 border-t">
+                    <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto order-1 sm:order-2">
+                      <B24Button
+                          @click="finishInstallation"
+                          variant="primary"
+                          size="large"
+                          class="w-full sm:w-auto px-4 py-2 text-sm md:text-base"
+                      >
+                        Завершить установку
+                      </B24Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </B24Card>
   </div>
   </div>
   </div>
