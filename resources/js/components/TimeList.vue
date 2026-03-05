@@ -412,7 +412,7 @@
                                     src: getUserPhoto(userData.userId),
                                     initials: getUserInitials(userData.userName)
                                 }"
-                                                    :chip="{
+                                :chip="{
                                     color: getOnlineStatus(userData.userId) === 'Y'
                                         ? 'air-primary-success'
                                         : 'air-secondary-accent',
