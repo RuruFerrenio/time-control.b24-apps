@@ -471,33 +471,35 @@
                           </div>
                         </div>
                         <!-- Мобильные кнопки и время -->
-                        <div class="grid grid-cols-2 gap-2 w-full">
-                          <!-- Первая кнопка -->
-                          <div v-if="userData.userId !== currentUserId && subordinateReportsEnabled">
-                            <B24Button
-                                @click="showRequestReportModal(userData)"
-                                size="md"
-                                color="air-selection"
-                                title="Запросить отчет"
-                                class="w-full"
-                            >
-                              <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                              </svg>
-                              Отчет
-                            </B24Button>
+                        <div class="sm:hidden mt-3 flex flex-wrap items-center justify-items-center gap-2">
+                          <div class="text-left">
+                            <div class="text-xs text-gray-600">Общее время</div>
+                            <div class="text-sm font-semibold text-gray-900">{{ formatDuration(userData.totalTime) }}</div>
                           </div>
-
-                          <!-- Вторая кнопка -->
-                          <div v-if="userData.userId !== currentUserId && bitrixHelper && bitrixHelper.isStatisticsAvailable()">
+                          <div class="flex items-center space-x-2">
+                            <div v-if="userData.userId !== currentUserId && subordinateReportsEnabled">
+                              <B24Button
+                                  @click="showRequestReportModal(userData)"
+                                  size="md"
+                                  color="air-selection"
+                                  title="Запросить отчет"
+                              >
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                Отчет
+                              </B24Button>
+                            </div>
                             <router-link
+                                v-if="userData.userId !== currentUserId && bitrixHelper && bitrixHelper.isStatisticsAvailable()"
                                 :to="{ path: '/workday-statistics', query: { userId: userData.userId } }"
-                                class="block"
+                                class="inline-block"
+                                size="md"
                             >
                               <B24Button
                                   size="md"
                                   color="air-selection"
-                                  class="w-full text-xs"
+                                  class="text-xs"
                                   title="Посмотреть статистику"
                               >
                                 <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
