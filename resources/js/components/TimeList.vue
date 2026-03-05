@@ -471,7 +471,7 @@
                           </div>
                         </div>
                         <!-- Мобильные кнопки и время -->
-                        <div class="sm:hidden mt-3 flex flex-wrap items-center justify-between gap-2">
+                        <div class="sm:hidden mt-3 flex flex-wrap items-center justify-end gap-2">
                           <div class="text-left">
                             <div class="text-xs text-gray-600">Общее время</div>
                             <div class="text-sm font-semibold text-gray-900">{{ formatDuration(userData.totalTime) }}</div>
