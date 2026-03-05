@@ -105,110 +105,167 @@
 
                 <!-- Карточки функций -->
                 <div class="space-y-4 md:space-y-6 mb-6 md:mb-8">
-                  <!-- Отслеживание посещений -->
-                  <B24Card class="hover:shadow-lg transition-shadow duration-300">
-                    <div class="p-1 md:p-6">
-                      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
-                        <div class="flex items-center space-x-3 mb-3 sm:mb-0">
-                          <div class="flex-1 min-w-0">
-                            <h3 class="text-base md:text-lg font-semibold text-gray-900 truncate">
+                  <!-- Блок 1: Отслеживание посещений страниц пользователями -->
+                  <B24Card class="mb-8">
+                    <div class="p-0 md:p-6">
+                      <div class="space-y-6">
+                        <div class="flex items-center justify-between">
+                          <div class="flex-1">
+                            <h3 class="text-lg font-semibold text-gray-900">
                               Отслеживание посещений страниц пользователями
                             </h3>
-                            <p class="text-xs md:text-sm text-gray-500">Сбор и хранение истории посещений страниц сотрудниками</p>
+                            <p class="text-sm text-gray-500 mt-1">
+                              Сбор и хранение истории посещений страниц сотрудниками
+                            </p>
+                          </div>
+                          <div class="ml-4 flex items-center space-x-4">
+                            <div class="w-2 h-2 rounded-full"
+                                 :class="selectedFeatures.pageTracking ? 'bg-green-500' : 'bg-red-500'"></div>
+                            <B24Switch
+                                v-model="selectedFeatures.pageTracking"
+                                :disabled="isInstalling"
+                                size="sm"
+                            />
                           </div>
                         </div>
-                        <div class="flex items-center justify-end space-x-3">
-                          <div class="w-2 h-2 rounded-full" :class="selectedFeatures.pageTracking ? 'bg-green-500' : 'bg-red-500'"></div>
-                          <B24Switch
-                              v-model="selectedFeatures.pageTracking"
-                              :disabled="isInstalling"
-                              class="large-bordered-switch"
-                              size="sm"
-                          />
-                        </div>
-                      </div>
 
-                      <div v-if="selectedFeatures.pageTracking" class="space-y-4 pt-4 border-t">
-                        <h4 class="text-sm font-medium text-gray-900 mb-3 md:mb-4">
-                          Настройки хранения истории
-                        </h4>
-
-                        <B24FormField
-                            label="Количество дней хранения истории посещений"
-                            name="historyDays"
-                            :help-text="`Текущее значение: ${configSettings.pageTracking.historyDays} дней`"
-                        >
-                          <div class="space-y-4">
-                            <div>
-                              <B24Input
-                                  v-model.number="configSettings.pageTracking.historyDays"
-                                  :disabled="isInstalling"
-                                  :min="1"
-                                  :max="30"
-                                  type="number"
-                                  class="w-full"
-                                  size="sm"
-                                  @blur="validateHistoryDays"
-                              >
-                                <template #suffix>
-                                  <span class="text-xs md:text-sm text-gray-500">дней</span>
-                                </template>
-                              </B24Input>
-                            </div>
-                            <div class="space-y-2">
-                              <input
-                                  type="range"
-                                  v-model.number="configSettings.pageTracking.historyDays"
-                                  :disabled="isInstalling"
-                                  min="1"
-                                  max="30"
-                                  class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                                  @input="validateHistoryDays"
-                              >
-                              <div class="flex justify-between text-xs text-gray-500">
-                                <span>1 день</span>
-                                <span>30 дней</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div v-if="historyDaysError" class="mt-2 text-xs md:text-sm text-red-600 flex items-start">
-                            <svg class="w-3 h-3 md:w-4 md:h-4 mr-1 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
-                            </svg>
-                            <span>{{ historyDaysError }}</span>
-                          </div>
-
-                          <div class="mt-3">
-                            <div class="flex items-start p-3 bg-blue-50 rounded-lg">
-                              <svg class="w-4 h-4 md:w-5 md:h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                              </svg>
-                              <div class="text-xs md:text-sm text-blue-700">
-                                <span class="font-medium">Важно:</span> Система будет автоматически удалять записи о посещениях, которые старше указанного количества дней.
-                                Это помогает поддерживать оптимальный размер внутреннего хранилища.
-                              </div>
-                            </div>
-                          </div>
-                        </B24FormField>
-
-                        <!-- Информация о системе отслеживания -->
-                        <div class="space-y-3 mt-4 md:mt-6">
-                          <h4 class="text-sm font-medium text-gray-900">
-                            Как работает система отслеживания:
+                        <!-- Настройки отслеживания посещений -->
+                        <div v-if="selectedFeatures.pageTracking" class="space-y-4 pt-4 border-t">
+                          <h4 class="text-sm font-medium text-gray-900 mb-4">
+                            Настройки хранения истории
                           </h4>
-                          <div class="space-y-2 md:space-y-3">
-                            <div v-for="(item, index) in [
-                              'Система записывает посещение страницы сотрудником, если он задерживается на странице больше 10 секунд (сократить эту задержку в данной версии приложения нельзя).',
-                              'Для каждого посещения сохраняется URL страницы, время нахождения, пользователь и категория страницы.',
-                              'Данные сохраняются в хранилище Bitrix24 с группировкой по дням.',
-                              'Данные из хранилища Bitrix24 об истории посещения страниц пользователям отображаются в удобном для восприятия виде на странице приложения - История посещений. Здесь пользователь может изучить свои затраты времени на каждой странице и, при желании, добавить время в задачи.',
-                              `История посещений хранится ${configSettings.pageTracking.historyDays} дней, после чего старые записи автоматически удаляются.`
-                            ]" :key="index" class="flex items-start">
-                              <div class="w-5 h-5 md:w-6 md:h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2 md:mr-3 flex-shrink-0">
-                                <span class="text-xs font-medium text-blue-600">{{ index + 1 }}</span>
+
+                          <B24Form
+                              :state="configSettings"
+                              class="space-y-4"
+                          >
+                            <!-- Количество дней хранения истории посещений -->
+                            <div class="space-y-4">
+                              <B24FormField
+                                  label="Количество дней хранения истории посещений"
+                                  name="historyDays"
+                                  :help-text="`Текущее значение: ${configSettings.pageTracking.historyDays} дней`"
+                              >
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                  <!-- Поле ввода -->
+                                  <div>
+                                    <B24Input
+                                        v-model.number="configSettings.pageTracking.historyDays"
+                                        :disabled="isInstalling"
+                                        :min="1"
+                                        :max="30"
+                                        type="number"
+                                        class="w-full"
+                                        @blur="validateHistoryDays"
+                                    >
+                                      <template #suffix>
+                                        <span class="text-gray-500">дней</span>
+                                      </template>
+                                    </B24Input>
+                                  </div>
+
+                                  <!-- Слайдер для настройки -->
+                                  <div class="space-y-2 hidden md:block">
+                                    <input
+                                        type="range"
+                                        v-model.number="configSettings.pageTracking.historyDays"
+                                        :disabled="isInstalling"
+                                        min="1"
+                                        max="30"
+                                        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                        @input="validateHistoryDays"
+                                    >
+                                    <div class="flex justify-between text-xs text-gray-500">
+                                      <span>1 день</span>
+                                      <span>30 дней</span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <!-- Ошибка валидации -->
+                                <div v-if="historyDaysError" class="mt-2 text-sm text-red-600 flex items-center">
+                                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                                  </svg>
+                                  {{ historyDaysError }}
+                                </div>
+
+                                <!-- Информация о хранении -->
+                                <div class="mt-3">
+                                  <div class="flex items-start p-3 bg-blue-50 rounded-lg">
+                                    <svg class="w-5 h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
+                                         viewBox="0 0 24 24">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    <div class="text-sm text-blue-700">
+                                      <span class="font-medium">Важно:</span> Система будет автоматически удалять записи о
+                                      посещениях, которые старше указанного количества дней.
+                                      Это помогает поддерживать оптимальный размер внутреннего хранилища.
+                                    </div>
+                                  </div>
+                                </div>
+                              </B24FormField>
+                            </div>
+                          </B24Form>
+
+                          <!-- Информация о системе отслеживания -->
+                          <div class="space-y-4 mt-6">
+                            <h4 class="text-sm font-medium text-gray-900">
+                              Как работает система отслеживания:
+                            </h4>
+                            <div class="space-y-3">
+                              <div class="flex items-start">
+                                <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                  <span class="text-xs font-medium text-blue-600">1</span>
+                                </div>
+                                <div>
+                                  <p class="text-sm text-gray-700">
+                                    Система записывает посещение страницы сотрудником, если он задерживается на странице больше 10 секунд (сократить эту задержку в данной версии приложения нельзя).
+                                  </p>
+                                </div>
                               </div>
-                              <p class="text-xs md:text-sm text-gray-700">{{ item }}</p>
+                              <div class="flex items-start">
+                                <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                  <span class="text-xs font-medium text-blue-600">2</span>
+                                </div>
+                                <div>
+                                  <p class="text-sm text-gray-700">
+                                    Для каждого посещения сохраняется URL страницы, время нахождения, пользователь и категория страницы.
+                                  </p>
+                                </div>
+                              </div>
+                              <div class="flex items-start">
+                                <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                  <span class="text-xs font-medium text-blue-600">3</span>
+                                </div>
+                                <div>
+                                  <p class="text-sm text-gray-700">
+                                    Данные сохраняются в хранилище Bitrix24 с группировкой по дням.
+                                  </p>
+                                </div>
+                              </div>
+                              <div class="flex items-start">
+                                <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                  <span class="text-xs font-medium text-blue-600">4</span>
+                                </div>
+                                <div>
+                                  <p class="text-sm text-gray-700">
+                                    Данные из хранилища Bitrix24 об истории посещения страниц пользователям отображаются в удобном для восприятия виде на странице приложения - История посещений. Здесь пользователь может изучить свои затраты времени на каждой странице и, при желании, добавить время в задачи.
+                                  </p>
+                                </div>
+                              </div>
+                              <div class="flex items-start">
+                                <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                  <span class="text-xs font-medium text-blue-600">5</span>
+                                </div>
+                                <div>
+                                  <p class="text-sm text-gray-700">
+                                    История посещений хранится {{ configSettings.pageTracking.historyDays }} дней, после чего старые записи автоматически удаляются.
+                                  </p>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -216,592 +273,756 @@
                     </div>
                   </B24Card>
 
-                  <!-- Контроль присутствия -->
-                  <B24Card class="hover:shadow-lg transition-shadow duration-300">
-                    <div class="p-1 md:p-6">
-                      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
-                        <div class="flex items-center space-x-3 mb-3 sm:mb-0">
-                          <div class="w-10 h-10 md:w-12 md:h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <svg class="w-5 h-5 md:w-6 md:h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                          </div>
-                          <div class="flex-1 min-w-0">
-                            <h3 class="text-base md:text-lg font-semibold text-gray-900 truncate">
+                  <!-- Блок 2: Контроль присутствия сотрудника -->
+                  <B24Card class="mb-8">
+                    <div class="p-0 md:p-6">
+                      <div class="space-y-6">
+                        <div class="flex items-center justify-between">
+                          <div class="flex-1">
+                            <h3 class="text-lg font-semibold text-gray-900">
                               Контроль присутствия сотрудника
                             </h3>
-                            <p class="text-xs md:text-sm text-gray-500">Автоматическая проверка реального присутствия сотрудника на рабочем месте с открытым Битрикс24</p>
+                            <p class="text-sm text-gray-500 mt-1">
+                              Автоматическая проверка реального присутствия сотрудника на рабочем месте с открытым Битрикс24
+                            </p>
+                          </div>
+                          <div class="ml-4 flex items-center space-x-4">
+                            <div class="w-2 h-2 rounded-full"
+                                 :class="selectedFeatures.presenceControl ? 'bg-green-500' : 'bg-red-500'"></div>
+                            <B24Switch
+                                v-model="selectedFeatures.presenceControl"
+                                :disabled="isInstalling"
+                                size="sm"
+                            />
                           </div>
                         </div>
-                        <div class="flex items-center justify-end space-x-3">
-                          <div class="w-2 h-2 rounded-full" :class="selectedFeatures.presenceControl ? 'bg-green-500' : 'bg-red-500'"></div>
-                          <B24Switch
-                              v-model="selectedFeatures.presenceControl"
-                              :disabled="isInstalling"
-                              class="large-bordered-switch"
-                              size="sm"
-                          />
-                        </div>
-                      </div>
 
-                      <div v-if="selectedFeatures.presenceControl" class="space-y-4 pt-4 border-t">
-                        <B24FormField
-                            label="Время на странице до проверки присутствия"
-                            name="pageTimeThreshold"
-                            :help-text="`Текущее значение: ${configSettings.presenceControl.pageTimeThreshold} минут`"
-                        >
-                          <div class="space-y-4">
-                            <div>
-                              <B24Input
-                                  v-model.number="configSettings.presenceControl.pageTimeThreshold"
-                                  :disabled="isInstalling"
-                                  :min="1"
-                                  :max="60"
-                                  type="number"
-                                  class="w-full"
-                                  size="sm"
-                                  @blur="validatePageTimeThreshold"
-                              >
-                                <template #suffix>
-                                  <span class="text-xs md:text-sm text-gray-500">минут</span>
-                                </template>
-                              </B24Input>
-                            </div>
-                            <div class="space-y-2">
-                              <input
-                                  type="range"
-                                  v-model.number="configSettings.presenceControl.pageTimeThreshold"
-                                  :disabled="isInstalling"
-                                  min="1"
-                                  max="60"
-                                  class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                                  @input="validatePageTimeThreshold"
-                              >
-                              <div class="flex justify-between text-xs text-gray-500">
-                                <span>1 минута</span>
-                                <span>60 минут</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div v-if="pageTimeThresholdError" class="mt-2 text-xs md:text-sm text-red-600 flex items-start">
-                            <svg class="w-3 h-3 md:w-4 md:h-4 mr-1 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
-                            </svg>
-                            <span>{{ pageTimeThresholdError }}</span>
-                          </div>
-
-                          <div class="space-y-3 pt-3 md:pt-4">
-                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                              <div class="flex-1 mb-3 sm:mb-0">
-                                <h4 class="text-sm font-medium text-gray-900 mb-1">
-                                  Уведомлять руководителя об отсутствии на рабочем месте
-                                </h4>
-                                <p class="text-xs text-gray-500">
-                                  Отправлять уведомление руководителю при длительном отсутствии сотрудника
-                                </p>
-                              </div>
-                              <div class="flex items-center justify-end space-x-3">
-                                <div class="w-2 h-2 rounded-full" :class="configSettings.presenceControl.notifyManager.enabled ? 'bg-green-500' : 'bg-red-500'"></div>
-                                <B24Switch
-                                    v-model="configSettings.presenceControl.notifyManager.enabled"
-                                    @update:modelValue="toggleNotifyManager"
-                                    :disabled="isInstalling"
-                                    size="sm"
-                                />
-                              </div>
-                            </div>
-
-                            <div v-if="configSettings.presenceControl.notifyManager.enabled" class="space-y-4">
+                        <!-- Настройки контроля присутствия -->
+                        <div v-if="selectedFeatures.presenceControl" class="space-y-4 pt-4 border-t">
+                          <B24Form
+                              :state="configSettings"
+                              class="space-y-4"
+                          >
+                            <!-- Время на странице до проверки присутствия -->
+                            <div class="space-y-4">
                               <B24FormField
-                                  label="Время на подтверждение присутствия"
-                                  name="absenceTimeThreshold"
-                                  :help-text="`Текущее значение: ${configSettings.presenceControl.notifyManager.absenceTimeThreshold} секунд`"
+                                  label="Время на странице до проверки присутствия"
+                                  name="pageTimeThreshold"
+                                  :help-text="`Текущее значение: ${configSettings.presenceControl.pageTimeThreshold} минут`"
                               >
-                                <div class="space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                  <!-- Поле ввода -->
                                   <div>
                                     <B24Input
-                                        v-model.number="configSettings.presenceControl.notifyManager.absenceTimeThreshold"
+                                        v-model.number="configSettings.presenceControl.pageTimeThreshold"
+                                        :disabled="isInstalling"
+                                        :min="1"
+                                        :max="60"
+                                        type="number"
+                                        class="w-full"
+                                        @blur="validatePageTimeThreshold"
+                                    >
+                                      <template #suffix>
+                                        <span class="text-gray-500">минут</span>
+                                      </template>
+                                    </B24Input>
+                                  </div>
+
+                                  <!-- Слайдер для настройки -->
+                                  <div class="space-y-2 hidden md:block">
+                                    <input
+                                        type="range"
+                                        v-model.number="configSettings.presenceControl.pageTimeThreshold"
+                                        :disabled="isInstalling"
+                                        min="1"
+                                        max="60"
+                                        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                        @input="validatePageTimeThreshold"
+                                    >
+                                    <div class="flex justify-between text-xs text-gray-500">
+                                      <span>1 минута</span>
+                                      <span>60 минут</span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <!-- Ошибка валидации -->
+                                <div v-if="pageTimeThresholdError" class="mt-2 text-sm text-red-600 flex items-center">
+                                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                                  </svg>
+                                  {{ pageTimeThresholdError }}
+                                </div>
+
+                                <!-- Настройка уведомлений руководителя -->
+                                <div class="space-y-4 pt-4">
+                                  <div class="flex items-center justify-between">
+                                    <div class="flex-1">
+                                      <h4 class="text-sm font-medium text-gray-900 mb-1">
+                                        Уведомлять руководителя об отсутствии на рабочем месте
+                                      </h4>
+                                      <p class="text-sm text-gray-500">
+                                        Отправлять уведомление руководителю при длительном отсутствии сотрудника
+                                      </p>
+                                    </div>
+                                    <div class="ml-4 flex items-center space-x-4">
+                                      <div class="w-2 h-2 rounded-full"
+                                           :class="configSettings.presenceControl.notifyManager.enabled ? 'bg-green-500' : 'bg-red-500'"></div>
+                                      <B24Switch
+                                          v-model="configSettings.presenceControl.notifyManager.enabled"
+                                          @update:modelValue="toggleNotifyManager"
+                                          :disabled="isInstalling"
+                                          size="sm"
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <!-- Дополнительные настройки уведомлений -->
+                                  <div v-if="configSettings.presenceControl.notifyManager.enabled" class="space-y-4">
+                                    <!-- Время отсутствия до уведомления -->
+                                    <B24FormField
+                                        label="Время на подтверждение присутствия"
+                                        name="absenceTimeThreshold"
+                                        :help-text="`Текущее значение: ${configSettings.presenceControl.notifyManager.absenceTimeThreshold} секунд`"
+                                    >
+                                      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <!-- Поле ввода -->
+                                        <div>
+                                          <B24Input
+                                              v-model.number="configSettings.presenceControl.notifyManager.absenceTimeThreshold"
+                                              :disabled="isInstalling"
+                                              :min="10"
+                                              :max="300"
+                                              type="number"
+                                              class="w-full"
+                                              @blur="validateAbsenceTimeThreshold"
+                                          >
+                                            <template #suffix>
+                                              <span class="text-gray-500">секунд</span>
+                                            </template>
+                                          </B24Input>
+                                        </div>
+
+                                        <!-- Слайдер для настройки -->
+                                        <div class="space-y-2 hidden md:block">
+                                          <input
+                                              type="range"
+                                              v-model.number="configSettings.presenceControl.notifyManager.absenceTimeThreshold"
+                                              :disabled="isInstalling"
+                                              min="10"
+                                              max="300"
+                                              class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                              @input="validateAbsenceTimeThreshold"
+                                          >
+                                          <div class="flex justify-between text-xs text-gray-500">
+                                            <span>10 секунд</span>
+                                            <span>5 минут</span>
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      <!-- Ошибка валидации -->
+                                      <div v-if="absenceTimeThresholdError" class="mt-2 text-sm text-red-600 flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                                        </svg>
+                                        {{ absenceTimeThresholdError }}
+                                      </div>
+
+                                      <!-- Информация о настройке -->
+                                      <div class="mt-3">
+                                        <div class="flex items-start p-3 bg-yellow-50 rounded-lg">
+                                          <svg class="w-5 h-5 text-yellow-500 mr-2 flex-shrink-0 mt-0.5" fill="none"
+                                               stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                                          </svg>
+                                          <div class="text-sm text-yellow-700">
+                                            <span class="font-medium">Примечание:</span> Уведомление будет отправлено
+                                            руководителю, если сотрудник отсутствует непрерывно более указанного времени.
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </B24FormField>
+
+                                    <!-- Способ уведомления -->
+                                    <B24FormField
+                                        label="Способ уведомления"
+                                        name="notificationMethod"
+                                    >
+                                      <B24RadioGroup
+                                          v-model="configSettings.presenceControl.notifyManager.method"
+                                          :disabled="isInstalling"
+                                          :items="[
+                                      {
+                                          label: 'Чат',
+                                          value: 'chat',
+                                          description: 'Сообщение в чате'
+                                      },
+                                      {
+                                          label: 'Push-уведомление',
+                                          value: 'push',
+                                          description: 'Системное всплывающее уведомление'
+                                      },
+                                      {
+                                          label: 'Оба способа',
+                                          value: 'all',
+                                          description: 'Push-уведомление и сообщение в чат'
+                                      }
+                                  ]"
+                                          orientation="horizontal"
+                                          variant="card"
+                                          size="sm"
+                                          default-value="push"
+                                          indicator="end"
+                                          class="overflow-scroll md:overflow-auto"
+                                      />
+                                    </B24FormField>
+                                  </div>
+                                </div>
+                              </B24FormField>
+                            </div>
+                          </B24Form>
+
+                          <!-- Информация о системе контроля присутствия -->
+                          <div class="space-y-4 mt-6">
+                            <h4 class="text-sm font-medium text-gray-900">
+                              Как работает система контроля присутствия
+                            </h4>
+                            <div class="space-y-3">
+                              <div class="flex items-start">
+                                <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                  <span class="text-xs font-medium text-blue-600">1</span>
+                                </div>
+                                <div>
+                                  <p class="text-sm text-gray-700">
+                                    Через {{ configSettings.presenceControl.pageTimeThreshold }} минут с момента открытия сотрудником страницы
+                                    будет всплывать модальное окно с кнопкой подтверждения присутствия, которая доступна для нажатия {{ configSettings.presenceControl.notifyManager.absenceTimeThreshold }} секунд.
+                                  </p>
+                                </div>
+                              </div>
+                              <div class="flex items-start">
+                                <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                  <span class="text-xs font-medium text-blue-600">2</span>
+                                </div>
+                                <div>
+                                  <p class="text-sm text-gray-700">
+                                    Если пользователь действительно присутствует на рабочем месте, нажатие кнопки "Я здесь" закроет модальное окно
+                                    и время на странице будет фиксироваться дальше. В противном случае, учет времени на странице останавливается, пока пользователь не подаст признаки активности в Битрикс24.
+                                  </p>
+                                </div>
+                              </div>
+                              <div v-if="configSettings.presenceControl.notifyManager.enabled" class="flex items-start">
+                                <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                  <span class="text-xs font-medium text-blue-600">3</span>
+                                </div>
+                                <div>
+                                  <p class="text-sm text-gray-700">
+                                    По истечении {{ configSettings.presenceControl.notifyManager.absenceTimeThreshold }} секунд с момента появляения модального окна у сотрудника, руководителю будет отправлено уведомление
+                                    о том, что пользователь не подтвердил своего присутствия на рабочем месте.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </B24Card>
+
+                  <!-- Блок 3: Разрешить запрос отчета о деятельности подчиненных -->
+                  <B24Card class="mb-8">
+                    <div class="p-0 md:p-6">
+                      <div class="space-y-6">
+                        <div class="flex items-center justify-between">
+                          <div class="flex-1">
+                            <h3 class="text-lg font-semibold text-gray-900">
+                              Разрешить запрос отчета о деятельности подчиненных
+                            </h3>
+                            <p class="text-sm text-gray-500 mt-1">
+                              Удобный механизм для получения информации от сотрудника о том, чем он занимается в данный момент
+                            </p>
+                          </div>
+                          <div class="ml-4 flex items-center space-x-4">
+                            <div class="w-2 h-2 rounded-full"
+                                 :class="selectedFeatures.subordinateReports ? 'bg-green-500' : 'bg-red-500'"></div>
+                            <B24Switch
+                                v-model="selectedFeatures.subordinateReports"
+                                :disabled="isInstalling"
+                                size="sm"
+                            />
+                          </div>
+                        </div>
+
+                        <!-- Настройки запросов отчетов -->
+                        <div v-if="selectedFeatures.subordinateReports" class="space-y-4 pt-4 border-t">
+                          <B24Form
+                              :state="configSettings"
+                              class="space-y-4"
+                          >
+                            <!-- Время на реакцию сотрудника (в секундах) -->
+                            <div class="space-y-4">
+                              <B24FormField
+                                  label="Время на реакцию сотрудника"
+                                  name="employeeReactionTime"
+                                  :help-text="`Текущее значение: ${configSettings.subordinateReports.employeeReactionTime} секунд`"
+                              >
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                  <!-- Поле ввода -->
+                                  <div>
+                                    <B24Input
+                                        v-model.number="configSettings.subordinateReports.employeeReactionTime"
                                         :disabled="isInstalling"
                                         :min="10"
                                         :max="300"
                                         type="number"
                                         class="w-full"
-                                        size="sm"
-                                        @blur="validateAbsenceTimeThreshold"
+                                        @blur="validateEmployeeReactionTime"
                                     >
                                       <template #suffix>
-                                        <span class="text-xs md:text-sm text-gray-500">секунд</span>
+                                        <span class="text-gray-500">секунд</span>
                                       </template>
                                     </B24Input>
                                   </div>
-                                  <div class="space-y-2">
+
+                                  <!-- Слайдер для настройки -->
+                                  <div class="space-y-2 hidden md:block">
                                     <input
                                         type="range"
-                                        v-model.number="configSettings.presenceControl.notifyManager.absenceTimeThreshold"
+                                        v-model.number="configSettings.subordinateReports.employeeReactionTime"
                                         :disabled="isInstalling"
                                         min="10"
                                         max="300"
                                         class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                                        @input="validateAbsenceTimeThreshold"
+                                        @input="validateEmployeeReactionTime"
                                     >
                                     <div class="flex justify-between text-xs text-gray-500">
-                                      <span>10 сек</span>
-                                      <span>5 мин</span>
+                                      <span>10 секунд</span>
+                                      <span>5 минут</span>
                                     </div>
                                   </div>
                                 </div>
 
-                                <div v-if="absenceTimeThresholdError" class="mt-2 text-xs md:text-sm text-red-600 flex items-start">
-                                  <svg class="w-3 h-3 md:w-4 md:h-4 mr-1 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                                <!-- Ошибка валидации -->
+                                <div v-if="employeeReactionTimeError" class="mt-2 text-sm text-red-600 flex items-center">
+                                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
                                   </svg>
-                                  <span>{{ absenceTimeThresholdError }}</span>
+                                  {{ employeeReactionTimeError }}
                                 </div>
 
+                                <!-- Информация о настройке -->
                                 <div class="mt-3">
-                                  <div class="flex items-start p-3 bg-yellow-50 rounded-lg">
-                                    <svg class="w-4 h-4 md:w-5 md:h-5 text-yellow-500 mr-2 flex-shrink-0 mt-0.5" fill="none"
-                                         stroke="currentColor" viewBox="0 0 24 24">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                                  <div class="flex items-start p-3 bg-blue-50 rounded-lg">
+                                    <svg class="w-5 h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
+                                         viewBox="0 0 24 24">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                     </svg>
-                                    <div class="text-xs md:text-sm text-yellow-700">
-                                      <span class="font-medium">Примечание:</span> Уведомление будет отправлено
-                                      руководителю, если сотрудник отсутствует непрерывно более указанного времени.
+                                    <div class="text-sm text-blue-700">
+                                      <span class="font-medium">Важно:</span> Сотруднику предоставляется указанное количество
+                                      секунд для подготовки и отправки отчета руководителю.
+                                      Если отчет не будет предоставлен в течение этого времени, его заполнение сотруднику станет не доступно. Заполнение отчета не доступно на мобильных устройствах.
+                                      Данные условия обеспечивают не только оперативное получение обратной связи от сотрудников, но и гарантируют, что сотрудник действительно находится на рабочем месте и, вероятно, занимается тем, что описывает в отчете.
                                     </div>
                                   </div>
                                 </div>
                               </B24FormField>
-
-                              <B24FormField
-                                  label="Способ уведомления"
-                                  name="notificationMethod"
-                              >
-                                <B24RadioGroup
-                                    v-model="configSettings.presenceControl.notifyManager.method"
-                                    :disabled="isInstalling"
-                                    :items="[
-                                        {
-                                            label: 'Чат',
-                                            value: 'chat',
-                                            description: 'Сообщение в чате'
-                                        },
-                                        {
-                                            label: 'Push',
-                                            value: 'push',
-                                            description: 'Системное уведомление'
-                                        },
-                                        {
-                                            label: 'Оба',
-                                            value: 'all',
-                                            description: 'Оба способа'
-                                        }
-                                    ]"
-                                    orientation="horizontal"
-                                    variant="card"
-                                    size="sm"
-                                    default-value="push"
-                                    indicator="end"
-                                    class="overflow-scroll md:overflow-auto"
-                                />
-                              </B24FormField>
                             </div>
-                          </div>
-                        </B24FormField>
 
-                        <!-- Информация о системе контроля присутствия -->
-                        <div class="space-y-3 mt-4 md:mt-6">
-                          <h4 class="text-sm font-medium text-gray-900">
-                            Как работает система контроля присутствия
-                          </h4>
-                          <div class="space-y-2 md:space-y-3">
-                            <div v-for="(item, index) in [
-                              `Через ${configSettings.presenceControl.pageTimeThreshold} минут с момента открытия сотрудником страницы будет всплывать модальное окно с кнопкой подтверждения присутствия, которая доступна для нажатия ${configSettings.presenceControl.notifyManager.absenceTimeThreshold} секунд.`,
-                              `Если пользователь действительно присутствует на рабочем месте, нажатие кнопки *Я здесь* закроет модальное окно и время на странице будет фиксироваться дальше. В противном случае, учет времени на странице останавливается, пока пользователь не подаст признаки активности в Битрикс24.`,
-                            configSettings.presenceControl.notifyManager.enabled ? `По истечении ${configSettings.presenceControl.notifyManager.absenceTimeThreshold} секунд с момента появления модального окна у сотрудника, руководителю будет отправлено уведомление о том, что пользователь не подтвердил своего присутствия на рабочем месте.` : null
-                            ].filter(Boolean)" :key="index" class="flex items-start">
-                            <div class="w-5 h-5 md:w-6 md:h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2 md:mr-3 flex-shrink-0">
-                              <span class="text-xs font-medium text-blue-600">{{ index + 1 }}</span>
+                            <!-- Способ получения ответа -->
+                            <B24FormField
+                                label="Способ получения ответа"
+                                name="responseMethod"
+                                :help-text="`Текущий способ: ${getResponseMethodText()}`"
+                            >
+                              <B24RadioGroup
+                                  v-model="configSettings.subordinateReports.responseMethod"
+                                  :disabled="isInstalling"
+                                  :items="[
+                              {
+                                  label: 'Чат',
+                                  value: 'chat',
+                                  description: 'Ответ в чате'
+                              },
+                              {
+                                  label: 'Push-уведомление',
+                                  value: 'push',
+                                  description: 'Ответ через системное уведомление'
+                              },
+                              {
+                                  label: 'Оба способа',
+                                  value: 'all',
+                                  description: 'Ответ в чат и через push-уведомление'
+                              }
+                          ]"
+                                  orientation="horizontal"
+                                  variant="card"
+                                  size="sm"
+                                  default-value="push"
+                                  indicator="end"
+                                  class="overflow-scroll md:overflow-auto"
+                              />
+                            </B24FormField>
+
+                            <!-- Способ доставки запроса подчиненному -->
+                            <B24FormField
+                                label="Способ доставки запроса подчиненному"
+                                name="deliveryMethod"
+                                :help-text="`Текущий способ: ${getDeliveryMethodText()}`"
+                            >
+                              <B24RadioGroup
+                                  v-model="configSettings.subordinateReports.deliveryMethod"
+                                  :disabled="isInstalling"
+                                  :items="[
+                              {
+                                  label: 'Чат',
+                                  value: 'chat',
+                                  description: 'Запрос через чат'
+                              },
+                              {
+                                  label: 'Push-уведомление',
+                                  value: 'push',
+                                  description: 'Запрос через системное уведомление'
+                              },
+                              {
+                                  label: 'Оба способа',
+                                  value: 'all',
+                                  description: 'Запрос через чат и push-уведомление'
+                              }
+                          ]"
+                                  orientation="horizontal"
+                                  variant="card"
+                                  size="sm"
+                                  default-value="push"
+                                  indicator="end"
+                                  class="overflow-scroll md:overflow-auto"
+                              />
+                            </B24FormField>
+                          </B24Form>
+
+                          <!-- Информация о системе запросов отчетов -->
+                          <div class="space-y-4 mt-6">
+                            <h4 class="text-sm font-medium text-gray-900">
+                              Как работает система запросов отчетов
+                            </h4>
+                            <div class="space-y-3">
+                              <div class="flex items-start">
+                                <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                  <span class="text-xs font-medium text-blue-600">1</span>
+                                </div>
+                                <div>
+                                  <p class="text-sm text-gray-700">
+                                    В списке "Время всех сотрудников" в истории посещений в блоке пользователя появляется кнопка "Запросить отчет", которая инициирует запрос обратной связи от сотрудника.
+                                  </p>
+                                </div>
+                              </div>
+                              <div class="flex items-start">
+                                <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                  <span class="text-xs font-medium text-blue-600">2</span>
+                                </div>
+                                <div>
+                                  <p class="text-sm text-gray-700">
+                                    Сотруднику отправляется уведомление через {{ getDeliveryMethodText() }} с прикрепленной ссылкой на заполнение короткой формы и предоставляется {{ configSettings.subordinateReports.employeeReactionTime }} секунд для
+                                    подготовки отчета.
+                                  </p>
+                                </div>
+                              </div>
+                              <div class="flex items-start">
+                                <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                  <span class="text-xs font-medium text-blue-600">3</span>
+                                </div>
+                                <div>
+                                  <p class="text-sm text-gray-700">
+                                    Сотрудник заполняет форму, описывая, чем занимается в данный момент.
+                                  </p>
+                                </div>
+                              </div>
+                              <div class="flex items-start">
+                                <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                  <span class="text-xs font-medium text-blue-600">4</span>
+                                </div>
+                                <div>
+                                  <p class="text-sm text-gray-700">
+                                    Информация, внесенная сотрудником в отчет автоматически возвращается инициатору запроса через {{ getResponseMethodText() }}.
+                                  </p>
+                                </div>
+                              </div>
                             </div>
-                            <p class="text-xs md:text-sm text-gray-700">{{ item }}</p>
                           </div>
                         </div>
                       </div>
                     </div>
-                </div>
-        </B24Card>
+                  </B24Card>
 
-        <!-- Разрешить запрос отчета о деятельности подчиненных -->
-        <B24Card class="hover:shadow-lg transition-shadow duration-300">
-          <div class="p-1 md:p-6">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
-              <div class="flex items-center space-x-3 mb-3 sm:mb-0">
-                <div class="w-10 h-10 md:w-12 md:h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <svg class="w-5 h-5 md:w-6 md:h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                  </svg>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <h3 class="text-base md:text-lg font-semibold text-gray-900 truncate">
-                    Разрешить запрос отчета о деятельности подчиненных
-                  </h3>
-                  <p class="text-xs md:text-sm text-gray-500">Удобный механизм для получения информации от сотрудника о том, чем он занимается в данный момент</p>
-                </div>
-              </div>
-              <div class="flex items-center justify-end space-x-3">
-                <div class="w-2 h-2 rounded-full" :class="selectedFeatures.subordinateReports ? 'bg-green-500' : 'bg-red-500'"></div>
-                <B24Switch
-                    v-model="selectedFeatures.subordinateReports"
-                    :disabled="isInstalling"
-                    class="large-bordered-switch"
-                    size="sm"
-                />
-              </div>
-            </div>
+                  <!-- Блок 4: Помощь в старте рабочего дня -->
+                  <B24Card class="mb-8">
+                    <div class="p-0 md:p-6">
+                      <div class="space-y-6">
+                        <div class="flex items-center justify-between">
+                          <div class="flex-1">
+                            <h3 class="text-lg font-semibold text-gray-900">
+                              Помощь в старте рабочего дня
+                            </h3>
+                            <p class="text-sm text-gray-500 mt-1">
+                              Автоматическая помощь сотрудникам в своевременном начале рабочего дня
+                            </p>
+                          </div>
+                          <div class="ml-4 flex items-center space-x-4">
+                            <div class="w-2 h-2 rounded-full"
+                                 :class="selectedFeatures.workdayStart ? 'bg-green-500' : 'bg-red-500'"></div>
+                            <B24Switch
+                                v-model="selectedFeatures.workdayStart"
+                                :disabled="isInstalling"
+                                size="sm"
+                            />
+                          </div>
+                        </div>
 
-            <div v-if="selectedFeatures.subordinateReports" class="space-y-4 pt-4 border-t">
-              <B24FormField
-                  label="Время на реакцию сотрудника"
-                  name="employeeReactionTime"
-                  :help-text="`Текущее значение: ${configSettings.subordinateReports.employeeReactionTime} секунд`"
-              >
-                <div class="space-y-4">
-                  <div>
-                    <B24Input
-                        v-model.number="configSettings.subordinateReports.employeeReactionTime"
-                        :disabled="isInstalling"
-                        :min="10"
-                        :max="300"
-                        type="number"
-                        class="w-full"
-                        size="sm"
-                        @blur="validateEmployeeReactionTime"
-                    >
-                      <template #suffix>
-                        <span class="text-xs md:text-sm text-gray-500">секунд</span>
-                      </template>
-                    </B24Input>
-                  </div>
-                  <div class="space-y-2">
-                    <input
-                        type="range"
-                        v-model.number="configSettings.subordinateReports.employeeReactionTime"
-                        :disabled="isInstalling"
-                        min="10"
-                        max="300"
-                        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                        @input="validateEmployeeReactionTime"
-                    >
-                    <div class="flex justify-between text-xs text-gray-500">
-                      <span>10 сек</span>
-                      <span>5 мин</span>
+                        <!-- Настройки помощи -->
+                        <div v-if="selectedFeatures.workdayStart" class="space-y-4 pt-4 border-t">
+                          <B24Form
+                              :state="configSettings"
+                              class="space-y-4"
+                          >
+                            <!-- Способ старта рабочего дня -->
+                            <B24FormField
+                                label="Способ старта рабочего дня"
+                                name="workdayStartMethod"
+                                :help-text="`Текущий способ: ${getWorkdayStartMethodText()}`"
+                            >
+                              <B24RadioGroup
+                                  v-model="configSettings.workdayStart.method"
+                                  :disabled="isInstalling"
+                                  :items="[
+                              {
+                                  label: 'Автоматический старт',
+                                  value: 'auto',
+                                  description: 'Рабочий день начинается автоматически при открытии'
+                              },
+                              {
+                                  label: 'Модальное окно с предупреждением',
+                                  value: 'modal',
+                                  description: 'Показывать окно с предложением начать рабочий день'
+                              }
+                          ]"
+                                  orientation="horizontal"
+                                  variant="card"
+                                  size="sm"
+                                  default-value="modal"
+                                  indicator="end"
+                                  class="overflow-scroll md:overflow-auto"
+                              />
+                            </B24FormField>
+                          </B24Form>
+
+                          <!-- Информация о системе помощи -->
+                          <div class="space-y-4 mt-6">
+                            <h4 class="text-sm font-medium text-gray-900">
+                              Как работает помощь в старте рабочего дня
+                            </h4>
+                            <div class="space-y-3">
+                              <div class="flex items-start">
+                                <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                  <span class="text-xs font-medium text-blue-600">1</span>
+                                </div>
+                                <div>
+                                  <p class="text-sm text-gray-700">
+                                    При открытии страницы портала, система проверяет, запущен ли рабочий день пользователя и является ли текущее время рабочим (берется из настроек Рабочего графика).
+                                  </p>
+                                </div>
+                              </div>
+                              <div class="flex items-start">
+                                <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                  <span class="text-xs font-medium text-blue-600">2</span>
+                                </div>
+                                <div>
+                                  <p class="text-sm text-gray-700">
+                                    <span class="font-medium">Автоматический старт:</span> рабочий день начинается автоматически без участия сотрудника.
+                                  </p>
+                                </div>
+                              </div>
+                              <div class="flex items-start">
+                                <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                  <span class="text-xs font-medium text-blue-600">3</span>
+                                </div>
+                                <div>
+                                  <p class="text-sm text-gray-700">
+                                    <span class="font-medium">Модальное окно:</span> при каждом открытии страницы портала показывается окно с кнопкой "Начать рабочий день", пока сотрудник не начнет рабочий день.
+                                  </p>
+                                </div>
+                              </div>
+                              <div class="flex items-start">
+                                <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                  <span class="text-xs font-medium text-blue-600">4</span>
+                                </div>
+                                <div>
+                                  <p class="text-sm text-gray-700">
+                                    Данные о начале рабочего дня сохраняются и используются в статистике рабочего дня
+                                  </p>
+                                </div>
+                              </div>
+                              <div class="flex items-start mt-2 p-3 bg-yellow-50 rounded-lg">
+                                <svg class="w-5 h-5 text-yellow-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                                </svg>
+                                <div class="text-sm text-yellow-700">
+                                  <span class="font-medium">Доступно только на тарифах:</span> Функция доступна на тарифах "Базовый" и выше.
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  </B24Card>
+
+                  <!-- Блок 5: Помощь в завершении рабочего дня -->
+                  <B24Card class="mb-8">
+                    <div class="p-0 md:p-6">
+                      <div class="space-y-6">
+                        <div class="flex items-center justify-between">
+                          <div class="flex-1">
+                            <h3 class="text-lg font-semibold text-gray-900">
+                              Помощь в завершении рабочего дня
+                            </h3>
+                            <p class="text-sm text-gray-500 mt-1">
+                              Автоматическая помощь сотрудникам в своевременном завершении рабочего дня
+                            </p>
+                          </div>
+                          <div class="ml-4 flex items-center space-x-4">
+                            <div class="w-2 h-2 rounded-full"
+                                 :class="selectedFeatures.workdayEnd ? 'bg-green-500' : 'bg-red-500'"></div>
+                            <B24Switch
+                                v-model="selectedFeatures.workdayEnd"
+                                :disabled="isInstalling"
+                                size="sm"
+                            />
+                          </div>
+                        </div>
+
+                        <!-- Настройки помощи в завершении -->
+                        <div v-if="selectedFeatures.workdayEnd" class="space-y-4 pt-4 border-t">
+                          <B24Form
+                              :state="configSettings"
+                              class="space-y-4"
+                          >
+                            <!-- Способ завершения рабочего дня -->
+                            <B24FormField
+                                label="Способ завершения рабочего дня"
+                                name="workdayEndMethod"
+                                :help-text="`Текущий способ: ${getWorkdayEndMethodText()}`"
+                            >
+                              <B24RadioGroup
+                                  v-model="configSettings.workdayEnd.method"
+                                  :disabled="isInstalling"
+                                  :items="[
+                              {
+                                  label: 'Автоматическое завершение',
+                                  value: 'auto',
+                                  description: 'Рабочий день завершается автоматически'
+                              },
+                              {
+                                  label: 'Модальное окно с предупреждением',
+                                  value: 'modal',
+                                  description: 'Показывать окно с предложением завершить рабочий день'
+                              }
+                          ]"
+                                  orientation="horizontal"
+                                  variant="card"
+                                  size="sm"
+                                  default-value="modal"
+                                  indicator="end"
+                                  class="overflow-scroll md:overflow-auto"
+                              />
+                            </B24FormField>
+                          </B24Form>
+
+                          <!-- Информация о системе помощи в завершении -->
+                          <div class="space-y-4 mt-6">
+                            <h4 class="text-sm font-medium text-gray-900">
+                              Как работает помощь в завершении рабочего дня
+                            </h4>
+                            <div class="space-y-3">
+                              <div class="flex items-start">
+                                <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                  <span class="text-xs font-medium text-blue-600">1</span>
+                                </div>
+                                <div>
+                                  <p class="text-sm text-gray-700">
+                                    При открытии страницы портала, система проверяет, запущен ли рабочий день пользователя и является ли текущее время рабочим (берется из настроек Рабочего графика).
+                                  </p>
+                                </div>
+                              </div>
+                              <div class="flex items-start">
+                                <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                  <span class="text-xs font-medium text-blue-600">2</span>
+                                </div>
+                                <div>
+                                  <p class="text-sm text-gray-700">
+                                    <span class="font-medium">Автоматическое завершение:</span> рабочий день закрывается автоматически без участия сотрудника
+                                  </p>
+                                </div>
+                              </div>
+                              <div class="flex items-start">
+                                <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                  <span class="text-xs font-medium text-blue-600">3</span>
+                                </div>
+                                <div>
+                                  <p class="text-sm text-gray-700">
+                                    <span class="font-medium">Модальное окно:</span> при каждом открытии страницы портала показывается окно с кнопкой "Завершить рабочий день", пока сотрудник не завершит рабочий день.
+                                  </p>
+                                </div>
+                              </div>
+                              <div class="flex items-start mt-2 p-3 bg-yellow-50 rounded-lg">
+                                <svg class="w-5 h-5 text-yellow-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                                </svg>
+                                <div class="text-sm text-yellow-700">
+                                  <span class="font-medium">Доступно только на тарифах:</span> Функция доступна на тарифах "Базовый" и выше.
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </B24Card>
                 </div>
 
-                <div v-if="employeeReactionTimeError" class="mt-2 text-xs md:text-sm text-red-600 flex items-start">
-                  <svg class="w-3 h-3 md:w-4 md:h-4 mr-1 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
-                  </svg>
-                  <span>{{ employeeReactionTimeError }}</span>
-                </div>
-
-                <div class="mt-3">
-                  <div class="flex items-start p-3 bg-blue-50 rounded-lg">
-                    <svg class="w-4 h-4 md:w-5 md:h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
-                         viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                <!-- Кнопки навигации -->
+                <div class="flex flex-col sm:flex-row justify-between gap-3 pt-6 border-t">
+                  <B24Button
+                      @click="prevStep"
+                      variant="outline"
+                      size="large"
+                      class="w-full sm:w-auto px-4 py-2 text-sm md:text-base order-2 sm:order-1"
+                  >
+                    <svg class="w-4 h-4 md:w-5 md:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                     </svg>
-                    <div class="text-xs md:text-sm text-blue-700">
-                      <span class="font-medium">Важно:</span> Сотруднику предоставляется указанное количество
-                      секунд для подготовки и отправки отчета руководителю.
-                      Если отчет не будет предоставлен в течение этого времени, его заполнение сотруднику станет не доступно. Заполнение отчета не доступно на мобильных устройствах.
-                      Данные условия обеспечивают не только оперативное получение обратной связи от сотрудников, но и гарантируют, что сотрудник действительно находится на рабочем месте и, вероятно, занимается тем, что описывает в отчете.
-                    </div>
-                  </div>
-                </div>
-              </B24FormField>
-
-              <B24FormField
-                  label="Способ получения ответа"
-                  name="responseMethod"
-                  :help-text="`Текущий способ: ${getResponseMethodText()}`"
-              >
-                <B24RadioGroup
-                    v-model="configSettings.subordinateReports.responseMethod"
-                    :disabled="isInstalling"
-                    :items="[
-                        {
-                            label: 'Чат',
-                            value: 'chat',
-                            description: 'Ответ в чате'
-                        },
-                        {
-                            label: 'Push',
-                            value: 'push',
-                            description: 'Ответ через push'
-                        },
-                        {
-                            label: 'Оба',
-                            value: 'all',
-                            description: 'Оба способа'
-                        }
-                    ]"
-                    orientation="horizontal"
-                    variant="card"
-                    size="sm"
-                    default-value="push"
-                    indicator="end"
-                    class="overflow-scroll md:overflow-auto"
-                />
-              </B24FormField>
-
-              <B24FormField
-                  label="Способ доставки запроса подчиненному"
-                  name="deliveryMethod"
-                  :help-text="`Текущий способ: ${getDeliveryMethodText()}`"
-              >
-                <B24RadioGroup
-                    v-model="configSettings.subordinateReports.deliveryMethod"
-                    :disabled="isInstalling"
-                    :items="[
-                        {
-                            label: 'Чат',
-                            value: 'chat',
-                            description: 'Запрос через чат'
-                        },
-                        {
-                            label: 'Push',
-                            value: 'push',
-                            description: 'Запрос через push'
-                        },
-                        {
-                            label: 'Оба',
-                            value: 'all',
-                            description: 'Оба способа'
-                        }
-                    ]"
-                    orientation="horizontal"
-                    variant="card"
-                    size="sm"
-                    default-value="push"
-                    indicator="end"
-                    class="overflow-scroll md:overflow-auto"
-                />
-              </B24FormField>
-
-              <!-- Информация о системе запросов отчетов -->
-              <div class="space-y-3 mt-4 md:mt-6">
-                <h4 class="text-sm font-medium text-gray-900">
-                  Как работает система запросов отчетов
-                </h4>
-                <div class="space-y-2 md:space-y-3">
-                  <div v-for="(item, index) in [
-                              'В списке *Время всех сотрудников* в истории посещений в блоке пользователя появляется кнопка *Запросить отчет*, которая инициирует запрос обратной связи от сотрудника.',
-                  `Сотруднику отправляется уведомление через ${getDeliveryMethodText()} с прикрепленной ссылкой на заполнение короткой формы и предоставляется ${configSettings.subordinateReports.employeeReactionTime} секунд для подготовки отчета.`,
-                  'Сотрудник заполняет форму, описывая, чем занимается в данный момент.',
-                  `Информация, внесенная сотрудником в отчет автоматически возвращается инициатору запроса через ${getResponseMethodText()}.`
-                  ]" :key="index" class="flex items-start">
-                  <div class="w-5 h-5 md:w-6 md:h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2 md:mr-3 flex-shrink-0">
-                    <span class="text-xs font-medium text-blue-600">{{ index + 1 }}</span>
-                  </div>
-                  <p class="text-xs md:text-sm text-gray-700">{{ item }}</p>
+                    Назад
+                  </B24Button>
+                  <B24Button
+                      @click="nextStep"
+                      variant="primary"
+                      size="large"
+                      :disabled="!hasSelectedFeatures"
+                      class="w-full sm:w-auto px-4 py-2 text-sm md:text-base order-1 sm:order-2"
+                  >
+                    Продолжить
+                    <svg class="w-4 h-4 md:w-5 md:h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                  </B24Button>
                 </div>
               </div>
             </div>
           </div>
-      </div>
-      </B24Card>
-
-      <!-- Помощь в старте рабочего дня -->
-      <B24Card class="hover:shadow-lg transition-shadow duration-300">
-        <div class="p-1 md:p-6">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
-            <div class="flex items-center space-x-3 mb-3 sm:mb-0">
-              <div class="w-10 h-10 md:w-12 md:h-12 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 md:w-6 md:h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-              </div>
-              <div class="flex-1 min-w-0">
-                <h3 class="text-base md:text-lg font-semibold text-gray-900 truncate">
-                  Помощь в старте рабочего дня
-                </h3>
-                <p class="text-xs md:text-sm text-gray-500">Автоматическая помощь сотрудникам в своевременном начале рабочего дня</p>
-              </div>
-            </div>
-            <div class="flex items-center justify-end space-x-3">
-              <div class="w-2 h-2 rounded-full" :class="selectedFeatures.workdayStart ? 'bg-green-500' : 'bg-red-500'"></div>
-              <B24Switch
-                  v-model="selectedFeatures.workdayStart"
-                  :disabled="isInstalling"
-                  class="large-bordered-switch"
-                  size="sm"
-              />
-            </div>
-          </div>
-
-          <div v-if="selectedFeatures.workdayStart" class="space-y-4 pt-4 border-t">
-            <B24FormField
-                label="Способ старта рабочего дня"
-                name="workdayStartMethod"
-                :help-text="`Текущий способ: ${getWorkdayStartMethodText()}`"
-            >
-              <B24RadioGroup
-                  v-model="configSettings.workdayStart.method"
-                  :disabled="isInstalling"
-                  :items="[
-                      {
-                          label: 'Автоматический старт',
-                          value: 'auto',
-                          description: 'Рабочий день начинается автоматически при открытии'
-                      },
-                      {
-                          label: 'Модальное окно',
-                          value: 'modal',
-                          description: 'Показывать окно с предложением начать рабочий день'
-                      }
-                  ]"
-                  orientation="horizontal"
-                  variant="card"
-                  size="sm"
-                  default-value="push"
-                  indicator="end"
-                  class="overflow-scroll md:overflow-auto"
-              />
-            </B24FormField>
-
-            <!-- Информация о системе помощи -->
-            <div class="space-y-3 mt-4 md:mt-6">
-              <h4 class="text-sm font-medium text-gray-900">
-                Как работает помощь в старте рабочего дня
-              </h4>
-              <div class="space-y-2 md:space-y-3">
-                <div v-for="(item, index) in [
-                              'При открытии страницы портала, система проверяет, запущен ли рабочий день пользователя и является ли текущее время рабочим.',
-                              configSettings.workdayStart.method === 'auto' ? 'Автоматический старт: рабочий день начинается автоматически без участия сотрудника.' : 'Модальное окно: показывается окно с кнопкой *Начать рабочий день*, пока сотрудник не начнет рабочий день.'
-                ]" :key="index" class="flex items-start">
-                <div class="w-5 h-5 md:w-6 md:h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2 md:mr-3 flex-shrink-0">
-                  <span class="text-xs font-medium text-blue-600">{{ index + 1 }}</span>
-                </div>
-                <p class="text-xs md:text-sm text-gray-700">{{ item }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-    </div>
-    </B24Card>
-
-    <!-- Помощь в завершении рабочего дня -->
-    <B24Card class="hover:shadow-lg transition-shadow duration-300">
-      <div class="p-1 md:p-6">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
-          <div class="flex items-center space-x-3 mb-3 sm:mb-0">
-            <div class="w-10 h-10 md:w-12 md:h-12 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
-              <svg class="w-5 h-5 md:w-6 md:h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-            </div>
-            <div class="flex-1 min-w-0">
-              <h3 class="text-base md:text-lg font-semibold text-gray-900 truncate">
-                Помощь в завершении рабочего дня
-              </h3>
-              <p class="text-xs md:text-sm text-gray-500">Автоматическая помощь сотрудникам в своевременном завершении рабочего дня</p>
-            </div>
-          </div>
-          <div class="flex items-center justify-end space-x-3">
-            <div class="w-2 h-2 rounded-full" :class="selectedFeatures.workdayEnd ? 'bg-green-500' : 'bg-red-500'"></div>
-            <B24Switch
-                v-model="selectedFeatures.workdayEnd"
-                :disabled="isInstalling"
-                class="large-bordered-switch"
-                size="sm"
-            />
-          </div>
-        </div>
-
-        <div v-if="selectedFeatures.workdayEnd" class="space-y-4 pt-4 border-t">
-          <B24FormField
-              label="Способ завершения рабочего дня"
-              name="workdayEndMethod"
-              :help-text="`Текущий способ: ${getWorkdayEndMethodText()}`"
-          >
-            <B24RadioGroup
-                v-model="configSettings.workdayEnd.method"
-                :disabled="isInstalling"
-                :items="[
-                    {
-                        label: 'Автоматическое завершение',
-                        value: 'auto',
-                        description: 'Рабочий день завершается автоматически'
-                    },
-                    {
-                        label: 'Модальное окно',
-                        value: 'modal',
-                        description: 'Показывать окно с предложением завершить рабочий день'
-                    }
-                ]"
-                orientation="horizontal"
-                variant="card"
-                size="sm"
-                default-value="push"
-                indicator="end"
-                class="overflow-scroll md:overflow-auto"
-            />
-          </B24FormField>
-
-          <!-- Информация о системе помощи -->
-          <div class="space-y-3 mt-4 md:mt-6">
-            <h4 class="text-sm font-medium text-gray-900">
-              Как работает помощь в завершении рабочего дня
-            </h4>
-            <div class="space-y-2 md:space-y-3">
-              <div v-for="(item, index) in [
-                              'При открытии страницы портала, система проверяет, запущен ли рабочий день пользователя и является ли текущее время рабочим.',
-                              configSettings.workdayEnd.method === 'auto' ? 'Автоматическое завершение: рабочий день закрывается автоматически без участия сотрудника.' : 'Модальное окно: показывается окно с кнопкой *Завершить рабочий день*, пока сотрудник не завершит рабочий день.'
-              ]" :key="index" class="flex items-start">
-              <div class="w-5 h-5 md:w-6 md:h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2 md:mr-3 flex-shrink-0">
-                <span class="text-xs font-medium text-blue-600">{{ index + 1 }}</span>
-              </div>
-              <p class="text-xs md:text-sm text-gray-700">{{ item }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-  </div>
-  </B24Card>
-  </div>
-
-  <!-- Кнопки навигации -->
-  <div class="flex flex-col sm:flex-row justify-between gap-3 pt-6 border-t">
-    <B24Button
-        @click="prevStep"
-        variant="outline"
-        size="large"
-        class="w-full sm:w-auto px-4 py-2 text-sm md:text-base order-2 sm:order-1"
-    >
-      <svg class="w-4 h-4 md:w-5 md:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-      </svg>
-      Назад
-    </B24Button>
-    <B24Button
-        @click="nextStep"
-        variant="primary"
-        size="large"
-        :disabled="!hasSelectedFeatures"
-        class="w-full sm:w-auto px-4 py-2 text-sm md:text-base order-1 sm:order-2"
-    >
-      Продолжить
-      <svg class="w-4 h-4 md:w-5 md:h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-      </svg>
-    </B24Button>
-  </div>
-  </div>
-  </div>
-  </div>
-  </B24Card>
+        </B24Card>
 
         <!-- Шаг 3: Установка и настройка -->
         <B24Card v-else-if="currentStep === 3" class="mb-8">
