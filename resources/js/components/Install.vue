@@ -11,13 +11,13 @@
         <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2 md:mb-3 px-2">
           Установка системы контроля времени сотрудников
         </h1>
-        <p class="text-base md:text-lg text-gray-600 mx-auto max-w-2xl px-4">
+        <p class="text-base md:text-lg text-gray-600 mx-auto px-4">
           Настройка и активация системы мониторинга активности и рабочего времени
         </p>
       </div>
 
       <!-- Прогресс-бар -->
-      <div class="mx-auto mb-6 md:mb-8 max-w-3xl">
+      <div class="mx-auto mb-6 md:mb-8">
         <div class="flex items-center justify-between mb-2">
           <span class="text-xs md:text-sm font-medium text-blue-600">Прогресс: {{ progress }}%</span>
           <span class="text-xs md:text-sm text-gray-500">{{ currentStep }}/{{ totalSteps }}</span>
@@ -31,7 +31,7 @@
       </div>
 
       <!-- Контент установки -->
-      <div class="mx-auto max-w-4xl">
+      <div class="mx-auto">
         <!-- Шаг 1: Приветствие -->
         <B24Card v-if="currentStep === 1" class="mb-8">
           <div class="p-4 md:p-6">
