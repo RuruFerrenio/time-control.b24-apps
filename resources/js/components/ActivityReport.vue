@@ -61,7 +61,7 @@
                       <div v-if="!isTimeExpired" class="mt-1">
                         Оставшееся время: <span class="font-semibold">{{ formatTime(timeRemaining) }}</span>
                       </div>
-                      <div v-else class="mt-1 text-red-600 font-semibold">Время на отправку отчета истекло</div>
+                      <div v-else class="mt-1 text-gray-300 font-semibold">Время на отправку отчета истекло</div>
                     </div>
                   </div>
                 </div>
@@ -69,7 +69,7 @@
 
               <!-- Заглушка при истечении времени -->
               <div v-if="isTimeExpired" class="text-center py-8">
-                <svg class="w-16 h-16 mx-auto mb-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 <h3 class="text-lg font-semibold text-gray-900 mb-2">Время на заполнение отчета истекло</h3>
