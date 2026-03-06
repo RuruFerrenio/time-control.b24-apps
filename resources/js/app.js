@@ -3,6 +3,7 @@ import { createApp } from 'vue';
 import { createI18n } from 'vue-i18n'
 import { createRouter, createWebHistory } from 'vue-router';
 import b24UiPlugin from '@bitrix24/b24ui-nuxt/vue-plugin';
+import axios from 'axios'; // Убедитесь, что axios импортирован
 import '../css/app.css';
 
 // Импортируем основной компонент Vue
@@ -62,6 +63,42 @@ localStorage.setItem('bitrix24_language', normalizedLang);
 const availableLocales = Object.keys(messages);
 const finalLocale = availableLocales.includes(normalizedLang) ? normalizedLang : 'en';
 
+// ============================================
+// УСТАНАВЛИВАЕМ ЗАГОЛОВКИ AXIOS ИЗ window.bitrixData
+// ============================================
+const setAxiosHeaders = (authData) => {
+  if (!authData) return;
+
+  if (authData.access_token) {
+    axios.defaults.headers.common['X-b24api-access-token'] = authData.access_token;
+    console.log('Set access_token header');
+  }
+  if (authData.refresh_token) {
+    axios.defaults.headers.common['X-b24api-refresh-token'] = authData.refresh_token;
+  }
+  if (authData.domain) {
+    axios.defaults.headers.common['X-b24api-domain'] = authData.domain;
+  }
+  if (authData.member_id) {
+    axios.defaults.headers.common['X-b24api-member-id'] = authData.member_id;
+  }
+  if (authData.expires_in) {
+    axios.defaults.headers.common['X-b24api-expires-in'] = authData.expires_in;
+  }
+};
+
+// Устанавливаем заголовки из данных, полученных от PHP
+if (window.bitrixData?.auth) {
+  setAxiosHeaders(window.bitrixData.auth);
+  console.log('Axios headers set from window.bitrixData.auth', window.bitrixData.auth);
+} else {
+  console.warn('No auth data found in window.bitrixData');
+}
+
+// Проверяем установленные заголовки (для отладки)
+console.log('Current axios headers:', axios.defaults.headers.common);
+// ============================================
+
 // Создаем экземпляр i18n с определенным языком
 const i18n = createI18n({
   locale: finalLocale,
@@ -76,7 +113,22 @@ const router = createRouter({
 });
 
 // Инициализируем Bitrix24 перед созданием приложения
+// Теперь это будет выполняться ПОСЛЕ установки заголовков
 bitrixHelper.init().then(() => {
+  // После инициализации BX24 можно обновить заголовки, если токены изменились
+  if (window.BX24) {
+    const bxAuth = BX24.getAuth();
+    if (bxAuth) {
+      setAxiosHeaders({
+        access_token: bxAuth.access_token,
+        refresh_token: bxAuth.refresh_token,
+        domain: bxAuth.domain,
+        member_id: bxAuth.member_id,
+        expires_in: bxAuth.expires_in
+      });
+      console.log('Axios headers updated from BX24', bxAuth);
+    }
+  }
 }).catch(error => {
   console.error('Ошибка инициализации Bitrix24:', error);
 });
