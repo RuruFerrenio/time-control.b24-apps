@@ -10,4 +10,4 @@ use Illuminate\Support\Facades\Route;
  * Для приложений с интерфейсом.
  */
 
-Route::post('/app', [AppController::class, 'index']);
+//Route::post('/app', [AppController::class, 'index']);
