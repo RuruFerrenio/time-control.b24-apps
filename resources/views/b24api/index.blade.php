@@ -16,7 +16,7 @@
     <script>
 
       console.log('!!!!!!!!!!!!!!!!');
-      console.log($authParams)
+      console.log(@json($authParams ?? []))
       window.bitrixData = {
         params: @json($params ?? null),
         mode: @json($mode ?? null),
