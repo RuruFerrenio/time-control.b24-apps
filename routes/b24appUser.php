@@ -11,4 +11,3 @@ use Illuminate\Support\Facades\Route;
  */
 
 Route::post('/app', [AppController::class, 'index']);
-Route::get('/app', [AppController::class, 'oauth']);
