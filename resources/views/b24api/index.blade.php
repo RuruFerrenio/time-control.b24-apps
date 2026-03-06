@@ -14,6 +14,9 @@
     <meta name="api-expires-in" content="{{ $authParams['expires_in'] ?? '' }}">
 
     <script>
+
+      console.log('!!!!!!!!!!!!!!!!');
+      console.log($authParams)
       window.bitrixData = {
         params: @json($params ?? null),
         mode: @json($mode ?? null),
