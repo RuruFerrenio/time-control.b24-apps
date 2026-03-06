@@ -11,7 +11,6 @@ class AppController extends Controller
 {
     public function index(Bitrix24ApiClient $bitrix24, Request $request): View
     {
-		echo "12312412412412";
 	    $placementOptions = $request->input('PLACEMENT_OPTIONS', '{}');
 	    $params = $request->input('params', []);
 
@@ -31,10 +30,37 @@ class AppController extends Controller
 
 	public function oauth(Bitrix24ApiClient $bitrix24, Request $request): View
 	{
-		die();
-		$member_id = $request->input('member_id', []);
-		print_r($member_id);
-		return view('b24api.oauth', [
+		// Получаем параметры авторизации из URL
+		$authParams = [
+			'access_token' => $request->input('AUTH_ID') ?? $request->input('code'),
+			'refresh_token' => $request->input('REFRESH_ID'),
+			'domain' => $request->input('domain'),
+			'member_id' => $request->input('member_id'),
+			'expires_in' => $request->input('expires_in'),
+			'state' => $request->input('state'),
+		];
+
+		// Для отладки - запишем в лог
+		\Log::info('OAuth params:', $authParams);
+
+		$placementOptions = $request->input('PLACEMENT_OPTIONS', '{}');
+		$params = $request->input('params', []);
+
+		$options = json_decode($placementOptions, true) ?? [];
+
+		$parameters = [];
+		if(isset($options['parameters'])){
+			$parameters = json_decode($options['parameters'], true) ?? [];
+		}
+
+		$mode = $parameters['mode'] ?? null;
+
+		return view('b24api.oauth', [ // Возвращаем тот же шаблон, но с authParams
+          'authParams' => $authParams,
+          'placementOptions' => $placementOptions,
+          'mode' => $mode,
+          'params' => $params,
+          'fitWindow' => $request->input('fitWindow', false),
 		]);
 	}
 }
