@@ -28,7 +28,7 @@ class AppController extends Controller
         ]);
     }
 
-	public function oauth(Bitrix24ApiClient $bitrix24, Request $request): View
+	public function oauth(Request $request): View
 	{
 		// Получаем параметры авторизации из URL
 		$authParams = [
@@ -39,6 +39,8 @@ class AppController extends Controller
 			'expires_in' => $request->input('expires_in'),
 			'state' => $request->input('state'),
 		];
+
+		print_r($authParams);
 
 		// Для отладки - запишем в лог
 		\Log::info('OAuth params:', $authParams);
