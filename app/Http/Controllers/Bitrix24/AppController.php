@@ -28,8 +28,9 @@ class AppController extends Controller
         ]);
     }
 
-	public function oaut12312h(Bitrix24ApiClient $bitrix24, Request $request): View
+	public function oauth(Bitrix24ApiClient $bitrix24, Request $request): View
 	{
+		die();
 		$member_id = $request->input('member_id', []);
 		print_r($member_id);
 		return view('b24api.oauth', [
