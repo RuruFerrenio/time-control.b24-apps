@@ -11,6 +11,7 @@ class AppController extends Controller
 {
     public function index(Bitrix24ApiClient $bitrix24, Request $request): View
     {
+		echo "12312412412412";
 	    $placementOptions = $request->input('PLACEMENT_OPTIONS', '{}');
 	    $params = $request->input('params', []);
 
