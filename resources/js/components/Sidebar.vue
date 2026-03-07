@@ -225,7 +225,7 @@
 
     <B24Card v-if="isSettingsPage">
       <div class="p-0 md:p-6">
-        <script src="https://forms.yandex.ru/_static/embed.js"></script><iframe src="https://forms.yandex.ru/u/69ac34e6505690a2bcabb0f4?iframe=1" frameborder="0" name="ya-form-69ac34e6505690a2bcabb0f4" width="100%" height="725"></iframe>
+        <script src="https://forms.yandex.ru/_static/embed.js"></script><iframe src="https://forms.yandex.ru/u/69ac34e6505690a2bcabb0f4?iframe=1" frameborder="0" name="ya-form-69ac34e6505690a2bcabb0f4" width="100%" @load="resizeIframe"></iframe>
       </div>
     </B24Card>
   </div>
@@ -249,6 +249,15 @@ export default {
     const myPercentage = ref(0)
     const currentUserId = ref(null)
     const isLoading = ref(true)
+    const yandexForm = ref(null)
+
+    const resizeIframe = () => {
+      const iframe = yandexForm.value
+      if (iframe) {
+        iframe.style.height = '0px'
+        iframe.style.height = iframe.contentWindow.document.body.scrollHeight + 'px'
+      }
+    }
 
     // Проверка активного маршрута
     const isActiveRoute = (path) => {
@@ -380,7 +389,9 @@ export default {
       formatSavedTime,
       handleSupport,
       handleReview,
-      isSettingsPage
+      isSettingsPage,
+      yandexForm,
+      resizeIframe
     }
   }
 }
