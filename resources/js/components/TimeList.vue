@@ -80,7 +80,6 @@
                           :year-controls="false"
                           :min-value="minCalendarDate"
                           :max-value="maxCalendarDate"
-                          :is-date-disabled="isDateDisabled"
                           :is-date-unavailable="isDateUnavailable"
                           class="rounded-lg"
                       />
