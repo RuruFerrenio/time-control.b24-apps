@@ -554,7 +554,7 @@ class WorkDayStatisticsManager {
 
     // Цветовая схема
     this.CHART_COLORS = {
-      BITRIX_TIME: '#ef4444',   // красный (время в Bitrix24 без задач)
+      BITRIX_TIME: '#3b82f6',   // красный (время в Bitrix24 без задач)
       TASK_TIME: '#10b981'      // зеленый (время в задачах)
     }
 
