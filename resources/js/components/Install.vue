@@ -1273,7 +1273,7 @@
 
                     <div class="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4 mt-4 md:mt-6">
                       <a
-                          href="mailto:it.galera@yandex.ru?subject=Поддержка приложения TLaunder:Чистое время"
+                          href="mailto:it.galera@yandex.ru?subject=Поддержка приложения Чистое время"
                           target="_blank"
                           class="w-full sm:w-auto inline-flex items-center justify-center px-4 md:px-6 py-2 md:py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-300 text-sm md:text-base"
                       >
