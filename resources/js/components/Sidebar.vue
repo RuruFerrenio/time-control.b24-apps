@@ -224,7 +224,9 @@
     </B24Card>
 
     <B24Card>
+      <div class="p-0 md:p-6">
         <script src="https://forms.yandex.ru/_static/embed.js"></script><iframe src="https://forms.yandex.ru/u/69ac34e6505690a2bcabb0f4?iframe=1" frameborder="0" name="ya-form-69ac34e6505690a2bcabb0f4" width="100%" height="650"></iframe>
+      </div>
     </B24Card>
   </div>
 </template>
