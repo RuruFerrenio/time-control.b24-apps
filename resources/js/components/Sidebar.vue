@@ -225,7 +225,7 @@
 
     <B24Card v-if="isSettingsPage">
       <div class="p-0 md:p-6">
-        <script src="https://forms.yandex.ru/_static/embed.js"></script><iframe src="https://forms.yandex.ru/u/69ac34e6505690a2bcabb0f4?iframe=1" frameborder="0" name="ya-form-69ac34e6505690a2bcabb0f4" width="100%" @load="initResizeObserver"></iframe>
+        <script src="https://forms.yandex.ru/_static/embed.js"></script><iframe src="https://forms.yandex.ru/u/69ac34e6505690a2bcabb0f4?iframe=1" frameborder="0" name="ya-form-69ac34e6505690a2bcabb0f4" width="100%" height="725"></iframe>
       </div>
     </B24Card>
   </div>
@@ -249,89 +249,6 @@ export default {
     const myPercentage = ref(0)
     const currentUserId = ref(null)
     const isLoading = ref(true)
-
-    const yandexForm = ref(null)
-    const formUrl = ref('https://forms.yandex.ru/u/69ac34e6505690a2bcabb0f4?iframe=1')
-    let resizeObserver = null
-    let mutationObserver = null
-
-    const resizeIframe = () => {
-      const iframe = yandexForm.value
-      if (!iframe) return
-
-      try {
-        // Сбрасываем высоту для возможности уменьшения [citation:5]
-        iframe.style.height = '0px'
-
-        // Получаем документ внутри iframe
-        const iframeDoc = iframe.contentWindow.document
-
-        // Вычисляем точную высоту (более надежный способ) [citation:5]
-        const body = iframeDoc.body
-        const html = iframeDoc.documentElement
-        const height = Math.max(
-            body.scrollHeight,
-            body.offsetHeight,
-            html.clientHeight,
-            html.scrollHeight,
-            html.offsetHeight
-        )
-
-        iframe.style.height = height + 'px'
-      } catch (e) {
-        console.warn('Не удалось изменить размер iframe:', e)
-      }
-    }
-
-    const initResizeObserver = () => {
-      const iframe = yandexForm.value
-      if (!iframe) return
-
-      try {
-        const iframeDoc = iframe.contentWindow.document
-
-        // Наблюдаем за изменениями в DOM формы
-        mutationObserver = new MutationObserver(() => {
-          resizeIframe()
-        })
-
-        mutationObserver.observe(iframeDoc.body, {
-          childList: true,
-          subtree: true,
-          attributes: true,
-          characterData: true
-        })
-
-        // Наблюдаем за изменением размера элементов
-        if (window.ResizeObserver) {
-          resizeObserver = new ResizeObserver(() => {
-            resizeIframe()
-          })
-
-          resizeObserver.observe(iframeDoc.body)
-
-          // Также наблюдаем за всеми крупными контейнерами
-          const mainContainers = iframeDoc.querySelectorAll('div, form, section')
-          mainContainers.forEach(container => {
-            resizeObserver.observe(container)
-          })
-        }
-
-        // Первоначальная подстройка
-        resizeIframe()
-      } catch (e) {
-        console.warn('Не удалось инициализировать наблюдатели:', e)
-      }
-    }
-
-    onUnmounted(() => {
-      if (mutationObserver) {
-        mutationObserver.disconnect()
-      }
-      if (resizeObserver) {
-        resizeObserver.disconnect()
-      }
-    })
 
     // Проверка активного маршрута
     const isActiveRoute = (path) => {
@@ -463,10 +380,7 @@ export default {
       formatSavedTime,
       handleSupport,
       handleReview,
-      isSettingsPage,
-      yandexForm,
-      formUrl,
-      initResizeObserver
+      isSettingsPage
     }
   }
 }
@@ -493,10 +407,5 @@ export default {
   .text-xl {
     font-size: 1.25rem;
   }
-}
-
-iframe {
-  display: block;
-  transition: height 0.2s ease;
 }
 </style>
