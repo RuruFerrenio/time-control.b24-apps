@@ -225,7 +225,8 @@
 
     <B24Card v-if="isSettingsPage">
       <div class="p-0 md:p-6">
-        <script src="https://forms.yandex.ru/_static/embed.js"></script><iframe src="https://forms.yandex.ru/u/69ac34e6505690a2bcabb0f4?iframe=1" frameborder="0" name="ya-form-69ac34e6505690a2bcabb0f4" width="100%" height="750" overflow-scroll></iframe>
+        <script src="https://forms.yandex.ru/_static/embed.js"></script>
+        <iframe src="https://forms.yandex.ru/u/69ac34e6505690a2bcabb0f4?iframe=1" frameborder="0" name="ya-form-69ac34e6505690a2bcabb0f4" width="100%" height="750" overflow-y-scroll></iframe>
       </div>
     </B24Card>
   </div>
