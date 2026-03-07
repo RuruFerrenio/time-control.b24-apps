@@ -1482,6 +1482,8 @@
           this.lastUpdateTime = 0;
           this.workdayCheckDone = false;
           this.isWithinWorkHours = true;
+
+          this.timemanAvailable = false;
         }
 
         /**
@@ -1499,7 +1501,23 @@
             }
 
             await this.userManager.fetchProfile();
-            await this._checkWorkHoursAndWorkday();
+
+            // Получаем информацию о приложении и проверяем тариф
+            if (typeof bitrixHelper !== 'undefined') {
+              await bitrixHelper.init();
+              const appInfo = await bitrixHelper.getAppInfo();
+              this.timemanAvailable = bitrixHelper.isStatisticsAvailable();
+
+              if (!this.timemanAvailable) {
+                console.log('Timeman функции недоступны: тариф не поддерживается');
+              }
+            }
+
+            // Проверяем рабочее время и статус рабочего дня ТОЛЬКО если тариф поддерживается
+            if (this.timemanAvailable) {
+              await this._checkWorkHoursAndWorkday();
+            }
+
             await this._initializeStorageWithCleanup();
 
             this.setupEventListeners();
@@ -1527,11 +1545,15 @@
          * @private
          */
         async _checkWorkHoursAndWorkday() {
+          if (!this.timemanAvailable) {
+            console.log('Пропуск проверки рабочего дня: тариф не поддерживается');
+            return;
+          }
+
           this.isWithinWorkHours = await this.workdayManager.isCurrentTimeWithinWorkHours();
 
           if (this.workdayCheckDone) return;
 
-          // Получаем актуальный статус рабочего дня
           await this.workdayManager.checkWorkdayStatus();
 
           await this._handleWorkdayBasedOnStatus();
@@ -1632,15 +1654,17 @@
           }
         }
 
-        // ===== Методы для работы с модальными окнами =====
-
         /**
          * Открывает модальное окно начала рабочего дня
          */
         openWorkdayStartModal() {
+          if (!this.timemanAvailable) {
+            console.log('Модальное окно начала дня недоступно: тариф не поддерживается');
+            return;
+          }
+
           if (this.applicationOpened) return;
 
-          // Дополнительная проверка перед открытием
           if (!this.workdayManager.canStartWorkday()) {
             return;
           }
@@ -1656,9 +1680,13 @@
          * Открывает модальное окно завершения рабочего дня
          */
         openWorkdayEndModal() {
+          if (!this.timemanAvailable) {
+            console.log('Модальное окно завершения дня недоступно: тариф не поддерживается');
+            return;
+          }
+
           if (this.applicationOpened) return;
 
-          // Дополнительная проверка перед открытием - только OPENED
           if (!this.workdayManager.isWorkdayOpened()) {
             return;
           }
@@ -1675,6 +1703,8 @@
          */
         openPresenceApplication() {
           if (this.applicationOpened || this.sessionTimer.isPageHidden) return;
+
+          if (!this.timemanAvailable) return;
 
           const thresholdSeconds = this.settingsManager.getPageTimeThresholdSeconds();
 
