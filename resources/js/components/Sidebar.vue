@@ -232,7 +232,7 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted, inject } from 'vue'
+import { ref, onMounted, onUnmounted, inject, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 export default {
