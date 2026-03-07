@@ -408,8 +408,7 @@ export default {
       handleSupport,
       handleReview,
       isSettingsPage,
-      yandexForm,
-      resizeIframe
+      checkIframeSupport,
     }
   }
 }
