@@ -231,8 +231,7 @@
             frameborder="0"
             name="ya-form-69ac34e6505690a2bcabb0f4"
             width="100%"
-            height="100%"
-            style="overflow: scroll;">
+            height="750">
         </iframe>
       </div>
     </B24Card>
