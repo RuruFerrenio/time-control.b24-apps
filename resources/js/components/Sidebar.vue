@@ -223,9 +223,7 @@
       </div>
     </B24Card>
 
-    <B24Card>
-      <script src="https://forms.yandex.ru/_static/embed.js"></script><iframe src="https://forms.yandex.ru/u/69ac2127068ff078c5dbcbc5?iframe=1" frameborder="0" name="ya-form-69ac2127068ff078c5dbcbc5" width="650"></iframe>
-    </B24Card>
+    <script src="https://forms.yandex.ru/_static/embed.js"></script><iframe src="https://forms.yandex.ru/u/69ac34e6505690a2bcabb0f4?iframe=1" frameborder="0" name="ya-form-69ac34e6505690a2bcabb0f4" width="650"></iframe>
   </div>
 </template>
 
