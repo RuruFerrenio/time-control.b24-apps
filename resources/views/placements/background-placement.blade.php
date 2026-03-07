@@ -96,7 +96,7 @@
           const normalized = this.normalizeUrl(url);
 
           if (!normalized) {
-            return { path: '', search: '', host: '', fullUrl: '' };
+            return {path: '', search: '', host: '', fullUrl: ''};
           }
 
           try {
@@ -414,7 +414,7 @@
           if (!url) return null;
 
           const urlProcessor = new URLProcessor();
-          const { path } = urlProcessor.parseUrl(url);
+          const {path} = urlProcessor.parseUrl(url);
 
           const matchedCategory = this._findMatchingCategory(path);
 
@@ -672,7 +672,7 @@
          * Парсит булевы настройки
          * @private
          */
-        _parseBooleanSettings({ pageTrackingEnabled, presenceEnabled, workdayStartEnabled, workdayEndEnabled }) {
+        _parseBooleanSettings({pageTrackingEnabled, presenceEnabled, workdayStartEnabled, workdayEndEnabled}) {
           this.settings.pageTracking.enabled = this._parseBooleanValue(pageTrackingEnabled);
           this.settings.presenceControl.enabled = this._parseBooleanValue(presenceEnabled);
           this.settings.workdayStart.enabled = this._parseBooleanValue(workdayStartEnabled);
@@ -841,7 +841,6 @@
 
             for (const section of oldSections) {
               await this.deleteSection(section.ID);
-              console.log(`Удалена старая секция: ${section.NAME} (ID: ${section.ID})`);
             }
 
             return oldSections.length;
@@ -867,7 +866,7 @@
          * @returns {Promise<Array>}
          */
         getAllSections() {
-          return this._callMethod('entity.section.get', { ENTITY: this.entityId });
+          return this._callMethod('entity.section.get', {ENTITY: this.entityId});
         }
 
         /**
@@ -892,7 +891,7 @@
           try {
             const sections = await this._callMethod('entity.section.get', {
               ENTITY: this.entityId,
-              FILTER: { NAME: today }
+              FILTER: {NAME: today}
             });
 
             if (sections.length > 0) {
@@ -999,7 +998,7 @@
             const items = await this._callMethod('entity.item.get', {
               ENTITY: this.entityId,
               SELECT: ['PROPERTY_VALUES'],
-              FILTER: { ID: itemId }
+              FILTER: {ID: itemId}
             });
 
             const savedTime = parseInt(items[0].PROPERTY_VALUES?.PAGE_TIME || 0);
@@ -1275,12 +1274,10 @@
             const settings = await this.getWorkdaySettings();
 
             if (!this._isWorkTimeTrackingEnabled(settings)) {
-              console.log('Учет рабочего времени не включен для пользователя');
               return true;
             }
 
             if (settings.UF_TM_FREE) {
-              console.log('У пользователя свободный график');
               return true;
             }
 
@@ -1311,18 +1308,10 @@
           const minFinishMinutes = this._parseTimeToMinutes(settings.UF_TM_MIN_FINISH);
 
           if (!maxStartMinutes || !minFinishMinutes) {
-            console.log('Не удалось распарсить время начала/окончания');
             return true;
           }
 
           const isWorkTime = currentTime >= maxStartMinutes && currentTime <= minFinishMinutes;
-
-          console.log('Проверка рабочего времени:', {
-            currentTime: `${Math.floor(currentTime / 60)}:${currentTime % 60}`,
-            maxStart: settings.UF_TM_MAX_START,
-            minFinish: settings.UF_TM_MIN_FINISH,
-            isWorkTime
-          });
 
           return isWorkTime;
         }
@@ -1368,8 +1357,6 @@
             try {
               const params = this._buildWorkdayParams();
 
-              console.log('Отправка запроса timeman.open с параметрами:', params);
-
               BX24.callMethod('timeman.open', params, (result) => {
                 if (result.error()) {
                   console.error('Ошибка при начале рабочего дня:', result.error());
@@ -1377,7 +1364,6 @@
                 } else {
                   this.workdayStatus = 'OPENED';
                   this.workdayInfo = result.data();
-                  console.log('✅ Рабочий день успешно начат:', result.data());
                   resolve(result.data());
                 }
               });
@@ -1397,8 +1383,6 @@
             try {
               const params = this._buildWorkdayParams();
 
-              console.log('Отправка запроса timeman.close с параметрами:', params);
-
               BX24.callMethod('timeman.close', params, (result) => {
                 if (result.error()) {
                   console.error('Ошибка при завершении рабочего дня:', result.error());
@@ -1406,7 +1390,6 @@
                 } else {
                   this.workdayStatus = 'CLOSED';
                   this.workdayInfo = result.data();
-                  console.log('✅ Рабочий день успешно завершен:', result.data());
                   resolve(result.data());
                 }
               });
@@ -1439,16 +1422,12 @@
         async ensureWorkdayStarted() {
           try {
             await this.checkWorkdayStatus();
-            console.log('Текущий статус рабочего дня:', this.workdayStatus);
 
             if (!this.canStartWorkday()) {
-              console.log(`ℹ️ Рабочий день нельзя начать: текущий статус ${this.workdayStatus}`);
               return false;
             }
 
-            console.log('🚀 Попытка автоматического старта рабочего дня...');
             await this.startWorkday();
-            console.log('✅ Рабочий день автоматически стартован');
             return true;
 
           } catch (error) {
@@ -1464,16 +1443,12 @@
         async ensureWorkdayEnded() {
           try {
             await this.checkWorkdayStatus();
-            console.log('Текущий статус рабочего дня:', this.workdayStatus);
 
             if (!this.isWorkdayOpened()) {
-              console.log(`ℹ️ Рабочий день нельзя завершить: текущий статус ${this.workdayStatus} (нужен OPENED)`);
               return false;
             }
 
-            console.log('🚀 Попытка автоматического завершения рабочего дня...');
             await this.endWorkday();
-            console.log('✅ Рабочий день автоматически завершен');
             return true;
 
           } catch (error) {
@@ -1520,7 +1495,6 @@
             await this.settingsManager.load();
 
             if (!this.settingsManager.isPageTrackingEnabled()) {
-              console.log('Отслеживание страниц отключено в настройках');
               return;
             }
 
@@ -1543,7 +1517,9 @@
          * @private
          */
         _setCurrentUrl() {
-          this.currentUrl = <?php echo json_encode($clientUrl ?? null, 15, 512) ?> || window.location.href;
+          this.currentUrl = <?php
+		                    echo json_encode($clientUrl ?? null, 15, 512) ?> ||
+          window.location.href;
         }
 
         /**
@@ -1552,7 +1528,6 @@
          */
         async _checkWorkHoursAndWorkday() {
           this.isWithinWorkHours = await this.workdayManager.isCurrentTimeWithinWorkHours();
-          console.log('Текущее время:', this.isWithinWorkHours ? 'РАБОЧЕЕ' : 'НЕРАБОЧЕЕ');
 
           if (this.workdayCheckDone) return;
 
@@ -1569,7 +1544,6 @@
          */
         async _handleWorkdayBasedOnStatus() {
           const status = this.workdayManager.workdayStatus;
-          console.log('Обработка рабочего дня на основе статуса:', status);
 
           // Начало рабочего дня - только если статус CLOSED
           if (this.settingsManager.isWorkdayStartEnabled() &&
@@ -1668,7 +1642,6 @@
 
           // Дополнительная проверка перед открытием
           if (!this.workdayManager.canStartWorkday()) {
-            console.log('Нельзя открыть модалку начала дня: статус не CLOSED');
             return;
           }
 
@@ -1687,7 +1660,6 @@
 
           // Дополнительная проверка перед открытием - только OPENED
           if (!this.workdayManager.isWorkdayOpened()) {
-            console.log('Нельзя открыть модалку завершения дня: статус не OPENED');
             return;
           }
 
@@ -1805,8 +1777,6 @@
           this.sessionTimer.resetSession();
           this.lastUpdateTime = 0;
           this.startMainTimer();
-
-          console.log('Модальное окно закрыто');
         }
 
         // ===== Методы для работы с таймером и хранилищем =====
@@ -1836,8 +1806,6 @@
           const totalTime = this.storedTime + currentTime;
           const minutes = Math.floor(currentTime / 60);
           const seconds = currentTime % 60;
-
-          console.log(`⏱️ Таймер: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} (${currentTime} сек)`);
         }
 
         /**
@@ -1856,7 +1824,6 @@
             );
 
             this.storedTime = newTotalTime;
-            console.log(`✅ Хранилище обновлено: ${sessionTime} сек (Всего: ${newTotalTime} сек)`);
           } catch (error) {
             console.error('Ошибка обновления хранилища:', error);
           }

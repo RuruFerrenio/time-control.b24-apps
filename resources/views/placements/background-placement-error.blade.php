@@ -7,8 +7,6 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <script>
       BX24.init(async function() {
-        console.log('Error handler started - reinstalling background worker...');
-
         const HANDLER_URL = `${window.location.origin}/placements/page-background-worker`;
         const PLACEMENT_TYPE = 'PAGE_BACKGROUND_WORKER';
 
@@ -41,26 +39,20 @@
 
         async function reinstallPlacement() {
           try {
-            console.log('1. Удаляем старую встройку...');
-
             // Пытаемся удалить старую встройку (если она есть)
             try {
               await callBitrixMethod('placement.unbind', {
                 PLACEMENT: PLACEMENT_TYPE,
                 HANDLER: HANDLER_URL
               });
-              console.log('Старая встройка удалена');
             } catch (unbindError) {
               // Если встройка не найдена - это нормально, продолжаем
               if (unbindError.message.includes('not found') ||
                 unbindError.message.includes('PLACEMENT_NOT_FOUND')) {
-                console.log('Старая встройка не найдена, продолжаем...');
               } else {
                 throw unbindError;
               }
             }
-
-            console.log('2. Регистрируем новую встройку...');
 
             // Регистрируем новую встройку с теми же параметрами
             await callBitrixMethod('placement.bind', {
@@ -68,8 +60,6 @@
               HANDLER: HANDLER_URL,
               OPTIONS: PLACEMENT_CONFIG.PAGE_BACKGROUND_WORKER.options
             });
-
-            console.log('Фоновый счетчик успешно переустановлен!');
 
             // Проверяем, что встройка установлена
             const placements = await callBitrixMethod('placement.get', {});
@@ -79,8 +69,6 @@
             );
 
             if (ourPlacement) {
-              console.log('Проверка пройдена: встройка активна');
-
               // Завершаем установку и закрываем окно
               BX24.installFinish();
             } else {
@@ -95,7 +83,6 @@
 
             // Пробуем еще раз через 3 секунды
             setTimeout(() => {
-              console.log('Повторная попытка...');
               reinstallPlacement();
             }, 3000);
           }

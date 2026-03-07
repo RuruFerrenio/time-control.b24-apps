@@ -41,13 +41,11 @@ class Bitrix24Helper {
 
             if (results[0]) {
               this.appInfo = results[0]
-              console.log("Информация о приложении:", this.appInfo)
             }
 
             if (results[1]) {
               this.userProfile = results[1]
               this.currentUserId = parseInt(this.userProfile.ID)
-              console.log("Профиль пользователя:", this.userProfile)
             }
 
             this.isInitialized = true
@@ -433,7 +431,6 @@ class Bitrix24Helper {
       ])
 
       if (results[0]) {
-        console.log(`Создан элемент с ID: ${results[0]} для пользователя ${data.userId}`)
         return parseInt(results[0])
       }
 
@@ -519,10 +516,6 @@ class Bitrix24Helper {
             }
           }]
         ])
-
-        if (results[0]) {
-          console.log(`Обновлено время для пользователя ${userId}: ${currentTime} -> ${newTime} (изменение: ${secondsToAdd})`)
-        }
       } else {
         // Получаем имя пользователя
         const userName = await this.getUserNameById(numericUserId)
@@ -543,10 +536,6 @@ class Bitrix24Helper {
             }
           }]
         ])
-
-        if (results[0]) {
-          console.log(`Создан новый элемент с ID: ${results[0]} для пользователя ${userId} с временем ${newTime}`)
-        }
       }
 
       // Инвалидируем кэш
@@ -625,7 +614,6 @@ class Bitrix24Helper {
    * @returns {Promise<boolean>}
    */
   async updateUserSavedTime(userId, secondsToAdd) {
-    console.log('updateUserSavedTime', userId, secondsToAdd)
     return this.ensureAndUpdateUserTime(userId, secondsToAdd)
   }
 

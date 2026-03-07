@@ -12,9 +12,6 @@ const routes = [
         'default': '/time-list'
       }
 
-      console.log('params route')
-      console.log(window.bitrixData)
-
       const mode = window.bitrixData?.mode
       return modeMap[mode] || modeMap.default
     }

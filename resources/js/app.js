@@ -71,7 +71,6 @@ const setAxiosHeaders = (authData) => {
 
   if (authData.access_token) {
     axios.defaults.headers.common['X-b24api-access-token'] = authData.access_token;
-    console.log('Set access_token header');
   }
   if (authData.refresh_token) {
     axios.defaults.headers.common['X-b24api-refresh-token'] = authData.refresh_token;
@@ -90,14 +89,9 @@ const setAxiosHeaders = (authData) => {
 // Устанавливаем заголовки из данных, полученных от PHP
 if (window.bitrixData?.auth) {
   setAxiosHeaders(window.bitrixData.auth);
-  console.log('Axios headers set from window.bitrixData.auth', window.bitrixData.auth);
 } else {
   console.warn('No auth data found in window.bitrixData');
 }
-
-// Проверяем установленные заголовки (для отладки)
-console.log('Current axios headers:', axios.defaults.headers.common);
-// ============================================
 
 // Создаем экземпляр i18n с определенным языком
 const i18n = createI18n({
@@ -126,7 +120,6 @@ bitrixHelper.init().then(() => {
         member_id: bxAuth.member_id,
         expires_in: bxAuth.expires_in
       });
-      console.log('Axios headers updated from BX24', bxAuth);
     }
   }
 }).catch(error => {
