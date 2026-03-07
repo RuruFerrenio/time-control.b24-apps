@@ -225,7 +225,7 @@
 
     <B24Card v-if="isSettingsPage">
       <div class="p-0 md:p-6">
-        <script src="https://forms.yandex.ru/_static/embed.js"></script><iframe src="https://forms.yandex.ru/u/69ac34e6505690a2bcabb0f4?iframe=1" frameborder="0" name="ya-form-69ac34e6505690a2bcabb0f4" width="100%" @load="resizeIframe"></iframe>
+        <script src="https://forms.yandex.ru/_static/embed.js"></script><iframe src="https://forms.yandex.ru/u/69ac34e6505690a2bcabb0f4?iframe=1" frameborder="0" name="ya-form-69ac34e6505690a2bcabb0f4" width="100%" @load="checkIframeSupport"></iframe>
       </div>
     </B24Card>
   </div>
@@ -249,15 +249,33 @@ export default {
     const myPercentage = ref(0)
     const currentUserId = ref(null)
     const isLoading = ref(true)
-    const yandexForm = ref(null)
-
-    const resizeIframe = () => {
-      const iframe = yandexForm.value
-      if (iframe) {
-        iframe.style.height = '0px'
-        iframe.style.height = iframe.contentWindow.document.body.scrollHeight + 'px'
+    const checkIframeSupport = (event) => {
+      try {
+        event.target.contentWindow.postMessage(
+            JSON.stringify({
+              type: 'get-height',
+              source: 'parent'
+            }),
+            '*'
+        )
+      } catch (e) {
+        console.log('postMessage не поддерживается, используем фиксированную высоту')
       }
     }
+
+    // Слушаем ответ от iframe
+    window.addEventListener('message', (event) => {
+      try {
+        const data = JSON.parse(event.data)
+        if (data.type === 'iframe-height' && data.height) {
+          const iframe = document.querySelector('iframe[name="ya-form-69ac34e6505690a2bcabb0f4"]')
+          if (iframe) {
+            iframe.style.height = data.height + 'px'
+          }
+        }
+      } catch (e) {
+      }
+    })
 
     // Проверка активного маршрута
     const isActiveRoute = (path) => {
