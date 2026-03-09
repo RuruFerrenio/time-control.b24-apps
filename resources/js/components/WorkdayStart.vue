@@ -23,13 +23,13 @@
       </p>
 
       <!-- Кнопка начала рабочего дня -->
-      <div class="mb-8">
+      <div class="mb-4">
         <B24Button
             @click="startWorkday"
             :disabled="isStarting || isStarted"
             variant="primary"
             size="lg"
-            class="w-full h-20 rounded-full text-lg font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95"
+            class="w-full h-15 rounded-full text-lg font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95"
             :class="{
                 'bg-green-600 hover:bg-green-700 text-white hover:text-white': !isStarting && !isStarted,
                 'bg-gray-300 text-gray-600 cursor-not-allowed hover:bg-gray-300': isStarting || isStarted,
@@ -59,7 +59,7 @@
       </div>
 
       <!-- Статус -->
-      <div v-if="statusMessage" class="text-sm mb-2" :class="statusClass">
+      <div v-if="statusMessage" class="text-sm mb-6" :class="statusClass">
         {{ statusMessage }}
       </div>
 
