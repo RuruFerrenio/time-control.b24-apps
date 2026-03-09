@@ -31,66 +31,68 @@
         {{ $t('presenceCheck.description') }}
       </p>
 
-      <!-- Кнопка подтверждения -->
-      <div class="mb-8">
-        <B24Button
-            @click="confirmPresence"
-            :disabled="isConfirmed || timeRemaining <= 0"
-            variant="primary"
-            size="md"
-            class="w-full h-20 rounded-full text-lg font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95"
-            :class="{
-                'bg-green-600 hover:bg-green-700 text-white hover:text-white': !isConfirmed && timeRemaining > 0,
-                'bg-gray-300 text-gray-600 cursor-not-allowed hover:bg-gray-300': isConfirmed || timeRemaining <= 0,
-                'shadow-md hover:shadow-lg': !isConfirmed && timeRemaining > 0
-            }"
-        >
-          <div class="flex items-center justify-center">
-            <span v-if="!isConfirmed && timeRemaining > 0">
-              {{ $t('presenceCheck.confirmButton') }}
-            </span>
-            <span v-else-if="isConfirmed" class="flex items-center">
-              <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M5 13l4 4L19 7" />
-              </svg>
-              {{ $t('presenceCheck.confirmed') }}
-            </span>
-            <span v-else>
-              {{ $t('presenceCheck.timeExpired') }}
-            </span>
-          </div>
-        </B24Button>
-      </div>
-
-      <!-- Сообщение о таймере -->
-      <div class="text-sm text-gray-500 mb-2">
-        <span v-if="timeRemaining > 0">
-          {{ $t('presenceCheck.timeRemaining') }}: {{ formatTime(timeRemaining) }}
-        </span>
-        <span v-else-if="!isConfirmed" class="text-red-600 font-medium">
-          {{ $t('presenceCheck.timeExpiredMessage') }}
-        </span>
-        <span v-else class="text-green-600 font-medium">
-          {{ $t('presenceCheck.confirmedMessage') }}
-        </span>
-      </div>
-
-      <!-- Индикатор прогресса -->
-      <div class="w-full mx-auto mb-6">
-        <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
-          <div
-              class="h-full transition-all duration-300 ease-linear"
+      <!-- Контейнер для ограничения ширины -->
+      <div class="w-full max-w-md mx-auto">
+        <!-- Кнопка подтверждения -->
+        <div class="mb-8">
+          <B24Button
+              @click="confirmPresence"
+              :disabled="isConfirmed || timeRemaining <= 0"
+              variant="primary"
+              size="md"
+              class="w-full h-20 rounded-full text-lg font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95"
               :class="{
+            'bg-green-600 hover:bg-green-700 text-white hover:text-white': !isConfirmed && timeRemaining > 0,
+            'bg-gray-300 text-gray-600 cursor-not-allowed hover:bg-gray-300': isConfirmed || timeRemaining <= 0,
+            'shadow-md hover:shadow-lg': !isConfirmed && timeRemaining > 0
+        }"
+          >
+            <div class="flex items-center justify-center">
+        <span v-if="!isConfirmed && timeRemaining > 0">
+          {{ $t('presenceCheck.confirmButton') }}
+        </span>
+              <span v-else-if="isConfirmed" class="flex items-center">
+          <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M5 13l4 4L19 7" />
+          </svg>
+          {{ $t('presenceCheck.confirmed') }}
+        </span>
+              <span v-else>
+          {{ $t('presenceCheck.timeExpired') }}
+        </span>
+            </div>
+          </B24Button>
+        </div>
+
+        <!-- Сообщение о таймере -->
+        <div class="text-sm text-gray-500 mb-2">
+          <span v-if="timeRemaining > 0">
+      {{ $t('presenceCheck.timeRemaining') }}: {{ formatTime(timeRemaining) }}
+    </span>
+          <span v-else-if="!isConfirmed" class="text-red-600 font-medium">
+      {{ $t('presenceCheck.timeExpiredMessage') }}
+    </span>
+          <span v-else class="text-green-600 font-medium">
+      {{ $t('presenceCheck.confirmedMessage') }}
+    </span>
+        </div>
+
+        <!-- Индикатор прогресса -->
+        <div class="w-full mx-auto mb-6">
+          <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div
+                class="h-full transition-all duration-300 ease-linear"
+                :class="{
               'bg-green-600': isConfirmed,
               'bg-blue-600': !isConfirmed && timeRemaining > 0 && !isLastTenPercent,
               'bg-red-600': !isConfirmed && timeRemaining > 0 && isLastTenPercent,
-            }"
-              :style="{ width: `${progressPercentage}%` }"
-          />
+          }"
+                :style="{ width: `${progressPercentage}%` }"
+            />
+          </div>
         </div>
       </div>
-
       <!-- Статус уведомления руководителю (только если есть руководители и отправка успешна) -->
       <div v-if="showManagerNotificationStatus && managerNotificationStatus === 'sent'"
            class="mt-4 p-3 rounded-lg bg-green-50 text-green-700 border border-green-200">
