@@ -729,7 +729,7 @@
               <B24Button
                   type="button"
                   @click="openResponsibleSelector"
-                  color="air-tertiary"
+                  color="air-primary-warning"
                   size="sm"
                   class="w-full md:w-auto"
               >
@@ -748,7 +748,7 @@
               <B24Button
                   type="button"
                   @click="openAuditorsSelector"
-                  color="air-tertiary"
+                  color="air-primary-warning"
                   size="sm"
                   variant="link"
                   class="w-full sm:w-auto"
@@ -868,7 +868,7 @@
 
       <template #footer="{ close }">
         <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 w-full">
-          <B24Button @click="close" color="air-tertiary" class="w-full sm:w-auto">Отмена</B24Button>
+          <B24Button @click="close" color="air-primary-warning" class="w-full sm:w-auto">Отмена</B24Button>
           <B24Button
               @click="createTaskFormRef?.submit()"
               :disabled="isCreatingTask"
@@ -1056,7 +1056,7 @@
 
       <template #footer="{ close }">
         <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 w-full">
-          <B24Button @click="close" color="air-tertiary" class="w-full sm:w-auto">Отмена</B24Button>
+          <B24Button @click="close" color="air-primary-warning" class="w-full sm:w-auto">Отмена</B24Button>
           <B24Button
               @click="attachToTask"
               :disabled="!selectedTask || isAttachingToTask"
@@ -1135,7 +1135,7 @@
 
       <template #footer="{ close }">
         <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 w-full">
-          <B24Button @click="close" color="air-tertiary" class="w-full sm:w-auto">Отмена</B24Button>
+          <B24Button @click="close" color="air-primary-warning" class="w-full sm:w-auto">Отмена</B24Button>
           <B24Button
               @click="updateTaskTime"
               :disabled="isUpdatingTime"
@@ -1199,7 +1199,7 @@
 
       <template #footer="{ close }">
         <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 w-full">
-          <B24Button @click="close" color="air-tertiary" class="w-full sm:w-auto">Отмена</B24Button>
+          <B24Button @click="close" color="air-primary-warning" class="w-full sm:w-auto">Отмена</B24Button>
           <B24Button
               @click="unlinkTask"
               :disabled="isUnlinkingTask"
@@ -1314,11 +1314,11 @@
 
       <template #footer="{ close }">
         <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 w-full">
-          <B24Button @click="close" color="air-tertiary" class="w-full sm:w-auto">Отмена</B24Button>
+          <B24Button @click="close" color="air-primary-warning" class="w-full sm:w-auto">Отмена</B24Button>
           <B24Button
               @click="sendReportRequest"
               :disabled="isSendingReportRequest"
-              color="air-primary-warning"
+              color="air-primary"
               class="w-full sm:w-auto"
           >
             <span v-if="isSendingReportRequest">
