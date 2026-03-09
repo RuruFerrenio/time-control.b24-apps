@@ -213,17 +213,16 @@
                               <!-- Эффективность -->
                               <div class="relative bg-gradient-to-br from-gray-50 to-white rounded-xl p-4 border border-gray-100">
                                 <div class="flex flex-col items-center text-center">
-                <span class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
-                  В задачах
-                </span>
-                                  <span class="text-xl md:text-2xl font-bold leading-none"
-                                        :class="getEfficiencyColor(taskPercentage)">
-                  {{ formatPercentage(taskPercentage) }}
-                </span>
+                                  <span class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
+                                    В задачах
+                                  </span>
+                                  <span class="text-xl md:text-2xl font-bold leading-none" :class="getEfficiencyColor(taskPercentage)">
+                                    {{ formatPercentage(taskPercentage) }}
+                                  </span>
                                   <span class="text-[10px] text-gray-400 mt-1">от времени в Bitrix24</span>
                                 </div>
                                 <!-- Круговая индикация эффективности -->
-                                <div class="absolute -top-1 -right-1 w-8 h-8">
+                                <!--<div class="absolute -top-1 -right-1 w-8 h-8">
                                   <svg class="w-full h-full" viewBox="0 0 36 36">
                                     <circle cx="18" cy="18" r="16" fill="none"
                                             stroke="#e5e7eb" stroke-width="2"/>
@@ -234,7 +233,7 @@
                                             stroke-linecap="round"
                                             transform="rotate(-90 18 18)"/>
                                   </svg>
-                                </div>
+                                </div>-->
                               </div>
                             </div>
 
@@ -757,7 +756,7 @@ class WorkDayStatisticsManager {
   get bitrixTimeLegend() {
     const data = this.workDayData.value
 
-    // Чистое время в Bitrix24 (без задач)
+    // Чистое время без задач
     const pureBitrixTime = Math.max(0, data.bitrixTimeSeconds - data.elapsedTaskTimeSeconds)
 
     // Время в задачах
@@ -778,7 +777,7 @@ class WorkDayStatisticsManager {
         color: this.CHART_COLORS.TASK_TIME
       },
       {
-        label: 'Bitrix24 (без задач)',
+        label: 'Время без задач',
         description: 'Время в системе, не зафиксированное в задачах',
         value: pureBitrixTime,
         percentage: `${pureBitrixPercentage.toFixed(1)}%`,
