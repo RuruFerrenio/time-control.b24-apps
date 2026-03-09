@@ -1836,6 +1836,8 @@
           const totalTime = this.storedTime + currentTime;
           const minutes = Math.floor(currentTime / 60);
           const seconds = currentTime % 60;
+
+          console.log(`⏱️ Текущая сессия: ${minutes}:${seconds.toString().padStart(2, '0')} (${currentTime} сек)`);
         }
 
         /**
