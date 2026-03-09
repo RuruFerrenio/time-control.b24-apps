@@ -798,22 +798,6 @@
               </tfoot>
             </table>
           </B24TableWrapper>
-
-          <!-- Дополнительная статистика -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="bg-gray-50 rounded-lg p-4">
-              <div class="text-sm text-gray-600">Среднее время на сотрудника</div>
-              <div class="text-lg font-semibold text-gray-900">{{ formatDuration(modalPageData.averageTime) }}</div>
-            </div>
-            <div class="bg-gray-50 rounded-lg p-4">
-              <div class="text-sm text-gray-600">Максимальное время</div>
-              <div class="text-lg font-semibold text-gray-900">{{ formatDuration(modalPageData.maxTime) }}</div>
-            </div>
-            <div class="bg-gray-50 rounded-lg p-4">
-              <div class="text-sm text-gray-600">Минимальное время</div>
-              <div class="text-lg font-semibold text-gray-900">{{ formatDuration(modalPageData.minTime) }}</div>
-            </div>
-          </div>
         </div>
       </template>
 
