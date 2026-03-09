@@ -100,7 +100,7 @@
                         :disabled="isLoading"
                         color="air-secondary-accent"
                         size="lg"
-                        class="w-10 h-10 p-0 flex items-center justify-center"
+                        class="!w-10 !h-10 !min-w-0 !p-0 flex items-center justify-center"
                         :title="'Сбросить фильтр по дате'"
                     >
                       <svg
