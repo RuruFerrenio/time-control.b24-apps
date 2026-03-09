@@ -32,7 +32,7 @@
       </p>
 
       <!-- Кнопка подтверждения -->
-      <div class="mb-8">
+      <div class="mb-4">
         <B24Button
             @click="confirmPresence"
             :disabled="isConfirmed || timeRemaining <= 0"
