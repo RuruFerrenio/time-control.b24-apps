@@ -1550,6 +1550,20 @@
             return;
           }
 
+          console.log('📊 Отладка рабочего дня:', {
+            статус: this.workdayManager.workdayStatus,
+            canStart: this.workdayManager.canStartWorkday(),
+            canEnd: this.workdayManager.canEndWorkday(),
+            isWorkdayOpened: this.workdayManager.isWorkdayOpened(),
+            isWorkdayClosed: this.workdayManager.isWorkdayClosed(),
+            timemanAvailable: this.timemanAvailable,
+            settings_start_enabled: this.settingsManager.isWorkdayStartEnabled(),
+            settings_start_method: this.settingsManager.settings.workdayStart.method,
+            settings_end_enabled: this.settingsManager.isWorkdayEndEnabled(),
+            settings_end_method: this.settingsManager.settings.workdayEnd.method,
+            isWithinWorkHours: this.isWithinWorkHours
+          });
+
           this.isWithinWorkHours = await this.workdayManager.isCurrentTimeWithinWorkHours();
 
           if (this.workdayCheckDone) return;
