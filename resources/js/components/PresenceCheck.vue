@@ -64,11 +64,11 @@
       </div>
 
       <!-- Сообщение о таймере -->
-      <div class="text-sm text-gray-500 mb-2">
+      <div class="text-sm text-gray-500 mb-4">
         <span v-if="timeRemaining > 0">
           {{ $t('presenceCheck.timeRemaining') }}: {{ formatTime(timeRemaining) }}
         </span>
-        <span v-else-if="!isConfirmed" class="text-red-600 font-medium">
+        <span v-else-if="!isConfirmed" class="text-red-400 font-medium">
           {{ $t('presenceCheck.timeExpiredMessage') }}
         </span>
         <span v-else class="text-green-600 font-medium">
