@@ -1503,7 +1503,9 @@
               pageTracking: this.settingsManager.isPageTrackingEnabled(),
               presenceControl: this.settingsManager.isPresenceControlEnabled(),
               workdayStart: this.settingsManager.isWorkdayStartEnabled(),
-              workdayEnd: this.settingsManager.isWorkdayEndEnabled()
+              workdayStartMethod: this.settingsManager.settings.workdayStart.method,
+              workdayEnd: this.settingsManager.isWorkdayEndEnabled(),
+              workdayEndMethod: this.settingsManager.settings.workdayEnd.method
             });
 
             if (!this.settingsManager.isPageTrackingEnabled()) {
@@ -1517,45 +1519,60 @@
               name: this.userManager.getFullName()
             });
 
-            // ОТЛАДКА: Проверяем наличие bitrixHelper
-            console.log('🔍 Проверка bitrixHelper:', {
-              exists: typeof bitrixHelper !== 'undefined',
-              type: typeof bitrixHelper
-            });
+            // Проверяем доступность timeman методов через API
+            console.log('🔍 Проверка доступности timeman API...');
 
-            // Получаем информацию о приложении и проверяем тариф
-            if (typeof bitrixHelper !== 'undefined') {
-              console.log('📦 bitrixHelper найден, инициализация...');
-              await bitrixHelper.init();
-              const appInfo = await bitrixHelper.getAppInfo();
-              console.log('📊 Информация о приложении:', appInfo);
+            try {
+              // Пробуем получить статус рабочего дня
+              const result = await new Promise((resolve) => {
+                BX24.callMethod('timeman.status', {}, (result) => {
+                  resolve(result);
+                });
+              });
 
-              this.timemanAvailable = bitrixHelper.isStatisticsAvailable();
-              console.log('📊 Доступность timeman:', this.timemanAvailable);
+              if (result.error()) {
+                // Если есть ошибка, проверяем её тип
+                const error = result.error();
+                console.log('⚠️ Ответ timeman.status с ошибкой:', error);
 
-              if (!this.timemanAvailable) {
-                console.log('⚠️ Timeman функции недоступны: тариф не поддерживается');
+                // Проверяем, является ли ошибка "метод не найден"
+                if (error.ex === 'ERROR_METHOD_NOT_FOUND' ||
+                  (error.message && error.message.includes('not found')) ||
+                  (error.error && error.error.includes('method'))) {
+                  this.timemanAvailable = false;
+                  console.log('❌ Timeman функции недоступны: метод не найден (тариф не поддерживает)');
+                } else {
+                  // Другая ошибка (например, нет прав), но метод существует
+                  this.timemanAvailable = true;
+                  console.log('✅ Timeman API доступен (метод существует, но ошибка:', error.message, ')');
+                }
+              } else {
+                // Успешный вызов - timeman точно доступен
+                this.timemanAvailable = true;
+                console.log('✅ Timeman API полностью доступен. Статус:', result.data());
               }
-            } else {
-              console.log('❌ bitrixHelper НЕ НАЙДЕН!');
-              console.log('📋 Доступные глобальные объекты:', Object.keys(window).filter(key =>
-                key.includes('bitrix') || key.includes('BX') || key.includes('helper')
-              ));
+            } catch (error) {
+              console.error('❌ Критическая ошибка при проверке timeman:', error);
+              this.timemanAvailable = false;
             }
 
-            // Проверяем рабочее время и статус рабочего дня ТОЛЬКО если тариф поддерживается
+            // Проверяем рабочее время и статус рабочего дня ТОЛЬКО если timeman доступен
             if (this.timemanAvailable) {
               console.log('⏰ Запуск проверки рабочего дня...');
               await this._checkWorkHoursAndWorkday();
               console.log('✅ Проверка рабочего дня завершена');
             } else {
-              console.log('⏭️ Пропуск проверки рабочего дня: timemanAvailable =', this.timemanAvailable);
+              console.log('⏭️ Пропуск проверки рабочего дня: timeman недоступен');
             }
 
             await this._initializeStorageWithCleanup();
+            console.log('💾 Хранилище инициализировано');
 
             this.setupEventListeners();
+            console.log('👂 Обработчики событий настроены');
+
             this.startMainTimer();
+            console.log('⏱️ Таймер запущен');
 
             this.initialized = true;
             console.log('✅ Инициализация приложения завершена успешно');
@@ -1585,20 +1602,6 @@
             console.log('Пропуск проверки рабочего дня: тариф не поддерживается');
             return;
           }
-
-          console.log('📊 Отладка рабочего дня:', {
-            статус: this.workdayManager.workdayStatus,
-            canStart: this.workdayManager.canStartWorkday(),
-            canEnd: this.workdayManager.canEndWorkday(),
-            isWorkdayOpened: this.workdayManager.isWorkdayOpened(),
-            isWorkdayClosed: this.workdayManager.isWorkdayClosed(),
-            timemanAvailable: this.timemanAvailable,
-            settings_start_enabled: this.settingsManager.isWorkdayStartEnabled(),
-            settings_start_method: this.settingsManager.settings.workdayStart.method,
-            settings_end_enabled: this.settingsManager.isWorkdayEndEnabled(),
-            settings_end_method: this.settingsManager.settings.workdayEnd.method,
-            isWithinWorkHours: this.isWithinWorkHours
-          });
 
           this.isWithinWorkHours = await this.workdayManager.isCurrentTimeWithinWorkHours();
 
