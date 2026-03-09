@@ -64,7 +64,7 @@
       </div>
 
       <!-- Сообщение о таймере -->
-      <div class="text-sm text-gray-500 mb-4">
+      <div class="text-sm text-gray-500 mb-6">
         <span v-if="timeRemaining > 0">
           {{ $t('presenceCheck.timeRemaining') }}: {{ formatTime(timeRemaining) }}
         </span>
