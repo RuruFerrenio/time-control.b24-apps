@@ -50,10 +50,10 @@
 
               <!-- Календарь для выбора диапазона -->
               <div>
-                <!-- Мобильная версия: кнопки в ряд (4/6 + 1/6) -->
+                <!-- Мобильная версия: кнопки в ряд -->
                 <div class="flex flex-row gap-2">
-                  <!-- Кнопка выбора периода - 5/6 ширины -->
-                  <div class="w-5/6 min-w-0">
+                  <!-- Кнопка выбора периода - занимает всё доступное пространство -->
+                  <div class="flex-1 min-w-0">
                     <B24Popover class="w-full">
                       <B24Button
                           :disabled="isLoading"
@@ -93,18 +93,18 @@
                     </B24Popover>
                   </div>
 
-                  <!-- Кнопка сброса - 1/6 ширины -->
-                  <div class="w-1/6">
+                  <!-- Кнопка сброса - фиксированный квадрат -->
+                  <div class="flex-shrink-0">
                     <B24Button
                         @click="resetDateRange"
                         :disabled="isLoading"
                         color="air-secondary-accent"
                         size="lg"
-                        class="w-full"
+                        class="w-10 h-10 p-0 flex items-center justify-center"
                         :title="'Сбросить фильтр по дате'"
                     >
                       <svg
-                          class="w-4 h-4 mx-auto"
+                          class="w-4 h-4"
                           :class="{ 'animate-spin': isLoading }"
                           fill="none"
                           stroke="currentColor"
