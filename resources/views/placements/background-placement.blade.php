@@ -1493,29 +1493,63 @@
           if (this.initialized) return;
 
           try {
+            console.log('🚀 Инициализация приложения...');
+
             this._setCurrentUrl();
+            console.log('📌 Текущий URL:', this.currentUrl);
+
             await this.settingsManager.load();
+            console.log('⚙️ Настройки загружены:', {
+              pageTracking: this.settingsManager.isPageTrackingEnabled(),
+              presenceControl: this.settingsManager.isPresenceControlEnabled(),
+              workdayStart: this.settingsManager.isWorkdayStartEnabled(),
+              workdayEnd: this.settingsManager.isWorkdayEndEnabled()
+            });
 
             if (!this.settingsManager.isPageTrackingEnabled()) {
+              console.log('⏹️ Отслеживание страниц отключено в настройках');
               return;
             }
 
             await this.userManager.fetchProfile();
+            console.log('👤 Профиль пользователя:', {
+              id: this.userManager.getUserId(),
+              name: this.userManager.getFullName()
+            });
+
+            // ОТЛАДКА: Проверяем наличие bitrixHelper
+            console.log('🔍 Проверка bitrixHelper:', {
+              exists: typeof bitrixHelper !== 'undefined',
+              type: typeof bitrixHelper
+            });
 
             // Получаем информацию о приложении и проверяем тариф
             if (typeof bitrixHelper !== 'undefined') {
+              console.log('📦 bitrixHelper найден, инициализация...');
               await bitrixHelper.init();
               const appInfo = await bitrixHelper.getAppInfo();
+              console.log('📊 Информация о приложении:', appInfo);
+
               this.timemanAvailable = bitrixHelper.isStatisticsAvailable();
+              console.log('📊 Доступность timeman:', this.timemanAvailable);
 
               if (!this.timemanAvailable) {
-                console.log('Timeman функции недоступны: тариф не поддерживается');
+                console.log('⚠️ Timeman функции недоступны: тариф не поддерживается');
               }
+            } else {
+              console.log('❌ bitrixHelper НЕ НАЙДЕН!');
+              console.log('📋 Доступные глобальные объекты:', Object.keys(window).filter(key =>
+                key.includes('bitrix') || key.includes('BX') || key.includes('helper')
+              ));
             }
 
             // Проверяем рабочее время и статус рабочего дня ТОЛЬКО если тариф поддерживается
             if (this.timemanAvailable) {
+              console.log('⏰ Запуск проверки рабочего дня...');
               await this._checkWorkHoursAndWorkday();
+              console.log('✅ Проверка рабочего дня завершена');
+            } else {
+              console.log('⏭️ Пропуск проверки рабочего дня: timemanAvailable =', this.timemanAvailable);
             }
 
             await this._initializeStorageWithCleanup();
@@ -1524,9 +1558,11 @@
             this.startMainTimer();
 
             this.initialized = true;
+            console.log('✅ Инициализация приложения завершена успешно');
 
           } catch (error) {
-            console.error('Ошибка инициализации:', error);
+            console.error('❌ Ошибка инициализации:', error);
+            console.error('❌ Stack:', error.stack);
           }
         }
 
