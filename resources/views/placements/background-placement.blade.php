@@ -1704,7 +1704,7 @@
         openPresenceApplication() {
           if (this.applicationOpened || this.sessionTimer.isPageHidden) return;
 
-          if (!this.timemanAvailable) return;
+          //if (!this.timemanAvailable) return;
 
           const thresholdSeconds = this.settingsManager.getPageTimeThresholdSeconds();
 
