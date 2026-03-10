@@ -400,7 +400,7 @@
                           class="w-full px-4 py-3 border-b border-gray-200 text-left transition-colors"
                           :class="userData.userId === currentUserId ? 'bg-blue-50 border-blue-100 hover:bg-blue-100' : 'bg-gray-50 hover:bg-gray-50'"
                       >
-                        <div class="flex items-center justify-between">
+                        <div class="flex items-center justify-start">
                           <div class="flex items-center space-x-3 min-w-0 flex-1">
                             <B24User
                                 :name="userData.userName"
@@ -419,7 +419,7 @@
                                 class="truncate overflow-visible"
                             />
                             <!-- Кнопка запроса отчета (только для других пользователей, если включено в настройках) -->
-                            <div v-if="userData.userId !== currentUserId && subordinateReportsEnabled" class="hidden sm:block">
+                            <div v-if="userData.userId !== currentUserId && subordinateReportsEnabled" class="ml-2 sm:ml-10 hidden sm:block">
                               <B24Button
                                   @click="showRequestReportModal(userData)"
                                   size="sm"
