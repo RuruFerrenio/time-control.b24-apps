@@ -223,18 +223,12 @@
       </div>
     </B24Card>
 
-    <B24Card v-if="isSettingsPage">
-      <div class="p-0 md:p-6">
-        <script src="https://forms.yandex.ru/_static/embed.js"></script>
-        <iframe
-            src="https://forms.yandex.ru/u/69ac34e6505690a2bcabb0f4?iframe=1"
-            frameborder="0"
-            name="ya-form-69ac34e6505690a2bcabb0f4"
-            width="100%"
-            height="825">
-        </iframe>
-      </div>
-    </B24Card>
+    <script>
+      (function(w,d,u){
+        var s=d.createElement('script');s.async=true;s.src=u+'?'+(Date.now()/60000|0);
+        var h=d.getElementsByTagName('script')[0];h.parentNode.insertBefore(s,h);
+      })(window,document,'https://cdn-ru.bitrix24.ru/b37062684/crm/site_button/loader_2_byevyu.js');
+    </script>
   </div>
 </template>
 

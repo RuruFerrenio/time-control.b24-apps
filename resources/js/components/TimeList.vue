@@ -2100,7 +2100,7 @@ class HierarchicalDataManager {
 
       const userTimeDifferences = {};
 
-      const BATCH_SIZE = 20;
+      const BATCH_SIZE = 50;
       for (let i = 0; i < taskItems.length; i += BATCH_SIZE) {
         const batch = taskItems.slice(i, i + BATCH_SIZE);
         const batchPromises = [];
@@ -2150,7 +2150,7 @@ class HierarchicalDataManager {
                       ITEMID: ELAPSED_ITEM_ID,
                       ARFIELDS: {
                         SECONDS: PAGE_TIME,
-                        COMMENT_TEXT: `Актуализировано время на странице: ${PAGE_URL}`
+                        COMMENT_TEXT: `Время на странице: ${PAGE_URL}`
                       }
                     }
                   ]
