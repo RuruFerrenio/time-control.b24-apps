@@ -128,7 +128,7 @@
                           <div class="flex items-center space-x-3 min-w-0 flex-1">
                             <B24User
                                 :name="userData.userName"
-                                :description="`${getUserPosition(userData.userId)} • ID: ${userData.userId}`"
+                                :description="getUserPosition(userData.userId)"
                                 size="sm"
                                 :avatar="{
                                     src: getUserPhoto(userData.userId),
@@ -404,7 +404,7 @@
                           <div class="flex items-center space-x-3 min-w-0 flex-1">
                             <B24User
                                 :name="userData.userName"
-                                :description="`${getUserPosition(userData.userId)} • ID: ${userData.userId}`"
+                                :description="getUserPosition(userData.userId)"
                                 size="sm"
                                 :avatar="{
                                     src: getUserPhoto(userData.userId),
@@ -717,7 +717,7 @@
               <div v-if="selectedUser" class="flex-1">
                 <B24User
                     :name="selectedUser.name"
-                    :description="`${getUserPosition(selectedUser.id)} • ID: ${selectedUser.id}`"
+                    :description="getUserPosition(selectedUser.id)"
                     size="md"
                     :avatar="{
                         src: getUserPhoto(selectedUser.id),
@@ -768,7 +768,7 @@
                 >
                   <B24User
                       :name="user.name"
-                      :description="`${getUserPosition(userData.userId)} • ID: ${userData.userId}`"
+                      :description="getUserPosition(user.userId)"
                       size="sm"
                       :avatar="{
                         src: getUserPhoto(user.userId),
@@ -1235,7 +1235,7 @@
               <div class="flex-shrink-0">
                 <B24User
                     :name="selectedUserForReport.userName"
-                    :description="`${getUserPosition(selectedUserForReport.userId)} • ID: ${selectedUserForReport.userId}`"
+                    :description="getUserPosition(selectedUserForReport.userId)"
                     size="sm"
                     :avatar="{
                         src: getUserPhoto(selectedUserForReport.userId),
