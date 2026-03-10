@@ -67,6 +67,32 @@
                 Плагин для браузера
               </div>-->
 
+              <!-- Ссылка Развитие проекта (только для администраторов) -->
+              <a
+                  v-if="isAdmin"
+                  href="https://forms.yandex.ru/u/69ac34e6505690a2bcabb0f4"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100"
+              >
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0114 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+                Развитие проекта
+              </a>
+
+              <!-- Заглушка для обычных пользователей -->
+              <div
+                  v-else
+                  class="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-400 cursor-not-allowed"
+                  title="Доступно только администраторам"
+              >
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0114 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+                Развитие проекта
+              </div>
+
               <!-- Пункт настроек виден только администраторам -->
               <router-link
                   v-if="isAdmin"
