@@ -2049,15 +2049,22 @@ class HierarchicalDataManager {
     try {
       this.isProcessingData.value = true;
 
-      const today = this.getTodayDate();
-      const sectionId = await this.findSectionForDate(today);
-
-      if (!sectionId) {
-        this.showNotification('info', 'Нет данных за сегодня для актуализации');
+      const selectedDate = this.selectedDay.value;
+      if (!selectedDate) {
+        this.showNotification('info', 'Не выбрана дата для актуализации');
         this.isProcessingData.value = false;
         return;
       }
 
+      const sectionId = await this.findSectionForDate(selectedDate);
+
+      if (!sectionId) {
+        this.showNotification('info', `Нет данных за ${this.formatDayDisplay(selectedDate)} для актуализации`);
+        this.isProcessingData.value = false;
+        return;
+      }
+
+      // Загружаем элементы за выбранную дату
       const items = await new Promise((resolve, reject) => {
         BX24.callBatch({
           items: [
@@ -2077,18 +2084,19 @@ class HierarchicalDataManager {
         }, true);
       });
 
+      // Фильтруем элементы с привязкой к задачам
       const taskItems = items.filter(item =>
           item.PROPERTY_VALUES?.TASK_ID &&
           item.PROPERTY_VALUES?.ELAPSED_ITEM_ID
       );
 
       if (taskItems.length === 0) {
-        this.showNotification('info', 'Нет записей, привязанных к задачам');
+        this.showNotification('info', `Нет записей, привязанных к задачам за ${this.formatDayDisplay(selectedDate)}`);
         this.isProcessingData.value = false;
         return;
       }
 
-      this.showNotification('info', `Начинаю актуализацию для ${taskItems.length} записей...`);
+      this.showNotification('info', `Начинаю актуализацию для ${taskItems.length} записей за ${this.formatDayDisplay(selectedDate)}...`);
 
       const userTimeDifferences = {};
 
@@ -2201,7 +2209,7 @@ class HierarchicalDataManager {
       const successCount = taskItems.length;
       this.showNotification(
           'success',
-          `Актуализация завершена. Обработано записей: ${taskItems.length}`
+          `Актуализация за ${this.formatDayDisplay(selectedDate)} завершена. Обработано записей: ${taskItems.length}`
       );
 
     } catch (error) {
