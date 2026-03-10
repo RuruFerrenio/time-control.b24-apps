@@ -1311,7 +1311,7 @@
                     </ul>
                   </div>
 
-                  <div class="flex flex-col sm:flex-row justify-between gap-3 pt-6 border-t">
+                  <div class="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t">
                     <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto order-1 sm:order-2">
                       <B24Button
                           @click="finishInstallation"
