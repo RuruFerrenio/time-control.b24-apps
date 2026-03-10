@@ -1486,9 +1486,6 @@ class HierarchicalDataManager {
 
     // Форматируем сообщение с BB-кодами
     const fullMessage = `[SIZE=16][B]📋 Запрос отчета о деятельности[/B][/SIZE]\n\n`
-        + `👤 [B]От:[/B] ${this.currentUserProfile?.FULL_NAME || 'Руководитель'}\n`
-        + `👤 [B]Кому:[/B] ${this.selectedUserForReport?.userName || 'Сотрудник'}\n`
-        + `📅 [B]Дата запроса:[/B] ${new Date().toLocaleString('ru-RU')}\n\n`
         + `[B]💬 Сообщение:[/B]\n${this.reportRequestMessage.value}\n\n`
         + `⏰ [B]Время на ответ:[/B] ${reactionTime} секунд\n`
         + `[URL=${reportUrl}]📝 Нажмите здесь, чтобы открыть форму отчета[/URL]\n\n`

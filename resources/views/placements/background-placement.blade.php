@@ -17,7 +17,8 @@
         MAX_HISTORY_DAYS: 7,
         MIN_PAGE_TIME_THRESHOLD: 1, // минут
         MAX_PAGE_TIME_THRESHOLD: 60, // минут
-        MODAL_WIDTH: 500
+        MODAL_WIDTH: 500,
+        LOCAL_STORAGE_URL_KEY: 'bitrix24_current_page_url' // Ключ для localStorage
       };
 
       // ==========================================================================
@@ -115,6 +116,18 @@
               fullUrl: normalized
             };
           }
+        }
+
+        /**
+         * Сравнивает два URL с учетом нормализации
+         * @param {string} url1 - Первый URL
+         * @param {string} url2 - Второй URL
+         * @returns {boolean} true если URL эквивалентны
+         */
+        areUrlsEqual(url1, url2) {
+          const normUrl1 = this.normalizeUrl(url1);
+          const normUrl2 = this.normalizeUrl(url2);
+          return normUrl1 === normUrl2;
         }
       }
 
@@ -1067,46 +1080,116 @@
       }
 
       // ==========================================================================
-      // КЛАСС: SessionTimer - Таймер сессии
+      // КЛАСС: SessionTimer - Таймер сессии (обновленная версия с проверкой URL)
       // ==========================================================================
 
       /**
        * Класс для управления таймером сессии на странице
        */
       class SessionTimer {
-        constructor() {
+        constructor(urlProcessor) {
           this.sessionTime = 0;
           this.sessionStartTime = 0;
           this.isPageHidden = false;
+          this.isUrlMismatch = false; // Флаг несоответствия URL
           this.timer = null;
           this.updateInterval = APP_CONFIG.TIMER_UPDATE_INTERVAL;
+          this.urlProcessor = urlProcessor || new URLProcessor();
+          this.storedUrl = null; // URL из localStorage
         }
 
         /**
-         * Запускает сессию
+         * Сохраняет текущий URL в localStorage
+         * @param {string} url - URL для сохранения
          */
-        startSession() {
+        saveUrlToLocalStorage(url) {
+          try {
+            const normalizedUrl = this.urlProcessor.normalizeUrl(url);
+            localStorage.setItem(APP_CONFIG.LOCAL_STORAGE_URL_KEY, normalizedUrl);
+            this.storedUrl = normalizedUrl;
+          } catch (error) {
+            console.error('Ошибка при сохранении URL в localStorage:', error);
+          }
+        }
+
+        /**
+         * Загружает URL из localStorage
+         * @returns {string|null} Сохраненный URL или null
+         */
+        loadUrlFromLocalStorage() {
+          try {
+            return localStorage.getItem(APP_CONFIG.LOCAL_STORAGE_URL_KEY);
+          } catch (error) {
+            console.error('Ошибка при загрузке URL из localStorage:', error);
+            return null;
+          }
+        }
+
+        /**
+         * Проверяет соответствие текущего URL сохраненному
+         * @param {string} currentUrl - Текущий URL страницы
+         * @returns {boolean} true если URL совпадают
+         */
+        checkUrlMatch(currentUrl) {
+          const savedUrl = this.loadUrlFromLocalStorage();
+          if (!savedUrl) return true; // Если нет сохраненного URL, считаем что совпадает
+
+          const normalizedCurrent = this.urlProcessor.normalizeUrl(currentUrl);
+          const isMatch = normalizedCurrent === savedUrl;
+
+          // Обновляем флаг несоответствия
+          if (!isMatch && !this.isUrlMismatch) {
+            this.isUrlMismatch = true;
+            console.log('🔴 URL не совпадает, таймер остановлен');
+          } else if (isMatch && this.isUrlMismatch) {
+            this.isUrlMismatch = false;
+            console.log('🟢 URL совпал, таймер возобновлен');
+          }
+
+          return isMatch;
+        }
+
+        /**
+         * Запускает сессию и сохраняет URL
+         * @param {string} currentUrl - Текущий URL страницы
+         */
+        startSession(currentUrl) {
+          this.saveUrlToLocalStorage(currentUrl);
           this.sessionStartTime = Date.now();
           this.sessionTime = 0;
+          this.isUrlMismatch = false;
         }
 
         /**
-         * Обновляет время сессии
+         * Обновляет время сессии с проверкой URL
+         * @param {string} currentUrl - Текущий URL страницы
          * @returns {number} Текущее время сессии
          */
-        updateSessionTime() {
-          if (!this.isPageHidden) {
+        updateSessionTime(currentUrl) {
+          // Проверяем соответствие URL
+          const urlMatches = this.checkUrlMatch(currentUrl);
+
+          if (!urlMatches) {
+            this.isUrlMismatch = true;
+            // Если URL не совпадает, не увеличиваем время
+            return this.sessionTime;
+          }
+
+          if (!this.isPageHidden && !this.isUrlMismatch) {
             this.sessionTime = Math.floor((Date.now() - this.sessionStartTime) / 1000);
           }
           return this.sessionTime;
         }
 
         /**
-         * Сбрасывает сессию
+         * Сбрасывает сессию и сохраняет новый URL
+         * @param {string} newUrl - Новый URL страницы
          */
-        resetSession() {
+        resetSession(newUrl) {
+          this.saveUrlToLocalStorage(newUrl);
           this.sessionTime = 0;
           this.sessionStartTime = Date.now();
+          this.isUrlMismatch = false;
         }
 
         /**
@@ -1118,6 +1201,14 @@
         }
 
         /**
+         * Проверяет, активна ли сессия (видима и URL совпадает)
+         * @returns {boolean}
+         */
+        isSessionActive() {
+          return !this.isPageHidden && !this.isUrlMismatch;
+        }
+
+        /**
          * Отмечает страницу как скрытую
          */
         markPageHidden() {
@@ -1125,22 +1216,24 @@
         }
 
         /**
-         * Отмечает страницу как видимую
+         * Отмечает страницу как видимую и сбрасывает сессию
+         * @param {string} currentUrl - Текущий URL страницы
          */
-        markPageVisible() {
+        markPageVisible(currentUrl) {
           this.isPageHidden = false;
-          this.resetSession();
+          this.resetSession(currentUrl);
         }
 
         /**
          * Запускает таймер
          * @param {Function} callback - Функция обратного вызова
+         * @param {string} currentUrl - Текущий URL страницы
          */
-        startTimer(callback) {
+        startTimer(callback, currentUrl) {
           this.stopTimer();
           this.timer = setInterval(() => {
-            this.updateSessionTime();
-            callback(this.sessionTime);
+            this.updateSessionTime(currentUrl);
+            callback(this.sessionTime, this.isSessionActive());
           }, this.updateInterval);
         }
 
@@ -1153,10 +1246,24 @@
             this.timer = null;
           }
         }
+
+        /**
+         * Обновляет URL для проверки (вызывается при изменении страницы)
+         * @param {string} newUrl - Новый URL страницы
+         */
+        updateCurrentUrl(newUrl) {
+          const wasActive = this.isSessionActive();
+          this.checkUrlMatch(newUrl);
+
+          // Если URL стал совпадать и страница видима, но таймер не активен
+          if (!wasActive && this.isSessionActive()) {
+            this.resetSession(newUrl);
+          }
+        }
       }
 
       // ==========================================================================
-      // КЛАСС: WorkdayManager - Управление рабочим днем (исправленная версия)
+      // КЛАСС: WorkdayManager - Управление рабочим днем
       // ==========================================================================
 
       /**
@@ -1459,7 +1566,7 @@
       }
 
       // ==========================================================================
-      // КЛАСС: PageTrackerApp - Главный класс приложения (исправленная версия)
+      // КЛАСС: PageTrackerApp - Главный класс приложения (обновленная версия)
       // ==========================================================================
 
       /**
@@ -1472,7 +1579,7 @@
           this.userManager = new UserManager();
           this.settingsManager = new SettingsManager();
           this.storageManager = new StorageManager();
-          this.sessionTimer = new SessionTimer();
+          this.sessionTimer = new SessionTimer(this.urlProcessor); // Передаем URLProcessor
           this.workdayManager = new WorkdayManager(this.userManager);
 
           this.currentUrl = null;
@@ -1484,6 +1591,61 @@
           this.isWithinWorkHours = true;
 
           this.timemanAvailable = false;
+
+          // Добавляем отслеживание изменения URL через History API
+          this.setupUrlChangeDetection();
+        }
+
+        /**
+         * Настраивает обнаружение изменения URL
+         * @private
+         */
+        setupUrlChangeDetection() {
+          // Перехватываем pushState
+          const originalPushState = history.pushState;
+          history.pushState = (...args) => {
+            originalPushState.apply(history, args);
+            this.handleUrlChange();
+          };
+
+          // Перехватываем replaceState
+          const originalReplaceState = history.replaceState;
+          history.replaceState = (...args) => {
+            originalReplaceState.apply(history, args);
+            this.handleUrlChange();
+          };
+
+          // Слушаем popstate (навигация назад/вперед)
+          window.addEventListener('popstate', () => {
+            this.handleUrlChange();
+          });
+
+          // Периодическая проверка URL (на случай если другие методы не сработали)
+          setInterval(() => {
+            this.checkAndHandleUrlChange();
+          }, 1000);
+        }
+
+        /**
+         * Обрабатывает изменение URL
+         */
+        handleUrlChange() {
+          const newUrl = window.location.href;
+          if (!this.urlProcessor.areUrlsEqual(this.currentUrl, newUrl)) {
+            this.currentUrl = newUrl;
+            this.sessionTimer.updateCurrentUrl(newUrl);
+          }
+        }
+
+        /**
+         * Проверяет и обрабатывает изменение URL
+         */
+        checkAndHandleUrlChange() {
+          const currentHref = window.location.href;
+          if (!this.urlProcessor.areUrlsEqual(this.currentUrl, currentHref)) {
+            this.currentUrl = currentHref;
+            this.sessionTimer.updateCurrentUrl(currentHref);
+          }
         }
 
         /**
@@ -1504,7 +1666,6 @@
             await this.userManager.fetchProfile();
 
             try {
-
               const result = await new Promise((resolve) => {
                 BX24.callMethod('timeman.status', {}, (result) => {
                   resolve(result);
@@ -1531,7 +1692,6 @@
 
             if (this.timemanAvailable) {
               await this._checkWorkHoursAndWorkday();
-            } else {
             }
 
             await this._initializeStorageWithCleanup();
@@ -1664,7 +1824,8 @@
               await this.storageManager.createNewItem(userProfile, this.currentUrl, document.title);
             }
 
-            this.sessionTimer.startSession();
+            // Запускаем сессию и сохраняем URL в localStorage
+            this.sessionTimer.startSession(this.currentUrl);
 
           } catch (error) {
             console.error('Ошибка инициализации хранилища:', error);
@@ -1718,8 +1879,6 @@
          */
         openPresenceApplication() {
           if (this.applicationOpened || this.sessionTimer.isPageHidden) return;
-
-          //if (!this.timemanAvailable) return;
 
           const thresholdSeconds = this.settingsManager.getPageTimeThresholdSeconds();
 
@@ -1815,11 +1974,11 @@
           }
 
           const sessionTime = this.sessionTimer.getSessionTime();
-          if (sessionTime > 0 && this.storageManager.currentItemId) {
+          if (sessionTime > 0 && this.storageManager.currentItemId && this.sessionTimer.isSessionActive()) {
             await this._updateStorage(sessionTime);
           }
 
-          this.sessionTimer.resetSession();
+          this.sessionTimer.resetSession(this.currentUrl);
           this.lastUpdateTime = 0;
           this.startMainTimer();
         }
@@ -1830,29 +1989,34 @@
          * Запускает основной таймер
          */
         startMainTimer() {
-          this.sessionTimer.startTimer((currentTime) => {
-            this._displayTimerInfo(currentTime);
-            this.openPresenceApplication();
+          this.sessionTimer.startTimer((currentTime, isActive) => {
+            this._displayTimerInfo(currentTime, isActive);
+
+            // Открываем приложение активности только если сессия активна
+            if (isActive) {
+              this.openPresenceApplication();
+            }
 
             if (currentTime - this.lastUpdateTime >= APP_CONFIG.STORAGE_UPDATE_INTERVAL) {
               this.lastUpdateTime = currentTime;
-              if (this.storageManager.currentItemId && currentTime > 0) {
+              if (this.storageManager.currentItemId && currentTime > 0 && isActive) {
                 this._updateStorage(APP_CONFIG.STORAGE_UPDATE_INTERVAL);
               }
             }
-          });
+          }, this.currentUrl);
         }
 
         /**
          * Отображает информацию о таймере в консоли
          * @private
          */
-        _displayTimerInfo(currentTime) {
+        _displayTimerInfo(currentTime, isActive) {
           const totalTime = this.storedTime + currentTime;
           const minutes = Math.floor(currentTime / 60);
           const seconds = currentTime % 60;
+          const status = isActive ? '🟢' : '🔴';
 
-          //console.log(`⏱️ Текущая сессия: ${minutes}:${seconds.toString().padStart(2, '0')} (${currentTime} сек)`);
+          console.log(`${status} Текущая сессия: ${minutes}:${seconds.toString().padStart(2, '0')} (${currentTime} сек)`);
         }
 
         /**
@@ -1904,7 +2068,7 @@
           this.sessionTimer.stopTimer();
 
           const sessionTime = this.sessionTimer.getSessionTime();
-          if (this.storageManager.currentItemId && sessionTime > 0) {
+          if (this.storageManager.currentItemId && sessionTime > 0 && this.sessionTimer.isSessionActive()) {
             this._updateStorage(sessionTime);
           }
         }
@@ -1914,7 +2078,7 @@
          * @private
          */
         _handlePageVisible() {
-          this.sessionTimer.markPageVisible();
+          this.sessionTimer.markPageVisible(this.currentUrl);
           this.startMainTimer();
         }
 
@@ -1926,7 +2090,7 @@
           this.sessionTimer.stopTimer();
 
           const sessionTime = this.sessionTimer.getSessionTime();
-          if (this.storageManager.currentItemId && sessionTime > 0) {
+          if (this.storageManager.currentItemId && sessionTime > 0 && this.sessionTimer.isSessionActive()) {
             this._updateStorage(sessionTime);
           }
         }
