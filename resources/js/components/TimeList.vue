@@ -128,7 +128,7 @@
                           <div class="flex items-center space-x-3 min-w-0 flex-1">
                             <B24User
                                 :name="userData.userName"
-                                :description="`ID: ${userData.userId}`"
+                                :description="`${getUserPosition(userData.userId)} • ID: ${userData.userId}`"
                                 size="sm"
                                 :avatar="{
                                     src: getUserPhoto(userData.userId),
@@ -404,7 +404,7 @@
                           <div class="flex items-center space-x-3 min-w-0 flex-1">
                             <B24User
                                 :name="userData.userName"
-                                :description="`ID: ${userData.userId}`"
+                                :description="`${getUserPosition(userData.userId)} • ID: ${userData.userId}`"
                                 size="sm"
                                 :avatar="{
                                     src: getUserPhoto(userData.userId),
@@ -717,7 +717,7 @@
               <div v-if="selectedUser" class="flex-1">
                 <B24User
                     :name="selectedUser.name"
-                    :description="`ID: ${selectedUser.id}`"
+                    :description="`${getUserPosition(selectedUser.id)} • ID: ${selectedUser.id}`"
                     size="md"
                     :avatar="{
                         src: getUserPhoto(selectedUser.id),
@@ -768,6 +768,7 @@
                 >
                   <B24User
                       :name="user.name"
+                      :description="`${getUserPosition(userData.userId)} • ID: ${userData.userId}`"
                       size="sm"
                       :avatar="{
                         src: getUserPhoto(user.userId),
@@ -1234,7 +1235,7 @@
               <div class="flex-shrink-0">
                 <B24User
                     :name="selectedUserForReport.userName"
-                    :description="`ID: ${selectedUserForReport.userId}`"
+                    :description="`${getUserPosition(selectedUserForReport.userId)} • ID: ${selectedUserForReport.userId}`"
                     size="sm"
                     :avatar="{
                         src: getUserPhoto(selectedUserForReport.userId),
@@ -2286,6 +2287,7 @@ class HierarchicalDataManager {
         if (users.length > 0) {
           const userData = users[0]
           userData.FULL_NAME = this.getFullName(userData)
+          userData.WORK_POSITION = userData.WORK_POSITION || '';
           this.userProfilesCache.value[userId] = userData
           resolve(userData)
         } else {
@@ -2294,7 +2296,7 @@ class HierarchicalDataManager {
             FULL_NAME: `Пользователь ${userId}`,
             NAME: 'Пользователь',
             PERSONAL_PHOTO: null,
-            IS_ONLINE: 'N'
+            IS_ONLINE: 'N',
           }
           this.userProfilesCache.value[userId] = defaultUserData
           resolve(defaultUserData)
@@ -3520,6 +3522,11 @@ export default {
       }
     })
 
+    const getUserPosition = (userId) => {
+      const userProfile = hierarchicalDataManager.userProfilesCache.value[userId];
+      return userProfile?.WORK_POSITION || 'Должность не указана';
+    };
+
     // Вычисляемые свойства для шаблона
     const paginatedUsers = computed(() => hierarchicalDataManager.paginatedUsers)
     const paginatedTasks = computed(() => hierarchicalDataManager.paginatedTasks)
@@ -3634,7 +3641,8 @@ export default {
       refreshCurrentTabData: hierarchicalDataManager.refreshCurrentTabData.bind(hierarchicalDataManager),
       createStructuredReportRequest: hierarchicalDataManager.createStructuredReportRequest?.bind(hierarchicalDataManager),
       refreshSidebarSavedTimeCounter: hierarchicalDataManager.refreshSidebarSavedTimeCounter?.bind(hierarchicalDataManager),
-      actualizeAllTimes: hierarchicalDataManager.actualizeAllTimes?.bind(hierarchicalDataManager)
+      actualizeAllTimes: hierarchicalDataManager.actualizeAllTimes?.bind(hierarchicalDataManager),
+      getUserPosition
     }
   }
 }
