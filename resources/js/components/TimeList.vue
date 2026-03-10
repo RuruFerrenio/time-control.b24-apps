@@ -419,7 +419,7 @@
                                 class="truncate overflow-visible"
                             />
                           </div>
-                          <div class="flex items-center space-x-3 min-w-0 flex-1">
+                          <div class="flex items-end space-x-3 min-w-0 flex-1">
                             <!-- Кнопка запроса отчета (только для других пользователей, если включено в настройках) -->
                             <div v-if="userData.userId !== currentUserId && subordinateReportsEnabled" class="ml-2 hidden sm:block">
                               <B24Button
