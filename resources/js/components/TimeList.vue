@@ -419,7 +419,7 @@
                                 class="truncate overflow-visible"
                             />
                             <!-- Кнопка запроса отчета (только для других пользователей, если включено в настройках) -->
-                            <div v-if="userData.userId !== currentUserId && subordinateReportsEnabled" class="ml-2 sm:ml-10 hidden sm:block">
+                            <div v-if="userData.userId !== currentUserId && subordinateReportsEnabled" class="hidden sm:block">
                               <B24Button
                                   @click="showRequestReportModal(userData)"
                                   size="sm"
