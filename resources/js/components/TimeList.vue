@@ -1429,6 +1429,8 @@ class HierarchicalDataManager {
       'all-time': { users: {}, categories: {} }
     }
 
+    this.isActualizeCooldown = ref(false)
+
     this.taskFormData = ref({
       title: '',
       description: '',
@@ -3659,7 +3661,7 @@ export default {
       refreshSidebarSavedTimeCounter: hierarchicalDataManager.refreshSidebarSavedTimeCounter?.bind(hierarchicalDataManager),
       actualizeAllTimes: hierarchicalDataManager.actualizeAllTimes?.bind(hierarchicalDataManager),
       getUserPosition,
-      isActualizeCooldown
+      isActualizeCooldown: hierarchicalDataManager.isActualizeCooldown,
     }
   }
 }
