@@ -1561,6 +1561,9 @@
             return false;
           }
 
+          console.log('Тариф:');
+          console.log(appInfo.LICENSE);
+
           const license = appInfo.LICENSE.toLowerCase();
 
           // Тарифы, на которых доступен учет рабочего времени (timeman)
