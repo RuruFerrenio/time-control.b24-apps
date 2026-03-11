@@ -1198,7 +1198,7 @@
                       size="large"
                       class="w-full sm:w-auto px-4 py-2 text-sm md:text-base order-1 sm:order-2"
                   >
-                    Завершить
+                    Продолжить
                     <svg class="w-4 h-4 md:w-5 md:h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>
@@ -1313,13 +1313,16 @@
 
                   <div class="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t">
                     <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto order-1 sm:order-2">
+                      <div v-if="isTimerActive" class="text-sm text-gray-500 mr-3">
+                        Автозавершение через {{ secondsLeft }}с
+                      </div>
                       <B24Button
                           @click="finishInstallation"
                           variant="primary"
                           size="large"
                           class="w-full sm:w-auto px-4 py-2 text-sm md:text-base"
                       >
-                        Завершить установку
+                        Завершить установку {{ isTimerActive ? `(${secondsLeft}с)` : '' }}
                       </B24Button>
                     </div>
                   </div>
@@ -1334,7 +1337,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useToast } from '@bitrix24/b24ui-nuxt/composables/useToast'
 
 export default {
@@ -1381,6 +1384,35 @@ export default {
     const currentStep = ref(1)
     const totalSteps = 4
     const progress = computed(() => Math.round((currentStep.value / totalSteps) * 100))
+
+    const autoFinishTimer = ref(null)
+    const secondsLeft = ref(5)
+    const isTimerActive = ref(false)
+
+    const startAutoFinishTimer = () => {
+      if (currentStep.value === 4) {
+        isTimerActive.value = true
+        secondsLeft.value = 5
+
+        autoFinishTimer.value = setInterval(() => {
+          secondsLeft.value -= 1
+
+          if (secondsLeft.value <= 0) {
+            clearInterval(autoFinishTimer.value)
+            isTimerActive.value = false
+            finishInstallation()
+          }
+        }, 1000)
+      }
+    }
+
+    const cancelAutoFinish = () => {
+      if (autoFinishTimer.value) {
+        clearInterval(autoFinishTimer.value)
+        autoFinishTimer.value = null
+        isTimerActive.value = false
+      }
+    }
 
     // Выбранные функции - ВСЕ ВКЛЮЧЕНЫ ПО УМОЛЧАНИЮ
     const selectedFeatures = ref({
@@ -2041,22 +2073,33 @@ export default {
     // Методы навигации
     const nextStep = () => {
       if (currentStep.value === 2) {
-        // Запускаем установку при переходе на шаг 3
         startInstallation()
       } else if (currentStep.value < totalSteps) {
         currentStep.value++
+
+        // Запускаем таймер при переходе на шаг 4
+        if (currentStep.value === 4) {
+          startAutoFinishTimer()
+        }
       }
     }
 
     const prevStep = () => {
       if (currentStep.value > 1) {
+        cancelAutoFinish()
         currentStep.value--
       }
     }
 
     const finishInstallation = async () => {
+      cancelAutoFinish()
+
       try {
         await bitrixAPI.installFinish()
+        toast.add({
+          description: 'Установка успешно завершена',
+          variant: 'success'
+        })
       } catch (error) {
         toast.add({
           description: 'Ошибка завершения установки',
@@ -2068,6 +2111,12 @@ export default {
     const openApp = () => {
       window.location.href = '/'
     }
+
+    onUnmounted(() => {
+      if (autoFinishTimer.value) {
+        clearInterval(autoFinishTimer.value)
+      }
+    })
 
     return {
       // Состояние
