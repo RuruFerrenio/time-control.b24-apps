@@ -1489,9 +1489,6 @@
         /**
          * Инициализирует приложение
          */
-        /**
-         * Инициализирует приложение
-         */
         async initialize() {
           if (this.initialized) return;
 
@@ -1507,35 +1504,38 @@
             await this.userManager.fetchProfile();
 
             try {
-              // Получаем информацию о приложении через вызов API
-              const appInfo = await new Promise((resolve, reject) => {
-                BX24.callMethod('app.info', {}, (result) => {
-                  if (result.error()) {
-                    reject(result.error());
-                  } else {
-                    resolve(result.data());
-                  }
+              const result = await new Promise((resolve) => {
+                BX24.callMethod('method.get', {
+                  name: 'timeman.status'
+                }, (result) => {
+                  resolve(result);
                 });
               });
 
-              // Проверяем доступность учета рабочего времени по тарифу
-              this.timemanAvailable = this._isWorkTimeAvailableByTariff(appInfo);
-
-              if (this.timemanAvailable) {
-                console.log('✅ Учет рабочего времени доступен на текущем тарифе');
+              if (result.error()) {
+                console.warn('⚠️ Метод method.get вернул ошибку:', result.error());
+                this.timemanAvailable = false;
               } else {
-                console.log('⚠️ Учет рабочего времени недоступен на текущем тарифе');
-              }
+                const methodData = result.data();
+                // Метод доступен только если он существует И доступен для вызова
+                this.timemanAvailable = methodData.isExisting && methodData.isAvailable;
 
+                if (this.timemanAvailable) {
+                  console.log('✅ Метод timeman.status доступен');
+                } else {
+                  console.log('ℹ️ Метод timeman.status недоступен:',
+                    `exists: ${methodData.isExisting}, available: ${methodData.isAvailable}`);
+                }
+              }
             } catch (error) {
-              console.error('❌ Ошибка при проверке доступности учета рабочего времени:', error);
+              console.error('❌ Ошибка при проверке доступности метода timeman.status:', error);
               this.timemanAvailable = false;
             }
 
             if (this.timemanAvailable) {
               await this._checkWorkHoursAndWorkday();
             } else {
-              console.log('Учет рабочего времени недоступен, пропускаем проверку рабочего дня');
+              console.log('ℹ️ Работа с тайманом недоступна');
             }
 
             await this._initializeStorageWithCleanup();
@@ -1550,37 +1550,6 @@
             console.error('❌ Ошибка инициализации:', error);
             console.error('❌ Stack:', error.stack);
           }
-        }
-
-        /**
-         * Проверяет доступность учета рабочего времени по тарифу
-         * @private
-         */
-        _isWorkTimeAvailableByTariff(appInfo) {
-          if (!appInfo || !appInfo.LICENSE) {
-            return false;
-          }
-
-          console.log('Тариф:');
-          console.log(appInfo.LICENSE);
-
-          const license = appInfo.LICENSE.toLowerCase();
-
-          // Тарифы, на которых доступен учет рабочего времени (timeman)
-          // Список основан на официальной документации Битрикс24
-          const supportedTariffs = [
-            'demo',        // Демо-режим
-            'pro',         // Профессиональный
-            'pro100',      // Профессиональный +
-            'ent250',      // Энтерпрайз 250
-            'ent500',      // Энтерпрайз 500
-            'ent1000',     // Энтерпрайз 1000
-            'ent2000',     // Энтерпрайз 2000
-            'ent10000'     // Энтерпрайз 10000
-          ];
-
-          // Проверяем вхождение тарифа в список поддерживаемых
-          return supportedTariffs.some(tariff => license.includes(tariff));
         }
 
         /**
