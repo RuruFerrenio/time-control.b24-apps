@@ -1506,7 +1506,6 @@
 
             await this.userManager.fetchProfile();
 
-            // ИСПРАВЛЕНИЕ: Проверяем доступность учета рабочего времени по тарифу, а не через timeman.status
             try {
               // Получаем информацию о приложении через вызов API
               const appInfo = await new Promise((resolve, reject) => {
