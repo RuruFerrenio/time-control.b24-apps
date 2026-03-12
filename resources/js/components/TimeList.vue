@@ -35,7 +35,7 @@
                   </B24Button>
                   <B24Button
                       @click="actualizeAllTimes"
-                      :disabled="isProcessingData"
+                      :disabled="isProcessingData || isActualizeCooldown"
                       color="air-primary-success"
                       size="sm"
                       class="flex-1 w-full sm:w-auto justify-center"
@@ -98,15 +98,6 @@
                   @update:modelValue="onTabChange"
                   class="w-full whitespace-nowrap overflow-hidden"
               />
-
-              <!-- Индикатор прогресса загрузки -->
-              <div v-if="isLoadingMore" class="text-center py-4">
-                <svg class="w-6 h-6 mx-auto mb-2 text-gray-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                </svg>
-                <p class="text-sm text-gray-500">Загрузка страницы {{ currentLoadPage }}...</p>
-                <p class="text-xs text-gray-400">Загружено элементов: {{ totalLoadedItems }}</p>
-              </div>
 
               <!-- Режим просмотра: Мое время -->
               <div v-if="activeTab === 'my-time'">
@@ -777,11 +768,11 @@
                 >
                   <B24User
                       :name="user.name"
-                      :description="getUserPosition(user.id)"
+                      :description="getUserPosition(user.userId)"
                       size="sm"
                       :avatar="{
-                        src: getUserPhoto(user.id),
-                        initials: getUserInitials(user.name)
+                        src: getUserPhoto(user.userId),
+                        initials: getUserInitials(user.userName)
                       }"
                       class="truncate overflow-visible"
                   />
@@ -955,14 +946,7 @@
 
           <!-- Список задач -->
           <div class="overflow-y-auto max-h-[40vh]">
-            <div v-if="isLoadingTasks" class="text-center py-8">
-              <svg class="w-8 h-8 mx-auto mb-3 text-gray-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-              </svg>
-              <p class="text-sm text-gray-500">Загрузка задач...</p>
-            </div>
-
-            <div v-else-if="paginatedTasks.length > 0" class="space-y-3">
+            <div v-if="paginatedTasks.length > 0" class="space-y-3">
               <div
                   v-for="task in paginatedTasks"
                   :key="task.id"
@@ -1030,17 +1014,16 @@
                   </div>
                 </div>
               </div>
-
-              <!-- Индикатор загрузки следующих страниц -->
-              <div v-if="isLoadingMoreTasks" class="text-center py-4">
-                <svg class="w-6 h-6 mx-auto mb-2 text-gray-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                </svg>
-                <p class="text-sm text-gray-500">Загрузка дополнительных задач...</p>
-              </div>
             </div>
 
-            <div v-else-if="!isLoadingTasks" class="text-center py-8 text-gray-500">
+            <div v-else-if="isLoadingTasks" class="text-center py-8">
+              <svg class="w-8 h-8 mx-auto mb-3 text-gray-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              <p class="text-sm text-gray-500">Загрузка задач...</p>
+            </div>
+
+            <div v-else class="text-center py-8 text-gray-500">
               <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
               </svg>
@@ -1057,7 +1040,6 @@
                 :sibling-count="2"
                 show-edges
                 size="md"
-                @update:page="onTaskPageChange"
             />
           </div>
 
@@ -1374,9 +1356,6 @@ class HierarchicalDataManager {
     this.activeTab = ref('my-time')
     this.selectedDay = ref(this.getTodayDate())
     this.isProcessingData = ref(false)
-    this.isLoadingMore = ref(false)
-    this.currentLoadPage = ref(1)
-    this.totalLoadedItems = ref(0)
     this.expandedUsersMyTime = ref({})
     this.expandedCategoriesMyTime = ref({})
     this.expandedUsersAllTime = ref({})
@@ -1408,7 +1387,6 @@ class HierarchicalDataManager {
     this.isUpdatingTime = ref(false)
     this.isUnlinkingTask = ref(false)
     this.isSendingReportRequest = ref(false)
-    this.isLoadingMoreTasks = ref(false)
     this.modalPageData = ref(null)
     this.selectedUser = ref(null)
     this.selectedUserForReport = ref(null)
@@ -1417,6 +1395,8 @@ class HierarchicalDataManager {
     this.filteredTasks = ref([])
     this.filteredTasksCount = ref(0)
     this.isLoadingTasks = ref(false)
+    this.taskStart = ref(0)
+    this.hasMoreTasks = ref(true)
     this.updateTimeData = ref({ newTime: 0, comment: '' })
     this.taskFilter = ref({ search: '', status: '' })
     this.createTaskFormRef = ref(null)
@@ -1440,7 +1420,6 @@ class HierarchicalDataManager {
     // Пагинация для задач в модалке
     this.currentTaskPage = ref(1)
     this.tasksPerPage = ref(25)
-    this.totalTaskPages = ref(1)
 
     // Данные для запроса отчета
     this.reportRequestMessage = ref('')
@@ -1449,6 +1428,8 @@ class HierarchicalDataManager {
       'my-time': { users: {}, categories: {} },
       'all-time': { users: {}, categories: {} }
     }
+
+    this.isActualizeCooldown = ref(false)
 
     this.taskFormData = ref({
       title: '',
@@ -1832,7 +1813,6 @@ class HierarchicalDataManager {
     if (this.allUserTasks.value.length === 0) {
       this.filteredTasks.value = []
       this.filteredTasksCount.value = 0
-      this.totalTaskPages.value = 1
       return
     }
 
@@ -1854,12 +1834,7 @@ class HierarchicalDataManager {
     }
 
     this.filteredTasksCount.value = this.filteredTasks.value.length
-    this.totalTaskPages.value = Math.ceil(this.filteredTasks.value.length / this.tasksPerPage.value)
     this.currentTaskPage.value = 1
-  }
-
-  onTaskPageChange(newPage) {
-    this.currentTaskPage.value = newPage
   }
 
   showCreateTaskModal(pageData, userData) {
@@ -1906,6 +1881,8 @@ class HierarchicalDataManager {
     this.allUserTasks.value = []
     this.filteredTasks.value = []
     this.taskFilter.value = { search: '', status: '' }
+    this.taskStart.value = 0
+    this.hasMoreTasks.value = true
     this.filteredTasksCount.value = 0
     this.currentTaskPage.value = 1
     this.isShowAttachTaskModal.value = true
@@ -2071,17 +2048,16 @@ class HierarchicalDataManager {
   }
 
   async actualizeAllTimes() {
+
+    this.isActualizeCooldown.value = true
+
     try {
       this.isProcessingData.value = true;
-      this.isLoadingMore.value = true;
-      this.currentLoadPage.value = 1;
-      this.totalLoadedItems.value = 0;
 
       const selectedDate = this.selectedDay.value;
       if (!selectedDate) {
         this.showNotification('info', 'Не выбрана дата для актуализации');
         this.isProcessingData.value = false;
-        this.isLoadingMore.value = false;
         return;
       }
 
@@ -2090,15 +2066,31 @@ class HierarchicalDataManager {
       if (!sectionId) {
         this.showNotification('info', `Нет данных за ${this.formatDayDisplay(selectedDate)} для актуализации`);
         this.isProcessingData.value = false;
-        this.isLoadingMore.value = false;
         return;
       }
 
-      // Загружаем все элементы за выбранную дату с пагинацией
-      const allItems = await this.loadAllItemsWithPagination(sectionId);
+      // Загружаем элементы за выбранную дату
+      const items = await new Promise((resolve, reject) => {
+        BX24.callBatch({
+          items: [
+            'entity.item.get',
+            {
+              ENTITY: 'pr_tracking',
+              FILTER: { SECTION_ID: sectionId },
+              SELECT: ['ID', 'PROPERTY_VALUES']
+            }
+          ]
+        }, (result) => {
+          if (result.items.error()) {
+            reject(result.items.error());
+          } else {
+            resolve(result.items.data());
+          }
+        }, true);
+      });
 
       // Фильтруем элементы с привязкой к задачам
-      const taskItems = allItems.filter(item =>
+      const taskItems = items.filter(item =>
           item.PROPERTY_VALUES?.TASK_ID &&
           item.PROPERTY_VALUES?.ELAPSED_ITEM_ID
       );
@@ -2106,81 +2098,105 @@ class HierarchicalDataManager {
       if (taskItems.length === 0) {
         this.showNotification('info', `Нет записей, привязанных к задачам за ${this.formatDayDisplay(selectedDate)}`);
         this.isProcessingData.value = false;
-        this.isLoadingMore.value = false;
         return;
       }
 
       this.showNotification('info', `Начинаю актуализацию для ${taskItems.length} записей за ${this.formatDayDisplay(selectedDate)}...`);
 
       const userTimeDifferences = {};
+
       const BATCH_SIZE = 50;
-
       for (let i = 0; i < taskItems.length; i += BATCH_SIZE) {
-        this.currentLoadPage.value = Math.floor(i / BATCH_SIZE) + 1;
-        this.totalLoadedItems.value = Math.min(i + BATCH_SIZE, taskItems.length);
-
         const batch = taskItems.slice(i, i + BATCH_SIZE);
+        const batchPromises = [];
 
-        // Создаем один batch-запрос для всех операций в текущей группе
-        const batchCommands = {};
-
-        batch.forEach((item, index) => {
+        for (const item of batch) {
           const props = item.PROPERTY_VALUES || {};
-          const { TASK_ID, ELAPSED_ITEM_ID, PAGE_TIME, PAGE_URL, USER_ID } = props;
+          const {
+            TASK_ID,
+            ELAPSED_ITEM_ID,
+            PAGE_TIME,
+            PAGE_URL,
+            USER_ID
+          } = props;
 
-          // Добавляем команду для получения текущего времени
-          batchCommands[`get_time_${index}`] = [
-            'task.elapseditem.get',
-            {
-              TASKID: TASK_ID,
-              ITEMID: ELAPSED_ITEM_ID
-            }
-          ];
+          if (!USER_ID) {
+            console.warn(`Пропуск записи ${item.ID}: нет USER_ID`);
+            continue;
+          }
 
-          // Добавляем команду для обновления времени
-          batchCommands[`update_time_${index}`] = [
-            'task.elapseditem.update',
-            {
-              TASKID: TASK_ID,
-              ITEMID: ELAPSED_ITEM_ID,
-              ARFIELDS: {
-                SECONDS: PAGE_TIME,
-                COMMENT_TEXT: `Время на странице: ${PAGE_URL}`
-              }
+          const promise = (async () => {
+            try {
+              const currentTime = await new Promise((resolve) => {
+                BX24.callBatch({
+                  get_time: [
+                    'task.elapseditem.get',
+                    {
+                      TASKID: TASK_ID,
+                      ITEMID: ELAPSED_ITEM_ID
+                    }
+                  ]
+                }, (result) => {
+                  if (result.get_time.error()) {
+                    console.warn(`Не удалось получить время для задачи ${TASK_ID}:`, result.get_time.error());
+                    resolve(0);
+                  } else {
+                    resolve(parseInt(result.get_time.data().SECONDS) || 0);
+                  }
+                }, true);
+              });
+
+              await new Promise((resolve, reject) => {
+                BX24.callBatch({
+                  update_time: [
+                    'task.elapseditem.update',
+                    {
+                      TASKID: TASK_ID,
+                      ITEMID: ELAPSED_ITEM_ID,
+                      ARFIELDS: {
+                        SECONDS: PAGE_TIME,
+                        COMMENT_TEXT: `Время на странице: ${PAGE_URL}`
+                      }
+                    }
+                  ]
+                }, (result) => {
+                  if (result.update_time.error()) {
+                    reject(result.update_time.error());
+                  } else {
+                    resolve();
+                  }
+                }, true);
+              });
+
+              const timeDifference = PAGE_TIME - (currentTime || 0);
+              return { userId: USER_ID, timeDifference, success: true };
+
+            } catch (error) {
+              console.warn(`Ошибка при обработке записи ${item.ID}:`, error);
+              return { userId: USER_ID, timeDifference: 0, success: false };
             }
-          ];
+          })();
+
+          batchPromises.push(promise);
+        }
+
+        const results = await Promise.all(batchPromises);
+
+        results.forEach(result => {
+          if (result.success && result.timeDifference !== 0) {
+            if (!userTimeDifferences[result.userId]) {
+              userTimeDifferences[result.userId] = 0;
+            }
+            userTimeDifferences[result.userId] += result.timeDifference;
+          }
         });
 
-        // Выполняем batch-запрос
-        await new Promise((resolve, reject) => {
-          BX24.callBatch(batchCommands, (result) => {
-            // Обрабатываем результаты
-            batch.forEach((item, index) => {
-              const props = item.PROPERTY_VALUES || {};
-              const { USER_ID, PAGE_TIME } = props;
-
-              if (!result[`get_time_${index}`].error()) {
-                const currentTimeData = result[`get_time_${index}`].data();
-                const currentTime = currentTimeData && currentTimeData.SECONDS ?
-                    parseInt(currentTimeData.SECONDS) : 0;
-                const timeDifference = PAGE_TIME - currentTime;
-
-                if (timeDifference !== 0) {
-                  userTimeDifferences[USER_ID] = (userTimeDifferences[USER_ID] || 0) + timeDifference;
-                }
-              }
-            });
-            resolve();
-          }, true);
-        });
-
-        // Добавляем задержку между батчами для соблюдения лимитов
         if (i + BATCH_SIZE < taskItems.length) {
+          console.log(`Обработано ${i + batch.length} из ${taskItems.length}. Ожидание 1 секунду...`);
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
       }
 
-      // Обновляем счетчики через bitrixHelper
       if (bitrixHelper && Object.keys(userTimeDifferences).length > 0) {
         try {
           for (const [userId, timeDiff] of Object.entries(userTimeDifferences)) {
@@ -2206,219 +2222,171 @@ class HierarchicalDataManager {
       this.showNotification('error', 'Ошибка при актуализации времени');
     } finally {
       this.isProcessingData.value = false;
-      this.isLoadingMore.value = false;
       await this.refreshCurrentTabData();
+      setTimeout(() => {
+        this.isActualizeCooldown.value = false
+      }, 5000)
     }
   }
 
-  // Универсальный метод для загрузки всех страниц элементов
-  async loadAllItemsWithPagination(sectionId, filter = {}) {
-    let allItems = [];
-    let currentPage = 1;
-    let hasMore = true;
-
-    while (hasMore) {
-      const result = await new Promise((resolve, reject) => {
-        BX24.callBatch({
-          items: [
-            'entity.item.get',
-            {
-              ENTITY: 'pr_tracking',
-              FILTER: { SECTION_ID: sectionId, ...filter },
-              SELECT: ['ID', 'DATE_CREATE', 'TIMESTAMP_X', 'PROPERTY_VALUES', 'NAME'],
-              NAV_PARAMS: {
-                iNumPage: currentPage,
-                nPageSize: 50
-              }
-            }
-          ]
-        }, (result) => {
-          if (result.items.error()) {
-            reject(result.items.error());
-          } else {
-            resolve(result.items.data());
+  async getCurrentTaskTime(taskId, elapsedItemId) {
+    return new Promise((resolve) => {
+      BX24.callBatch({
+        get_time: [
+          'task.elapseditem.get',
+          {
+            TASKID: taskId,
+            ITEMID: elapsedItemId
           }
-        }, true);
-      });
-
-      if (result && result.length > 0) {
-        allItems = [...allItems, ...result];
-
-        if (result.length < 50) {
-          hasMore = false;
+        ]
+      }, (result) => {
+        if (result.get_time.error()) {
+          resolve(0);
         } else {
-          currentPage++;
-          // Задержка между страницами для соблюдения лимитов
-          await new Promise(resolve => setTimeout(resolve, 500));
+          resolve(parseInt(result.get_time.data().SECONDS) || 0);
         }
-      } else {
-        hasMore = false;
-      }
-    }
-
-    return allItems;
+      }, true);
+    });
   }
 
-  async loadAllTimeDataFromSection(sectionId) {
-    try {
-      this.isProcessingData.value = true;
-      this.isLoadingMore.value = true;
-      this.currentLoadPage.value = 1;
-
-      const allItems = await this.loadAllItemsWithPagination(sectionId);
-
-      if (allItems.length === 0) {
-        this.filteredHierarchicalData.value = [];
-        this.filteredUsers.value = [];
-        return;
-      }
-
-      // Загружаем профили пользователей с пагинацией
-      const uniqueUserIds = [...new Set(allItems.map(item =>
-          parseInt(item.PROPERTY_VALUES?.USER_ID || 0)
-      ).filter(id => id > 0))];
-
-      if (uniqueUserIds.length > 0) {
-        await this.getUserProfilesBatchWithPagination(uniqueUserIds);
-      }
-
-      this.processAllTimeData(allItems);
-      this.filteredUsers.value = [...this.filteredHierarchicalData.value];
-
-    } catch (error) {
-      console.error('Ошибка загрузки данных:', error);
-      this.showNotification('error', 'Ошибка загрузки данных');
-    } finally {
-      this.isProcessingData.value = false;
-      this.isLoadingMore.value = false;
-    }
-  }
-
-  async loadMyTimeDataFromSection(sectionId) {
-    try {
-      const filter = { 'PROPERTY_USER_ID': this.currentUserId.value };
-      const allItems = await this.loadAllItemsWithPagination(sectionId, filter);
-
-      this.processMyTimeData(allItems);
-      await this.forceExpandFirstUserInMyTime();
-
-    } catch (error) {
-      console.error('Ошибка загрузки данных:', error);
-      this.showNotification('error', 'Ошибка загрузки данных');
-      throw error;
-    }
-  }
-
-  async getUserProfilesBatchWithPagination(userIds) {
-    if (!BX24 || userIds.length === 0) return {};
-
-    // Фильтруем только незакэшированные ID
-    const uncachedUserIds = userIds.filter(id => !this.userProfilesCache.value[id]);
-
-    if (uncachedUserIds.length === 0) {
-      return userIds.reduce((acc, id) => {
-        acc[id] = this.userProfilesCache.value[id];
-        return acc;
-      }, {});
-    }
-
-    const BATCH_SIZE = 50;
-    const results = {};
-
-    for (let i = 0; i < uncachedUserIds.length; i += BATCH_SIZE) {
-      const batchIds = uncachedUserIds.slice(i, i + BATCH_SIZE);
-
-      try {
-        await new Promise((resolve, reject) => {
-          BX24.callBatch({
-            users: [
-              'user.get',
-              {
-                FILTER: { 'ID': batchIds },
-                SELECT: ['ID', 'NAME', 'LAST_NAME', 'SECOND_NAME', 'EMAIL',
-                  'WORK_POSITION', 'ACTIVE', 'PERSONAL_PHOTO', 'IS_ONLINE']
-              }
-            ]
-          }, (result) => {
-            if (result.users.error()) {
-              console.warn('Ошибка загрузки профилей:', result.users.error());
-              // Создаем заглушки для пользователей
-              batchIds.forEach(id => {
-                this.userProfilesCache.value[id] = {
-                  ID: id,
-                  FULL_NAME: `Пользователь ${id}`,
-                  NAME: 'Пользователь',
-                  PERSONAL_PHOTO: null,
-                  IS_ONLINE: 'N',
-                  WORK_POSITION: ''
-                };
-                results[id] = this.userProfilesCache.value[id];
-              });
-              resolve();
-              return;
+  async updateTaskTimeInBitrix(taskId, elapsedItemId, newTime, pageUrl) {
+    return new Promise((resolve, reject) => {
+      BX24.callBatch({
+        update_time: [
+          'task.elapseditem.update',
+          {
+            TASKID: taskId,
+            ITEMID: elapsedItemId,
+            ARFIELDS: {
+              SECONDS: newTime,
+              COMMENT_TEXT: `Обновлено время на странице: ${pageUrl}`
             }
+          }
+        ]
+      }, (result) => {
+        if (result.update_time.error()) {
+          reject(result.update_time.error());
+        } else {
+          resolve();
+        }
+      }, true);
+    });
+  }
 
-            const users = result.users.data() || [];
+  async getUserProfile(userId) {
+    if (this.userProfilesCache.value[userId]) {
+      return this.userProfilesCache.value[userId]
+    }
 
-            users.forEach(user => {
-              user.FULL_NAME = this.getFullName(user);
-              this.userProfilesCache.value[user.ID] = user;
-              results[user.ID] = user;
-            });
+    return new Promise((resolve, reject) => {
+      if (!BX24) {
+        reject(new Error('BX24 не инициализирован'))
+        return
+      }
 
-            // Создаем заглушки для отсутствующих пользователей
-            batchIds.forEach(id => {
-              if (!this.userProfilesCache.value[id]) {
-                this.userProfilesCache.value[id] = {
-                  ID: id,
-                  FULL_NAME: `Пользователь ${id}`,
-                  NAME: 'Пользователь',
-                  PERSONAL_PHOTO: null,
-                  IS_ONLINE: 'N',
-                  WORK_POSITION: ''
-                };
-                results[id] = this.userProfilesCache.value[id];
-              }
-            });
-
-            resolve();
-          }, true);
-        });
-
-        // Задержка между батчами
-        if (i + BATCH_SIZE < uncachedUserIds.length) {
-          await new Promise(resolve => setTimeout(resolve, 500));
+      BX24.callBatch({
+        user: [
+          'user.get',
+          {
+            FILTER: { 'ID': userId },
+            SELECT: ['ID', 'NAME', 'LAST_NAME', 'SECOND_NAME', 'EMAIL', 'WORK_POSITION', 'ACTIVE', 'PERSONAL_PHOTO', 'IS_ONLINE']
+          }
+        ]
+      }, (result) => {
+        if (result.user.error()) {
+          this.showNotification('error', 'Ошибка загрузки профиля пользователя')
+          reject(result.user.error())
+          return
         }
 
-      } catch (error) {
-        console.warn('Ошибка в батче загрузки профилей:', error);
-        // Создаем заглушки для всех пользователей в батче
-        batchIds.forEach(id => {
-          this.userProfilesCache.value[id] = {
-            ID: id,
-            FULL_NAME: `Пользователь ${id}`,
+        const users = result.user.data()
+        if (users.length > 0) {
+          const userData = users[0]
+          userData.FULL_NAME = this.getFullName(userData)
+          userData.WORK_POSITION = userData.WORK_POSITION || '';
+          this.userProfilesCache.value[userId] = userData
+          resolve(userData)
+        } else {
+          const defaultUserData = {
+            ID: userId,
+            FULL_NAME: `Пользователь ${userId}`,
             NAME: 'Пользователь',
             PERSONAL_PHOTO: null,
             IS_ONLINE: 'N',
-            WORK_POSITION: ''
-          };
-          results[id] = this.userProfilesCache.value[id];
-        });
-      }
+          }
+          this.userProfilesCache.value[userId] = defaultUserData
+          resolve(defaultUserData)
+        }
+      }, true)
+    })
+  }
+
+  async getUserProfilesBatch(userIds) {
+    if (!BX24) {
+      return {}
     }
 
-    // Возвращаем все запрошенные профили (включая кэшированные)
+    const uncachedUserIds = userIds.filter(id => !this.userProfilesCache.value[id])
+
+    if (uncachedUserIds.length === 0) {
+      return userIds.reduce((acc, id) => {
+        acc[id] = this.userProfilesCache.value[id]
+        return acc
+      }, {})
+    }
+
+    const batches = []
+    const batchSize = 50
+
+    for (let i = 0; i < uncachedUserIds.length; i += batchSize) {
+      const batchIds = uncachedUserIds.slice(i, i + batchSize)
+      batches.push(batchIds)
+    }
+
+    for (const batchIds of batches) {
+      await new Promise((resolve, reject) => {
+        BX24.callBatch({
+          users: [
+            'user.get',
+            {
+              FILTER: { 'ID': batchIds },
+              SELECT: ['ID', 'NAME', 'LAST_NAME', 'SECOND_NAME', 'EMAIL', 'WORK_POSITION', 'ACTIVE', 'PERSONAL_PHOTO', 'IS_ONLINE']
+            }
+          ]
+        }, (result) => {
+          if (result.users.error()) {
+            this.showNotification('error', 'Ошибка загрузки профилей пользователей')
+            reject(result.users.error())
+            return
+          }
+
+          const users = result.users.data()
+          users.forEach(user => {
+            user.FULL_NAME = this.getFullName(user)
+            this.userProfilesCache.value[user.ID] = user
+          })
+
+          batchIds.forEach(id => {
+            if (!this.userProfilesCache.value[id]) {
+              this.userProfilesCache.value[id] = {
+                ID: id,
+                FULL_NAME: `Пользователь ${id}`,
+                NAME: 'Пользователь',
+                PERSONAL_PHOTO: null,
+                IS_ONLINE: 'N'
+              }
+            }
+          })
+
+          resolve()
+        }, true)
+      })
+    }
+
     return userIds.reduce((acc, id) => {
-      acc[id] = this.userProfilesCache.value[id] || {
-        ID: id,
-        FULL_NAME: `Пользователь ${id}`,
-        NAME: 'Пользователь',
-        PERSONAL_PHOTO: null,
-        IS_ONLINE: 'N',
-        WORK_POSITION: ''
-      };
-      return acc;
-    }, {});
+      acc[id] = this.userProfilesCache.value[id]
+      return acc
+    }, {})
   }
 
   async loadUserTasks() {
@@ -2426,110 +2394,106 @@ class HierarchicalDataManager {
 
     try {
       this.isLoadingTasks.value = true;
-      this.isLoadingMoreTasks.value = true;
       this.allUserTasks.value = [];
 
-      // Функция для загрузки всех страниц задач по фильтру
-      const loadAllTasksByFilter = async (filter) => {
-        let allTasks = [];
-        let currentPage = 1;
-        let hasMore = true;
+      // Загружаем задачи отдельными запросами
+      const loadTasksByRole = (role, page) => {
+        return new Promise((resolve, reject) => {
+          let filter = {};
 
-        while (hasMore) {
-          const result = await new Promise((resolve, reject) => {
-            BX24.callBatch({
-              tasks: [
-                'task.item.list',
-                [
-                  { 'ID': 'desc' },
-                  filter,
-                  {
-                    'NAV_PARAMS': {
-                      'nPageSize': 50,
-                      'iNumPage': currentPage
-                    }
-                  },
-                  ['ID', 'TITLE', 'DESCRIPTION', 'REAL_STATUS', 'DEADLINE',
-                    'CREATED_DATE', 'RESPONSIBLE_ID', 'CREATED_BY', 'ACCOMPLICES',
-                    'AUDITORS', 'PRIORITY']
-                ]
-              ]
-            }, (result) => {
-              if (result.tasks.error()) {
-                reject(result.tasks.error());
-              } else {
-                resolve(result.tasks.data() || []);
-              }
-            }, true);
-          });
-
-          if (result && result.length > 0) {
-            allTasks = [...allTasks, ...result];
-
-            if (result.length < 50) {
-              hasMore = false;
-            } else {
-              currentPage++;
-              // Задержка между страницами
-              await new Promise(resolve => setTimeout(resolve, 300));
-            }
-          } else {
-            hasMore = false;
+          //TODO::Доделать получение ответственных и сделать, чтобы имя исполнителя выводилось корректно
+          // Устанавливаем фильтр в зависимости от роли
+          if (role === 'responsible') {
+            filter = { 'RESPONSIBLE_ID': this.selectedUser.value.id };
+          } else if (role === 'creator') {
+            filter = { 'CREATED_BY': this.selectedUser.value.id };
           }
-        }
 
-        return allTasks;
+          BX24.callBatch({
+            tasks: [
+              'task.item.list',
+              [
+                { 'ID': 'desc' },
+                filter,
+                {
+                  'NAV_PARAMS': {
+                    'nPageSize': 50,
+                    'iNumPage': page
+                  }
+                },
+                ['ID', 'TITLE', 'DESCRIPTION', 'REAL_STATUS', 'DEADLINE', 'CREATED_DATE', 'RESPONSIBLE_ID', 'CREATED_BY', 'ACCOMPLICES', 'AUDITORS', 'PRIORITY']
+              ]
+            ]
+          }, (result) => {
+            if (result.tasks.error()) {
+              reject(result.tasks.error());
+            } else {
+              resolve(result.tasks.data() || []);
+            }
+          }, true);
+        });
       };
 
-      // Загружаем задачи где пользователь ответственный
-      const responsibleTasks = await loadAllTasksByFilter(
-          { 'RESPONDIBLE_ID': this.selectedUser.value.id }
-      );
+      // Загружаем задачи по всем ролям
+      const roles = ['responsible', 'creator'];
+      let allTasks = [];
 
-      // Загружаем задачи где пользователь постановщик
-      const creatorTasks = await loadAllTasksByFilter(
-          { 'CREATED_BY': this.selectedUser.value.id }
-      );
+      for (const role of roles) {
+        let page = 1;
+        let hasMore = true;
 
-      // Объединяем и удаляем дубликаты
-      const taskMap = new Map();
+        while (hasMore && allTasks.length < 200) { // ограничение 200 задач
+          const data = await loadTasksByRole(role, page);
 
-      [...responsibleTasks, ...creatorTasks].forEach(task => {
-        if (!taskMap.has(task.ID)) {
-          taskMap.set(task.ID, {
-            id: task.ID,
-            title: task.TITLE,
-            description: task.DESCRIPTION,
-            status: task.REAL_STATUS,
-            deadline: task.DEADLINE,
-            createdDate: task.CREATED_DATE,
-            responsible: {
-              id: task.RESPONSIBLE_ID,
-              name: this.getUserNameById(task.RESPONSIBLE_ID)
-            },
-            creator: {
-              id: task.CREATED_BY,
-              name: this.getUserNameById(task.CREATED_BY)
-            },
-            accomplices: task.ACCOMPLICES || [],
-            auditors: task.AUDITORS || [],
-            priority: task.PRIORITY || '2'
-          });
+          if (!data || data.length === 0) {
+            hasMore = false;
+          } else {
+            data.forEach(task => {
+              // Проверяем, не добавили ли уже эту задачу
+              if (!allTasks.some(t => t.id === task.ID)) {
+                allTasks.push({
+                  id: task.ID,
+                  title: task.TITLE,
+                  description: task.DESCRIPTION,
+                  status: task.REAL_STATUS,
+                  deadline: task.DEADLINE,
+                  createdDate: task.CREATED_DATE,
+                  responsible: {
+                    id: task.RESPONSIBLE_ID,
+                    name: this.getUserNameById(task.RESPONSIBLE_ID)
+                  },
+                  creator: {
+                    id: task.CREATED_BY,
+                    name: this.getUserNameById(task.CREATED_BY)
+                  },
+                  accomplices: task.ACCOMPLICES || [],
+                  auditors: task.AUDITORS || [],
+                  priority: task.PRIORITY || '2'
+                });
+              }
+            });
+
+            if (data.length < 50) {
+              hasMore = false;
+            } else {
+              page++;
+            }
+          }
         }
-      });
+      }
 
-      // Преобразуем Map в массив и сортируем
-      this.allUserTasks.value = Array.from(taskMap.values())
-          .sort((a, b) => b.id - a.id);
+      // Сортируем задачи по ID (новые сверху)
+      allTasks.sort((a, b) => b.id - a.id);
 
+      this.allUserTasks.value = allTasks;
       this.filterTasks();
+      this.hasMoreTasks.value = false;
 
     } catch (error) {
       console.error('Ошибка при загрузке задач:', error);
       this.showNotification('error', 'Ошибка при загрузке задач');
     } finally {
       this.isLoadingTasks.value = false;
-      this.isLoadingMoreTasks.value = false;
     }
   }
 
@@ -2544,6 +2508,10 @@ class HierarchicalDataManager {
     }
 
     return `Пользователь ${userId}`
+  }
+
+  loadMoreTasks() {
+    this.loadUserTasks()
   }
 
   selectTask(task) {
@@ -2769,9 +2737,7 @@ class HierarchicalDataManager {
 
         try {
           // 3. Получаем старое значение времени из существующей записи
-          const currentTimeData = result.get_current_time.data();
-          const oldTime = currentTimeData && currentTimeData.SECONDS ?
-              parseInt(currentTimeData.SECONDS) : 0;
+          const oldTime = parseInt(result.get_current_time.data().SECONDS) || 0;
 
           // 4. Обновляем время в хранилище
           await this.updateStorageItemTime(this.modalPageData.value.itemId, newTime);
@@ -3063,6 +3029,79 @@ class HierarchicalDataManager {
         } else {
           resolve(null)
         }
+      }, true)
+    })
+  }
+
+  async loadMyTimeDataFromSection(sectionId) {
+    return new Promise((resolve, reject) => {
+      BX24.callBatch({
+        items: [
+          'entity.item.get',
+          {
+            ENTITY: 'pr_tracking',
+            FILTER: {
+              SECTION_ID: sectionId,
+              'PROPERTY_USER_ID': this.currentUserId.value
+            },
+            SELECT: ['ID', 'DATE_CREATE', 'TIMESTAMP_X', 'PROPERTY_VALUES', 'NAME']
+          }
+        ]
+      }, async (result) => {
+        if (result.items.error()) {
+          this.showNotification('error', 'Ошибка загрузки данных')
+          reject(result.items.error())
+          return
+        }
+
+        const items = result.items.data()
+        this.processMyTimeData(items)
+
+        await this.forceExpandFirstUserInMyTime()
+
+        resolve(items)
+      }, true)
+    })
+  }
+
+  async loadAllTimeDataFromSection(sectionId) {
+    return new Promise((resolve, reject) => {
+      BX24.callBatch({
+        items: [
+          'entity.item.get',
+          {
+            ENTITY: 'pr_tracking',
+            FILTER: { SECTION_ID: sectionId },
+            SELECT: ['ID', 'DATE_CREATE', 'TIMESTAMP_X', 'PROPERTY_VALUES', 'NAME']
+          }
+        ]
+      }, async (result) => {
+        if (result.items.error()) {
+          this.showNotification('error', 'Ошибка загрузки данных')
+          reject(result.items.error())
+          return
+        }
+
+        const items = result.items.data()
+
+        if (items.length === 0) {
+          this.filteredHierarchicalData.value = []
+          this.filteredUsers.value = []
+          resolve([])
+          return
+        }
+
+        const uniqueUserIds = [...new Set(items.map(item =>
+            parseInt(item.PROPERTY_VALUES?.USER_ID || 0)
+        ).filter(id => id > 0))]
+
+        if (uniqueUserIds.length > 0) {
+          await this.getUserProfilesBatch(uniqueUserIds)
+        }
+
+        this.processAllTimeData(items)
+        this.filteredUsers.value = [...this.filteredHierarchicalData.value]
+        resolve(items)
       }, true)
     })
   }
@@ -3477,6 +3516,8 @@ export default {
   setup() {
     const hierarchicalDataManager = new HierarchicalDataManager()
 
+    const isActualizeCooldown = ref(false)
+
     const getUserInitials = (name) => {
       if (!name) return '?'
       const parts = name.split(' ')
@@ -3520,9 +3561,6 @@ export default {
       calendarDate: hierarchicalDataManager.calendarDate,
       taskDeadlineCalendarDate: hierarchicalDataManager.taskDeadlineCalendarDate,
       isProcessingData: hierarchicalDataManager.isProcessingData,
-      isLoadingMore: hierarchicalDataManager.isLoadingMore,
-      currentLoadPage: hierarchicalDataManager.currentLoadPage,
-      totalLoadedItems: hierarchicalDataManager.totalLoadedItems,
       categories: hierarchicalDataManager.categories,
       expandedUsersMyTime: hierarchicalDataManager.expandedUsersMyTime,
       expandedCategoriesMyTime: hierarchicalDataManager.expandedCategoriesMyTime,
@@ -3540,7 +3578,6 @@ export default {
       isUpdatingTime: hierarchicalDataManager.isUpdatingTime,
       isUnlinkingTask: hierarchicalDataManager.isUnlinkingTask,
       isSendingReportRequest: hierarchicalDataManager.isSendingReportRequest,
-      isLoadingMoreTasks: hierarchicalDataManager.isLoadingMoreTasks,
       modalPageData: hierarchicalDataManager.modalPageData,
       selectedUser: hierarchicalDataManager.selectedUser,
       selectedUserForReport: hierarchicalDataManager.selectedUserForReport,
@@ -3559,7 +3596,6 @@ export default {
       itemsPerPage: hierarchicalDataManager.itemsPerPage,
       currentTaskPage: hierarchicalDataManager.currentTaskPage,
       tasksPerPage: hierarchicalDataManager.tasksPerPage,
-      totalTaskPages: hierarchicalDataManager.totalTaskPages,
       subordinateReportsEnabled: hierarchicalDataManager.subordinateReportsEnabled,
       employeeReactionTime: hierarchicalDataManager.employeeReactionTime,
       deliveryMethod: hierarchicalDataManager.deliveryMethod,
@@ -3587,7 +3623,6 @@ export default {
       formatDuration: hierarchicalDataManager.formatDuration.bind(hierarchicalDataManager),
       formatDayDisplay: hierarchicalDataManager.formatDayDisplay.bind(hierarchicalDataManager),
       onTabChange: hierarchicalDataManager.onTabChange.bind(hierarchicalDataManager),
-      onTaskPageChange: hierarchicalDataManager.onTaskPageChange.bind(hierarchicalDataManager),
       toggleUser: hierarchicalDataManager.toggleUser.bind(hierarchicalDataManager),
       toggleCategory: hierarchicalDataManager.toggleCategory.bind(hierarchicalDataManager),
       filterTasks: hierarchicalDataManager.filterTasks.bind(hierarchicalDataManager),
@@ -3615,6 +3650,7 @@ export default {
       removeAuditor: hierarchicalDataManager.removeAuditor.bind(hierarchicalDataManager),
       createTask: hierarchicalDataManager.createTask.bind(hierarchicalDataManager),
       loadUserTasks: hierarchicalDataManager.loadUserTasks.bind(hierarchicalDataManager),
+      loadMoreTasks: hierarchicalDataManager.loadMoreTasks.bind(hierarchicalDataManager),
       selectTask: hierarchicalDataManager.selectTask.bind(hierarchicalDataManager),
       attachToTask: hierarchicalDataManager.attachToTask.bind(hierarchicalDataManager),
       updateTaskTime: hierarchicalDataManager.updateTaskTime.bind(hierarchicalDataManager),
@@ -3624,14 +3660,15 @@ export default {
       createStructuredReportRequest: hierarchicalDataManager.createStructuredReportRequest?.bind(hierarchicalDataManager),
       refreshSidebarSavedTimeCounter: hierarchicalDataManager.refreshSidebarSavedTimeCounter?.bind(hierarchicalDataManager),
       actualizeAllTimes: hierarchicalDataManager.actualizeAllTimes?.bind(hierarchicalDataManager),
-      getUserPosition
+      getUserPosition,
+      isActualizeCooldown: hierarchicalDataManager.isActualizeCooldown,
     }
   }
 }
 </script>
 
 <style>
-button {
-  cursor: pointer!important;
-}
+  button {
+    cursor: pointer!important;
+  }
 </style>
