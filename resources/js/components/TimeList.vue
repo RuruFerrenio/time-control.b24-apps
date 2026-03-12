@@ -35,7 +35,7 @@
                   </B24Button>
                   <B24Button
                       @click="actualizeAllTimes"
-                      :disabled="isProcessingData || isActualizeCooldown"
+                      :disabled="isProcessingData"
                       color="air-primary-success"
                       size="sm"
                       class="flex-1 w-full sm:w-auto justify-center"
