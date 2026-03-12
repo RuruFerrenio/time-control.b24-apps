@@ -1542,30 +1542,49 @@ class WorkDayStatisticsManager {
       const sectionId = sections[0].ID
       let allItems = []
       let start = 0
-      const pageSize = 50
+      const limit = 50
+      let hasMore = true
 
-      while (true) {
-        const itemsResults = await this.executeBatch([
-          ['entity.item.get', {
-            ENTITY: 'pr_tracking',
-            FILTER: {
-              SECTION_ID: sectionId,
-              'PROPERTY_USER_ID': this.currentUserId.value
-            },
-            SELECT: ['PROPERTY_VALUES'],
-            NAV_PARAMS: {
-              nPageSize: pageSize,
-              iNumPage: Math.floor(start / pageSize) + 1
+      while (hasMore) {
+        const itemsResults = await new Promise((resolve, reject) => {
+          BX24.callBatch({
+            items: [
+              'entity.item.get',
+              {
+                ENTITY: 'pr_tracking',
+                FILTER: {
+                  SECTION_ID: sectionId,
+                  'PROPERTY_USER_ID': this.currentUserId.value
+                },
+                SELECT: ['PROPERTY_VALUES'],
+                start: start
+              }
+            ]
+          }, (result) => {
+            if (result.items.error()) {
+              reject(result.items.error())
+            } else {
+              resolve(result)
             }
-          }]
-        ])
+          }, true)
+        })
 
-        const items = itemsResults[0] || []
-        if (items.length === 0) break
+        const items = itemsResults.items.data() || []
 
-        allItems = allItems.concat(items)
-        if (items.length < pageSize) break
-        start += pageSize
+        if (items.length === 0) {
+          hasMore = false
+        } else {
+          allItems = allItems.concat(items)
+
+          // Если получили меньше, чем запросили - значит это последняя страница
+          if (items.length < limit) {
+            hasMore = false
+          } else {
+            start += limit
+            // Небольшая задержка между запросами
+            await new Promise(resolve => setTimeout(resolve, 200))
+          }
+        }
       }
 
       let totalBitrixTime = 0
@@ -1579,6 +1598,7 @@ class WorkDayStatisticsManager {
 
       return allItems
     } catch (error) {
+      console.error('Ошибка в loadBitrixTimeData:', error)
       this.showNotification('error', 'Ошибка загрузки данных Bitrix24')
       this.workDayData.value.bitrixTimeSeconds = 0
       return []
