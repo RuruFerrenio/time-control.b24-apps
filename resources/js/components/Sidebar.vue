@@ -156,7 +156,7 @@
     </B24Card>
 
     <!-- Карточка со счетчиком времени -->
-    <B24Card v-if="!isSettingsPage">
+    <B24Card>
       <div class="p-0 md:p-6">
         <div class="space-y-4">
           <!-- Заголовок блока -->
