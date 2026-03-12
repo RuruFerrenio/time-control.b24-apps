@@ -3034,76 +3034,125 @@ class HierarchicalDataManager {
   }
 
   async loadMyTimeDataFromSection(sectionId) {
-    return new Promise((resolve, reject) => {
-      BX24.callBatch({
-        items: [
-          'entity.item.get',
-          {
-            ENTITY: 'pr_tracking',
-            FILTER: {
-              SECTION_ID: sectionId,
-              'PROPERTY_USER_ID': this.currentUserId.value
-            },
-            SELECT: ['ID', 'DATE_CREATE', 'TIMESTAMP_X', 'PROPERTY_VALUES', 'NAME']
+    return new Promise(async (resolve, reject) => {
+      try {
+        let allItems = [];
+        let start = 0;
+        const limit = 50;
+        let hasMore = true;
+
+        while (hasMore) {
+          const result = await new Promise((res, rej) => {
+            BX24.callBatch({
+              items: [
+                'entity.item.get',
+                {
+                  ENTITY: 'pr_tracking',
+                  FILTER: {
+                    SECTION_ID: sectionId,
+                    'PROPERTY_USER_ID': this.currentUserId.value
+                  },
+                  SELECT: ['ID', 'DATE_CREATE', 'TIMESTAMP_X', 'PROPERTY_VALUES', 'NAME'],
+                  start: start
+                }
+              ]
+            }, (result) => {
+              if (result.items.error()) {
+                rej(result.items.error());
+              } else {
+                res(result);
+              }
+            }, true);
+          });
+
+          const items = result.items.data();
+          allItems = [...allItems, ...items];
+
+          if (items.length < limit) {
+            hasMore = false;
+          } else {
+            start += limit;
+            await new Promise(resolve => setTimeout(resolve, 200));
           }
-        ]
-      }, async (result) => {
-        if (result.items.error()) {
-          this.showNotification('error', 'Ошибка загрузки данных')
-          reject(result.items.error())
-          return
         }
 
-        const items = result.items.data()
-        this.processMyTimeData(items)
+        this.processMyTimeData(allItems);
+        await this.forceExpandFirstUserInMyTime();
+        resolve(allItems);
 
-        await this.forceExpandFirstUserInMyTime()
-
-        resolve(items)
-      }, true)
-    })
+      } catch (error) {
+        this.showNotification('error', 'Ошибка загрузки данных');
+        reject(error);
+      }
+    });
   }
 
   async loadAllTimeDataFromSection(sectionId) {
-    return new Promise((resolve, reject) => {
-      BX24.callBatch({
-        items: [
-          'entity.item.get',
-          {
-            ENTITY: 'pr_tracking',
-            FILTER: { SECTION_ID: sectionId },
-            SELECT: ['ID', 'DATE_CREATE', 'TIMESTAMP_X', 'PROPERTY_VALUES', 'NAME']
+    return new Promise(async (resolve, reject) => {
+      try {
+        let allItems = [];
+        let start = 0;
+        const limit = 50; // максимальное количество за страницу
+        let hasMore = true;
+
+        while (hasMore) {
+          const result = await new Promise((res, rej) => {
+            BX24.callBatch({
+              items: [
+                'entity.item.get',
+                {
+                  ENTITY: 'pr_tracking',
+                  FILTER: { SECTION_ID: sectionId },
+                  SELECT: ['ID', 'DATE_CREATE', 'TIMESTAMP_X', 'PROPERTY_VALUES', 'NAME'],
+                  start: start // параметр для пагинации
+                }
+              ]
+            }, (result) => {
+              if (result.items.error()) {
+                rej(result.items.error());
+              } else {
+                res(result);
+              }
+            }, true);
+          });
+
+          const items = result.items.data();
+          allItems = [...allItems, ...items];
+
+          // Проверяем, есть ли еще элементы
+          if (items.length < limit) {
+            hasMore = false;
+          } else {
+            start += limit;
+            // Небольшая задержка между запросами
+            await new Promise(resolve => setTimeout(resolve, 200));
           }
-        ]
-      }, async (result) => {
-        if (result.items.error()) {
-          this.showNotification('error', 'Ошибка загрузки данных')
-          reject(result.items.error())
-          return
         }
 
-        const items = result.items.data()
-
-        if (items.length === 0) {
-          this.filteredHierarchicalData.value = []
-          this.filteredUsers.value = []
-          resolve([])
-          return
+        if (allItems.length === 0) {
+          this.filteredHierarchicalData.value = [];
+          this.filteredUsers.value = [];
+          resolve([]);
+          return;
         }
 
-        const uniqueUserIds = [...new Set(items.map(item =>
+        const uniqueUserIds = [...new Set(allItems.map(item =>
             parseInt(item.PROPERTY_VALUES?.USER_ID || 0)
-        ).filter(id => id > 0))]
+        ).filter(id => id > 0))];
 
         if (uniqueUserIds.length > 0) {
-          await this.getUserProfilesBatch(uniqueUserIds)
+          await this.getUserProfilesBatch(uniqueUserIds);
         }
 
-        this.processAllTimeData(items)
-        this.filteredUsers.value = [...this.filteredHierarchicalData.value]
-        resolve(items)
-      }, true)
-    })
+        this.processAllTimeData(allItems);
+        this.filteredUsers.value = [...this.filteredHierarchicalData.value];
+        resolve(allItems);
+
+      } catch (error) {
+        this.showNotification('error', 'Ошибка загрузки данных');
+        reject(error);
+      }
+    });
   }
 
   processMyTimeData(items) {
