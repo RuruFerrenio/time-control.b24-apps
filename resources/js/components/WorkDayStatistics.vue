@@ -1483,46 +1483,6 @@ class WorkDayStatisticsManager {
     }
   }
 
-  async loadWorkDaySettings() {
-    try {
-      const results = await this.executeBatch([
-        ['timeman.settings', {
-          USER_ID: this.currentUserId.value
-        }]
-      ])
-
-      if (results[0]) {
-        this.workDaySettings.value = results[0]
-
-        if (this.workDaySettings.value.UF_TM_MIN_DURATION) {
-          const totalSeconds = this.timeStringToSeconds(
-              this.workDaySettings.value.UF_TM_MIN_DURATION
-          )
-          this.workDayData.value.totalWorkDaySeconds = totalSeconds
-          this.taskTimeData.value.totalWorkDaySeconds = totalSeconds
-        }
-      }
-    } catch (error) {
-      this.showNotification('error', 'Ошибка загрузки настроек рабочего дня')
-    }
-  }
-
-  async loadWorkDayStatus() {
-    try {
-      const results = await this.executeBatch([
-        ['timeman.status', {
-          USER_ID: this.currentUserId.value
-        }]
-      ])
-
-      if (results[0]) {
-        this.workDayStatus.value = results[0]
-      }
-    } catch (error) {
-      this.showNotification('error', 'Ошибка загрузки статуса рабочего дня')
-    }
-  }
-
   async loadBitrixTimeData() {
     try {
       const sectionResults = await this.executeBatch([
@@ -2056,8 +2016,6 @@ class WorkDayStatisticsManager {
       this.calendarDate.value = this.getCalendarDateFromString(this.selectedDay.value)
 
       await this.loadCurrentUser()
-      await this.loadWorkDaySettings()
-      await this.loadWorkDayStatus()
       await Promise.all([
         this.loadBitrixTimeData(),
         this.loadTaskTimeData(),
