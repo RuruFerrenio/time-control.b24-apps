@@ -2048,7 +2048,6 @@ class HierarchicalDataManager {
   }
 
   async actualizeAllTimes() {
-
     this.isActualizeCooldown.value = true
 
     try {
@@ -2069,28 +2068,47 @@ class HierarchicalDataManager {
         return;
       }
 
-      // Загружаем элементы за выбранную дату
-      const items = await new Promise((resolve, reject) => {
-        BX24.callBatch({
-          items: [
-            'entity.item.get',
-            {
-              ENTITY: 'pr_tracking',
-              FILTER: { SECTION_ID: sectionId },
-              SELECT: ['ID', 'PROPERTY_VALUES']
+      // Загружаем все элементы за выбранную дату с пагинацией
+      let allItems = [];
+      let start = 0;
+      const limit = 50;
+      let hasMore = true;
+
+      while (hasMore) {
+        const itemsResult = await new Promise((resolve, reject) => {
+          BX24.callBatch({
+            items: [
+              'entity.item.get',
+              {
+                ENTITY: 'pr_tracking',
+                FILTER: { SECTION_ID: sectionId },
+                SELECT: ['ID', 'PROPERTY_VALUES'],
+                start: start
+              }
+            ]
+          }, (result) => {
+            if (result.items.error()) {
+              reject(result.items.error());
+            } else {
+              resolve(result);
             }
-          ]
-        }, (result) => {
-          if (result.items.error()) {
-            reject(result.items.error());
-          } else {
-            resolve(result.items.data());
-          }
-        }, true);
-      });
+          }, true);
+        });
+
+        const items = itemsResult.items.data() || [];
+        allItems = [...allItems, ...items];
+
+        // Проверяем, есть ли еще элементы
+        if (items.length < limit) {
+          hasMore = false;
+        } else {
+          start += limit;
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
 
       // Фильтруем элементы с привязкой к задачам
-      const taskItems = items.filter(item =>
+      const taskItems = allItems.filter(item =>
           item.PROPERTY_VALUES?.TASK_ID &&
           item.PROPERTY_VALUES?.ELAPSED_ITEM_ID
       );
@@ -2104,8 +2122,8 @@ class HierarchicalDataManager {
       this.showNotification('info', `Начинаю актуализацию для ${taskItems.length} записей за ${this.formatDayDisplay(selectedDate)}...`);
 
       const userTimeDifferences = {};
+      const BATCH_SIZE = 50; // Количество элементов для параллельной обработки
 
-      const BATCH_SIZE = 50;
       for (let i = 0; i < taskItems.length; i += BATCH_SIZE) {
         const batch = taskItems.slice(i, i + BATCH_SIZE);
         const batchPromises = [];
@@ -2127,6 +2145,7 @@ class HierarchicalDataManager {
 
           const promise = (async () => {
             try {
+              // Получаем текущее время (1 запрос)
               const currentTime = await new Promise((resolve) => {
                 BX24.callBatch({
                   get_time: [
@@ -2146,6 +2165,7 @@ class HierarchicalDataManager {
                 }, true);
               });
 
+              // Обновляем время (2 запрос)
               await new Promise((resolve, reject) => {
                 BX24.callBatch({
                   update_time: [
@@ -2180,8 +2200,10 @@ class HierarchicalDataManager {
           batchPromises.push(promise);
         }
 
+        // Выполняем batch параллельно
         const results = await Promise.all(batchPromises);
 
+        // Обрабатываем результаты
         results.forEach(result => {
           if (result.success && result.timeDifference !== 0) {
             if (!userTimeDifferences[result.userId]) {
@@ -2191,17 +2213,28 @@ class HierarchicalDataManager {
           }
         });
 
+        // Если это не последний batch, делаем паузу для соблюдения лимита
         if (i + BATCH_SIZE < taskItems.length) {
-          console.log(`Обработано ${i + batch.length} из ${taskItems.length}. Ожидание 1 секунду...`);
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          console.log(`Обработано ${i + batch.length} из ${taskItems.length}. Ожидание для соблюдения лимита...`);
+
+          // Важно! Каждый элемент в batch делает 2 запроса,
+          // поэтому нужно рассчитать паузу исходя из количества запросов
+          const requestsInBatch = batch.length * 2; // каждый элемент делает get и update
+          const minDelayNeeded = (requestsInBatch / 2) * 1000; // 2 запроса в секунду = 500ms на запрос
+
+          console.log(`Batch отправил ${requestsInBatch} запросов. Минимальная пауза: ${minDelayNeeded}ms`);
+          await new Promise(resolve => setTimeout(resolve, Math.max(1000, minDelayNeeded)));
         }
       }
 
+      // Обновляем счетчики в bitrixHelper
       if (bitrixHelper && Object.keys(userTimeDifferences).length > 0) {
         try {
           for (const [userId, timeDiff] of Object.entries(userTimeDifferences)) {
             if (timeDiff !== 0) {
               await bitrixHelper.updateUserSavedTime(parseInt(userId), timeDiff);
+              // Пауза между обновлениями счетчиков
+              await new Promise(resolve => setTimeout(resolve, 500));
             }
           }
           this.refreshSidebarSavedTimeCounter();
@@ -2211,7 +2244,6 @@ class HierarchicalDataManager {
         }
       }
 
-      const successCount = taskItems.length;
       this.showNotification(
           'success',
           `Актуализация за ${this.formatDayDisplay(selectedDate)} завершена. Обработано записей: ${taskItems.length}`
