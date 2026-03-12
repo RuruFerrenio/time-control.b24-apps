@@ -2441,10 +2441,6 @@ class HierarchicalDataManager {
           filter = { 'RESPONSIBLE_ID': this.selectedUser.value.id };
         } else if (role === 'creator') {
           filter = { 'CREATED_BY': this.selectedUser.value.id };
-        } else if (role === 'accomplice') {
-          filter = { 'ACCOMPLICE_ID': this.selectedUser.value.id };
-        } else if (role === 'auditor') {
-          filter = { 'AUDITOR_ID': this.selectedUser.value.id };
         }
 
         while (hasMore) {
