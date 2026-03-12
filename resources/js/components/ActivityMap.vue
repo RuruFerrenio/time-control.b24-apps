@@ -1587,42 +1587,68 @@ class ActivityMapManager {
   // Получение всех элементов из всех разделов
   async getAllItems() {
     try {
-      const sections = await this.getAllSections()
+      const sections = await this.getAllSections();
 
       if (sections.length === 0) {
-        return []
+        return [];
       }
 
-      // Создаем батч запросов для получения элементов из каждого раздела
-      const batchCommands = {}
-      sections.forEach((section, index) => {
-        batchCommands[`items_${index}`] = [
-          'entity.item.get',
-          {
-            ENTITY: 'pr_tracking',
-            FILTER: { SECTION_ID: section.ID },
-            SELECT: ['ID', 'DATE_CREATE', 'TIMESTAMP_X', 'PROPERTY_VALUES', 'NAME']
+      const allItems = [];
+      const limit = 50; // максимальное количество элементов на страницу
+
+      // Для каждого раздела загружаем все страницы
+      for (const section of sections) {
+        let start = 0;
+        let hasMore = true;
+
+        while (hasMore) {
+          // Создаем запрос для текущей страницы текущего раздела
+          const batchCommands = {
+            items: [
+              'entity.item.get',
+              {
+                ENTITY: 'pr_tracking',
+                FILTER: { SECTION_ID: section.ID },
+                SELECT: ['ID', 'DATE_CREATE', 'TIMESTAMP_X', 'PROPERTY_VALUES', 'NAME'],
+                start: start
+              }
+            ]
+          };
+
+          // Выполняем запрос
+          const result = await new Promise((resolve, reject) => {
+            BX24.callBatch(batchCommands, (result) => {
+              if (result.items.error()) {
+                reject(result.items.error());
+              } else {
+                resolve(result);
+              }
+            }, true);
+          });
+
+          const items = result.items.data() || [];
+          allItems.push(...items);
+
+          // Проверяем, есть ли еще элементы
+          if (items.length < limit) {
+            hasMore = false;
+          } else {
+            start += limit;
+            // Небольшая задержка между запросами к одному разделу
+            await new Promise(resolve => setTimeout(resolve, 200));
           }
-        ]
-      })
+        }
 
-      return new Promise((resolve, reject) => {
-        BX24.callBatch(batchCommands, (result) => {
-          const allItems = []
+        // Задержка между разделами
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
 
-          Object.keys(result).forEach(key => {
-            if (!result[key].error()) {
-              const items = result[key].data() || []
-              allItems.push(...items)
-            }
-          })
+      return allItems;
 
-          resolve(allItems)
-        }, true)
-      })
     } catch (error) {
-      this.showNotification('error', 'Ошибка получения данных')
-      return []
+      console.error('Ошибка в getAllItems:', error);
+      this.showNotification('error', 'Ошибка получения данных');
+      return [];
     }
   }
 
