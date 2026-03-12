@@ -35,7 +35,7 @@
                   </B24Button>
                   <B24Button
                       @click="actualizeAllTimes"
-                      :disabled="isProcessingData || isActualizeCooldown"
+                      :disabled="isProcessingData"
                       color="air-primary-success"
                       size="sm"
                       class="flex-1 w-full sm:w-auto justify-center"
@@ -1429,8 +1429,6 @@ class HierarchicalDataManager {
       'all-time': { users: {}, categories: {} }
     }
 
-    this.isActualizeCooldown = ref(false)
-
     this.taskFormData = ref({
       title: '',
       description: '',
@@ -2048,9 +2046,6 @@ class HierarchicalDataManager {
   }
 
   async actualizeAllTimes() {
-
-    this.isActualizeCooldown.value = true
-
     try {
       this.isProcessingData.value = true;
 
@@ -2223,9 +2218,6 @@ class HierarchicalDataManager {
     } finally {
       this.isProcessingData.value = false;
       await this.refreshCurrentTabData();
-      setTimeout(() => {
-        this.isActualizeCooldown.value = false
-      }, 5000)
     }
   }
 
@@ -3516,8 +3508,6 @@ export default {
   setup() {
     const hierarchicalDataManager = new HierarchicalDataManager()
 
-    const isActualizeCooldown = ref(false)
-
     const getUserInitials = (name) => {
       if (!name) return '?'
       const parts = name.split(' ')
@@ -3660,15 +3650,14 @@ export default {
       createStructuredReportRequest: hierarchicalDataManager.createStructuredReportRequest?.bind(hierarchicalDataManager),
       refreshSidebarSavedTimeCounter: hierarchicalDataManager.refreshSidebarSavedTimeCounter?.bind(hierarchicalDataManager),
       actualizeAllTimes: hierarchicalDataManager.actualizeAllTimes?.bind(hierarchicalDataManager),
-      getUserPosition,
-      isActualizeCooldown: hierarchicalDataManager.isActualizeCooldown,
+      getUserPosition
     }
   }
 }
 </script>
 
 <style>
-  button {
-    cursor: pointer!important;
-  }
+button {
+  cursor: pointer!important;
+}
 </style>
