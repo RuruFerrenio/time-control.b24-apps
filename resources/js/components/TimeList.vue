@@ -2428,91 +2428,125 @@ class HierarchicalDataManager {
       this.isLoadingTasks.value = true;
       this.allUserTasks.value = [];
 
-      // Загружаем задачи отдельными запросами
-      const loadTasksByRole = (role, page) => {
-        return new Promise((resolve, reject) => {
-          let filter = {};
-
-          //TODO::Доделать получение ответственных и сделать, чтобы имя исполнителя выводилось корректно
-          // Устанавливаем фильтр в зависимости от роли
-          if (role === 'responsible') {
-            filter = { 'RESPONSIBLE_ID': this.selectedUser.value.id };
-          } else if (role === 'creator') {
-            filter = { 'CREATED_BY': this.selectedUser.value.id };
-          }
-
-          BX24.callBatch({
-            tasks: [
-              'task.item.list',
-              [
-                { 'ID': 'desc' },
-                filter,
-                {
-                  'NAV_PARAMS': {
-                    'nPageSize': 50,
-                    'iNumPage': page
-                  }
-                },
-                ['ID', 'TITLE', 'DESCRIPTION', 'REAL_STATUS', 'DEADLINE', 'CREATED_DATE', 'RESPONSIBLE_ID', 'CREATED_BY', 'ACCOMPLICES', 'AUDITORS', 'PRIORITY']
-              ]
-            ]
-          }, (result) => {
-            if (result.tasks.error()) {
-              reject(result.tasks.error());
-            } else {
-              resolve(result.tasks.data() || []);
-            }
-          }, true);
-        });
-      };
-
-      // Загружаем задачи по всем ролям
-      const roles = ['responsible', 'creator'];
-      let allTasks = [];
-
-      for (const role of roles) {
+      // Функция для загрузки задач по роли с пагинацией
+      const loadTasksByRole = async (role) => {
         let page = 1;
         let hasMore = true;
+        let roleTasks = [];
+        const limit = 50; // максимальное количество задач на страницу
 
-        while (hasMore && allTasks.length < 200) { // ограничение 200 задач
-          const data = await loadTasksByRole(role, page);
+        // Определяем фильтр в зависимости от роли
+        let filter = {};
+        if (role === 'responsible') {
+          filter = { 'RESPONSIBLE_ID': this.selectedUser.value.id };
+        } else if (role === 'creator') {
+          filter = { 'CREATED_BY': this.selectedUser.value.id };
+        } else if (role === 'accomplice') {
+          filter = { 'ACCOMPLICE_ID': this.selectedUser.value.id };
+        } else if (role === 'auditor') {
+          filter = { 'AUDITOR_ID': this.selectedUser.value.id };
+        }
 
-          if (!data || data.length === 0) {
-            hasMore = false;
-          } else {
-            data.forEach(task => {
-              // Проверяем, не добавили ли уже эту задачу
-              if (!allTasks.some(t => t.id === task.ID)) {
-                allTasks.push({
-                  id: task.ID,
-                  title: task.TITLE,
-                  description: task.DESCRIPTION,
-                  status: task.REAL_STATUS,
-                  deadline: task.DEADLINE,
-                  createdDate: task.CREATED_DATE,
-                  responsible: {
-                    id: task.RESPONSIBLE_ID,
-                    name: this.getUserNameById(task.RESPONSIBLE_ID)
-                  },
-                  creator: {
-                    id: task.CREATED_BY,
-                    name: this.getUserNameById(task.CREATED_BY)
-                  },
-                  accomplices: task.ACCOMPLICES || [],
-                  auditors: task.AUDITORS || [],
-                  priority: task.PRIORITY || '2'
-                });
-              }
+        while (hasMore) {
+          try {
+            const data = await new Promise((resolve, reject) => {
+              BX24.callBatch({
+                tasks: [
+                  'task.item.list',
+                  [
+                    { 'ID': 'desc' },
+                    filter,
+                    {
+                      'NAV_PARAMS': {
+                        'nPageSize': limit,
+                        'iNumPage': page
+                      }
+                    },
+                    ['ID', 'TITLE', 'DESCRIPTION', 'REAL_STATUS', 'DEADLINE',
+                      'CREATED_DATE', 'RESPONSIBLE_ID', 'CREATED_BY',
+                      'ACCOMPLICES', 'AUDITORS', 'PRIORITY']
+                  ]
+                ]
+              }, (result) => {
+                if (result.tasks.error()) {
+                  reject(result.tasks.error());
+                } else {
+                  resolve(result.tasks.data() || []);
+                }
+              }, true);
             });
 
-            if (data.length < 50) {
+            if (!data || data.length === 0) {
               hasMore = false;
             } else {
-              page++;
+              roleTasks = [...roleTasks, ...data];
+
+              // Проверяем, есть ли еще страницы
+              if (data.length < limit) {
+                hasMore = false;
+              } else {
+                page++;
+                // Соблюдаем лимит: не более 2 запросов в секунду
+                await new Promise(resolve => setTimeout(resolve, 500));
+              }
             }
+          } catch (error) {
+            console.error(`Ошибка загрузки задач для роли ${role}, страница ${page}:`, error);
+            // При ошибке прекращаем загрузку для этой роли
+            hasMore = false;
           }
         }
+
+        return roleTasks;
+      };
+
+      // Загружаем задачи по всем возможным ролям
+      const roles = ['responsible', 'creator', 'accomplice', 'auditor'];
+      let allTasks = [];
+      let totalRequests = 0;
+
+      for (const role of roles) {
+        console.log(`Загрузка задач для роли: ${role}`);
+        const roleTasks = await loadTasksByRole(role);
+
+        // Подсчитываем примерное количество запросов
+        const pagesForRole = Math.ceil(roleTasks.length / 50);
+        totalRequests += pagesForRole;
+
+        // Добавляем задачи, избегая дубликатов
+        roleTasks.forEach(task => {
+          if (!allTasks.some(t => t.id === task.ID)) {
+            allTasks.push({
+              id: task.ID,
+              title: task.TITLE,
+              description: task.DESCRIPTION,
+              status: task.REAL_STATUS,
+              deadline: task.DEADLINE,
+              createdDate: task.CREATED_DATE,
+              responsible: {
+                id: task.RESPONSIBLE_ID,
+                name: this.getUserNameById(task.RESPONSIBLE_ID)
+              },
+              creator: {
+                id: task.CREATED_BY,
+                name: this.getUserNameById(task.CREATED_BY)
+              },
+              accomplices: task.ACCOMPLICES || [],
+              auditors: task.AUDITORS || [],
+              priority: task.PRIORITY || '2'
+            });
+          }
+        });
+
+        // Пауза между загрузкой разных ролей
+        if (role !== roles[roles.length - 1]) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+
+        }
       }
+
+      console.log(`Всего выполнено запросов: ~${totalRequests}`);
+      console.log(`Загружено уникальных задач: ${allTasks.length}`);
 
       // Сортируем задачи по ID (новые сверху)
       allTasks.sort((a, b) => b.id - a.id);
@@ -2520,6 +2554,11 @@ class HierarchicalDataManager {
       this.allUserTasks.value = allTasks;
       this.filterTasks();
       this.hasMoreTasks.value = false;
+
+      // Показываем уведомление о количестве загруженных задач
+      if (allTasks.length > 0) {
+        this.showNotification('success', `Загружено ${allTasks.length} задач`, { duration: 3000 });
+      }
 
     } catch (error) {
       console.error('Ошибка при загрузке задач:', error);
