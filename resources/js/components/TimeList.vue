@@ -2975,54 +2975,34 @@ class HierarchicalDataManager {
 
   async loadDataForSelectedDay() {
     if (!this.selectedDay.value || !this.currentUserId.value) {
-      this.clearTabData(this.activeTab.value);
-      this.isProcessingData.value = false;
-      return;
+      this.clearTabData(this.activeTab.value)
+      this.isProcessingData.value = false
+      return
     }
 
     try {
-      this.isProcessingData.value = true;
-      this.clearTabData(this.activeTab.value);
+      this.isProcessingData.value = true
+      this.clearTabData(this.activeTab.value)
 
-      const sectionId = await this.findSectionForDate(this.selectedDay.value);
+      const sectionId = await this.findSectionForDate(this.selectedDay.value)
 
       if (!sectionId) {
-        this.isProcessingData.value = false;
-        return;
+        this.isProcessingData.value = false
+        return
       }
-
-      // Показываем сообщение о загрузке
-      this.showNotification('info', 'Загрузка данных...');
 
       if (this.activeTab.value === 'my-time') {
-        await this.loadMyTimeDataFromSection(sectionId);
+        await this.loadMyTimeDataFromSection(sectionId)
       } else if (this.activeTab.value === 'all-time') {
-        await this.loadAllTimeDataFromSection(sectionId);
+        await this.loadAllTimeDataFromSection(sectionId)
       }
 
-      // Показываем количество загруженных записей
-      const itemsCount = this.activeTab.value === 'my-time'
-          ? this.getTotalItemsCountFromData(this.myTimeData.value)
-          : this.getTotalItemsCountFromData(this.filteredHierarchicalData.value);
-
-      this.showNotification('success', `Загружено ${itemsCount} записей`);
-
     } catch (error) {
-      this.showNotification('error', 'Ошибка при загрузке данных');
-      this.clearTabData(this.activeTab.value);
+      this.showNotification('error', 'Ошибка при загрузке данных')
+      this.clearTabData(this.activeTab.value)
     } finally {
-      this.isProcessingData.value = false;
+      this.isProcessingData.value = false
     }
-  }
-
-  getTotalItemsCountFromData(data) {
-    let count = 0;
-    data.forEach(userData => {
-      userData.categories.forEach(category => {
-        count += category.pages.length;
-      });
-    });
-    return count;
   }
 
   async findSectionForDate(dateString) {
@@ -3054,135 +3034,76 @@ class HierarchicalDataManager {
   }
 
   async loadMyTimeDataFromSection(sectionId) {
-    let allItems = [];
-    let currentPage = 1;
-    const pageSize = 50;
-    let hasMore = true;
-
-    while (hasMore) {
-      try {
-        const items = await this.loadItemsPage(sectionId, currentPage, pageSize, this.currentUserId.value);
-
-        if (items.length === 0) {
-          hasMore = false;
-        } else {
-          allItems = [...allItems, ...items];
-
-          // Если получили меньше, чем запрашивали - значит это последняя страница
-          if (items.length < pageSize) {
-            hasMore = false;
-          } else {
-            currentPage++;
-          }
-        }
-      } catch (error) {
-        console.error('Ошибка загрузки страницы:', error);
-        hasMore = false;
-      }
-    }
-
-    this.processMyTimeData(allItems);
-    await this.forceExpandFirstUserInMyTime();
-  }
-
-  async loadAllTimeDataFromSection(sectionId) {
-    let allItems = [];
-    let currentPage = 1;
-    const pageSize = 50;
-    let hasMore = true;
-
-    while (hasMore) {
-      try {
-        const items = await this.loadItemsPage(sectionId, currentPage, pageSize);
-
-        if (items.length === 0) {
-          hasMore = false;
-        } else {
-          allItems = [...allItems, ...items];
-
-          if (items.length < pageSize) {
-            hasMore = false;
-          } else {
-            currentPage++;
-          }
-        }
-      } catch (error) {
-        console.error('Ошибка загрузки страницы:', error);
-        hasMore = false;
-      }
-    }
-
-    if (allItems.length === 0) {
-      this.filteredHierarchicalData.value = [];
-      this.filteredUsers.value = [];
-      return;
-    }
-
-    const uniqueUserIds = [...new Set(allItems.map(item =>
-        parseInt(item.PROPERTY_VALUES?.USER_ID || 0)
-    ).filter(id => id > 0))];
-
-    if (uniqueUserIds.length > 0) {
-      await this.getUserProfilesBatch(uniqueUserIds);
-    }
-
-    this.processAllTimeData(allItems);
-    this.filteredUsers.value = [...this.filteredHierarchicalData.value];
-  }
-
-  async loadItemsPage(sectionId, page, pageSize, userId = null) {
     return new Promise((resolve, reject) => {
-      const filter = { SECTION_ID: sectionId };
-      if (userId) {
-        filter['PROPERTY_USER_ID'] = userId;
-      }
-
       BX24.callBatch({
         items: [
           'entity.item.get',
           {
             ENTITY: 'pr_tracking',
-            FILTER: filter,
-            SELECT: ['ID', 'DATE_CREATE', 'TIMESTAMP_X', 'PROPERTY_VALUES', 'NAME'],
-            ORDER: { 'ID': 'ASC' },
-            LIMIT: pageSize,
-            START: (page - 1) * pageSize
+            FILTER: {
+              SECTION_ID: sectionId,
+              'PROPERTY_USER_ID': this.currentUserId.value
+            },
+            SELECT: ['ID', 'DATE_CREATE', 'TIMESTAMP_X', 'PROPERTY_VALUES', 'NAME']
           }
         ]
-      }, (result) => {
+      }, async (result) => {
         if (result.items.error()) {
-          this.showNotification('error', 'Ошибка загрузки данных');
-          reject(result.items.error());
-        } else {
-          resolve(result.items.data() || []);
+          this.showNotification('error', 'Ошибка загрузки данных')
+          reject(result.items.error())
+          return
         }
-      }, true);
-    });
+
+        const items = result.items.data()
+        this.processMyTimeData(items)
+
+        await this.forceExpandFirstUserInMyTime()
+
+        resolve(items)
+      }, true)
+    })
   }
 
-  async getTotalItemsCount(sectionId, userId = null) {
+  async loadAllTimeDataFromSection(sectionId) {
     return new Promise((resolve, reject) => {
-      const filter = { SECTION_ID: sectionId };
-      if (userId) {
-        filter['PROPERTY_USER_ID'] = userId;
-      }
-
       BX24.callBatch({
-        count: [
-          'entity.item.count',
+        items: [
+          'entity.item.get',
           {
             ENTITY: 'pr_tracking',
-            FILTER: filter
+            FILTER: { SECTION_ID: sectionId },
+            SELECT: ['ID', 'DATE_CREATE', 'TIMESTAMP_X', 'PROPERTY_VALUES', 'NAME']
           }
         ]
-      }, (result) => {
-        if (result.count.error()) {
-          resolve(0);
-        } else {
-          resolve(result.count.data() || 0);
+      }, async (result) => {
+        if (result.items.error()) {
+          this.showNotification('error', 'Ошибка загрузки данных')
+          reject(result.items.error())
+          return
         }
-      }, true);
-    });
+
+        const items = result.items.data()
+
+        if (items.length === 0) {
+          this.filteredHierarchicalData.value = []
+          this.filteredUsers.value = []
+          resolve([])
+          return
+        }
+
+        const uniqueUserIds = [...new Set(items.map(item =>
+            parseInt(item.PROPERTY_VALUES?.USER_ID || 0)
+        ).filter(id => id > 0))]
+
+        if (uniqueUserIds.length > 0) {
+          await this.getUserProfilesBatch(uniqueUserIds)
+        }
+
+        this.processAllTimeData(items)
+        this.filteredUsers.value = [...this.filteredHierarchicalData.value]
+        resolve(items)
+      }, true)
+    })
   }
 
   processMyTimeData(items) {
