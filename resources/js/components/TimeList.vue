@@ -2501,7 +2501,7 @@ class HierarchicalDataManager {
       };
 
       // Загружаем задачи по всем возможным ролям
-      const roles = ['responsible', 'creator', 'accomplice', 'auditor'];
+      const roles = ['responsible', 'creator'];
       let allTasks = [];
       let totalRequests = 0;
 
