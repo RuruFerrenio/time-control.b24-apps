@@ -2048,7 +2048,7 @@ class HierarchicalDataManager {
   }
 
   async actualizeAllTimes() {
-    this.isActualizeCooldown.value = true
+    this.isActualizeCooldown.value = true;
 
     try {
       this.isProcessingData.value = true;
@@ -2098,11 +2098,11 @@ class HierarchicalDataManager {
         const items = itemsResult.items.data() || [];
         allItems = [...allItems, ...items];
 
-        // Проверяем, есть ли еще элементы
         if (items.length < limit) {
           hasMore = false;
         } else {
           start += limit;
+          // Пауза между запросами загрузки (1 запрос в 0.5 секунды)
           await new Promise(resolve => setTimeout(resolve, 500));
         }
       }
@@ -2122,121 +2122,126 @@ class HierarchicalDataManager {
       this.showNotification('info', `Начинаю актуализацию для ${taskItems.length} записей за ${this.formatDayDisplay(selectedDate)}...`);
 
       const userTimeDifferences = {};
-      const BATCH_SIZE = 50; // Количество элементов для параллельной обработки
+
+      // Обрабатываем элементы пакетами по 25 (макс 50 операций = 25 элементов * 2 запроса)
+      // Это позволит отправлять 1 батч в секунду (50 запросов)
+      const BATCH_SIZE = 25;
 
       for (let i = 0; i < taskItems.length; i += BATCH_SIZE) {
         const batch = taskItems.slice(i, i + BATCH_SIZE);
-        const batchPromises = [];
 
-        for (const item of batch) {
+        // Создаем один батч для всех операций в этой группе
+        const batchCommands = {};
+
+        batch.forEach((item, index) => {
           const props = item.PROPERTY_VALUES || {};
-          const {
-            TASK_ID,
-            ELAPSED_ITEM_ID,
-            PAGE_TIME,
-            PAGE_URL,
-            USER_ID
-          } = props;
+          const { TASK_ID, ELAPSED_ITEM_ID, PAGE_TIME, PAGE_URL } = props;
+
+          if (!TASK_ID || !ELAPSED_ITEM_ID) return;
+
+          // Добавляем команду получения текущего времени
+          batchCommands[`get_time_${index}`] = [
+            'task.elapseditem.get',
+            {
+              TASKID: TASK_ID,
+              ITEMID: ELAPSED_ITEM_ID
+            }
+          ];
+
+          // Добавляем команду обновления времени
+          batchCommands[`update_time_${index}`] = [
+            'task.elapseditem.update',
+            {
+              TASKID: TASK_ID,
+              ITEMID: ELAPSED_ITEM_ID,
+              ARFIELDS: {
+                SECONDS: PAGE_TIME,
+                COMMENT_TEXT: `Время на странице: ${PAGE_URL}`
+              }
+            }
+          ];
+        });
+
+        const commandCount = Object.keys(batchCommands).length;
+        if (commandCount === 0) continue;
+
+        // Выполняем один батч-запрос
+        const batchResult = await new Promise((resolve, reject) => {
+          BX24.callBatch(batchCommands, (result) => {
+            resolve(result);
+          }, true);
+        });
+
+        // Обрабатываем результаты
+        for (let j = 0; j < batch.length; j++) {
+          const item = batch[j];
+          const props = item.PROPERTY_VALUES || {};
+          const { USER_ID, PAGE_TIME } = props;
 
           if (!USER_ID) {
             console.warn(`Пропуск записи ${item.ID}: нет USER_ID`);
             continue;
           }
 
-          const promise = (async () => {
-            try {
-              // Получаем текущее время (1 запрос)
-              const currentTime = await new Promise((resolve) => {
-                BX24.callBatch({
-                  get_time: [
-                    'task.elapseditem.get',
-                    {
-                      TASKID: TASK_ID,
-                      ITEMID: ELAPSED_ITEM_ID
-                    }
-                  ]
-                }, (result) => {
-                  if (result.get_time.error()) {
-                    console.warn(`Не удалось получить время для задачи ${TASK_ID}:`, result.get_time.error());
-                    resolve(0);
-                  } else {
-                    resolve(parseInt(result.get_time.data().SECONDS) || 0);
-                  }
-                }, true);
-              });
+          const getResult = batchResult[`get_time_${j}`];
+          const updateResult = batchResult[`update_time_${j}`];
 
-              // Обновляем время (2 запрос)
-              await new Promise((resolve, reject) => {
-                BX24.callBatch({
-                  update_time: [
-                    'task.elapseditem.update',
-                    {
-                      TASKID: TASK_ID,
-                      ITEMID: ELAPSED_ITEM_ID,
-                      ARFIELDS: {
-                        SECONDS: PAGE_TIME,
-                        COMMENT_TEXT: `Время на странице: ${PAGE_URL}`
-                      }
-                    }
-                  ]
-                }, (result) => {
-                  if (result.update_time.error()) {
-                    reject(result.update_time.error());
-                  } else {
-                    resolve();
-                  }
-                }, true);
-              });
+          if (getResult && !getResult.error() && updateResult && !updateResult.error()) {
+            const currentTime = parseInt(getResult.data()?.SECONDS) || 0;
+            const timeDifference = PAGE_TIME - currentTime;
 
-              const timeDifference = PAGE_TIME - (currentTime || 0);
-              return { userId: USER_ID, timeDifference, success: true };
-
-            } catch (error) {
-              console.warn(`Ошибка при обработке записи ${item.ID}:`, error);
-              return { userId: USER_ID, timeDifference: 0, success: false };
+            if (timeDifference !== 0) {
+              userTimeDifferences[USER_ID] = (userTimeDifferences[USER_ID] || 0) + timeDifference;
             }
-          })();
-
-          batchPromises.push(promise);
+          } else {
+            console.warn(`Ошибка обработки записи ${item.ID}:`, {
+              getError: getResult?.error(),
+              updateError: updateResult?.error()
+            });
+          }
         }
 
-        // Выполняем batch параллельно
-        const results = await Promise.all(batchPromises);
-
-        // Обрабатываем результаты
-        results.forEach(result => {
-          if (result.success && result.timeDifference !== 0) {
-            if (!userTimeDifferences[result.userId]) {
-              userTimeDifferences[result.userId] = 0;
-            }
-            userTimeDifferences[result.userId] += result.timeDifference;
-          }
-        });
-
-        // Если это не последний batch, делаем паузу для соблюдения лимита
+        // Важно! Один батч = 1 запрос к API.
+        // Соблюдаем лимит: не более 2 запросов в секунду
+        // Отправляем 1 батч в 0.5 секунды = 2 запроса в секунду
         if (i + BATCH_SIZE < taskItems.length) {
-          console.log(`Обработано ${i + batch.length} из ${taskItems.length}. Ожидание для соблюдения лимита...`);
-
-          // Важно! Каждый элемент в batch делает 2 запроса,
-          // поэтому нужно рассчитать паузу исходя из количества запросов
-          const requestsInBatch = batch.length * 2; // каждый элемент делает get и update
-          const minDelayNeeded = (requestsInBatch / 2) * 1000; // 2 запроса в секунду = 500ms на запрос
-
-          console.log(`Batch отправил ${requestsInBatch} запросов. Минимальная пауза: ${minDelayNeeded}ms`);
-          await new Promise(resolve => setTimeout(resolve, Math.max(1000, minDelayNeeded)));
+          console.log(`Обработано ${i + batch.length} из ${taskItems.length}. Ожидание 500ms для соблюдения лимита...`);
+          await new Promise(resolve => setTimeout(resolve, 500));
         }
       }
 
       // Обновляем счетчики в bitrixHelper
       if (bitrixHelper && Object.keys(userTimeDifferences).length > 0) {
         try {
+          // Собираем все обновления счетчиков в один батч
+          const counterBatch = {};
+          let counterIndex = 0;
+
           for (const [userId, timeDiff] of Object.entries(userTimeDifferences)) {
             if (timeDiff !== 0) {
-              await bitrixHelper.updateUserSavedTime(parseInt(userId), timeDiff);
-              // Пауза между обновлениями счетчиков
-              await new Promise(resolve => setTimeout(resolve, 500));
+              // Используем внутренний метод bitrixHelper для обновления без отдельного запроса
+              // или добавляем в батч, если это возможно
+              counterBatch[`update_counter_${counterIndex++}`] = [
+                'entity.item.update',
+                {
+                  ENTITY: 'user_saved_time',
+                  FILTER: { USER_ID: parseInt(userId) },
+                  FIELDS: {
+                    PROPERTY_VALUES: {
+                      SAVED_TIME: timeDiff
+                    }
+                  }
+                }
+              ];
             }
           }
+
+          if (Object.keys(counterBatch).length > 0) {
+            await new Promise((resolve) => {
+              BX24.callBatch(counterBatch, () => resolve(), true);
+            });
+          }
+
           this.refreshSidebarSavedTimeCounter();
         } catch (error) {
           console.warn('Ошибка обновления счетчиков:', error);
@@ -2256,8 +2261,8 @@ class HierarchicalDataManager {
       this.isProcessingData.value = false;
       await this.refreshCurrentTabData();
       setTimeout(() => {
-        this.isActualizeCooldown.value = false
-      }, 5000)
+        this.isActualizeCooldown.value = false;
+      }, 5000);
     }
   }
 
