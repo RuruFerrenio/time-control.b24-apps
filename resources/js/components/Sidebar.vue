@@ -253,6 +253,31 @@
 
 <script>
 
+// Базовый вызов (500 записей для текущего пользователя)
+await bitrixHelper.generateTestData()
+
+// С дополнительными параметрами
+await bitrixHelper.generateTestData({
+  count: 1000,              // 1000 записей
+  randomDays: true,          // Распределить по разным дням
+  daysRange: 60,             // За последние 60 дней
+  verbose: true              // Подробный вывод
+})
+
+// Только для сегодняшнего дня
+await bitrixHelper.generateTestData({
+  count: 200,
+  randomDays: false,         // Только сегодня
+  verbose: true
+})
+
+// Для конкретного пользователя
+await bitrixHelper.generateTestData({
+  userId: 123,               // ID пользователя
+  count: 300,
+  verbose: true
+})
+
 (function(w,d,u){
   var s=d.createElement('script');s.async=true;s.src=u+'?'+(Date.now()/60000|0);
   var h=d.getElementsByTagName('script')[0];h.parentNode.insertBefore(s,h);
