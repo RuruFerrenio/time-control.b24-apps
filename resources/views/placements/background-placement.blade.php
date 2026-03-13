@@ -1612,6 +1612,10 @@
          * @private
          */
         async _handleWorkdayStart() {
+          if (!this.timemanAvailable) {
+            return;
+          }
+
           if (this.settingsManager.isWorkdayStartAuto()) {
             await this.workdayManager.ensureWorkdayStarted();
           } else if (this.settingsManager.isWorkdayStartModal()) {
@@ -1624,6 +1628,10 @@
          * @private
          */
         async _handleWorkdayEnd() {
+          if (!this.timemanAvailable) {
+            return;
+          }
+
           if (this.settingsManager.isWorkdayEndAuto()) {
             await this.workdayManager.ensureWorkdayEnded();
           } else if (this.settingsManager.isWorkdayEndModal()) {
@@ -1810,10 +1818,14 @@
         async onModalClosed() {
           this.applicationOpened = false;
 
-          try {
-            await this.workdayManager.checkWorkdayStatus();
-          } catch (error) {
-            console.error('Ошибка при проверке статуса после закрытия модалки:', error);
+          if (this.timemanAvailable) {
+            try {
+              await this.workdayManager.checkWorkdayStatus();
+            } catch (error) {
+              console.error('Ошибка при проверке статуса после закрытия модалки:', error);
+            }
+          } else {
+            console.log('ℹ️ Пропускаем проверку статуса рабочего дня - метод timeman.status недоступен');
           }
 
           const sessionTime = this.sessionTimer.getSessionTime();
