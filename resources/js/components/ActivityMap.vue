@@ -2057,6 +2057,11 @@ class ActivityMapManager {
       this.processUsersData(items)
       this.processCategoriesData(items)
 
+      // Явно применяем сортировку по умолчанию
+      this.sortBy('totalTime')
+      this.sortUsersBy('totalTime')
+      this.sortCategoriesBy('totalTime')
+
       // Сбрасываем на первую страницу
       this.currentPage.value = 1
       this.currentUserPage.value = 1
