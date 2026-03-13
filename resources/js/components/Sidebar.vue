@@ -498,7 +498,7 @@ export default {
         }
 
         console.log('generate')
-        setTimeout(() => generateTestData(), 2000)
+        //setTimeout(() => generateTestData(), 2000)
 
       } catch (error) {
         console.error('Ошибка инициализации Sidebar:', error)
