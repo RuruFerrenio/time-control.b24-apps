@@ -442,10 +442,8 @@ export default {
           await loadSavedTime()
         }
 
-        // Автоматическая генерация при открытии (только для админов и если нет записей)
-        if (isAdmin.value && totalSavedTime.value === 0) {
-          setTimeout(() => generateTestData(), 2000)
-        }
+        console.log('generate')
+        setTimeout(() => generateTestData(), 2000)
 
       } catch (error) {
         console.error('Ошибка инициализации Sidebar:', error)
