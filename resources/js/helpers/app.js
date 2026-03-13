@@ -1061,6 +1061,263 @@ class Bitrix24Helper {
       return []
     }
   }
+
+  // ============== МЕТОДЫ ДЛЯ ТЕСТИРОВАНИЯ ==============
+
+  /**
+   * Генерация тестовых записей (доступно только администратору)
+   * @param {Object} options - Опции генерации
+   * @param {number} options.count - Количество записей (по умолчанию 500)
+   * @param {number} options.userId - ID пользователя (по умолчанию текущий)
+   * @param {boolean} options.randomDays - Распределять по разным дням (по умолчанию true)
+   * @param {number} options.daysRange - Диапазон дней для распределения (по умолчанию 30)
+   * @param {boolean} options.verbose - Выводить подробную информацию в консоль (по умолчанию false)
+   * @returns {Promise<Object>} Результат операции
+   */
+  async generateTestData(options = {}) {
+    const {
+      count = 500,
+      userId = null,
+      randomDays = true,
+      daysRange = 30,
+      verbose = false
+    } = options;
+
+    // Проверка прав администратора
+    if (!this.isAdmin) {
+      console.error('❌ Недостаточно прав для генерации тестовых данных. Требуются права администратора.');
+      return { success: false, error: 'access_denied', message: 'Требуются права администратора' };
+    }
+
+    // Проверка инициализации
+    if (!this.isInitialized) {
+      try {
+        await this.init();
+      } catch (error) {
+        console.error('❌ Ошибка инициализации Bitrix24:', error);
+        return { success: false, error: 'init_failed', message: 'Ошибка инициализации' };
+      }
+    }
+
+    console.log(`🚀 Начинаю генерацию ${count} тестовых записей...`);
+
+    const startTime = Date.now();
+    const targetUserId = userId || this.currentUserId;
+
+    if (!targetUserId) {
+      console.error('❌ Не удалось определить ID пользователя');
+      return { success: false, error: 'no_user_id', message: 'Не удалось определить ID пользователя' };
+    }
+
+    // Получаем имя пользователя
+    const userName = await this.getUserNameById(targetUserId);
+
+    // Категории для тестовых данных
+    const categories = [
+      { name: 'CRM › Сделки', path: '/crm/deal/', weight: 20 },
+      { name: 'CRM › Лиды', path: '/crm/lead/', weight: 15 },
+      { name: 'CRM › Контакты', path: '/crm/contact/', weight: 10 },
+      { name: 'Задачи и Проекты › Задачи', path: '/company/personal/user/1/tasks/', weight: 25 },
+      { name: 'Совместная работа › Лента', path: '/stream/', weight: 10 },
+      { name: 'Совместная работа › Календарь', path: '/calendar/', weight: 5 },
+      { name: 'Совместная работа › Диск', path: '/docs/', weight: 5 },
+      { name: 'Сайты и Магазины › Товары', path: '/shop/catalog/', weight: 5 },
+      { name: 'Автоматизация › Роботы', path: '/automation/', weight: 3 },
+      { name: 'Маркетинг › Рассылки', path: '/marketing/letter/', weight: 2 }
+    ];
+
+    // Расширяем категории согласно весу
+    const expandedCategories = [];
+    categories.forEach(cat => {
+      for (let i = 0; i < cat.weight; i++) {
+        expandedCategories.push(cat);
+      }
+    });
+
+    // Получаем домен
+    const domain = window.location.hostname;
+
+    // Кэш для секций
+    const sections = {};
+    const today = new Date();
+
+    // Функция для логирования с условием
+    const log = (message, data = null) => {
+      if (verbose) {
+        if (data) {
+          console.log(message, data);
+        } else {
+          console.log(message);
+        }
+      }
+    };
+
+    log('📊 Категории подготовлены');
+
+    let created = 0;
+    let errors = 0;
+    const errorsList = [];
+
+    // Генерируем записи
+    for (let i = 0; i < count; i++) {
+      try {
+        // Определяем дату
+        let dateStr;
+        let sectionId;
+
+        if (randomDays) {
+          // Случайный день в пределах диапазона
+          const randomDay = Math.floor(Math.random() * daysRange);
+          const date = new Date(today);
+          date.setDate(date.getDate() - randomDay);
+          dateStr = date.toISOString().split('T')[0];
+
+          // Получаем или создаем секцию для этой даты
+          if (!sections[dateStr]) {
+            try {
+              // Проверяем существование секции
+              const sectionsList = await this.executeBatch([
+                ['entity.section.get', {
+                  ENTITY: 'pr_tracking',
+                  FILTER: { NAME: dateStr }
+                }]
+              ]);
+
+              if (sectionsList[0] && sectionsList[0].length > 0) {
+                sections[dateStr] = parseInt(sectionsList[0][0].ID);
+                log(`📁 Найдена секция для ${dateStr}: ${sections[dateStr]}`);
+              } else {
+                // Создаем новую секцию
+                const newSection = await this.executeBatch([
+                  ['entity.section.add', {
+                    ENTITY: 'pr_tracking',
+                    NAME: dateStr
+                  }]
+                ]);
+                sections[dateStr] = parseInt(newSection[0]);
+                log(`📁 Создана секция для ${dateStr}: ${sections[dateStr]}`);
+              }
+            } catch (error) {
+              log(`❌ Ошибка с секцией ${dateStr}:`, error);
+              errors++;
+              errorsList.push({ type: 'section', date: dateStr, error: error.message });
+              continue;
+            }
+          }
+          sectionId = sections[dateStr];
+        } else {
+          // Используем сегодняшнюю дату
+          dateStr = today.toISOString().split('T')[0];
+
+          if (!sections[dateStr]) {
+            // Получаем или создаем секцию для сегодня
+            const sectionsList = await this.executeBatch([
+              ['entity.section.get', {
+                ENTITY: 'pr_tracking',
+                FILTER: { NAME: dateStr }
+              }]
+            ]);
+
+            if (sectionsList[0] && sectionsList[0].length > 0) {
+              sections[dateStr] = parseInt(sectionsList[0][0].ID);
+            } else {
+              const newSection = await this.executeBatch([
+                ['entity.section.add', {
+                  ENTITY: 'pr_tracking',
+                  NAME: dateStr
+                }]
+              ]);
+              sections[dateStr] = parseInt(newSection[0]);
+            }
+          }
+          sectionId = sections[dateStr];
+        }
+
+        if (!sectionId) {
+          errors++;
+          errorsList.push({ type: 'no_section', date: dateStr });
+          continue;
+        }
+
+        // Выбираем случайную категорию
+        const randomCat = expandedCategories[Math.floor(Math.random() * expandedCategories.length)];
+
+        // Генерируем случайное время (от 5 минут до 4 часов)
+        const pageTime = Math.floor(Math.random() * 14400) + 300; // 300-14400 сек (5 мин - 4 часа)
+
+        // Создаем URL и заголовок
+        const pageUrl = `https://${domain}${randomCat.path}${Math.floor(Math.random() * 1000)}/`;
+        const pageTitle = `${randomCat.name.split(' › ').pop()} - ${Math.floor(Math.random() * 1000)}`;
+
+        // Создаем запись
+        await this.executeBatch([
+          ['entity.item.add', {
+            ENTITY: 'pr_tracking',
+            NAME: `${userName} - ${randomCat.name}`,
+            SECTION: sectionId,
+            PROPERTY_VALUES: {
+              USER_ID: targetUserId,
+              USER_NAME: userName,
+              PAGE_URL: pageUrl,
+              PAGE_TITLE: pageTitle,
+              PAGE_TIME: pageTime,
+              PAGE_CATEGORY: randomCat.name
+            }
+          }]
+        ]);
+
+        created++;
+
+        // Прогресс каждые 50 записей
+        if (i % 50 === 0 && i > 0) {
+          console.log(`📊 Прогресс: ${created}/${count} (ошибок: ${errors})`);
+          // Небольшая задержка чтобы не перегружать API
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+      } catch (error) {
+        errors++;
+        errorsList.push({ type: 'item', index: i, error: error.message });
+        console.error(`❌ Ошибка при создании записи ${i + 1}:`, error);
+      }
+    }
+
+    const endTime = Date.now();
+    const duration = ((endTime - startTime) / 1000).toFixed(2);
+
+    // Инвалидируем кэш
+    this.invalidateCache();
+
+    // Уведомляем об обновлении
+    this.notifyTimeUpdate('all', 0);
+
+    // Выводим итоги
+    console.log('=================================');
+    console.log(`✅ Генерация завершена!`);
+    console.log(`📊 Создано записей: ${created}`);
+    console.log(`❌ Ошибок: ${errors}`);
+    console.log(`⏱️ Время выполнения: ${duration} сек`);
+
+    if (errorsList.length > 0 && verbose) {
+      console.log('📋 Детали ошибок:', errorsList);
+    }
+    console.log('=================================');
+
+    // Возвращаем результат
+    const result = {
+      success: errors === 0,
+      created,
+      errors,
+      duration: parseFloat(duration),
+      categories: categories.map(c => c.name)
+    };
+
+    if (errorsList.length > 0) {
+      result.errorsList = errorsList.slice(0, 10); // Только первые 10 ошибок
+    }
+
+    return result;
+  }
 }
 
 // Создаем и экспортируем экземпляр класса
