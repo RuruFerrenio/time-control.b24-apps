@@ -56,6 +56,17 @@
                 Статистика рабочего дня
               </router-link>
 
+              <!-- НОВЫЙ ПУНКТ: Плагин для браузера (некликабельный, с подсказкой) -->
+              <!--<div
+                  class="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-400 cursor-not-allowed relative group"
+                  title="В следующей версии..."
+              >
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                </svg>
+                Плагин для браузера
+              </div>-->
+
               <!-- Ссылка Развитие проекта (только для администраторов) -->
               <a
                   v-if="isAdmin"
@@ -196,6 +207,18 @@
 
           <!-- Кнопки действий -->
           <div class="space-y-3 pt-4 border-t border-gray-200">
+            <!--<B24Button
+                @click="handleSupport"
+                class="w-full justify-center"
+                color="air-secondary"
+                size="md"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+              </svg>
+              Поддержать проект
+            </B24Button>-->
+
             <B24Button
                 @click="handleReview"
                 class="w-full justify-center"
@@ -229,6 +252,7 @@
 </template>
 
 <script>
+
 (function(w,d,u){
   var s=d.createElement('script');s.async=true;s.src=u+'?'+(Date.now()/60000|0);
   var h=d.getElementsByTagName('script')[0];h.parentNode.insertBefore(s,h);
@@ -251,7 +275,6 @@ export default {
     const myPercentage = ref(0)
     const currentUserId = ref(null)
     const isLoading = ref(true)
-    const isGenerating = ref(false)
 
     // Проверка активного маршрута
     const isActiveRoute = (path) => {
@@ -275,178 +298,18 @@ export default {
       return parts.join(' ')
     }
 
-    // Функция для генерации тестовых данных
-    // Функция для генерации тестовых данных
-    const generateTestData = async () => {
-      if (!isAdmin.value || isGenerating.value) return
-
-      isGenerating.value = true
-      console.log('🚀 Начинаю генерацию тестовых данных...')
-
-      try {
-        const userId = currentUserId.value || await bitrixHelper.getCurrentUserId()
-        const userName = await bitrixHelper.getUserNameById(userId) || 'Тестовый пользователь'
-        const domain = window.location.hostname
-
-        // Категории с путями для разных сущностей
-        const categories = [
-          // Сделки
-          { name: 'CRM › Сделки', path: '/crm/deal/', weight: 30, ids: 1000 },
-          // Лиды
-          { name: 'CRM › Лиды', path: '/crm/lead/', weight: 20, ids: 800 },
-          // Контакты
-          { name: 'CRM › Контакты', path: '/crm/contact/', weight: 15, ids: 600 },
-          // Компании
-          { name: 'CRM › Компании', path: '/crm/company/', weight: 10, ids: 400 },
-          // Счета
-          { name: 'CRM › Счета', path: '/crm/invoice/', weight: 8, ids: 300 },
-          // Предложения
-          { name: 'CRM › Предложения', path: '/crm/quote/', weight: 7, ids: 250 },
-          // Задачи
-          { name: 'Задачи и Проекты › Задачи', path: '/company/personal/user/1/tasks/', weight: 25, ids: 500 },
-          // Лента
-          { name: 'Совместная работа › Лента', path: '/stream/', weight: 10, ids: 50 },
-          // Календарь
-          { name: 'Совместная работа › Календарь', path: '/calendar/', weight: 5, ids: 100 },
-          // Диск
-          { name: 'Совместная работа › Диск', path: '/docs/', weight: 5, ids: 200 }
-        ]
-
-        const sections = {}
-        const today = new Date()
-        let created = 0
-        const totalToCreate = 500
-
-        for (let i = 0; i < totalToCreate; i++) {
-          try {
-            // Случайная дата за последние 60 дней
-            const randomDay = Math.floor(Math.random() * 60)
-            const date = new Date(today)
-            date.setDate(date.getDate() - randomDay)
-            const dateStr = date.toISOString().split('T')[0]
-
-            // Получаем или создаем секцию
-            if (!sections[dateStr]) {
-              const sectionsList = await bitrixHelper.executeBatch([
-                ['entity.section.get', {
-                  ENTITY: 'pr_tracking',
-                  FILTER: { NAME: dateStr }
-                }]
-              ])
-
-              if (sectionsList[0] && sectionsList[0].length > 0) {
-                sections[dateStr] = parseInt(sectionsList[0][0].ID)
-              } else {
-                const newSection = await bitrixHelper.executeBatch([
-                  ['entity.section.add', {
-                    ENTITY: 'pr_tracking',
-                    NAME: dateStr
-                  }]
-                ])
-                sections[dateStr] = parseInt(newSection[0])
-              }
-            }
-
-            // Выбираем случайную категорию с учетом веса
-            let randomCat
-            const randomWeight = Math.floor(Math.random() * 100) + 1
-            let weightSum = 0
-
-            for (const cat of categories) {
-              weightSum += cat.weight
-              if (randomWeight <= weightSum) {
-                randomCat = cat
-                break
-              }
-            }
-
-            if (!randomCat) randomCat = categories[0]
-
-            // Генерируем ID сущности
-            const entityId = Math.floor(Math.random() * randomCat.ids) + 1
-
-            // Формируем URL как в примере
-            const pageUrl = `https://${domain}${randomCat.path}${entityId}/`
-
-            // Генерируем заголовок
-            let pageTitle
-            if (randomCat.name.includes('Сделки')) {
-              pageTitle = `Сделка #${entityId} - ${['ООО "Ромашка"', 'АО "ТехноСервис"', 'ИП Иванов', 'ООО "Глобал Трейд"', 'ЗАО "СтройИнвест"'][Math.floor(Math.random() * 5)]}`
-            } else if (randomCat.name.includes('Лиды')) {
-              pageTitle = `Лид #${entityId} - ${['Анна Петрова', 'Сергей Смирнов', 'Елена Козлова', 'Дмитрий Морозов', 'Ольга Новикова'][Math.floor(Math.random() * 5)]}`
-            } else if (randomCat.name.includes('Контакты')) {
-              pageTitle = `${['Иван Петров', 'Мария Сидорова', 'Алексей Иванов', 'Наталья Соколова', 'Павел Медведев'][Math.floor(Math.random() * 5)]}`
-            } else if (randomCat.name.includes('Компании')) {
-              pageTitle = `${['ООО "Ромашка"', 'АО "ТехноСервис"', 'ИП Иванов', 'ООО "Глобал Трейд"', 'ЗАО "СтройИнвест"'][Math.floor(Math.random() * 5)]}`
-            } else if (randomCat.name.includes('Задачи')) {
-              pageTitle = `Задача #${entityId}: ${['Создать отчет', 'Позвонить клиенту', 'Подготовить договор', 'Отправить КП', 'Согласовать бюджет'][Math.floor(Math.random() * 5)]}`
-            } else {
-              pageTitle = `${randomCat.name.split(' › ').pop()} - ${entityId}`
-            }
-
-            // Генерируем случайное время (от 1 минуты до 3 часов)
-            const pageTime = Math.floor(Math.random() * 10800) + 60
-
-            // Создаем запись
-            await bitrixHelper.executeBatch([
-              ['entity.item.add', {
-                ENTITY: 'pr_tracking',
-                NAME: `${userName} - ${randomCat.name} #${entityId}`,
-                SECTION: sections[dateStr],
-                PROPERTY_VALUES: {
-                  USER_ID: userId,
-                  USER_NAME: userName,
-                  PAGE_URL: pageUrl,
-                  PAGE_TITLE: pageTitle,
-                  PAGE_TIME: pageTime,
-                  PAGE_CATEGORY: randomCat.name
-                }
-              }]
-            ])
-
-            created++
-
-            if (created % 50 === 0) {
-              console.log(`📊 Прогресс: ${created}/${totalToCreate} записей`)
-              // Небольшая задержка чтобы не перегружать API
-              await new Promise(resolve => setTimeout(resolve, 100))
-            }
-
-          } catch (error) {
-            console.error(`❌ Ошибка при создании записи ${i + 1}:`, error)
-          }
-        }
-
-        console.log(`✅ Генерация завершена! Создано ${created} записей`)
-
-        // Обновляем счетчики
-        await loadSavedTime()
-
-        // Показываем статистику
-        console.log('📊 Статистика по категориям:')
-        const stats = {}
-        for (const cat of categories) {
-          stats[cat.name] = 0
-        }
-        // Здесь можно добавить подсчет созданных записей по категориям
-
-      } catch (error) {
-        console.error('❌ Ошибка при генерации тестовых данных:', error)
-      } finally {
-        isGenerating.value = false
-      }
-    }
-
     // Загрузка всех данных о времени
     const loadSavedTime = async () => {
       try {
         isLoading.value = true
 
         if (bitrixHelper && bitrixHelper.isReady()) {
+          // Получаем ID текущего пользователя
           if (!currentUserId.value) {
             currentUserId.value = await bitrixHelper.getCurrentUserId()
           }
 
+          // Загружаем все данные параллельно
           const [total, userTime, percentage] = await Promise.all([
             bitrixHelper.getTotalSavedTime(),
             bitrixHelper.getUserSavedTime(currentUserId.value),
@@ -464,13 +327,19 @@ export default {
       }
     }
 
-    // Обновление счетчика
+    // Обновление счетчика (вызывается из других компонентов)
     const refreshSavedTime = async () => {
       await loadSavedTime()
     }
 
     // Обработчики кнопок
-    const handleReview = () => {}
+    const handleSupport = () => {
+      // TODO: Реализовать логику поддержки проекта
+    }
+
+    const handleReview = () => {
+      // TODO: Реализовать логику отзыва
+    }
 
     // Слушатель событий обновления времени
     const handleTimeUpdate = (event) => {
@@ -484,22 +353,20 @@ export default {
       try {
         isLoading.value = true
 
+        // Проверяем, инициализирован ли bitrixHelper
         if (bitrixHelper && bitrixHelper.isReady()) {
           isAdmin.value = bitrixHelper.isUserAdmin()
           isStatisticsAvailable.value = bitrixHelper.isStatisticsAvailable()
           currentUserId.value = await bitrixHelper.getCurrentUserId()
           await loadSavedTime()
         } else {
+          // Если не инициализирован, пробуем инициализировать
           await bitrixHelper.init()
           isAdmin.value = bitrixHelper.isUserAdmin()
           isStatisticsAvailable.value = bitrixHelper.isStatisticsAvailable()
           currentUserId.value = await bitrixHelper.getCurrentUserId()
           await loadSavedTime()
         }
-
-        console.log('generate')
-        //setTimeout(() => generateTestData(), 2000)
-
       } catch (error) {
         console.error('Ошибка инициализации Sidebar:', error)
       } finally {
@@ -509,14 +376,21 @@ export default {
 
     onMounted(async () => {
       await initialize()
+
+      // Создаем глобальную функцию для обновления счетчика из других компонентов
       window.updateSidebarSavedTime = refreshSavedTime
+
+      // Подписываемся на событие обновления времени
       window.addEventListener('saved-time-update', handleTimeUpdate)
     })
 
     onUnmounted(() => {
+      // Удаляем глобальную функцию при размонтировании компонента
       if (window.updateSidebarSavedTime) {
         delete window.updateSidebarSavedTime
       }
+
+      // Отписываемся от события
       window.removeEventListener('saved-time-update', handleTimeUpdate)
     })
 
@@ -530,12 +404,13 @@ export default {
       isLoading,
       isActiveRoute,
       formatSavedTime,
+      handleSupport,
       handleReview,
-      isSettingsPage,
-      isGenerating
+      isSettingsPage
     }
   }
 }
+
 </script>
 
 <style scoped>

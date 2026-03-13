@@ -1084,7 +1084,7 @@
                     </div>
                     <div class="ml-2 md:ml-3">
                       <p class="text-xs md:text-sm font-medium text-gray-900">Регистрация хранилища активности</p>
-                      <p class="text-xs text-gray-500">pr_tracking - Статистика посещений</p>
+                      <p class="text-xs text-gray-500">Статистика посещений</p>
                     </div>
                   </div>
 
@@ -1113,7 +1113,7 @@
                     </div>
                     <div class="ml-2 md:ml-3">
                       <p class="text-xs md:text-sm font-medium text-gray-900">Регистрация хранилища сохраненного времени</p>
-                      <p class="text-xs text-gray-500">pr_saved_time - Персональные счетчики времени</p>
+                      <p class="text-xs text-gray-500">Персональные счетчики времени</p>
                     </div>
                   </div>
 

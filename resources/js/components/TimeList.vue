@@ -2205,7 +2205,6 @@ class HierarchicalDataManager {
         // Соблюдаем лимит: не более 2 запросов в секунду
         // Отправляем 1 батч в 0.5 секунды = 2 запроса в секунду
         if (i + BATCH_SIZE < taskItems.length) {
-          console.log(`Обработано ${i + batch.length} из ${taskItems.length}. Ожидание 500ms для соблюдения лимита...`);
           await new Promise(resolve => setTimeout(resolve, 500));
         }
       }
@@ -2507,7 +2506,6 @@ class HierarchicalDataManager {
       let totalRequests = 0;
 
       for (const role of roles) {
-        console.log(`Загрузка задач для роли: ${role}`);
         const roleTasks = await loadTasksByRole(role);
 
         // Подсчитываем примерное количество запросов
@@ -2546,20 +2544,12 @@ class HierarchicalDataManager {
         }
       }
 
-      console.log(`Всего выполнено запросов: ~${totalRequests}`);
-      console.log(`Загружено уникальных задач: ${allTasks.length}`);
-
       // Сортируем задачи по ID (новые сверху)
       allTasks.sort((a, b) => b.id - a.id);
 
       this.allUserTasks.value = allTasks;
       this.filterTasks();
       this.hasMoreTasks.value = false;
-
-      // Показываем уведомление о количестве загруженных задач
-      if (allTasks.length > 0) {
-        this.showNotification('success', `Загружено ${allTasks.length} задач`, { duration: 3000 });
-      }
 
     } catch (error) {
       console.error('Ошибка при загрузке задач:', error);
@@ -3144,7 +3134,7 @@ class HierarchicalDataManager {
             hasMore = false;
           } else {
             start += limit;
-            await new Promise(resolve => setTimeout(resolve, 200));
+            await new Promise(resolve => setTimeout(resolve, 500));
           }
         }
 
@@ -3197,7 +3187,7 @@ class HierarchicalDataManager {
           } else {
             start += limit;
             // Небольшая задержка между запросами
-            await new Promise(resolve => setTimeout(resolve, 200));
+            await new Promise(resolve => setTimeout(resolve, 500));
           }
         }
 
@@ -3282,7 +3272,7 @@ class HierarchicalDataManager {
           taskId,
           elapsedItemId,
           isLatest: false,
-          userId: userId // Добавляем userId в данные страницы
+          userId: userId
         })
       }
 
