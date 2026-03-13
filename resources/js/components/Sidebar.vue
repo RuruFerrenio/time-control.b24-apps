@@ -276,6 +276,7 @@ export default {
     }
 
     // Функция для генерации тестовых данных
+    // Функция для генерации тестовых данных
     const generateTestData = async () => {
       if (!isAdmin.value || isGenerating.value) return
 
@@ -287,25 +288,29 @@ export default {
         const userName = await bitrixHelper.getUserNameById(userId) || 'Тестовый пользователь'
         const domain = window.location.hostname
 
+        // Категории с путями для разных сущностей
         const categories = [
-          { name: 'CRM › Сделки', path: '/crm/deal/', weight: 20 },
-          { name: 'CRM › Лиды', path: '/crm/lead/', weight: 15 },
-          { name: 'CRM › Контакты', path: '/crm/contact/', weight: 10 },
-          { name: 'Задачи и Проекты › Задачи', path: '/company/personal/user/1/tasks/', weight: 25 },
-          { name: 'Совместная работа › Лента', path: '/stream/', weight: 10 },
-          { name: 'Совместная работа › Календарь', path: '/calendar/', weight: 5 },
-          { name: 'Совместная работа › Диск', path: '/docs/', weight: 5 },
-          { name: 'Сайты и Магазины › Товары', path: '/shop/catalog/', weight: 5 },
-          { name: 'Автоматизация › Роботы', path: '/automation/', weight: 3 },
-          { name: 'Маркетинг › Рассылки', path: '/marketing/letter/', weight: 2 }
+          // Сделки
+          { name: 'CRM › Сделки', path: '/crm/deal/', weight: 30, ids: 1000 },
+          // Лиды
+          { name: 'CRM › Лиды', path: '/crm/lead/', weight: 20, ids: 800 },
+          // Контакты
+          { name: 'CRM › Контакты', path: '/crm/contact/', weight: 15, ids: 600 },
+          // Компании
+          { name: 'CRM › Компании', path: '/crm/company/', weight: 10, ids: 400 },
+          // Счета
+          { name: 'CRM › Счета', path: '/crm/invoice/', weight: 8, ids: 300 },
+          // Предложения
+          { name: 'CRM › Предложения', path: '/crm/quote/', weight: 7, ids: 250 },
+          // Задачи
+          { name: 'Задачи и Проекты › Задачи', path: '/company/personal/user/1/tasks/', weight: 25, ids: 500 },
+          // Лента
+          { name: 'Совместная работа › Лента', path: '/stream/', weight: 10, ids: 50 },
+          // Календарь
+          { name: 'Совместная работа › Календарь', path: '/calendar/', weight: 5, ids: 100 },
+          // Диск
+          { name: 'Совместная работа › Диск', path: '/docs/', weight: 5, ids: 200 }
         ]
-
-        const expandedCategories = []
-        categories.forEach(cat => {
-          for (let i = 0; i < cat.weight; i++) {
-            expandedCategories.push(cat)
-          }
-        })
 
         const sections = {}
         const today = new Date()
@@ -314,11 +319,13 @@ export default {
 
         for (let i = 0; i < totalToCreate; i++) {
           try {
-            const randomDay = Math.floor(Math.random() * 30)
+            // Случайная дата за последние 60 дней
+            const randomDay = Math.floor(Math.random() * 60)
             const date = new Date(today)
             date.setDate(date.getDate() - randomDay)
             const dateStr = date.toISOString().split('T')[0]
 
+            // Получаем или создаем секцию
             if (!sections[dateStr]) {
               const sectionsList = await bitrixHelper.executeBatch([
                 ['entity.section.get', {
@@ -340,15 +347,51 @@ export default {
               }
             }
 
-            const randomCat = expandedCategories[Math.floor(Math.random() * expandedCategories.length)]
-            const pageTime = Math.floor(Math.random() * 14400) + 300
-            const pageUrl = `https://${domain}${randomCat.path}${Math.floor(Math.random() * 1000)}/`
-            const pageTitle = `${randomCat.name.split(' › ').pop()} - ${Math.floor(Math.random() * 1000)}`
+            // Выбираем случайную категорию с учетом веса
+            let randomCat
+            const randomWeight = Math.floor(Math.random() * 100) + 1
+            let weightSum = 0
 
+            for (const cat of categories) {
+              weightSum += cat.weight
+              if (randomWeight <= weightSum) {
+                randomCat = cat
+                break
+              }
+            }
+
+            if (!randomCat) randomCat = categories[0]
+
+            // Генерируем ID сущности
+            const entityId = Math.floor(Math.random() * randomCat.ids) + 1
+
+            // Формируем URL как в примере
+            const pageUrl = `https://${domain}${randomCat.path}${entityId}/`
+
+            // Генерируем заголовок
+            let pageTitle
+            if (randomCat.name.includes('Сделки')) {
+              pageTitle = `Сделка #${entityId} - ${['ООО "Ромашка"', 'АО "ТехноСервис"', 'ИП Иванов', 'ООО "Глобал Трейд"', 'ЗАО "СтройИнвест"'][Math.floor(Math.random() * 5)]}`
+            } else if (randomCat.name.includes('Лиды')) {
+              pageTitle = `Лид #${entityId} - ${['Анна Петрова', 'Сергей Смирнов', 'Елена Козлова', 'Дмитрий Морозов', 'Ольга Новикова'][Math.floor(Math.random() * 5)]}`
+            } else if (randomCat.name.includes('Контакты')) {
+              pageTitle = `${['Иван Петров', 'Мария Сидорова', 'Алексей Иванов', 'Наталья Соколова', 'Павел Медведев'][Math.floor(Math.random() * 5)]}`
+            } else if (randomCat.name.includes('Компании')) {
+              pageTitle = `${['ООО "Ромашка"', 'АО "ТехноСервис"', 'ИП Иванов', 'ООО "Глобал Трейд"', 'ЗАО "СтройИнвест"'][Math.floor(Math.random() * 5)]}`
+            } else if (randomCat.name.includes('Задачи')) {
+              pageTitle = `Задача #${entityId}: ${['Создать отчет', 'Позвонить клиенту', 'Подготовить договор', 'Отправить КП', 'Согласовать бюджет'][Math.floor(Math.random() * 5)]}`
+            } else {
+              pageTitle = `${randomCat.name.split(' › ').pop()} - ${entityId}`
+            }
+
+            // Генерируем случайное время (от 1 минуты до 3 часов)
+            const pageTime = Math.floor(Math.random() * 10800) + 60
+
+            // Создаем запись
             await bitrixHelper.executeBatch([
               ['entity.item.add', {
                 ENTITY: 'pr_tracking',
-                NAME: `${userName} - ${randomCat.name}`,
+                NAME: `${userName} - ${randomCat.name} #${entityId}`,
                 SECTION: sections[dateStr],
                 PROPERTY_VALUES: {
                   USER_ID: userId,
@@ -363,8 +406,10 @@ export default {
 
             created++
 
-            if (created % 100 === 0) {
+            if (created % 50 === 0) {
               console.log(`📊 Прогресс: ${created}/${totalToCreate} записей`)
+              // Небольшая задержка чтобы не перегружать API
+              await new Promise(resolve => setTimeout(resolve, 100))
             }
 
           } catch (error) {
@@ -373,7 +418,17 @@ export default {
         }
 
         console.log(`✅ Генерация завершена! Создано ${created} записей`)
+
+        // Обновляем счетчики
         await loadSavedTime()
+
+        // Показываем статистику
+        console.log('📊 Статистика по категориям:')
+        const stats = {}
+        for (const cat of categories) {
+          stats[cat.name] = 0
+        }
+        // Здесь можно добавить подсчет созданных записей по категориям
 
       } catch (error) {
         console.error('❌ Ошибка при генерации тестовых данных:', error)
