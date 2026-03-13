@@ -5,7 +5,7 @@
         description="Анализ времени в Bitrix24 относительно общего рабочего времени и задач"
     />
 
-    <div class="mt-0 md:mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+    <div class="mt-0 md:mt-4 grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
       <!-- Основная часть со статистикой -->
       <div class="lg:col-span-2">
         <!-- Основная карточка со статистикой -->

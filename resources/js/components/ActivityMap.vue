@@ -5,7 +5,7 @@
         description="Сводная статистика посещений страниц всеми сотрудниками за всё время"
     />
 
-    <div class="mt-0 md:mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+    <div class="mt-0 md:mt-4 grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
       <div class="lg:col-span-2">
         <!-- Карта активности -->
         <B24Card>

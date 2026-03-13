@@ -6,7 +6,7 @@
     />
 
     <!-- Заглушка для мобильных устройств -->
-    <div v-if="isMobileDevice" class="mt-8">
+    <div v-if="isMobileDevice" class="mt-4">
       <B24Card>
         <div class="p-6 text-center">
           <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
