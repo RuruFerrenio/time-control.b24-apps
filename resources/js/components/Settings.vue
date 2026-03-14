@@ -901,6 +901,157 @@
           </div>
         </B24Card>
 
+        <!-- Блок 6: Яндекс Метрика -->
+        <B24Card class="mb-8">
+          <div class="p-0 md:p-6">
+            <div class="space-y-6">
+              <div class="flex items-center justify-between">
+                <div class="flex-1">
+                  <h3 class="text-lg font-semibold text-gray-900">
+                    Яндекс Метрика
+                  </h3>
+                  <p class="text-sm text-gray-500 mt-1">
+                    Отслеживайте посещения страниц и активность сотрудников в Яндекс.Метрике
+                  </p>
+                </div>
+                <div class="ml-4 flex items-center space-x-4">
+                  <div class="w-2 h-2 rounded-full"
+                       :class="formData.yandexMetrica.enabled ? 'bg-green-500' : 'bg-red-500'"></div>
+                  <B24Switch
+                      v-model="formData.yandexMetrica.enabled"
+                      @update:modelValue="toggleYandexMetrica"
+                      :disabled="isProcessing"
+                  />
+                </div>
+              </div>
+
+              <!-- Настройки Яндекс Метрики -->
+              <div v-if="formData.yandexMetrica.enabled" class="space-y-4 pt-4 border-t">
+                <B24Form
+                    :state="formData"
+                    class="space-y-4"
+                    @submit="saveYandexMetricaSettings"
+                >
+                  <!-- ID счетчика -->
+                  <B24FormField
+                      label="ID счетчика Яндекс.Метрики"
+                      name="counterId"
+                      :help-text="'Введите номер вашего счетчика (например: 12345678)'"
+                  >
+                    <B24Input
+                        v-model="formData.yandexMetrica.counterId"
+                        :disabled="isProcessing"
+                        type="text"
+                        placeholder="12345678"
+                        class="w-full"
+                        @blur="validateCounterId"
+                    />
+
+                    <!-- Ошибка валидации -->
+                    <div v-if="counterIdError" class="mt-2 text-sm text-red-600 flex items-center">
+                      <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.346 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                      </svg>
+                      {{ counterIdError }}
+                    </div>
+
+                    <!-- Информация о настройке -->
+                    <div class="mt-3">
+                      <div class="flex items-start p-3 bg-blue-50 rounded-lg">
+                        <svg class="w-5 h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <div class="text-sm text-blue-700">
+                          <span class="font-medium">Как получить ID счетчика:</span>
+                          Создайте счетчик в <a href="https://metrika.yandex.ru" target="_blank" class="underline">Яндекс.Метрике</a>
+                          и скопируйте его номер из кода счетчика или из URL.
+                        </div>
+                      </div>
+                    </div>
+                  </B24FormField>
+
+                  <!-- Дополнительные опции (опционально) -->
+                  <div class="space-y-3 pt-2">
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <h4 class="text-sm font-medium text-gray-900">Передавать ID пользователя</h4>
+                        <p class="text-xs text-gray-500">Отправлять внутренний ID сотрудника в параметры визита</p>
+                      </div>
+                      <B24Switch
+                          v-model="formData.yandexMetrica.sendUserId"
+                          size="sm"
+                      />
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <h4 class="text-sm font-medium text-gray-900">Передавать категорию страницы</h4>
+                        <p class="text-xs text-gray-500">Отправлять определенную категорию страницы в параметры</p>
+                      </div>
+                      <B24Switch
+                          v-model="formData.yandexMetrica.sendCategory"
+                          size="sm"
+                      />
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <h4 class="text-sm font-medium text-gray-900">Отслеживать цели</h4>
+                        <p class="text-xs text-gray-500">Отправлять события (начало/конец дня, подтверждение присутствия)</p>
+                      </div>
+                      <B24Switch
+                          v-model="formData.yandexMetrica.trackGoals"
+                          size="sm"
+                      />
+                    </div>
+                  </div>
+                </B24Form>
+
+                <!-- Информация о работе с метрикой -->
+                <div class="space-y-4 mt-6">
+                  <h4 class="text-sm font-medium text-gray-900">
+                    Какие данные будут передаваться:
+                  </h4>
+                  <div class="space-y-3">
+                    <div class="flex items-start">
+                      <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                        <span class="text-xs font-medium text-blue-600">📊</span>
+                      </div>
+                      <div>
+                        <p class="text-sm text-gray-700">
+                          <span class="font-medium">Просмотры страниц:</span> URL, заголовок, категория страницы, время на странице
+                        </p>
+                      </div>
+                    </div>
+                    <div class="flex items-start">
+                      <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                        <span class="text-xs font-medium text-blue-600">👤</span>
+                      </div>
+                      <div>
+                        <p class="text-sm text-gray-700">
+                          <span class="font-medium">Данные пользователя:</span> ID, имя (если включено)
+                        </p>
+                      </div>
+                    </div>
+                    <div class="flex items-start">
+                      <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                        <span class="text-xs font-medium text-blue-600">🎯</span>
+                      </div>
+                      <div>
+                        <p class="text-sm text-gray-700">
+                          <span class="font-medium">Цели:</span> начало/завершение рабочего дня, подтверждение присутствия
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </B24Card>
+
         <!-- Хранилище активности сотрудников -->
         <StorageManager
             ref="activityStorage"
@@ -958,6 +1109,7 @@ class SettingsSystem {
     this.absenceTimeThresholdError = ref(null)
     this.employeeReactionTimeError = ref(null)
     this.isBitrixLoaded = ref(false)
+    this.counterIdError = ref(null)
 
     this.formData = ref({
       pageTracking: {
@@ -986,8 +1138,93 @@ class SettingsSystem {
       workdayEnd: {
         enabled: false,
         method: 'modal' // 'auto' или 'modal'
+      },
+      yandexMetrica: {
+        enabled: false,
+        counterId: ''
       }
     })
+  }
+
+  // Методы для работы с Яндекс Метрикой
+  async toggleYandexMetrica(newValue) {
+    try {
+      this.isProcessing.value = true
+      if (this.isBitrixLoaded.value) {
+        await BX24.appOption.set('ym_enabled', newValue ? 'Y' : 'N')
+      }
+      this.formData.value.yandexMetrica.enabled = newValue
+      this.showNotification('success', newValue ? 'Яндекс Метрика включена' : 'Яндекс Метрика выключена')
+    } catch {
+      this.showNotification('error', 'Ошибка сохранения настройки')
+    } finally {
+      this.isProcessing.value = false
+    }
+  }
+
+  validateCounterId() {
+    this.counterIdError.value = null
+    const counterId = this.formData.value.yandexMetrica.counterId
+
+    if (!counterId) {
+      this.counterIdError.value = 'Введите ID счетчика'
+      return false
+    }
+
+    // Проверяем, что ID состоит только из цифр
+    if (!/^\d+$/.test(counterId)) {
+      this.counterIdError.value = 'ID счетчика должен содержать только цифры'
+      return false
+    }
+
+    return true
+  }
+
+  async updateCounterId() {
+    if (!this.validateCounterId()) return
+
+    try {
+      this.isProcessing.value = true
+      if (this.isBitrixLoaded.value) {
+        await BX24.appOption.set('ym_counter_id', this.formData.value.yandexMetrica.counterId)
+      }
+      this.showNotification('success', 'ID счетчика сохранен')
+    } catch {
+      this.showNotification('error', 'Ошибка сохранения ID счетчика')
+    } finally {
+      this.isProcessing.value = false
+    }
+  }
+
+  async saveYandexMetricaSettings() {
+    try {
+      this.isProcessing.value = true
+      if (this.isBitrixLoaded.value) {
+        await BX24.appOption.set('ym_enabled', this.formData.value.yandexMetrica.enabled ? 'Y' : 'N')
+
+        if (this.formData.value.yandexMetrica.counterId) {
+          await BX24.appOption.set('ym_counter_id', this.formData.value.yandexMetrica.counterId)
+        }
+
+        // Сохраняем дополнительные опции, если они есть
+        if (this.formData.value.yandexMetrica.sendUserId !== undefined) {
+          await BX24.appOption.set('ym_send_user_id', this.formData.value.yandexMetrica.sendUserId ? 'Y' : 'N')
+        }
+
+        if (this.formData.value.yandexMetrica.sendCategory !== undefined) {
+          await BX24.appOption.set('ym_send_category', this.formData.value.yandexMetrica.sendCategory ? 'Y' : 'N')
+        }
+
+        if (this.formData.value.yandexMetrica.trackGoals !== undefined) {
+          await BX24.appOption.set('ym_track_goals', this.formData.value.yandexMetrica.trackGoals ? 'Y' : 'N')
+        }
+      }
+      this.showNotification('success', 'Настройки Яндекс Метрики сохранены')
+    } catch {
+      this.showNotification('error', 'Ошибка сохранения настроек')
+    } finally {
+      this.isProcessing.value = false
+    }
   }
 
   // Метод для получения текста способа завершения рабочего дня
@@ -1474,7 +1711,12 @@ class SettingsSystem {
           workdayStartEnabled,
           workdayStartMethod,
           workdayEndEnabled,
-          workdayEndMethod
+          workdayEndMethod,
+          ymEnabled,
+          ymCounterId,
+          ymSendUserId,
+          ymSendCategory,
+          ymTrackGoals
         ] = await Promise.all([
           BX24.appOption.get('page_tracking_enabled'),
           BX24.appOption.get('page_tracking_history_days'),
@@ -1490,7 +1732,12 @@ class SettingsSystem {
           BX24.appOption.get('workday_start_enabled'),
           BX24.appOption.get('workday_start_method'),
           BX24.appOption.get('workday_end_enabled'),
-          BX24.appOption.get('workday_end_method')
+          BX24.appOption.get('workday_end_method'),
+          BX24.appOption.get('ym_enabled'),
+          BX24.appOption.get('ym_counter_id'),
+          BX24.appOption.get('ym_send_user_id'),
+          BX24.appOption.get('ym_send_category'),
+          BX24.appOption.get('ym_track_goals')
         ])
 
         // Загрузка основных настроек
@@ -1572,6 +1819,14 @@ class SettingsSystem {
 
         if (workdayEndMethod && ['auto', 'modal'].includes(workdayEndMethod)) {
           this.formData.value.workdayEnd.method = workdayEndMethod
+        }
+
+        this.formData.value.yandexMetrica = {
+          enabled: ymEnabled === 'Y' || ymEnabled === true || ymEnabled === 1,
+          counterId: ymCounterId || '',
+          sendUserId: ymSendUserId === 'Y' || ymSendUserId === true || ymSendUserId === 1,
+          sendCategory: ymSendCategory === 'Y' || ymSendCategory === true || ymSendCategory === 1,
+          trackGoals: ymTrackGoals === 'Y' || ymTrackGoals === true || ymTrackGoals === 1
         }
 
       } catch (error) {
@@ -1673,6 +1928,11 @@ export default {
       settingsSystem.updateWorkdayEndMethod()
     })
 
+    watch(() => settingsSystem.formData.value.yandexMetrica.counterId, () => {
+      if (settingsSystem.isProcessing.value) return
+      settingsSystem.updateCounterId()
+    })
+
     return {
       formData: settingsSystem.formData,
       isProcessing: settingsSystem.isProcessing,
@@ -1711,7 +1971,13 @@ export default {
       getWorkdayEndMethodText: settingsSystem.getWorkdayEndMethodText.bind(settingsSystem),
       toggleWorkdayEnd: settingsSystem.toggleWorkdayEnd.bind(settingsSystem),
       updateWorkdayEndMethod: settingsSystem.updateWorkdayEndMethod.bind(settingsSystem),
-      saveWorkdayEndSettings: settingsSystem.saveWorkdayEndSettings.bind(settingsSystem)
+      saveWorkdayEndSettings: settingsSystem.saveWorkdayEndSettings.bind(settingsSystem),
+      counterIdError: settingsSystem.counterIdError,
+      toggleYandexMetrica: settingsSystem.toggleYandexMetrica.bind(settingsSystem),
+      validateCounterId: settingsSystem.validateCounterId.bind(settingsSystem),
+      updateCounterId: settingsSystem.updateCounterId.bind(settingsSystem),
+      saveYandexMetricaSettings: settingsSystem.saveYandexMetricaSettings.bind(settingsSystem)
+    }
     }
   }
 }
