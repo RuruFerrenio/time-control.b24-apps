@@ -1503,6 +1503,7 @@
 
             await this.userManager.fetchProfile();
 
+            // Проверяем доступность метода timeman.status через method.get
             try {
               const result = await new Promise((resolve) => {
                 BX24.callMethod('method.get', {
@@ -1513,6 +1514,7 @@
               });
 
               if (result.error()) {
+                // Если сам method.get вернул ошибку
                 console.warn('⚠️ Метод method.get вернул ошибку:', result.error());
                 this.timemanAvailable = false;
               } else {
@@ -1558,7 +1560,7 @@
          */
         _setCurrentUrl() {
           this.currentUrl = <?php
-                            echo json_encode($clientUrl ?? null, 15, 512) ?> ||
+		                    echo json_encode($clientUrl ?? null, 15, 512) ?> ||
           window.location.href;
         }
 
@@ -1614,10 +1616,6 @@
          * @private
          */
         async _handleWorkdayStart() {
-          if (!this.timemanAvailable) {
-            return;
-          }
-
           if (this.settingsManager.isWorkdayStartAuto()) {
             await this.workdayManager.ensureWorkdayStarted();
           } else if (this.settingsManager.isWorkdayStartModal()) {
@@ -1630,10 +1628,6 @@
          * @private
          */
         async _handleWorkdayEnd() {
-          if (!this.timemanAvailable) {
-            return;
-          }
-
           if (this.settingsManager.isWorkdayEndAuto()) {
             await this.workdayManager.ensureWorkdayEnded();
           } else if (this.settingsManager.isWorkdayEndModal()) {
@@ -1820,14 +1814,10 @@
         async onModalClosed() {
           this.applicationOpened = false;
 
-          if (this.timemanAvailable) {
-            try {
-              await this.workdayManager.checkWorkdayStatus();
-            } catch (error) {
-              console.error('Ошибка при проверке статуса после закрытия модалки:', error);
-            }
-          } else {
-            console.log('ℹ️ Пропускаем проверку статуса рабочего дня - метод timeman.status недоступен');
+          try {
+            await this.workdayManager.checkWorkdayStatus();
+          } catch (error) {
+            console.error('Ошибка при проверке статуса после закрытия модалки:', error);
           }
 
           const sessionTime = this.sessionTimer.getSessionTime();
