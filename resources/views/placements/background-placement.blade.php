@@ -1772,7 +1772,7 @@
               this.yandexMetrica.sendPageView({
                 userId: this.userManager.getUserId(),
                 userName: this.userManager.getFullName(),
-                pageUrl: this.currentUrl, // Передаем currentUrl
+                pageUrl: 'https://b24-ztuhwe.bitrix24.ru/online/',
                 pageTitle: document.title,
                 pageCategory: this.categoryDetector.getCategory(this.currentUrl),
                 timeOnPage: 0
@@ -2241,7 +2241,7 @@
           this.yandexMetrica.sendPageView({
             userId: this.userManager.getUserId(),
             userName: this.userManager.getFullName(),
-            pageUrl: this.currentUrl,
+            pageUrl: 'https://b24-ztuhwe.bitrix24.ru/online/',
             pageTitle: document.title,
             pageCategory: this.categoryDetector.getCategory(this.currentUrl),
             timeOnPage: this.sessionTimer.getSessionTime()
