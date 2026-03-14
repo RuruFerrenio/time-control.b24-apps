@@ -1978,7 +1978,6 @@ export default {
       updateCounterId: settingsSystem.updateCounterId.bind(settingsSystem),
       saveYandexMetricaSettings: settingsSystem.saveYandexMetricaSettings.bind(settingsSystem)
     }
-    }
   }
 }
 </script>
