@@ -1737,15 +1737,21 @@
 
           const userProfile = this.userManager.profile;
 
+          // Используем PAGE_URL из хранилища (уже нормализованный)
+          const pageUrl = this.storageManager.urlProcessor.normalizeUrl(this.currentUrl);
+          const category = this.categoryDetector.getCategory(this.currentUrl);
+
           this.metrica.hit({
-            url: this.currentUrl,
+            url: pageUrl, // Отправляем нормализованный PAGE_URL
             title: document.title,
-            category: this.categoryDetector.getCategory(this.currentUrl),
+            category: category,
             userId: userProfile.ID,
             firstName: userProfile.NAME || '',
             lastName: userProfile.LAST_NAME || '',
             fullName: this.userManager.getFullName()
           });
+
+          console.log('📤 Отправка в метрику с PAGE_URL:', pageUrl);
         }
 
         /**
