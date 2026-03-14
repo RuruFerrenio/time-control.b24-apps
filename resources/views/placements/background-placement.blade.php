@@ -20,17 +20,6 @@
         MODAL_WIDTH: 500
       };
 
-      // ==========================================================================
-      // КЛАСС: YandexMetricaManager - Управление Яндекс Метрикой
-      // ==========================================================================
-
-      /**
-       * Класс для работы с Яндекс Метрикой
-       */
-      // ==========================================================================
-      // КЛАСС: YandexMetricaManager - Управление Яндекс Метрикой (исправленная версия)
-      // ==========================================================================
-
       /**
        * Класс для работы с Яндекс Метрикой
        */
@@ -40,8 +29,9 @@
           this.counterId = null;
           this.trackGoals = true;
           this.initialized = false;
-          this.initPromise = null; // Добавляем промис для отслеживания инициализации
-          this.pendingPageViews = []; // Очередь для отложенных просмотров
+          this.initPromise = null;
+          this.pendingPageViews = [];
+          this.counterReady = false;
         }
 
         /**
@@ -61,7 +51,6 @@
             this.trackGoals = trackGoals === 'Y' || trackGoals === true || trackGoals === 1;
 
             if (this.enabled && this.counterId) {
-              // Запускаем инициализацию и сохраняем промис
               this.initPromise = this.initialize();
               await this.initPromise;
             }
@@ -74,7 +63,7 @@
         }
 
         /**
-         * Инициализирует Яндекс Метрику
+         * Инициализирует Яндекс Метрику в соответствии с документацией
          * @returns {Promise<boolean>}
          */
         async initialize() {
@@ -88,8 +77,7 @@
                 this._initCounter();
                 this.initialized = true;
                 console.log('✅ Яндекс Метрика уже была инициализирована');
-                this._processPendingPageViews();
-                resolve(true);
+                this._waitForCounterReady(resolve);
                 return;
               }
 
@@ -100,19 +88,29 @@
                 return;
               }
 
-              // Загружаем скрипт Метрики
+              // Загружаем скрипт Метрики асинхронно (рекомендуемый способ)
               console.log('📥 Загружаем скрипт Яндекс Метрики...');
+
+              // Создаем функцию ym глобально до загрузки скрипта (как в документации)
+              window.ym = window.ym || function() {
+                (window.ym.a = window.ym.a || []).push(arguments);
+              };
+              window.ym.l = 1 * new Date();
+
               const script = document.createElement('script');
               script.src = 'https://mc.yandex.ru/metrika/tag.js';
               script.async = true;
+
               script.onload = () => {
                 console.log('✅ Скрипт Яндекс Метрики загружен');
                 this._waitForYM(resolve);
               };
+
               script.onerror = () => {
                 console.error('❌ Ошибка загрузки скрипта Яндекс Метрики');
                 resolve(false);
               };
+
               document.head.appendChild(script);
             } catch (error) {
               console.error('❌ Ошибка инициализации Яндекс Метрики:', error);
@@ -130,11 +128,10 @@
           const maxAttempts = 50; // 5 секунд максимум
 
           const checkYM = () => {
-            if (typeof window.ym === 'function') {
+            if (typeof window.ym === 'function' && window.ym !== this._dummyYm) {
               this._initCounter();
               this.initialized = true;
-              this._processPendingPageViews();
-              resolve(true);
+              this._waitForCounterReady(resolve);
               return;
             }
 
@@ -152,25 +149,67 @@
         }
 
         /**
-         * Инициализирует счетчик
+         * Ожидает готовности счетчика через событие (согласно документации)
+         * @private
+         */
+        _waitForCounterReady(resolve) {
+          const eventName = `yacounter${this.counterId}inited`;
+
+          // Обработчик события готовности счетчика
+          const onCounterReady = () => {
+            this.counterReady = true;
+            document.removeEventListener(eventName, onCounterReady);
+            console.log(`✅ Счетчик ${this.counterId} готов к работе`);
+            this._processPendingPageViews();
+            resolve(true);
+          };
+
+          // Подписываемся на событие готовности (согласно документации)
+          document.addEventListener(eventName, onCounterReady);
+
+          // Проверяем, возможно счетчик уже готов
+          if (window[`yaCounter${this.counterId}`]) {
+            document.removeEventListener(eventName, onCounterReady);
+            this.counterReady = true;
+            console.log(`✅ Счетчик ${this.counterId} уже готов`);
+            this._processPendingPageViews();
+            resolve(true);
+            return;
+          }
+
+          // Таймаут на случай, если событие не сработало
+          setTimeout(() => {
+            if (!this.counterReady) {
+              document.removeEventListener(eventName, onCounterReady);
+              console.log('⚠️ Событие готовности счетчика не получено, но продолжаем работу');
+              this.counterReady = true;
+              this._processPendingPageViews();
+              resolve(true);
+            }
+          }, 3000);
+        }
+
+        /**
+         * Инициализирует счетчик с параметрами согласно документации
          * @private
          */
         _initCounter() {
           try {
-            if (typeof window.ym === 'function') {
-              // Инициализируем счетчик, если еще не создан
-              if (!window[`yaCounter${this.counterId}`]) {
-                window.ym(this.counterId, 'init', {
-                  clickmap: true,
-                  trackLinks: true,
-                  accurateTrackBounce: true,
-                  webvisor: true,
-                  defer: false,
-                  triggerEvent: true
-                });
-                console.log(`✅ Счетчик ${this.counterId} инициализирован`);
-              }
-            }
+            const counterId = parseInt(this.counterId);
+
+            // Инициализируем счетчик с параметрами согласно документации
+            window.ym(counterId, 'init', {
+              clickmap: true,           // Сбор данных для карты кликов
+              trackLinks: true,         // Отслеживание переходов по внешним ссылкам
+              accurateTrackBounce: true, // Точный показатель отказов
+              webvisor: true,           // Вебвизор
+              defer: false,             // Не отключаем автоматическую отправку
+              triggerEvent: true,       // Генерировать событие о готовности счетчика (ВАЖНО!)
+              trackHash: false,         // Не отслеживаем хеши
+              sendTitle: true           // Отправляем заголовки страниц
+            });
+
+            console.log(`✅ Счетчик ${counterId} инициализирован с параметрами`);
           } catch (error) {
             console.error('❌ Ошибка при инициализации счетчика:', error);
           }
@@ -196,11 +235,24 @@
          */
         _sendPageViewImmediate(data) {
           try {
+            const counterId = parseInt(this.counterId);
             const pageUrl = data.pageUrl || window.location.href;
             const pageTitle = data.pageTitle || document.title;
 
-            window.ym(this.counterId, 'hit', pageUrl, {
+            // Устанавливаем идентификатор посетителя (согласно документации)
+            window.ym(counterId, 'setUserID', data.userId.toString());
+
+            // Устанавливаем параметры посетителя
+            window.ym(counterId, 'userParams', {
+              user_id: data.userId,
+              user_name: data.userName,
+              user_role: 'employee'
+            });
+
+            // Отправляем просмотр страницы с параметрами (согласно документации)
+            window.ym(counterId, 'hit', pageUrl, {
               title: pageTitle,
+              referer: document.referrer || undefined,
               params: {
                 user_id: data.userId,
                 user_name: data.userName,
@@ -208,15 +260,6 @@
                 hit_type: 'page_view',
                 time_on_page: data.timeOnPage || 0
               }
-            });
-
-            // Устанавливаем параметры посетителя
-            window.ym(this.counterId, 'setUserID', data.userId.toString());
-
-            window.ym(this.counterId, 'userParams', {
-              user_id: data.userId,
-              user_name: data.userName,
-              user_role: 'employee'
             });
 
             console.log('✅ Данные отправлены в Яндекс Метрику');
@@ -235,7 +278,7 @@
             return;
           }
 
-          if (!this.initialized || typeof window.ym !== 'function') {
+          if (!this.initialized || !this.counterReady) {
             console.log('⏳ Яндекс Метрика еще инициализируется, данные добавлены в очередь');
             this.pendingPageViews.push(data);
             return;
@@ -250,26 +293,32 @@
          * @param {Object} params - Дополнительные параметры
          */
         sendGoal(goalName, params = {}) {
-          if (!this.enabled || !this.counterId || !this.initialized || !this.trackGoals) return;
-          if (typeof window.ym !== 'function') return;
+          if (!this.enabled || !this.counterId || !this.initialized || !this.trackGoals || !this.counterReady) {
+            return;
+          }
 
           try {
+            const counterId = parseInt(this.counterId);
             const goalParams = {};
 
+            // Обработка параметров цели согласно документации
             if (params.orderPrice) {
-              goalParams.order_price = params.orderPrice;
+              goalParams.order_price = parseFloat(params.orderPrice);
               if (params.currency) {
                 goalParams.currency = params.currency;
               }
             }
 
-            window.ym(this.counterId, 'reachGoal', goalName, {
+            // Отправляем цель (метод 'reachGoal' согласно документации)
+            window.ym(counterId, 'reachGoal', goalName, {
               params: {
                 ...goalParams,
                 ...params,
                 timestamp: new Date().toISOString()
               }
             });
+
+            console.log(`✅ Цель "${goalName}" отправлена в Яндекс Метрику`);
           } catch (error) {
             console.error(`❌ Ошибка отправки цели "${goalName}" в Яндекс Метрику:`, error);
           }
@@ -280,11 +329,15 @@
          * @param {Object} params - Параметры визита
          */
         sendParams(params) {
-          if (!this.enabled || !this.counterId || !this.initialized) return;
-          if (typeof window.ym !== 'function') return;
+          if (!this.enabled || !this.counterId || !this.initialized || !this.counterReady) return;
 
           try {
-            window.ym(this.counterId, 'params', { params });
+            const counterId = parseInt(this.counterId);
+
+            // Отправляем параметры визита (согласно документации)
+            window.ym(counterId, 'params', { params });
+
+            console.log('✅ Параметры визита отправлены');
           } catch (error) {
             console.error('❌ Ошибка отправки параметров в Яндекс Метрику:', error);
           }
@@ -295,10 +348,10 @@
          * @param {Object} data - Данные о времени
          */
         sendTimeOnPage(data) {
-          if (!this.enabled || !this.counterId || !this.initialized) return;
-          if (typeof window.ym !== 'function') return;
+          if (!this.enabled || !this.counterId || !this.initialized || !this.counterReady) return;
 
           try {
+            // Отправляем как параметры визита
             this.sendParams({
               time_on_page: data.seconds,
               time_on_page_formatted: this._formatTime(data.seconds),
@@ -307,6 +360,7 @@
               page_category: data.pageCategory
             });
 
+            // Если время значительное (более 60 секунд), отправляем как цель
             if (data.seconds >= 60) {
               this.sendGoal('time_on_page_significant', {
                 seconds: data.seconds,
@@ -317,6 +371,28 @@
             }
           } catch (error) {
             console.error('❌ Ошибка отправки времени в Яндекс Метрику:', error);
+          }
+        }
+
+        /**
+         * Отправляет информацию о переходе по внешней ссылке
+         * @param {string} url - URL внешней ссылки
+         * @param {Object} options - Дополнительные параметры
+         */
+        sendExternalLink(url, options = {}) {
+          if (!this.enabled || !this.counterId || !this.initialized || !this.counterReady) return;
+
+          try {
+            const counterId = parseInt(this.counterId);
+
+            window.ym(counterId, 'extLink', url, {
+              title: options.title || document.title,
+              params: options.params || {}
+            });
+
+            console.log(`✅ Переход по внешней ссылке "${url}" отправлен`);
+          } catch (error) {
+            console.error('❌ Ошибка отправки внешней ссылки в Яндекс Метрику:', error);
           }
         }
 
