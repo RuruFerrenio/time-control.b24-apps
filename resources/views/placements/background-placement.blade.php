@@ -1882,6 +1882,8 @@
           this.currentUrl = <?php
                             echo json_encode($clientUrl ?? null, 15, 512) ?> ||
           window.location.href;
+                            console.log('lalala')
+          console.log(this.currentUrl)
         }
 
         /**
