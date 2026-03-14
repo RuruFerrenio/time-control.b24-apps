@@ -138,6 +138,8 @@
          * @param {number} data.timeOnPage - Время на странице в секундах
          */
         sendPageView(data) {
+          console.log('lalalalala')
+          console.log(data)
           if (!this.enabled || !this.counterId || !this.initialized) {
             console.log('📊 Яндекс Метрика не активна или не инициализирована');
             return;
