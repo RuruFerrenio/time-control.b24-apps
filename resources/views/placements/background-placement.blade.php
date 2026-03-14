@@ -20,23 +20,27 @@
         MODAL_WIDTH: 500
       };
 
+      // ==========================================================================
+      // КЛАСС: YandexMetricaManager - Управление Яндекс Метрикой
+      // ==========================================================================
+
       /**
        * Класс для работы с Яндекс Метрикой
        */
       class YandexMetricaManager {
         constructor() {
-          this.enabled = false;
           this.counterId = null;
-          this.trackGoals = true;
+          this.enabled = false;
           this.initialized = false;
-          this.initPromise = null;
-          this.pendingPageViews = [];
-          this.counterReady = false;
+          this.trackGoals = false;
+          this.userId = null;
+          this.userName = null;
+          this.currentUrl = null;
         }
 
         /**
          * Загружает настройки Яндекс Метрики
-         * @returns {Promise<boolean>} Успешность загрузки
+         * @returns {Promise<boolean>}
          */
         async loadSettings() {
           try {
@@ -47,370 +51,213 @@
             ]);
 
             this.enabled = enabled === 'Y' || enabled === true || enabled === 1;
-            this.counterId = counterId || null;
+
+            if (counterId) {
+              this.counterId = counterId;
+            }
+
             this.trackGoals = trackGoals === 'Y' || trackGoals === true || trackGoals === 1;
 
             if (this.enabled && this.counterId) {
-              this.initPromise = this.initialize();
-              await this.initPromise;
+              await this.initialize();
             }
 
             return true;
           } catch (error) {
-            console.error('❌ Ошибка загрузки настроек Яндекс Метрики:', error);
+            console.error('Ошибка загрузки настроек Яндекс Метрики:', error);
             return false;
           }
         }
 
         /**
-         * Инициализирует Яндекс Метрику в соответствии с документацией
-         * @returns {Promise<boolean>}
+         * Инициализирует счетчик Яндекс Метрики
          */
         async initialize() {
-          if (this.initialized) return true;
-          if (!this.enabled || !this.counterId) return false;
+          if (!this.enabled || !this.counterId || this.initialized) {
+            return;
+          }
 
-          return new Promise((resolve) => {
-            try {
-              // Проверяем, загружен ли уже скрипт Метрики
-              if (typeof window.ym === 'function') {
-                this._initCounter();
-                this.initialized = true;
-                console.log('✅ Яндекс Метрика уже была инициализирована');
-                this._waitForCounterReady(resolve);
-                return;
-              }
-
-              // Проверяем, загружается ли скрипт сейчас
-              if (document.querySelector('script[src*="metrika/tag.js"]')) {
-                console.log('⏳ Скрипт Яндекс Метрики уже загружается, ожидаем...');
-                this._waitForYM(resolve);
-                return;
-              }
-
-              // Загружаем скрипт Метрики асинхронно (рекомендуемый способ)
-              console.log('📥 Загружаем скрипт Яндекс Метрики...');
-
-              // Создаем функцию ym глобально до загрузки скрипта (как в документации)
-              window.ym = window.ym || function() {
-                (window.ym.a = window.ym.a || []).push(arguments);
-              };
-              window.ym.l = 1 * new Date();
-
+          try {
+            // Загружаем скрипт Яндекс Метрики если его нет
+            if (!document.querySelector('script[src="https://mc.yandex.ru/metrika/tag.js"]')) {
               const script = document.createElement('script');
               script.src = 'https://mc.yandex.ru/metrika/tag.js';
               script.async = true;
-
-              script.onload = () => {
-                console.log('✅ Скрипт Яндекс Метрики загружен');
-                this._waitForYM(resolve);
-              };
-
-              script.onerror = () => {
-                console.error('❌ Ошибка загрузки скрипта Яндекс Метрики');
-                resolve(false);
-              };
-
               document.head.appendChild(script);
+
+              // Ждем загрузки скрипта
+              await new Promise((resolve) => {
+                script.onload = resolve;
+              });
+            }
+
+            // Инициализируем счетчик
+            window.ym = window.ym || function() {
+              (window.ym.a = window.ym.a || []).push(arguments);
+            };
+            window.ym.l = 1 * new Date();
+
+            // Инициализация с параметрами
+            ym(this.counterId, 'init', {
+              clickmap: true,
+              trackLinks: true,
+              accurateTrackBounce: true,
+              webvisor: true,
+              triggerEvent: true,
+              defer: false,
+              trackHash: false
+            });
+
+            this.initialized = true;
+
+            // Устанавливаем ID пользователя если есть
+            if (this.userId) {
+              this.setUserID(this.userId);
+            }
+
+            console.log(`✅ Яндекс Метрика инициализирована, счетчик: ${this.counterId}`);
+          } catch (error) {
+            console.error('❌ Ошибка инициализации Яндекс Метрики:', error);
+          }
+        }
+
+        /**
+         * Устанавливает ID пользователя
+         * @param {string} userId - ID пользователя
+         */
+        setUserID(userId) {
+          this.userId = userId;
+
+          if (this.initialized && userId) {
+            try {
+              ym(this.counterId, 'setUserID', userId.toString());
+              console.log(`✅ Установлен ID пользователя в Яндекс Метрике: ${userId}`);
             } catch (error) {
-              console.error('❌ Ошибка инициализации Яндекс Метрики:', error);
-              resolve(false);
+              console.error('Ошибка установки ID пользователя в Яндекс Метрике:', error);
             }
-          });
+          }
         }
 
         /**
-         * Ожидает инициализации ym
-         * @private
+         * Устанавливает имя пользователя как параметр
+         * @param {string} userName - Имя пользователя
          */
-        _waitForYM(resolve) {
-          let attempts = 0;
-          const maxAttempts = 50; // 5 секунд максимум
+        setUserName(userName) {
+          this.userName = userName;
 
-          const checkYM = () => {
-            if (typeof window.ym === 'function' && window.ym !== this._dummyYm) {
-              this._initCounter();
-              this.initialized = true;
-              this._waitForCounterReady(resolve);
+          if (this.initialized && userName) {
+            try {
+              ym(this.counterId, 'params', {
+                'user_name': userName
+              });
+            } catch (error) {
+              console.error('Ошибка передачи имени пользователя в Яндекс Метрику:', error);
+            }
+          }
+        }
+
+        /**
+         * Устанавливает текущий URL из параметров встройки
+         * @param {string} url - URL из параметров встройки
+         */
+        setCurrentUrl(url) {
+          this.currentUrl = url;
+        }
+
+        /**
+         * Отправляет просмотр страницы (hit)
+         * @param {string} url - URL страницы (из параметров встройки)
+         * @param {string} title - Заголовок страницы
+         * @param {Object} additionalParams - Дополнительные параметры
+         */
+        sendHit(url, title, additionalParams = {}) {
+          if (!this.initialized) {
+            console.warn('⚠️ Яндекс Метрика не инициализирована');
+            return;
+          }
+
+          try {
+            const hitUrl = url || this.currentUrl;
+            if (!hitUrl) {
+              console.warn('⚠️ URL для отправки в Яндекс Метрику не указан');
               return;
             }
 
-            attempts++;
-            if (attempts >= maxAttempts) {
-              console.error('❌ Таймаут инициализации Яндекс Метрики');
-              resolve(false);
-              return;
-            }
-
-            setTimeout(checkYM, 100);
-          };
-
-          checkYM();
-        }
-
-        /**
-         * Ожидает готовности счетчика через событие (согласно документации)
-         * @private
-         */
-        _waitForCounterReady(resolve) {
-          const eventName = `yacounter${this.counterId}inited`;
-
-          // Обработчик события готовности счетчика
-          const onCounterReady = () => {
-            this.counterReady = true;
-            document.removeEventListener(eventName, onCounterReady);
-            console.log(`✅ Счетчик ${this.counterId} готов к работе`);
-            this._processPendingPageViews();
-            resolve(true);
-          };
-
-          // Подписываемся на событие готовности (согласно документации)
-          document.addEventListener(eventName, onCounterReady);
-
-          // Проверяем, возможно счетчик уже готов
-          if (window[`yaCounter${this.counterId}`]) {
-            document.removeEventListener(eventName, onCounterReady);
-            this.counterReady = true;
-            console.log(`✅ Счетчик ${this.counterId} уже готов`);
-            this._processPendingPageViews();
-            resolve(true);
-            return;
-          }
-
-          // Таймаут на случай, если событие не сработало
-          setTimeout(() => {
-            if (!this.counterReady) {
-              document.removeEventListener(eventName, onCounterReady);
-              console.log('⚠️ Событие готовности счетчика не получено, но продолжаем работу');
-              this.counterReady = true;
-              this._processPendingPageViews();
-              resolve(true);
-            }
-          }, 3000);
-        }
-
-        /**
-         * Инициализирует счетчик с параметрами согласно документации
-         * @private
-         */
-        _initCounter() {
-          try {
-            const counterId = parseInt(this.counterId);
-
-            // Инициализируем счетчик с параметрами согласно документации
-            window.ym(counterId, 'init', {
-              clickmap: true,           // Сбор данных для карты кликов
-              trackLinks: true,         // Отслеживание переходов по внешним ссылкам
-              accurateTrackBounce: true, // Точный показатель отказов
-              webvisor: true,           // Вебвизор
-              defer: false,             // Не отключаем автоматическую отправку
-              triggerEvent: true,       // Генерировать событие о готовности счетчика (ВАЖНО!)
-              trackHash: false,         // Не отслеживаем хеши
-              sendTitle: true           // Отправляем заголовки страниц
-            });
-
-            console.log(`✅ Счетчик ${counterId} инициализирован с параметрами`);
-          } catch (error) {
-            console.error('❌ Ошибка при инициализации счетчика:', error);
-          }
-        }
-
-        /**
-         * Обрабатывает отложенные просмотры страниц
-         * @private
-         */
-        _processPendingPageViews() {
-          if (this.pendingPageViews.length > 0) {
-            console.log(`📊 Отправляем ${this.pendingPageViews.length} отложенных просмотров`);
-            this.pendingPageViews.forEach(data => {
-              this._sendPageViewImmediate(data);
-            });
-            this.pendingPageViews = [];
-          }
-        }
-
-        /**
-         * Немедленная отправка просмотра (без проверок)
-         * @private
-         */
-        _sendPageViewImmediate(data) {
-          try {
-            const counterId = parseInt(this.counterId);
-            const pageUrl = data.pageUrl || window.location.href;
-            const pageTitle = data.pageTitle || document.title;
-
-            // Устанавливаем идентификатор посетителя (согласно документации)
-            window.ym(counterId, 'setUserID', data.userId.toString());
-
-            // Устанавливаем параметры посетителя
-            window.ym(counterId, 'userParams', {
-              user_id: data.userId,
-              user_name: data.userName,
-              user_role: 'employee'
-            });
-
-            // Отправляем просмотр страницы с параметрами (согласно документации)
-            window.ym(counterId, 'hit', pageUrl, {
-              title: pageTitle,
-              referer: document.referrer || undefined,
+            const options = {
+              title: title || document.title || 'Без названия',
               params: {
-                user_id: data.userId,
-                user_name: data.userName,
-                page_category: data.pageCategory || 'unknown',
-                hit_type: 'page_view',
-                time_on_page: data.timeOnPage || 0
+                user_id: this.userId || 'unknown',
+                ...additionalParams
               }
-            });
+            };
 
-            console.log('✅ Данные отправлены в Яндекс Метрику');
+            ym(this.counterId, 'hit', hitUrl, options);
+
+            console.log(`📊 Отправлен просмотр в Яндекс Метрику: ${hitUrl}`);
           } catch (error) {
-            console.error('❌ Ошибка отправки просмотра в Яндекс Метрику:', error);
-          }
-        }
-
-        /**
-         * Отправляет просмотр страницы в Яндекс Метрику
-         * @param {Object} data - Данные для отправки
-         */
-        sendPageView(data) {
-          if (!this.enabled || !this.counterId) {
-            console.log('📊 Яндекс Метрика не активна');
-            return;
-          }
-
-          if (!this.initialized || !this.counterReady) {
-            console.log('⏳ Яндекс Метрика еще инициализируется, данные добавлены в очередь');
-            this.pendingPageViews.push(data);
-            return;
-          }
-
-          this._sendPageViewImmediate(data);
-        }
-
-        /**
-         * Отправляет цель в Яндекс Метрику
-         * @param {string} goalName - Название цели
-         * @param {Object} params - Дополнительные параметры
-         */
-        sendGoal(goalName, params = {}) {
-          if (!this.enabled || !this.counterId || !this.initialized || !this.trackGoals || !this.counterReady) {
-            return;
-          }
-
-          try {
-            const counterId = parseInt(this.counterId);
-            const goalParams = {};
-
-            // Обработка параметров цели согласно документации
-            if (params.orderPrice) {
-              goalParams.order_price = parseFloat(params.orderPrice);
-              if (params.currency) {
-                goalParams.currency = params.currency;
-              }
-            }
-
-            // Отправляем цель (метод 'reachGoal' согласно документации)
-            window.ym(counterId, 'reachGoal', goalName, {
-              params: {
-                ...goalParams,
-                ...params,
-                timestamp: new Date().toISOString()
-              }
-            });
-
-            console.log(`✅ Цель "${goalName}" отправлена в Яндекс Метрику`);
-          } catch (error) {
-            console.error(`❌ Ошибка отправки цели "${goalName}" в Яндекс Метрику:`, error);
+            console.error('Ошибка отправки просмотра в Яндекс Метрику:', error);
           }
         }
 
         /**
          * Отправляет параметры визита
-         * @param {Object} params - Параметры визита
+         * @param {Object} params - Параметры для отправки
          */
         sendParams(params) {
-          if (!this.enabled || !this.counterId || !this.initialized || !this.counterReady) return;
+          if (!this.initialized) return;
 
           try {
-            const counterId = parseInt(this.counterId);
-
-            // Отправляем параметры визита (согласно документации)
-            window.ym(counterId, 'params', { params });
-
-            console.log('✅ Параметры визита отправлены');
+            ym(this.counterId, 'params', { params });
           } catch (error) {
-            console.error('❌ Ошибка отправки параметров в Яндекс Метрику:', error);
+            console.error('Ошибка отправки параметров в Яндекс Метрику:', error);
           }
         }
 
         /**
-         * Отправляет информацию о времени на странице
-         * @param {Object} data - Данные о времени
+         * Отправляет информацию о переходе по ссылке
+         * @param {string} url - URL перехода
+         * @param {Object} additionalParams - Дополнительные параметры
          */
-        sendTimeOnPage(data) {
-          if (!this.enabled || !this.counterId || !this.initialized || !this.counterReady) return;
+        sendExtLink(url, additionalParams = {}) {
+          if (!this.initialized) return;
 
           try {
-            // Отправляем как параметры визита
-            this.sendParams({
-              time_on_page: data.seconds,
-              time_on_page_formatted: this._formatTime(data.seconds),
-              page_url: data.pageUrl,
-              user_id: data.userId,
-              page_category: data.pageCategory
+            const options = {
+              params: {
+                user_id: this.userId || 'unknown',
+                ...additionalParams
+              }
+            };
+
+            ym(this.counterId, 'extLink', url, options);
+          } catch (error) {
+            console.error('Ошибка отправки extLink в Яндекс Метрику:', error);
+          }
+        }
+
+        /**
+         * Отправляет событие цели (для начала/конца рабочего дня, подтверждения присутствия)
+         * @param {string} goalName - Название цели
+         * @param {Object} params - Параметры цели
+         */
+        sendGoal(goalName, params = {}) {
+          if (!this.initialized || !this.trackGoals) return;
+
+          try {
+            const goalParams = {
+              user_id: this.userId || 'unknown',
+              ...params
+            };
+
+            // Для целей используем hit с параметрами
+            ym(this.counterId, 'hit', this.currentUrl || window.location.href, {
+              title: document.title,
+              params: goalParams
             });
 
-            // Если время значительное (более 60 секунд), отправляем как цель
-            if (data.seconds >= 60) {
-              this.sendGoal('time_on_page_significant', {
-                seconds: data.seconds,
-                minutes: Math.floor(data.seconds / 60),
-                page_url: data.pageUrl,
-                user_id: data.userId
-              });
-            }
+            console.log(`🎯 Отправлена цель в Яндекс Метрику: ${goalName}`);
           } catch (error) {
-            console.error('❌ Ошибка отправки времени в Яндекс Метрику:', error);
-          }
-        }
-
-        /**
-         * Отправляет информацию о переходе по внешней ссылке
-         * @param {string} url - URL внешней ссылки
-         * @param {Object} options - Дополнительные параметры
-         */
-        sendExternalLink(url, options = {}) {
-          if (!this.enabled || !this.counterId || !this.initialized || !this.counterReady) return;
-
-          try {
-            const counterId = parseInt(this.counterId);
-
-            window.ym(counterId, 'extLink', url, {
-              title: options.title || document.title,
-              params: options.params || {}
-            });
-
-            console.log(`✅ Переход по внешней ссылке "${url}" отправлен`);
-          } catch (error) {
-            console.error('❌ Ошибка отправки внешней ссылки в Яндекс Метрику:', error);
-          }
-        }
-
-        /**
-         * Форматирует время в читаемый вид
-         * @private
-         */
-        _formatTime(seconds) {
-          const hours = Math.floor(seconds / 3600);
-          const minutes = Math.floor((seconds % 3600) / 60);
-          const secs = seconds % 60;
-
-          if (hours > 0) {
-            return `${hours}ч ${minutes}м ${secs}с`;
-          } else if (minutes > 0) {
-            return `${minutes}м ${secs}с`;
-          } else {
-            return `${secs}с`;
+            console.error(`Ошибка отправки цели ${goalName} в Яндекс Метрику:`, error);
           }
         }
       }
@@ -509,6 +356,32 @@
               host: this.domain,
               fullUrl: normalized
             };
+          }
+        }
+
+        /**
+         * Получает URL из параметров встройки
+         * @returns {string|null} URL из параметров или null
+         */
+        getPlacementUrl() {
+          try {
+            // Пытаемся получить параметры встройки
+            if (window.placement && window.placement.options && window.placement.options.url) {
+              return window.placement.options.url;
+            }
+
+            // Альтернативный способ - из URL параметров
+            const urlParams = new URLSearchParams(window.location.search);
+            const paramUrl = urlParams.get('url');
+
+            if (paramUrl) {
+              return decodeURIComponent(paramUrl);
+            }
+
+            return null;
+          } catch (error) {
+            console.error('Ошибка получения URL из параметров встройки:', error);
+            return null;
           }
         }
       }
@@ -988,7 +861,10 @@
             WORKDAY_START_ENABLED: 'workday_start_enabled',
             WORKDAY_START_METHOD: 'workday_start_method',
             WORKDAY_END_ENABLED: 'workday_end_enabled',
-            WORKDAY_END_METHOD: 'workday_end_method'
+            WORKDAY_END_METHOD: 'workday_end_method',
+            YM_ENABLED: 'ym_enabled',
+            YM_COUNTER_ID: 'ym_counter_id',
+            YM_TRACK_GOALS: 'ym_track_goals'
           };
         }
 
@@ -1013,6 +889,11 @@
             workdayEnd: {
               enabled: false,
               method: 'modal' // 'modal' или 'auto'
+            },
+            yandexMetrica: {
+              enabled: false,
+              counterId: null,
+              trackGoals: false
             }
           };
         }
@@ -1031,7 +912,10 @@
               BX24.appOption.get(this.keys.WORKDAY_START_ENABLED),
               BX24.appOption.get(this.keys.WORKDAY_START_METHOD),
               BX24.appOption.get(this.keys.WORKDAY_END_ENABLED),
-              BX24.appOption.get(this.keys.WORKDAY_END_METHOD)
+              BX24.appOption.get(this.keys.WORKDAY_END_METHOD),
+              BX24.appOption.get(this.keys.YM_ENABLED),
+              BX24.appOption.get(this.keys.YM_COUNTER_ID),
+              BX24.appOption.get(this.keys.YM_TRACK_GOALS)
             ];
 
             const [
@@ -1042,19 +926,24 @@
               workdayStartEnabled,
               workdayStartMethod,
               workdayEndEnabled,
-              workdayEndMethod
+              workdayEndMethod,
+              ymEnabled,
+              ymCounterId,
+              ymTrackGoals
             ] = await Promise.all(settingsPromises);
 
             this._parseBooleanSettings({
               pageTrackingEnabled,
               presenceEnabled,
               workdayStartEnabled,
-              workdayEndEnabled
+              workdayEndEnabled,
+              ymEnabled
             });
 
             this._parseWorkdayMethods(workdayStartMethod, workdayEndMethod);
             this._parseHistoryDays(historyDays);
             this._parsePageTimeThreshold(pageTimeThreshold);
+            this._parseYandexMetricaSettings(ymCounterId, ymTrackGoals);
 
             return true;
           } catch (error) {
@@ -1067,11 +956,12 @@
          * Парсит булевы настройки
          * @private
          */
-        _parseBooleanSettings({pageTrackingEnabled, presenceEnabled, workdayStartEnabled, workdayEndEnabled}) {
+        _parseBooleanSettings({pageTrackingEnabled, presenceEnabled, workdayStartEnabled, workdayEndEnabled, ymEnabled}) {
           this.settings.pageTracking.enabled = this._parseBooleanValue(pageTrackingEnabled);
           this.settings.presenceControl.enabled = this._parseBooleanValue(presenceEnabled);
           this.settings.workdayStart.enabled = this._parseBooleanValue(workdayStartEnabled);
           this.settings.workdayEnd.enabled = this._parseBooleanValue(workdayEndEnabled);
+          this.settings.yandexMetrica.enabled = this._parseBooleanValue(ymEnabled);
         }
 
         /**
@@ -1132,6 +1022,18 @@
           }
         }
 
+        /**
+         * Парсит настройки Яндекс Метрики
+         * @private
+         */
+        _parseYandexMetricaSettings(counterId, trackGoals) {
+          if (counterId) {
+            this.settings.yandexMetrica.counterId = counterId;
+          }
+
+          this.settings.yandexMetrica.trackGoals = this._parseBooleanValue(trackGoals);
+        }
+
         // ===== Геттеры настроек =====
 
         isPageTrackingEnabled() {
@@ -1172,6 +1074,18 @@
 
         getHistoryDays() {
           return this.settings.pageTracking.historyDays;
+        }
+
+        isYandexMetricaEnabled() {
+          return this.settings.yandexMetrica.enabled;
+        }
+
+        getYandexMetricaCounterId() {
+          return this.settings.yandexMetrica.counterId;
+        }
+
+        isYandexMetricaTrackGoals() {
+          return this.settings.yandexMetrica.trackGoals;
         }
       }
 
@@ -1869,9 +1783,10 @@
           this.storageManager = new StorageManager();
           this.sessionTimer = new SessionTimer();
           this.workdayManager = new WorkdayManager(this.userManager);
-          this.yandexMetrica = new YandexMetricaManager();
+          this.yandexMetricaManager = new YandexMetricaManager();
 
           this.currentUrl = null;
+          this.placementUrl = null; // URL из параметров встройки
           this.applicationOpened = false;
           this.storedTime = 0;
           this.initialized = false;
@@ -1883,35 +1798,87 @@
         }
 
         /**
+         * Получает URL из параметров встройки
+         * @private
+         */
+        _getPlacementUrl() {
+          try {
+            // Проверяем параметры встройки
+            if (window.placement && window.placement.options) {
+              console.log('📦 Параметры встройки:', window.placement.options);
+
+              // Разные возможные места хранения URL
+              if (window.placement.options.url) {
+                return window.placement.options.url;
+              }
+              if (window.placement.options.URL) {
+                return window.placement.options.URL;
+              }
+              if (window.placement.options.pageUrl) {
+                return window.placement.options.pageUrl;
+              }
+              if (window.placement.options.PAGE_URL) {
+                return window.placement.options.PAGE_URL;
+              }
+            }
+
+            // Проверяем URL параметры
+            const urlParams = new URLSearchParams(window.location.search);
+            const paramKeys = ['url', 'URL', 'pageUrl', 'PAGE_URL', 'placement_url'];
+
+            for (const key of paramKeys) {
+              const value = urlParams.get(key);
+              if (value) {
+                return decodeURIComponent(value);
+              }
+            }
+
+            return null;
+          } catch (error) {
+            console.error('Ошибка получения URL из параметров встройки:', error);
+            return null;
+          }
+        }
+
+        /**
          * Инициализирует приложение
          */
         async initialize() {
           if (this.initialized) return;
 
           try {
-            this._setCurrentUrl();
+            // Получаем URL из параметров встройки
+            this.placementUrl = this._getPlacementUrl();
+            console.log('🔗 URL из параметров встройки:', this.placementUrl);
+
+            this.currentUrl = this.placementUrl || window.location.href;
+            console.log('🌐 Текущий URL для отслеживания:', this.currentUrl);
 
             await this.settingsManager.load();
 
-            // Загружаем настройки Яндекс Метрики
-            await this.yandexMetrica.loadSettings();
+            // Инициализация Яндекс Метрики
+            if (this.settingsManager.isYandexMetricaEnabled() &&
+              this.settingsManager.getYandexMetricaCounterId()) {
 
-            if (!this.settingsManager.isPageTrackingEnabled()) {
-              return;
+              this.yandexMetricaManager.counterId = this.settingsManager.getYandexMetricaCounterId();
+              this.yandexMetricaManager.enabled = true;
+              this.yandexMetricaManager.trackGoals = this.settingsManager.isYandexMetricaTrackGoals();
+              this.yandexMetricaManager.setCurrentUrl(this.placementUrl || this.currentUrl);
             }
 
             await this.userManager.fetchProfile();
 
-            // Отправляем просмотр страницы в Яндекс Метрику при инициализации
-            if (this.userManager.profile) {
-              this.yandexMetrica.sendPageView({
-                userId: this.userManager.getUserId(),
-                userName: this.userManager.getFullName(),
-                pageUrl: this.urlProcessor.normalizeUrl(this.currentUrl),
-                pageTitle: document.title,
-                pageCategory: this.categoryDetector.getCategory(this.currentUrl),
-                timeOnPage: 0
-              });
+            // Передаем данные пользователя в Яндекс Метрику
+            if (this.settingsManager.isYandexMetricaEnabled()) {
+              this.yandexMetricaManager.setUserID(this.userManager.getUserId());
+              this.yandexMetricaManager.setUserName(this.userManager.getFullName());
+
+              // Инициализируем счетчик после получения данных пользователя
+              await this.yandexMetricaManager.initialize();
+            }
+
+            if (!this.settingsManager.isPageTrackingEnabled()) {
+              return;
             }
 
             try {
@@ -1928,7 +1895,6 @@
                 this.timemanAvailable = false;
               } else {
                 const methodData = result.data();
-                // Метод доступен только если он существует И доступен для вызова
                 this.timemanAvailable = methodData.isExisting && methodData.isAvailable;
 
                 if (this.timemanAvailable) {
@@ -1950,6 +1916,20 @@
             }
 
             await this._initializeStorageWithCleanup();
+
+            // Отправляем просмотр в Яндекс Метрику при инициализации
+            if (this.settingsManager.isYandexMetricaEnabled() && this.yandexMetricaManager.initialized) {
+              const category = this.categoryDetector.getCategory(this.placementUrl || this.currentUrl);
+
+              this.yandexMetricaManager.sendHit(
+                this.placementUrl || this.currentUrl,
+                document.title,
+                {
+                  page_category: category,
+                  user_name: this.userManager.getFullName()
+                }
+              );
+            }
 
             this.setupEventListeners();
 
@@ -2031,11 +2011,14 @@
 
           if (this.settingsManager.isWorkdayStartAuto()) {
             await this.workdayManager.ensureWorkdayStarted();
+
             // Отправляем цель в Яндекс Метрику
-            this.yandexMetrica.sendGoal('workday_start_auto', {
-              user_id: this.userManager.getUserId(),
-              page_url: this.currentUrl
-            });
+            if (this.yandexMetricaManager.initialized) {
+              this.yandexMetricaManager.sendGoal('workday_start', {
+                method: 'auto',
+                user_id: this.userManager.getUserId()
+              });
+            }
           } else if (this.settingsManager.isWorkdayStartModal()) {
             this.openWorkdayStartModal();
           }
@@ -2052,10 +2035,14 @@
 
           if (this.settingsManager.isWorkdayEndAuto()) {
             await this.workdayManager.ensureWorkdayEnded();
+
             // Отправляем цель в Яндекс Метрику
-            this.yandexMetrica.sendGoal('workday_end_auto', {
-              user_id: this.userManager.getUserId()
-            });
+            if (this.yandexMetricaManager.initialized) {
+              this.yandexMetricaManager.sendGoal('workday_end', {
+                method: 'auto',
+                user_id: this.userManager.getUserId()
+              });
+            }
           } else if (this.settingsManager.isWorkdayEndModal()) {
             this.openWorkdayEndModal();
           }
@@ -2151,8 +2138,6 @@
         openPresenceApplication() {
           if (this.applicationOpened || this.sessionTimer.isPageHidden) return;
 
-          //if (!this.timemanAvailable) return;
-
           const thresholdSeconds = this.settingsManager.getPageTimeThresholdSeconds();
 
           if (this.sessionTimer.getSessionTime() < thresholdSeconds) return;
@@ -2178,6 +2163,7 @@
               user_id: this.userManager.getUserId(),
               user_name: this.userManager.getFullName(),
               page_url: this.currentUrl,
+              placement_url: this.placementUrl,
               page_title: document.title,
               workday_status: this.workdayManager.workdayStatus,
               opened_at: new Date().toISOString()
@@ -2205,6 +2191,7 @@
               current_session_time: currentTime,
               stored_time: this.storedTime,
               page_url: this.currentUrl,
+              placement_url: this.placementUrl,
               page_title: document.title,
               page_category: category,
               opened_at: new Date().toISOString()
@@ -2287,18 +2274,6 @@
           const totalTime = this.storedTime + currentTime;
           const minutes = Math.floor(currentTime / 60);
           const seconds = currentTime % 60;
-
-          // Отправляем время в Яндекс Метрику каждые 60 секунд
-          if (currentTime > 0 && currentTime % 60 === 0) {
-            this.yandexMetrica.sendTimeOnPage({
-              seconds: currentTime,
-              userId: this.userManager.getUserId(),
-              pageUrl: this.urlProcessor.normalizeUrl(this.currentUrl),
-              pageCategory: this.categoryDetector.getCategory(this.currentUrl)
-            });
-          }
-
-          //console.log(`⏱️ Текущая сессия: ${minutes}:${seconds.toString().padStart(2, '0')} (${currentTime} сек)`);
         }
 
         /**
@@ -2317,15 +2292,6 @@
             );
 
             this.storedTime = newTotalTime;
-
-            // Отправляем обновленное время в Яндекс Метрику
-            this.yandexMetrica.sendTimeOnPage({
-              seconds: this.storedTime,
-              userId: this.userManager.getUserId(),
-              pageUrl: this.urlProcessor.normalizeUrl(this.currentUrl),
-              pageCategory: this.categoryDetector.getCategory(this.currentUrl)
-            });
-
           } catch (error) {
             console.error('Ошибка обновления хранилища:', error);
           }
@@ -2371,17 +2337,6 @@
         _handlePageVisible() {
           this.sessionTimer.markPageVisible();
           this.startMainTimer();
-
-          // Отправляем просмотр при возвращении на страницу
-          this.yandexMetrica.sendPageView({
-            userId: this.userManager.getUserId(),
-            userName: this.userManager.getFullName(),
-            pageUrl: this.urlProcessor.normalizeUrl(this.currentUrl),
-            pageTitle: document.title,
-            pageCategory: this.categoryDetector.getCategory(this.currentUrl),
-            timeOnPage: this.sessionTimer.getSessionTime()
-          });
-
         }
 
         /**
@@ -2395,14 +2350,6 @@
           if (this.storageManager.currentItemId && sessionTime > 0) {
             this._updateStorage(sessionTime);
           }
-
-          // Отправляем финальное время
-          this.yandexMetrica.sendTimeOnPage({
-            seconds: this.storedTime,
-            userId: this.userManager.getUserId(),
-            pageUrl: this.urlProcessor.normalizeUrl(this.currentUrl),
-            pageCategory: this.categoryDetector.getCategory(this.currentUrl)
-          });
         }
       }
 
