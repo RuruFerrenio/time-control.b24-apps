@@ -892,7 +892,13 @@
           try {
             const { url, title, category, userId, firstName, lastName, fullName } = pageData;
 
-            // Устанавливаем параметры пользователя (один раз за сессию)
+            // Формируем параметры для визита
+            const params = {
+              category: category || 'Неизвестная категория',
+              user_id: userId || 0
+            };
+
+            // Добавляем имя и фамилию как userParams (устанавливаются один раз за сессию)
             if (!this.userParams && (userId || fullName)) {
               this.userParams = {
                 user_id: userId,
@@ -901,36 +907,17 @@
                 user_full_name: fullName
               };
 
-              // Очищаем undefined значения
-              Object.keys(this.userParams).forEach(key => {
-                if (this.userParams[key] === undefined || this.userParams[key] === null) {
-                  delete this.userParams[key];
-                }
-              });
-
               // Устанавливаем параметры пользователя
               ym(this.counterId, 'userParams', this.userParams);
-              console.log('👤 Установлены параметры пользователя:', this.userParams);
             }
 
-            // Параметры визита для метода hit
-            const visitParams = {
-              category: category || 'Неизвестная категория'
-            };
-
-            // Отправляем просмотр страницы в новом формате
+            // Отправляем просмотр страницы
             ym(this.counterId, 'hit', url, {
               title: title || document.title,
-              params: visitParams // Параметры визита
+              params: params
             });
 
-            console.log('📊 Отправлен просмотр страницы в Яндекс Метрику:', {
-              url: url,
-              title: title || document.title,
-              params: visitParams,
-              userParams: this.userParams
-            });
-
+            console.log('📊 Отправлен просмотр страницы в Яндекс Метрику:', url, params);
           } catch (error) {
             console.error('❌ Ошибка отправки данных в Яндекс Метрику:', error);
           }
@@ -1651,7 +1638,6 @@
           if (this.initialized) return;
 
           try {
-            this._setCurrentUrl();
 
             await this.settingsManager.load();
 
@@ -1721,14 +1707,6 @@
         }
 
         /**
-         * Устанавливает текущий URL
-         * @private
-         */
-        _setCurrentUrl() {
-          this.currentUrl = window.location.href;
-        }
-
-        /**
          * Отправляет просмотр страницы в Яндекс Метрику
          * @private
          */
@@ -1737,21 +1715,15 @@
 
           const userProfile = this.userManager.profile;
 
-          // Используем PAGE_URL из хранилища (уже нормализованный)
-          const pageUrl = this.storageManager.urlProcessor.normalizeUrl(this.currentUrl);
-          const category = this.categoryDetector.getCategory(this.currentUrl);
-
           this.metrica.hit({
-            url: pageUrl, // Отправляем нормализованный PAGE_URL
+            url: this.currentUrl,
             title: document.title,
-            category: category,
+            category: this.categoryDetector.getCategory(this.currentUrl),
             userId: userProfile.ID,
             firstName: userProfile.NAME || '',
             lastName: userProfile.LAST_NAME || '',
             fullName: this.userManager.getFullName()
           });
-
-          console.log('📤 Отправка в метрику с PAGE_URL:', pageUrl);
         }
 
         /**
