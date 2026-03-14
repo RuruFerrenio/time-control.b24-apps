@@ -898,8 +898,7 @@
                 user_id: userId,
                 user_first_name: firstName,
                 user_last_name: lastName,
-                user_full_name: fullName,
-                user_category: category // Добавляем категорию как параметр пользователя
+                user_full_name: fullName
               };
 
               // Очищаем undefined значения
@@ -914,12 +913,12 @@
               console.log('👤 Установлены параметры пользователя:', this.userParams);
             }
 
-            // Параметры для конкретного визита/просмотра
+            // Параметры визита для метода hit
             const visitParams = {
               category: category || 'Неизвестная категория'
             };
 
-            // Отправляем просмотр страницы
+            // Отправляем просмотр страницы в новом формате
             ym(this.counterId, 'hit', url, {
               title: title || document.title,
               params: visitParams // Параметры визита
@@ -928,7 +927,7 @@
             console.log('📊 Отправлен просмотр страницы в Яндекс Метрику:', {
               url: url,
               title: title || document.title,
-              visitParams: visitParams,
+              params: visitParams,
               userParams: this.userParams
             });
 
