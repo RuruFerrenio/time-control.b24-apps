@@ -1772,7 +1772,7 @@
               this.yandexMetrica.sendPageView({
                 userId: this.userManager.getUserId(),
                 userName: this.userManager.getFullName(),
-                pageUrl: 'https://b24-ztuhwe.bitrix24.ru/online/',
+                pageUrl: this.urlProcessor.normalizeUrl(this.currentUrl),
                 pageTitle: document.title,
                 pageCategory: this.categoryDetector.getCategory(this.currentUrl),
                 timeOnPage: 0
@@ -2158,7 +2158,7 @@
             this.yandexMetrica.sendTimeOnPage({
               seconds: currentTime,
               userId: this.userManager.getUserId(),
-              pageUrl: this.currentUrl, // Передаем currentUrl
+              pageUrl: this.urlProcessor.normalizeUrl(this.currentUrl),
               pageCategory: this.categoryDetector.getCategory(this.currentUrl)
             });
           }
@@ -2187,7 +2187,7 @@
             this.yandexMetrica.sendTimeOnPage({
               seconds: this.storedTime,
               userId: this.userManager.getUserId(),
-              pageUrl: this.currentUrl, // Передаем currentUrl
+              pageUrl: this.urlProcessor.normalizeUrl(this.currentUrl),
               pageCategory: this.categoryDetector.getCategory(this.currentUrl)
             });
 
@@ -2241,7 +2241,7 @@
           this.yandexMetrica.sendPageView({
             userId: this.userManager.getUserId(),
             userName: this.userManager.getFullName(),
-            pageUrl: 'https://b24-ztuhwe.bitrix24.ru/online/',
+            pageUrl: this.urlProcessor.normalizeUrl(this.currentUrl),
             pageTitle: document.title,
             pageCategory: this.categoryDetector.getCategory(this.currentUrl),
             timeOnPage: this.sessionTimer.getSessionTime()
@@ -2265,7 +2265,7 @@
           this.yandexMetrica.sendTimeOnPage({
             seconds: this.storedTime,
             userId: this.userManager.getUserId(),
-            pageUrl: this.currentUrl,
+            pageUrl: this.urlProcessor.normalizeUrl(this.currentUrl),
             pageCategory: this.categoryDetector.getCategory(this.currentUrl)
           });
         }
