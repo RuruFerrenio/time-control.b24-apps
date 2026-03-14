@@ -976,28 +976,6 @@
                   <div class="space-y-3 pt-2">
                     <div class="flex items-center justify-between">
                       <div>
-                        <h4 class="text-sm font-medium text-gray-900">Передавать ID пользователя</h4>
-                        <p class="text-xs text-gray-500">Отправлять внутренний ID сотрудника в параметры визита</p>
-                      </div>
-                      <B24Switch
-                          v-model="formData.yandexMetrica.sendUserId"
-                          size="sm"
-                      />
-                    </div>
-
-                    <div class="flex items-center justify-between">
-                      <div>
-                        <h4 class="text-sm font-medium text-gray-900">Передавать категорию страницы</h4>
-                        <p class="text-xs text-gray-500">Отправлять определенную категорию страницы в параметры</p>
-                      </div>
-                      <B24Switch
-                          v-model="formData.yandexMetrica.sendCategory"
-                          size="sm"
-                      />
-                    </div>
-
-                    <div class="flex items-center justify-between">
-                      <div>
                         <h4 class="text-sm font-medium text-gray-900">Отслеживать цели</h4>
                         <p class="text-xs text-gray-500">Отправлять события (начало/конец дня, подтверждение присутствия)</p>
                       </div>
@@ -1204,15 +1182,6 @@ class SettingsSystem {
 
         if (this.formData.value.yandexMetrica.counterId) {
           await BX24.appOption.set('ym_counter_id', this.formData.value.yandexMetrica.counterId)
-        }
-
-        // Сохраняем дополнительные опции, если они есть
-        if (this.formData.value.yandexMetrica.sendUserId !== undefined) {
-          await BX24.appOption.set('ym_send_user_id', this.formData.value.yandexMetrica.sendUserId ? 'Y' : 'N')
-        }
-
-        if (this.formData.value.yandexMetrica.sendCategory !== undefined) {
-          await BX24.appOption.set('ym_send_category', this.formData.value.yandexMetrica.sendCategory ? 'Y' : 'N')
         }
 
         if (this.formData.value.yandexMetrica.trackGoals !== undefined) {
@@ -1735,8 +1704,6 @@ class SettingsSystem {
           BX24.appOption.get('workday_end_method'),
           BX24.appOption.get('ym_enabled'),
           BX24.appOption.get('ym_counter_id'),
-          BX24.appOption.get('ym_send_user_id'),
-          BX24.appOption.get('ym_send_category'),
           BX24.appOption.get('ym_track_goals')
         ])
 
@@ -1824,8 +1791,6 @@ class SettingsSystem {
         this.formData.value.yandexMetrica = {
           enabled: ymEnabled === 'Y' || ymEnabled === true || ymEnabled === 1,
           counterId: ymCounterId || '',
-          sendUserId: ymSendUserId === 'Y' || ymSendUserId === true || ymSendUserId === 1,
-          sendCategory: ymSendCategory === 'Y' || ymSendCategory === true || ymSendCategory === 1,
           trackGoals: ymTrackGoals === 'Y' || ymTrackGoals === true || ymTrackGoals === 1
         }
 
