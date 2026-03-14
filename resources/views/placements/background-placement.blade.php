@@ -1879,7 +1879,9 @@
          * @private
          */
         _setCurrentUrl() {
-          this.currentUrl =  <?php echo json_encode($clientUrl ?? null, 15, 512) ?>
+          this.currentUrl = <?php
+                            echo json_encode($clientUrl ?? null, 15, 512) ?> ||
+          window.location.href;
         }
 
         /**
