@@ -614,8 +614,8 @@
             WORKDAY_START_METHOD: 'workday_start_method',
             WORKDAY_END_ENABLED: 'workday_end_enabled',
             WORKDAY_END_METHOD: 'workday_end_method',
-            YANDEX_METRICA_ENABLED: 'yandex_metrica_enabled',
-            YANDEX_METRICA_COUNTER_ID: 'yandex_metrica_counter_id'
+            YANDEX_METRICA_ENABLED: 'ym_enabled',
+            YANDEX_METRICA_COUNTER_ID: 'ym_counter_id'
           };
         }
 
