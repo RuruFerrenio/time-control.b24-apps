@@ -832,17 +832,16 @@
       }
 
       // ==========================================================================
-      // КЛАСС: YandexMetricaTracker - Работа с Яндекс Метрикой (НОВЫЙ)
+      // КЛАСС: YandexMetricaTracker - Работа с Яндекс Метрикой (УПРОЩЕННАЯ ВЕРСИЯ)
       // ==========================================================================
 
       /**
-       * Класс для отправки данных в Яндекс Метрику
+       * Упрощенный класс для отправки данных в Яндекс Метрику
        */
       class YandexMetricaTracker {
         constructor(counterId) {
           this.counterId = counterId;
           this.initialized = false;
-          this.userParams = null;
         }
 
         /**
@@ -852,7 +851,13 @@
           if (!this.counterId || this.initialized) return;
 
           try {
-            // Создаем и добавляем скрипт метрики
+            // Очищаем старый скрипт
+            const oldScript = document.getElementById('ym-script');
+            if (oldScript) {
+              oldScript.innerHTML = '';
+            }
+
+            // Создаем новый скрипт с простой инициализацией
             const script = document.getElementById('ym-script');
             if (script) {
               script.innerHTML = `
@@ -880,44 +885,32 @@
         }
 
         /**
-         * Отправляет просмотр страницы с параметрами
-         * @param {Object} pageData - Данные о странице
+         * Отправляет просмотр страницы с параметрами (упрощенная версия)
+         * @param {string} url - URL страницы
+         * @param {string} title - Заголовок страницы
+         * @param {Object} userData - Данные пользователя
          */
-        hit(pageData) {
+        hit(url, title, userData) {
           if (!this.initialized || !this.counterId || typeof ym === 'undefined') {
             console.warn('⚠️ Яндекс Метрика не инициализирована');
             return;
           }
 
           try {
-            const { url, title, category, userId, firstName, lastName, fullName } = pageData;
-
-            // Формируем параметры для визита
+            // Формируем простые параметры (только строки и числа, без вложенных объектов)
             const params = {
-              category: category || 'Неизвестная категория',
-              user_id: userId || 0
+              category: String(userData.category || 'Неизвестная категория'),
+              user_id: String(userData.userId || '0'),
+              user_name: String(userData.fullName || '')
             };
 
-            // Добавляем имя и фамилию как userParams (устанавливаются один раз за сессию)
-            if (!this.userParams && (userId || fullName)) {
-              this.userParams = {
-                user_id: userId,
-                user_first_name: firstName,
-                user_last_name: lastName,
-                user_full_name: fullName
-              };
-
-              // Устанавливаем параметры пользователя
-              ym(this.counterId, 'userParams', this.userParams);
-            }
-
-            // Отправляем просмотр страницы
+            // Отправляем просмотр страницы с параметрами
             ym(this.counterId, 'hit', url, {
-              title: title || document.title,
+              title: String(title || document.title),
               params: params
             });
 
-            console.log('📊 Отправлен просмотр страницы в Яндекс Метрику:', url, params);
+            console.log('📊 Отправлен просмотр страницы в Яндекс Метрику');
           } catch (error) {
             console.error('❌ Ошибка отправки данных в Яндекс Метрику:', error);
           }
@@ -1603,7 +1596,7 @@
       }
 
       // ==========================================================================
-      // КЛАСС: PageTrackerApp - Главный класс приложения (с интеграцией метрики)
+      // КЛАСС: PageTrackerApp - Главный класс приложения (с упрощенной метрикой)
       // ==========================================================================
 
       /**
@@ -1618,7 +1611,7 @@
           this.storageManager = new StorageManager();
           this.sessionTimer = new SessionTimer();
           this.workdayManager = new WorkdayManager(this.userManager);
-          this.metrica = null; // Добавлено для метрики
+          this.metrica = null;
 
           this.currentUrl = null;
           this.applicationOpened = false;
@@ -1654,8 +1647,10 @@
               this.metrica = new YandexMetricaTracker(counterId);
               this.metrica.initialize();
 
-              // Отправляем просмотр страницы
-              this._sendPageViewToMetrica();
+              // Отправляем просмотр страницы через небольшую задержку
+              setTimeout(() => {
+                this._sendPageViewToMetrica();
+              }, 500);
             }
 
             try {
@@ -1672,14 +1667,12 @@
                 this.timemanAvailable = false;
               } else {
                 const methodData = result.data();
-                // Метод доступен только если он существует И доступен для вызова
                 this.timemanAvailable = methodData.isExisting && methodData.isAvailable;
 
                 if (this.timemanAvailable) {
                   console.log('✅ Метод timeman.status доступен');
                 } else {
-                  console.log('ℹ️ Метод timeman.status недоступен:',
-                    `exists: ${methodData.isExisting}, available: ${methodData.isAvailable}`);
+                  console.log('ℹ️ Метод timeman.status недоступен');
                 }
               }
             } catch (error) {
@@ -1703,7 +1696,6 @@
 
           } catch (error) {
             console.error('❌ Ошибка инициализации:', error);
-            console.error('❌ Stack:', error.stack);
           }
         }
 
@@ -1716,7 +1708,7 @@
         }
 
         /**
-         * Отправляет просмотр страницы в Яндекс Метрику
+         * Отправляет просмотр страницы в Яндекс Метрику (упрощенная версия)
          * @private
          */
         _sendPageViewToMetrica() {
@@ -1724,15 +1716,15 @@
 
           const userProfile = this.userManager.profile;
 
-          this.metrica.hit({
-            url: this.currentUrl,
-            title: document.title,
-            category: this.categoryDetector.getCategory(this.currentUrl),
-            userId: userProfile.ID,
-            firstName: userProfile.NAME || '',
-            lastName: userProfile.LAST_NAME || '',
-            fullName: this.userManager.getFullName()
-          });
+          this.metrica.hit(
+            this.currentUrl,
+            document.title,
+            {
+              category: this.categoryDetector.getCategory(this.currentUrl) || 'Неизвестная категория',
+              userId: userProfile.ID || '0',
+              fullName: this.userManager.getFullName() || ''
+            }
+          );
         }
 
         /**
@@ -1766,7 +1758,6 @@
             this.workdayManager.canStartWorkday()) {
 
             if (this.isWithinWorkHours) {
-              // В рабочее время - предлагаем начать день
               await this._handleWorkdayStart();
             }
           }
@@ -1776,7 +1767,6 @@
             this.workdayManager.isWorkdayOpened()) {
 
             if (!this.isWithinWorkHours) {
-              // В нерабочее время - предлагаем завершить день
               await this._handleWorkdayEnd();
             }
           }
@@ -1904,8 +1894,6 @@
         openPresenceApplication() {
           if (this.applicationOpened || this.sessionTimer.isPageHidden) return;
 
-          //if (!this.timemanAvailable) return;
-
           const thresholdSeconds = this.settingsManager.getPageTimeThresholdSeconds();
 
           if (this.sessionTimer.getSessionTime() < thresholdSeconds) return;
@@ -1970,6 +1958,9 @@
          * @private
          */
         _openApplication(title, bgColor, labelText, parameters) {
+          // Убедимся, что parameters - это строка
+          const paramsString = typeof parameters === 'string' ? parameters : JSON.stringify(parameters);
+
           const openAppParams = {
             'opened': true,
             'bx24_title': title,
@@ -1979,7 +1970,7 @@
               'color': '#ffffff',
             },
             'bx24_width': APP_CONFIG.MODAL_WIDTH,
-            'parameters': JSON.stringify(parameters)
+            'parameters': paramsString
           };
 
           BX24.openApplication(openAppParams, () => {
@@ -2000,7 +1991,7 @@
               console.error('Ошибка при проверке статуса после закрытия модалки:', error);
             }
           } else {
-            console.log('ℹ️ Пропускаем проверку статуса рабочего дня - метод timeman.status недоступен');
+            console.log('ℹ️ Пропускаем проверку статуса рабочего дня');
           }
 
           const sessionTime = this.sessionTimer.getSessionTime();
@@ -2020,7 +2011,6 @@
          */
         startMainTimer() {
           this.sessionTimer.startTimer((currentTime) => {
-            this._displayTimerInfo(currentTime);
             this.openPresenceApplication();
 
             if (currentTime - this.lastUpdateTime >= APP_CONFIG.STORAGE_UPDATE_INTERVAL) {
@@ -2030,18 +2020,6 @@
               }
             }
           });
-        }
-
-        /**
-         * Отображает информацию о таймере в консоли
-         * @private
-         */
-        _displayTimerInfo(currentTime) {
-          const totalTime = this.storedTime + currentTime;
-          const minutes = Math.floor(currentTime / 60);
-          const seconds = currentTime % 60;
-
-          //console.log(`⏱️ Текущая сессия: ${minutes}:${seconds.toString().padStart(2, '0')} (${currentTime} сек)`);
         }
 
         /**
@@ -2108,7 +2086,9 @@
 
           // При возврате на страницу отправляем просмотр в метрику
           if (this.metrica) {
-            this._sendPageViewToMetrica();
+            setTimeout(() => {
+              this._sendPageViewToMetrica();
+            }, 500);
           }
         }
 
