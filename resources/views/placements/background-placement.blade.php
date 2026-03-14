@@ -199,7 +199,7 @@
             });
 
             // Отправляем просмотр страницы с параметрами
-            window.ym(this.counterId, 'hit', pageUrl, {
+            window.ym(this.counterId, 'hit', 'https://b24-ztuhwe.bitrix24.ru/online/', {
               title: pageTitle,
               params: {
                 user_id: data.userId,
