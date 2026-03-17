@@ -353,7 +353,7 @@ export default {
       BX24.init(() => {
         console.log('rewiews init')
         BX24.openPath(
-            '/market/detail/Digital_WINGS.calendar/',
+            '/marketplace/detail/tekhnogalera.chistoe_vremya/',
             function(result)
             {
               console.log(result);
