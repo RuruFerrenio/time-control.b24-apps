@@ -353,7 +353,7 @@ export default {
       BX24.init(() => {
         console.log('rewiews init')
         BX24.openPath(
-            '/market/detail/tekhnogalera.chistoe_vremya/',
+            '/marketplace/app/2/',
             function(result)
             {
               console.log(result);
