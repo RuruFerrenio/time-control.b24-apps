@@ -349,13 +349,9 @@ export default {
     }
 
     const handleReview = () => {
-      if (window.BX24) {
-        BX24.init(() => {
-          BX24.openPath('/market/detail/tekhnogalera.chistoe_vremya/');
-        });
-      } else {
-        console.error('BX24 API не загружен');
-      }
+      BX24.init(() => {
+        BX24.openPath('/market/detail/tekhnogalera.chistoe_vremya/');
+      });
     };
 
     // Слушатель событий обновления времени
