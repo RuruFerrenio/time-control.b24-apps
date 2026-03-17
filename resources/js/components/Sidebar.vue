@@ -349,8 +349,11 @@ export default {
     }
 
     const handleReview = () => {
-      console.log('rewiew')
-      BX24.openPath('/market/detail/tekhnogalera.chistoe_vremya/');
+      console.log('rewiews')
+      BX24.init(() => {
+        console.log('rewiews init')
+        BX24.openPath('/market/detail/tekhnogalera.chistoe_vremya/');
+      });
     };
 
     // Слушатель событий обновления времени
