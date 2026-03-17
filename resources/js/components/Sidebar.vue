@@ -349,6 +349,7 @@ export default {
     }
 
     const handleReview = () => {
+      console.log('rewiew')
       BX24.init(() => {
         BX24.openPath('/market/detail/tekhnogalera.chistoe_vremya/');
       });
