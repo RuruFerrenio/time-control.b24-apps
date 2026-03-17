@@ -352,7 +352,13 @@ export default {
       console.log('rewiews')
       BX24.init(() => {
         console.log('rewiews init')
-        BX24.openPath('/market/detail/tekhnogalera.chistoe_vremya/');
+        BX24.openPath(
+            '/market/detail/tekhnogalera.chistoe_vremya/',
+            function(result)
+            {
+              console.log(result);
+            }
+        );
       });
     };
 
