@@ -1940,21 +1940,33 @@
       }
 
       // ==========================================================================
-      // ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ
+      // ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ (с защитой от дублирования)
       // ==========================================================================
 
-      let app;
+      if (!window.__PAGE_TRACKER_APP_INITIALIZED__) {
+        window.__PAGE_TRACKER_APP_INITIALIZED__ = true;
 
-      BX24.init(function () {
-        app = new PageTrackerApp();
-        app.initialize();
+        let app;
 
-        try {
-          BX24.fitWindow();
-        } catch (error) {
-          console.error('Ошибка при вызове BX24.fitWindow:', error);
-        }
-      });
+        BX24.init(function () {
+          if (window.__pageTrackerAppInstance) {
+            console.log('✅ PageTrackerApp уже запущен, пропускаем повторную инициализацию');
+            return;
+          }
+
+          app = new PageTrackerApp();
+          window.__pageTrackerAppInstance = app;
+          app.initialize();
+
+          try {
+            BX24.fitWindow();
+          } catch (error) {
+            console.error('Ошибка при вызове BX24.fitWindow:', error);
+          }
+        });
+      } else {
+        console.log('🔄 PageTrackerApp уже инициализирован в другом окне/iframe, пропускаем');
+      }
     </script>
 </head>
 </html>
