@@ -1519,13 +1519,6 @@
                 const methodData = result.data();
                 // Метод доступен только если он существует И доступен для вызова
                 this.timemanAvailable = methodData.isExisting && methodData.isAvailable;
-
-                if (this.timemanAvailable) {
-                  console.log('✅ Метод timeman.status доступен');
-                } else {
-                  console.log('ℹ️ Метод timeman.status недоступен:',
-                    `exists: ${methodData.isExisting}, available: ${methodData.isAvailable}`);
-                }
               }
             } catch (error) {
               console.error('❌ Ошибка при проверке доступности метода timeman.status:', error);
@@ -1535,7 +1528,6 @@
             if (this.timemanAvailable) {
               await this._checkWorkHoursAndWorkday();
             } else {
-              console.log('ℹ️ Работа с тайманом недоступна');
             }
 
             await this._initializeStorageWithCleanup();
@@ -1827,7 +1819,6 @@
               console.error('Ошибка при проверке статуса после закрытия модалки:', error);
             }
           } else {
-            console.log('ℹ️ Пропускаем проверку статуса рабочего дня - метод timeman.status недоступен');
           }
 
           const sessionTime = this.sessionTimer.getSessionTime();
@@ -1868,7 +1859,7 @@
           const minutes = Math.floor(currentTime / 60);
           const seconds = currentTime % 60;
 
-          //console.log(`⏱️ Текущая сессия: ${minutes}:${seconds.toString().padStart(2, '0')} (${currentTime} сек)`);
+          console.log(`⏱️ Текущая сессия: ${minutes}:${seconds.toString().padStart(2, '0')} (${currentTime} сек)`);
         }
 
         /**
