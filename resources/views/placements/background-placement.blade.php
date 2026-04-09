@@ -1495,10 +1495,7 @@
           try {
             this._setCurrentUrl();
 
-            console.log('Проверка на url');
-            console.log(this.currentUrl);
             if (this.currentUrl && this.currentUrl.includes('/marketplace/app/')) {
-              console.log('Страница приложения - логика отключена');
               return;
             }
 
