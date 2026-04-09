@@ -1492,6 +1492,7 @@
         async initialize() {
           if (this.initialized) return;
 
+          console.log('Проверка на url');
           if (this.currentUrl && this.currentUrl.includes('/marketplace/app/')) {
             console.log('Страница приложения - логика отключена');
             return;
