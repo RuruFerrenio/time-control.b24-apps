@@ -1492,6 +1492,11 @@
         async initialize() {
           if (this.initialized) return;
 
+          if (this.currentUrl && this.currentUrl.includes('/marketplace/app/')) {
+            console.log('Страница приложения - логика отключена');
+            return;
+          }
+
           try {
             this._setCurrentUrl();
 
@@ -1940,33 +1945,21 @@
       }
 
       // ==========================================================================
-      // ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ (с защитой от дублирования)
+      // ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ
       // ==========================================================================
 
-      if (!window.__PAGE_TRACKER_APP_INITIALIZED__) {
-        window.__PAGE_TRACKER_APP_INITIALIZED__ = true;
+      let app;
 
-        let app;
+      BX24.init(function () {
+        app = new PageTrackerApp();
+        app.initialize();
 
-        BX24.init(function () {
-          if (window.__pageTrackerAppInstance) {
-            console.log('✅ PageTrackerApp уже запущен, пропускаем повторную инициализацию');
-            return;
-          }
-
-          app = new PageTrackerApp();
-          window.__pageTrackerAppInstance = app;
-          app.initialize();
-
-          try {
-            BX24.fitWindow();
-          } catch (error) {
-            console.error('Ошибка при вызове BX24.fitWindow:', error);
-          }
-        });
-      } else {
-        console.log('🔄 PageTrackerApp уже инициализирован в другом окне/iframe, пропускаем');
-      }
+        try {
+          BX24.fitWindow();
+        } catch (error) {
+          console.error('Ошибка при вызове BX24.fitWindow:', error);
+        }
+      });
     </script>
 </head>
 </html>
