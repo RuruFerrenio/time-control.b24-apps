@@ -1495,7 +1495,7 @@
           try {
             this._setCurrentUrl();
 
-            if (this.currentUrl && this.currentUrl.includes('/marketplace/app/')) {
+            if (this.currentUrl && this.currentUrl.includes('/market')) {
               return;
             }
 
