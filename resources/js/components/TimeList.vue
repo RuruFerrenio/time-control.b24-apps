@@ -2212,7 +2212,6 @@ class HierarchicalDataManager {
       // Обновляем счетчики в bitrixHelper
       if (bitrixHelper && Object.keys(userTimeDifferences).length > 0) {
         try {
-          console.log('Обновляем счетчики')
           // Собираем все обновления счетчиков в один батч
           const counterBatch = {};
           let counterIndex = 0;
@@ -2224,7 +2223,7 @@ class HierarchicalDataManager {
               counterBatch[`update_counter_${counterIndex++}`] = [
                 'entity.item.update',
                 {
-                  ENTITY: 'user_saved_time',
+                  ENTITY: 'pr_saved_time',
                   FILTER: { USER_ID: parseInt(userId) },
                   FIELDS: {
                     PROPERTY_VALUES: {
@@ -2235,8 +2234,6 @@ class HierarchicalDataManager {
               ];
             }
           }
-
-          console.log(counterBatch)
 
           if (Object.keys(counterBatch).length > 0) {
             await new Promise((resolve) => {
