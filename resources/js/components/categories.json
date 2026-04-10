@@ -109,7 +109,9 @@
       "id": "welcome",
       "name": "Главная",
       "color": "bg-purple-100 text-purple-800",
-      "paths": ["/welcome/"]
+      "paths": ["/welcome/"],
+      "subcategories": {
+      }
     },
     {
       "id": "sites",
