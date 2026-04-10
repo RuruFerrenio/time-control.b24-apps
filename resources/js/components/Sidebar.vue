@@ -268,13 +268,6 @@ export default {
       });
     };
 
-    // Слушатель событий обновления времени
-    const handleTimeUpdate = (event) => {
-      if (event.detail) {
-        refreshSavedTime()
-      }
-    }
-
     // Инициализация
     const initialize = async () => {
       try {
@@ -301,12 +294,6 @@ export default {
 
     onMounted(async () => {
       await initialize()
-
-      // Создаем глобальную функцию для обновления счетчика из других компонентов
-      window.updateSidebarSavedTime = refreshSavedTime
-
-      // Подписываемся на событие обновления времени
-      window.addEventListener('saved-time-update', handleTimeUpdate)
     })
 
     onUnmounted(() => {
@@ -314,9 +301,6 @@ export default {
       if (window.updateSidebarSavedTime) {
         delete window.updateSidebarSavedTime
       }
-
-      // Отписываемся от события
-      window.removeEventListener('saved-time-update', handleTimeUpdate)
     })
 
     return {
