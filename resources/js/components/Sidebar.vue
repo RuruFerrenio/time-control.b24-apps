@@ -172,52 +172,6 @@
     <B24Card>
       <div class="p-0 md:p-6">
         <div class="space-y-4">
-          <!-- Заголовок блока -->
-          <div class="flex items-center justify-between">
-            <h4 class="text-lg font-semibold text-gray-900">Сохраненное время</h4>
-            <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-              <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-            </div>
-          </div>
-
-          <!-- Общий счетчик -->
-          <div class="text-center py-4">
-            <div class="text-3xl font-bold text-green-600 mb-2">
-              {{ formatSavedTime(totalSavedTime) }}
-            </div>
-            <p class="text-sm text-gray-500">
-              Общее сохраненное время всех сотрудников
-            </p>
-          </div>
-
-          <!-- Счетчик текущего пользователя -->
-          <div class="rounded-lg p-4 mt-2">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center">
-                <div>
-                  <p class="text-xs text-gray-600">Ваше сохраненное время:</p>
-                  <p class="text-xl font-semibold text-blue-700">{{ formatSavedTime(mySavedTime) }}</p>
-                </div>
-              </div>
-              <div class="text-right">
-                <p class="text-xs text-gray-500">Ваш вклад:</p>
-                <p class="text-lg font-medium text-blue-700">{{ myPercentage }}%</p>
-              </div>
-            </div>
-
-            <!-- Прогресс-бар -->
-            <div class="mt-3">
-              <div class="w-full bg-blue-200 rounded-full h-2">
-                <div
-                    class="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                    :style="{ width: `${myPercentage}%` }"
-                ></div>
-              </div>
-            </div>
-          </div>
-
           <!-- Кнопки действий -->
           <div class="space-y-3 pt-4 border-t border-gray-200">
             <!--<B24Button
@@ -243,18 +197,6 @@
               </svg>
               Оставить отзыв
             </B24Button>
-          </div>
-
-          <!-- Информация о том, что такое сохраненное время -->
-          <div class="pt-4 border-t border-gray-200">
-            <div class="flex items-start">
-              <svg class="w-4 h-4 text-blue-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-              <p class="text-xs text-gray-600">
-                Чистое время, проведенное в Битрикс24, закрепленное пользователями за задачами с помощью приложения
-              </p>
-            </div>
           </div>
         </div>
       </div>
@@ -309,40 +251,6 @@ export default {
       return parts.join(' ')
     }
 
-    // Загрузка всех данных о времени
-    const loadSavedTime = async () => {
-      try {
-        isLoading.value = true
-
-        if (bitrixHelper && bitrixHelper.isReady()) {
-          // Получаем ID текущего пользователя
-          if (!currentUserId.value) {
-            currentUserId.value = await bitrixHelper.getCurrentUserId()
-          }
-
-          // Загружаем все данные параллельно
-          const [total, userTime, percentage] = await Promise.all([
-            bitrixHelper.getTotalSavedTime(),
-            bitrixHelper.getUserSavedTime(currentUserId.value),
-            bitrixHelper.getUserPercentage(currentUserId.value)
-          ])
-
-          totalSavedTime.value = total || 0
-          mySavedTime.value = userTime || 0
-          myPercentage.value = percentage || 0
-        }
-      } catch (error) {
-        console.error('Ошибка загрузки сохраненного времени:', error)
-      } finally {
-        isLoading.value = false
-      }
-    }
-
-    // Обновление счетчика (вызывается из других компонентов)
-    const refreshSavedTime = async () => {
-      await loadSavedTime()
-    }
-
     // Обработчики кнопок
     const handleSupport = () => {
       // TODO: Реализовать логику поддержки проекта
@@ -377,14 +285,12 @@ export default {
           isAdmin.value = bitrixHelper.isUserAdmin()
           isStatisticsAvailable.value = bitrixHelper.isStatisticsAvailable()
           currentUserId.value = await bitrixHelper.getCurrentUserId()
-          await loadSavedTime()
         } else {
           // Если не инициализирован, пробуем инициализировать
           await bitrixHelper.init()
           isAdmin.value = bitrixHelper.isUserAdmin()
           isStatisticsAvailable.value = bitrixHelper.isStatisticsAvailable()
           currentUserId.value = await bitrixHelper.getCurrentUserId()
-          await loadSavedTime()
         }
       } catch (error) {
         console.error('Ошибка инициализации Sidebar:', error)

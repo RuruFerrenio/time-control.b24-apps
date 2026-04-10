@@ -2210,43 +2210,6 @@ class HierarchicalDataManager {
       }
 
       // Обновляем счетчики в bitrixHelper
-      if (bitrixHelper && Object.keys(userTimeDifferences).length > 0) {
-        try {
-          // Собираем все обновления счетчиков в один батч
-          const counterBatch = {};
-          let counterIndex = 0;
-
-          for (const [userId, timeDiff] of Object.entries(userTimeDifferences)) {
-            if (timeDiff !== 0) {
-              // Используем внутренний метод bitrixHelper для обновления без отдельного запроса
-              // или добавляем в батч, если это возможно
-              counterBatch[`update_counter_${counterIndex++}`] = [
-                'entity.item.update',
-                {
-                  ENTITY: 'pr_saved_time',
-                  FILTER: { USER_ID: parseInt(userId) },
-                  FIELDS: {
-                    PROPERTY_VALUES: {
-                      SAVED_TIME: timeDiff
-                    }
-                  }
-                }
-              ];
-            }
-          }
-
-          if (Object.keys(counterBatch).length > 0) {
-            await new Promise((resolve) => {
-              BX24.callBatch(counterBatch, () => resolve(), true);
-            });
-          }
-
-          this.refreshSidebarSavedTimeCounter();
-        } catch (error) {
-          console.warn('Ошибка обновления счетчиков:', error);
-          this.showNotification('error', 'Ошибка обновления счетчиков');
-        }
-      }
 
       this.showNotification(
           'success',
@@ -2634,15 +2597,6 @@ class HierarchicalDataManager {
           await this.updateStorageAndLocalData(originalItemId, taskId, elapsedItemId);
 
           // 2. Увеличиваем счетчик сохраненного времени через bitrixHelper
-          if (pageData.pageTime && pageData.pageTime > 0 && bitrixHelper) {
-            try {
-              await bitrixHelper.updateUserSavedTime(userData.id, pageData.pageTime);
-              this.refreshSidebarSavedTimeCounter();
-            } catch (error) {
-              console.error('Ошибка обновления счетчика:', error);
-              this.showNotification('error', 'Ошибка обновления счетчика');
-            }
-          }
 
           // 3. Показываем успешное уведомление
           this.showNotification('success', 'Время успешно добавлено к задаче!');
@@ -2808,16 +2762,6 @@ class HierarchicalDataManager {
           this.modalPageData.value.pageTime = newTime;
 
           // 6. Обновляем счетчик сохраненного времени на разницу через bitrixHelper
-          const timeDifference = newTime - oldTime;
-          if (timeDifference !== 0 && bitrixHelper) {
-            try {
-              await bitrixHelper.updateUserSavedTime(userId, timeDifference);
-              this.refreshSidebarSavedTimeCounter();
-            } catch (error) {
-              console.error('Ошибка обновления счетчика:', error);
-              this.showNotification('error', 'Ошибка обновления счетчика');
-            }
-          }
 
           // 7. Показываем успешное уведомление
           this.showNotification('success', 'Время успешно обновлено!');
@@ -2972,16 +2916,6 @@ class HierarchicalDataManager {
       });
 
       // 4. Уменьшаем счетчик сохраненного времени через bitrixHelper
-      const timeToDeduct = elapsedTimeToDeduct > 0 ? elapsedTimeToDeduct : pageTime;
-      if (timeToDeduct > 0 && bitrixHelper) {
-        try {
-          await bitrixHelper.updateUserSavedTime(userId, -timeToDeduct);
-          this.refreshSidebarSavedTimeCounter();
-        } catch (error) {
-          console.error('Ошибка уменьшения счетчика:', error);
-          this.showNotification('error', 'Ошибка уменьшения счетчика');
-        }
-      }
 
       // 5. Обновляем локальные данные
       this.removeTaskInfoFromLocalData(itemId);

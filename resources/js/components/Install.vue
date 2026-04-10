@@ -1088,35 +1088,6 @@
                     </div>
                   </div>
 
-                  <!-- Хранилище сохраненного времени -->
-                  <div class="flex items-center">
-                    <div class="w-6 h-6 md:w-8 md:h-8 flex-shrink-0">
-                      <div v-if="savedTimeStorageStatus === 'loading'">
-                        <svg class="animate-spin h-4 w-4 md:h-5 md:w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                      </div>
-                      <div v-else-if="savedTimeStorageStatus === 'success'">
-                        <svg class="w-4 h-4 md:w-5 md:h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                      </div>
-                      <div v-else-if="savedTimeStorageStatus === 'error'">
-                        <svg class="w-4 h-4 md:w-5 md:h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                      </div>
-                      <div v-else>
-                        <div class="w-4 h-4 md:w-5 md:h-5 bg-gray-300 rounded-full"></div>
-                      </div>
-                    </div>
-                    <div class="ml-2 md:ml-3">
-                      <p class="text-xs md:text-sm font-medium text-gray-900">Регистрация хранилища сохраненного времени</p>
-                      <p class="text-xs text-gray-500">Персональные счетчики времени</p>
-                    </div>
-                  </div>
-
                   <!-- Встройки -->
                   <div v-for="placement in placementsToInstall" :key="placement.id" class="flex items-center">
                     <div class="w-6 h-6 md:w-8 md:h-8 flex-shrink-0">
@@ -1372,14 +1343,6 @@ export default {
       { PROPERTY: 'ELAPSED_ITEM_ID', NAME: 'ID записи времени', TYPE: 'N' }
     ]
 
-    // Определения свойств хранилища сохраненного времени
-    const SAVED_TIME_STORAGE_PROPERTIES = [
-      { PROPERTY: 'USER_ID', NAME: 'ID пользователя', TYPE: 'N' },
-      { PROPERTY: 'USER_NAME', NAME: 'Имя пользователя', TYPE: 'S' },
-      { PROPERTY: 'TOTAL_TIME', NAME: 'Общее сохраненное время (сек)', TYPE: 'N' },
-      { PROPERTY: 'UPDATED_AT', NAME: 'Дата последнего обновления', TYPE: 'S' }
-    ]
-
     // Состояние
     const currentStep = ref(1)
     const totalSteps = 4
@@ -1463,7 +1426,6 @@ export default {
     })
 
     const storageStatus = ref(null)
-    const savedTimeStorageStatus = ref(null)
     const settingsStatus = ref(null)
 
     // Ошибки валидации
@@ -1944,7 +1906,6 @@ export default {
         restAppUri: null
       }
       storageStatus.value = null
-      savedTimeStorageStatus.value = null
       settingsStatus.value = null
 
       try {
@@ -1955,10 +1916,6 @@ export default {
         installedCount.value++
 
         // 2. Переустановка хранилища сохраненного времени (удаление + создание)
-        savedTimeStorageStatus.value = 'loading'
-        await storageManager.reinstallStorage('pr_saved_time', 'Сохраненное время', SAVED_TIME_STORAGE_PROPERTIES)
-        savedTimeStorageStatus.value = 'success'
-        installedCount.value++
 
         // 3. Переустановка встроек (удаление + создание)
         await registerAllPlacements()
@@ -2051,7 +2008,7 @@ export default {
     })
 
     const installationsToProcess = computed(() => {
-      let count = 2 // Два хранилища
+      let count = 1 // Два хранилища
       count += 2 // Две встройки
       count += 1 // Настройки
       return count
@@ -2130,7 +2087,6 @@ export default {
       installedCount,
       placementStatus,
       storageStatus,
-      savedTimeStorageStatus,
       settingsStatus,
 
       // Ошибки
