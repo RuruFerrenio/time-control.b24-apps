@@ -106,6 +106,15 @@
       }
     },
     {
+      "id": "welcome",
+      "name": "Главная",
+      "color": "bg-purple-100 text-purple-800",
+      "paths": ["/welcome/"],
+      "subcategories": {
+        "Главная": ["/welcome/"]
+      }
+    },
+    {
       "id": "sites",
       "name": "Сайты и Магазины",
       "color": "bg-indigo-100 text-indigo-800",
