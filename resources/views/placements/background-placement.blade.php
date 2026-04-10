@@ -234,9 +234,6 @@
             'welcome': {
               name: 'Главная',
               paths: ['/welcome/'],
-              subcategories: {
-                'Главная': ['/welcome/']
-              }
             },
             'sites': {
               name: 'Сайты и Магазины',
