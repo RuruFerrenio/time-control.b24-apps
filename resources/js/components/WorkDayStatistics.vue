@@ -1569,6 +1569,11 @@ class WorkDayStatisticsManager {
     try {
       const selectedDay = this.selectedDay.value
 
+      // Создаем дату начала следующего дня
+      const nextDay = new Date(selectedDay)
+      nextDay.setDate(nextDay.getDate() + 1)
+      const nextDayString = nextDay.toISOString().split('T')[0] // Формат YYYY-MM-DD
+
       let allElapsedItems = []
       let start = 0
       const pageSize = 50
@@ -1579,7 +1584,8 @@ class WorkDayStatisticsManager {
             { 'ID': 'DESC' },
             {
               'USER_ID': this.currentUserId.value,
-              '=CREATED_DATE': selectedDay,
+              '>=CREATED_DATE': selectedDay,
+              '<CREATED_DATE': nextDayString,
             },
             ['TASK_ID', 'ID', 'CREATED_DATE', 'DATE_START', 'DATE_STOP', 'MINUTES', 'COMMENT_TEXT'],
             {
