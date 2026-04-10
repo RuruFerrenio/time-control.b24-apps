@@ -1579,7 +1579,7 @@ class WorkDayStatisticsManager {
             { 'ID': 'DESC' },
             {
               'USER_ID': this.currentUserId.value,
-              '>=CREATED_DATE': selectedDay,
+              '=CREATED_DATE': selectedDay,
             },
             ['TASK_ID', 'ID', 'CREATED_DATE', 'DATE_START', 'DATE_STOP', 'MINUTES', 'COMMENT_TEXT'],
             {

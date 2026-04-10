@@ -3524,28 +3524,6 @@ class HierarchicalDataManager {
       }, true)
     })
   }
-
-  // Обновить счетчик в сайдбаре
-  refreshSidebarSavedTimeCounter() {
-    if (typeof window.updateSidebarSavedTime === 'function') {
-      try {
-        window.updateSidebarSavedTime();
-      } catch (error) {
-        console.warn('Ошибка обновления сайдбара:', error);
-      }
-    }
-
-    // Также отправляем событие для обновления других компонентов
-    try {
-      const event = new CustomEvent('saved-time-update', {
-        detail: { timestamp: Date.now() }
-      });
-      window.dispatchEvent(event);
-    } catch (error) {
-      // Игнорируем ошибки DOM события
-    }
-  }
-
 }
 
 export default {
@@ -3703,7 +3681,6 @@ export default {
       sendReportRequest: hierarchicalDataManager.sendReportRequest.bind(hierarchicalDataManager),
       refreshCurrentTabData: hierarchicalDataManager.refreshCurrentTabData.bind(hierarchicalDataManager),
       createStructuredReportRequest: hierarchicalDataManager.createStructuredReportRequest?.bind(hierarchicalDataManager),
-      refreshSidebarSavedTimeCounter: hierarchicalDataManager.refreshSidebarSavedTimeCounter?.bind(hierarchicalDataManager),
       actualizeAllTimes: hierarchicalDataManager.actualizeAllTimes?.bind(hierarchicalDataManager),
       getUserPosition,
       isActualizeCooldown: hierarchicalDataManager.isActualizeCooldown,
