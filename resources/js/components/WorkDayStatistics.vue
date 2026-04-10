@@ -1568,6 +1568,7 @@ class WorkDayStatisticsManager {
   async loadTaskTimeData() {
     try {
       const selectedDay = this.selectedDay.value
+      console.log(selectedDay)
 
       let allElapsedItems = []
       let start = 0
