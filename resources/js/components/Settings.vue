@@ -902,7 +902,7 @@
         </B24Card>
 
         <!-- Блок 6: Яндекс Метрика -->
-        <B24Card class="mb-8">
+        <B24Card class="mb-8 hidden">
           <div class="p-0 md:p-6">
             <div class="space-y-6">
               <div class="flex items-center justify-between">

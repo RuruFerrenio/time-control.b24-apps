@@ -2212,6 +2212,7 @@ class HierarchicalDataManager {
       // Обновляем счетчики в bitrixHelper
       if (bitrixHelper && Object.keys(userTimeDifferences).length > 0) {
         try {
+          console.log('Обновляем счетчики')
           // Собираем все обновления счетчиков в один батч
           const counterBatch = {};
           let counterIndex = 0;
@@ -2234,6 +2235,8 @@ class HierarchicalDataManager {
               ];
             }
           }
+
+          console.log(counterBatch)
 
           if (Object.keys(counterBatch).length > 0) {
             await new Promise((resolve) => {

@@ -1799,7 +1799,7 @@
             'bx24_label': {
               'bgColor': bgColor,
               'text': labelText,
-              'color': '#ffffff',
+              'color': '#ffffff',с
             },
             'bx24_width': APP_CONFIG.MODAL_WIDTH,
             'parameters': JSON.stringify(parameters)
@@ -1863,7 +1863,7 @@
           const minutes = Math.floor(currentTime / 60);
           const seconds = currentTime % 60;
 
-          //console.log(`⏱️ Текущая сессия: ${minutes}:${seconds.toString().padStart(2, '0')} (${currentTime} сек)`);
+          console.log(`⏱️ Текущая сессия: ${minutes}:${seconds.toString().padStart(2, '0')} (${currentTime} сек)`);
         }
 
         /**
