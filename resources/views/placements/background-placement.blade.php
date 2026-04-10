@@ -1799,7 +1799,7 @@
             'bx24_label': {
               'bgColor': bgColor,
               'text': labelText,
-              'color': '#ffffff',с
+              'color': '#ffffff',
             },
             'bx24_width': APP_CONFIG.MODAL_WIDTH,
             'parameters': JSON.stringify(parameters)
