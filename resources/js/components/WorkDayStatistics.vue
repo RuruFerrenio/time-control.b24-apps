@@ -1568,7 +1568,6 @@ class WorkDayStatisticsManager {
   async loadTaskTimeData() {
     try {
       const selectedDay = this.selectedDay.value
-      console.log(selectedDay)
 
       // Вычисляем следующий день
       const nextDay = new Date(selectedDay)

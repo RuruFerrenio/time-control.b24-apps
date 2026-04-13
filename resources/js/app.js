@@ -90,7 +90,6 @@ const setAxiosHeaders = (authData) => {
 if (window.bitrixData?.auth) {
   setAxiosHeaders(window.bitrixData.auth);
 } else {
-  console.warn('No auth data found in window.bitrixData');
 }
 
 // Создаем экземпляр i18n с определенным языком
